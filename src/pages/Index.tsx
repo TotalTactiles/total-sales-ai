@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navigation from '@/components/Navigation';
 import AIAssistant from '@/components/AIAssistant';
@@ -9,6 +8,7 @@ import GameProgress from '@/components/GameProgress';
 import TaskSuggestions from '@/components/TaskSuggestions';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
+import Bell from '@/components/Bell';
 
 const Dashboard = () => {
   return (
