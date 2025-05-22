@@ -34,7 +34,7 @@ const StatsCard = ({
     '→';
     
   // Calculate the max value for the chart
-  const maxValue = Math.max(...chartData);
+  const maxValue = Math.max(...chartData, 1); // Ensure we don't divide by zero
   
   return (
     <Card className="hover:shadow-md transition-all duration-300 overflow-hidden">
