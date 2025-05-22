@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from 'react-router-dom';
@@ -14,7 +13,8 @@ import {
   Users,
   Settings,
   BookOpen,
-  ShoppingBag
+  ShoppingBag,
+  Headphones
 } from "lucide-react";
 
 const Navigation = () => {
@@ -32,6 +32,7 @@ const Navigation = () => {
     else if (path === '/brain') setActiveItem('brain');
     else if (path === '/tools') setActiveItem('tools');
     else if (path === '/settings') setActiveItem('settings');
+    else if (path === '/ai-agent') setActiveItem('ai-agent');
   }, [location]);
   
   const navItems = [
@@ -42,6 +43,7 @@ const Navigation = () => {
     { id: 'missions', label: 'Agent Missions', href: '/missions', icon: null }, 
     { id: 'brain', label: 'Company Brain', href: '/brain', icon: null }, 
     { id: 'tools', label: 'Agent Tools', href: '/tools', icon: null }, 
+    { id: 'ai-agent', label: '🧠 AI Agent (Beta)', href: '/ai-agent', icon: null },
     { id: 'settings', label: 'Settings', href: '/settings', icon: Settings }, 
   ];
   

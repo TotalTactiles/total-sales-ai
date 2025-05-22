@@ -14,6 +14,7 @@ import AgentMissions from "./pages/AgentMissions";
 import CompanyBrain from "./pages/CompanyBrain";
 import AgentTools from "./pages/AgentTools";
 import Settings from "./pages/Settings";
+import AIAgent from "./pages/AIAgent";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => {
               <Route path="/brain" element={<CompanyBrain />} />
               <Route path="/tools" element={<AgentTools />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/ai-agent" element={<AIAgent />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
