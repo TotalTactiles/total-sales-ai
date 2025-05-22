@@ -38,7 +38,7 @@ const Dashboard = () => {
               {/* Notification Feed Toggle */}
               <button className="bg-white p-2 rounded-lg shadow-sm border border-slate-200 flex items-center gap-2 hover:bg-slate-50 transition-colors">
                 <span className="relative">
-                  <Bell className="h-5 w-5 text-salesBlue" />
+                  <Bell />
                   <span className="absolute -top-1 -right-1 bg-salesRed rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold text-white">
                     3
                   </span>
