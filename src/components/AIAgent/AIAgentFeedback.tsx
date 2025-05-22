@@ -247,9 +247,12 @@ const AIAgentFeedback = () => {
                     <p className="text-sm text-slate-600 mb-3">
                       Upload recordings of successful calls to train the AI agent's voice and tone
                     </p>
-                    <Button variant="outline" size="sm" as="label" className="cursor-pointer">
-                      Select Files
+                    <label htmlFor="file-upload" className="cursor-pointer inline-block">
+                      <Button variant="outline" size="sm" className="cursor-pointer">
+                        Select Files
+                      </Button>
                       <Input 
+                        id="file-upload"
                         type="file" 
                         className="hidden" 
                         accept="audio/mp3,audio/wav"
@@ -261,7 +264,7 @@ const AIAgentFeedback = () => {
                           });
                         }}
                       />
-                    </Button>
+                    </label>
                   </div>
                 </div>
                 

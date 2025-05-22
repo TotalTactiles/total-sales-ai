@@ -275,8 +275,8 @@ const AIAgentVoiceConfig = () => {
                     Each sample should be 30-60 seconds in length.
                   </p>
                   <div>
-                    <Label htmlFor="voice-upload" className="cursor-pointer">
-                      <Button as="span">Select Audio Files</Button>
+                    <label htmlFor="voice-upload" className="cursor-pointer">
+                      <Button>Select Audio Files</Button>
                       <Input 
                         type="file" 
                         id="voice-upload" 
@@ -285,7 +285,7 @@ const AIAgentVoiceConfig = () => {
                         multiple
                         onChange={handleFileUpload}
                       />
-                    </Label>
+                    </label>
                   </div>
                 </div>
               </div>
@@ -338,7 +338,7 @@ const AIAgentVoiceConfig = () => {
                 rows={2}
               />
               <p className="text-xs text-slate-500">
-                Use {{placeholders}} for dynamic content that will be filled from CRM data.
+                Use &#123;&#123;placeholders&#125;&#125; for dynamic content that will be filled from CRM data.
               </p>
             </div>
             
