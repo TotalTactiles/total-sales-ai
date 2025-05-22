@@ -182,23 +182,25 @@ const AIAssistant = () => {
     <>
       {/* Floating AI Assistant Button */}
       <div className={`fixed bottom-6 ${isExpanded ? 'right-[384px]' : 'right-6'} transition-all duration-300 z-20`}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button 
-              className={`rounded-full w-14 h-14 flex items-center justify-center shadow-lg ${isExpanded ? 'bg-salesRed hover:bg-salesRed-dark' : 'bg-salesCyan hover:bg-salesCyan-dark'}`}
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-6 w-6" />
-              ) : (
-                <MessageCircle className="h-6 w-6" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            <p>Your AI Assistant</p>
-          </TooltipContent>
-        </Tooltip>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                className={`rounded-full w-14 h-14 flex items-center justify-center shadow-lg ${isExpanded ? 'bg-salesRed hover:bg-salesRed-dark' : 'bg-salesCyan hover:bg-salesCyan-dark'}`}
+                onClick={() => setIsExpanded(!isExpanded)}
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-6 w-6" />
+                ) : (
+                  <MessageCircle className="h-6 w-6" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>Your AI Assistant</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       
       {/* AI Assistant Panel */}
