@@ -1,22 +1,48 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Logo from './Logo';
 import UserProfile from './UserProfile';
 import { Badge } from "@/components/ui/badge";
-import { Bell, Calendar, Zap, MessageCircle } from "lucide-react";
+import { 
+  Bell, 
+  Calendar, 
+  Zap, 
+  MessageCircle, 
+  BarChart, 
+  Users,
+  Settings,
+  BookOpen,
+  ShoppingBag
+} from "lucide-react";
 
 const Navigation = () => {
+  const location = useLocation();
   const [activeItem, setActiveItem] = useState('dashboard');
   
+  // Update active item based on current location
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/') setActiveItem('dashboard');
+    else if (path === '/dialer') setActiveItem('dialer');
+    else if (path === '/leads') setActiveItem('leads');
+    else if (path === '/analytics') setActiveItem('analytics');
+    else if (path === '/missions') setActiveItem('missions');
+    else if (path === '/brain') setActiveItem('brain');
+    else if (path === '/tools') setActiveItem('tools');
+    else if (path === '/settings') setActiveItem('settings');
+  }, [location]);
+  
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', href: '/' },
-    { id: 'dialer', label: 'Dialer Queue', href: '/dialer' }, // Updated name
-    { id: 'leads', label: 'Lead Management', href: '/leads' },
-    { id: 'analytics', label: 'Analytics', href: '/analytics' },
-    { id: 'training', label: 'Agent Academy', href: '/training' }, // Updated name
-    { id: 'store', label: 'Agent Tools', href: '/store' }, // Updated name
+    { id: 'dashboard', label: 'Dashboard', href: '/', icon: null },
+    { id: 'dialer', label: 'Smart Dialer', href: '/dialer', icon: null }, 
+    { id: 'leads', label: 'Lead Management', href: '/leads', icon: null },
+    { id: 'analytics', label: 'Analytics', href: '/analytics', icon: null },
+    { id: 'missions', label: 'Agent Missions', href: '/missions', icon: null }, 
+    { id: 'brain', label: 'Company Brain', href: '/brain', icon: null }, 
+    { id: 'tools', label: 'Agent Tools', href: '/tools', icon: null }, 
+    { id: 'settings', label: 'Settings', href: '/settings', icon: Settings }, 
   ];
   
   return (
@@ -88,7 +114,6 @@ const Navigation = () => {
                 ? 'text-white border-b-2 border-salesCyan' 
                 : 'text-slate-300 hover:text-white'
             }`}
-            onClick={() => setActiveItem(item.id)}
           >
             {item.label}
           </Link>

@@ -8,6 +8,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
 import Dialer from "./pages/Dialer";
 import NotFound from "./pages/NotFound";
+import LeadManagement from "./pages/LeadManagement";
+import Analytics from "./pages/Analytics";
+import AgentMissions from "./pages/AgentMissions";
+import CompanyBrain from "./pages/CompanyBrain";
+import AgentTools from "./pages/AgentTools";
+import Settings from "./pages/Settings";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -23,6 +29,12 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/dialer" element={<Dialer />} />
+              <Route path="/leads" element={<LeadManagement />} />
+              <Route path="/analytics" element={<Analytics />} />
+              <Route path="/missions" element={<AgentMissions />} />
+              <Route path="/brain" element={<CompanyBrain />} />
+              <Route path="/tools" element={<AgentTools />} />
+              <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
