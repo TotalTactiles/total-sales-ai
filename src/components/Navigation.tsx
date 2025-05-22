@@ -48,7 +48,7 @@ const Navigation = () => {
             </div>
           </Button>
           <div className="pl-4 border-l border-salesBlue-light">
-            <UserProfile />
+            <UserProfile name="Sam Smith" role="Sales Representative" />
           </div>
         </div>
       </div>
