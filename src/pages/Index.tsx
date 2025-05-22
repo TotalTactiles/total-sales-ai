@@ -7,7 +7,7 @@ import LeadQueue from '@/components/LeadQueue';
 import PerformanceChart from '@/components/PerformanceChart';
 import GameProgress from '@/components/GameProgress';
 import TaskSuggestions from '@/components/TaskSuggestions';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import Bell from '@/components/Bell';
 
@@ -56,19 +56,17 @@ const Dashboard = () => {
               <div className="flex flex-col">
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-lg font-semibold text-salesBlue">Weekly Performance</h2>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="flex items-center gap-1 text-xs text-slate-500 bg-white py-1 px-2 rounded-full shadow-sm cursor-help">
-                          <Info className="h-3.5 w-3.5" />
-                          <span>Why This Matters</span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p>This tracks your daily activity and success rate. Higher conversion patterns early in the week correlate with 37% better monthly outcomes.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 text-xs text-slate-500 bg-white py-1 px-2 rounded-full shadow-sm cursor-help">
+                        <Info className="h-3.5 w-3.5" />
+                        <span>Why This Matters</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>This tracks your daily activity and success rate. Higher conversion patterns early in the week correlate with 37% better monthly outcomes.</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <PerformanceChart />
               </div>

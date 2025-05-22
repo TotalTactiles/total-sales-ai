@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
 
 interface StatsCardProps {
@@ -33,8 +33,8 @@ const StatsCard = ({
     changeType === 'decrease' ? '↓' : 
     '→';
     
-  // Calculate the max value for the chart
-  const maxValue = Math.max(...chartData, 1); // Ensure we don't divide by zero
+  // Calculate the max value for the chart with safeguard against empty arrays
+  const maxValue = chartData && chartData.length > 0 ? Math.max(...chartData, 1) : 1;
   
   return (
     <Card className="hover:shadow-md transition-all duration-300 overflow-hidden">
@@ -48,18 +48,16 @@ const StatsCard = ({
               <div className="flex items-center">
                 <h3 className="text-slate-500 text-sm font-medium">{title}</h3>
                 {tooltip && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button className="ml-1.5 text-slate-400 hover:text-slate-600">
-                          <Info className="h-3.5 w-3.5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs">
-                        <p>{tooltip}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="ml-1.5 text-slate-400 hover:text-slate-600">
+                        <Info className="h-3.5 w-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{tooltip}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </div>
               <div className="font-bold text-2xl text-salesBlue">{value}</div>
@@ -72,7 +70,7 @@ const StatsCard = ({
           </div>
           
           {/* Micro Chart */}
-          {chartData.length > 0 && (
+          {chartData && chartData.length > 0 && (
             <div className="h-16 flex items-end gap-1">
               {chartData.map((data, index) => (
                 <div 
