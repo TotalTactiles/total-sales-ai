@@ -1,5 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,6 +29,7 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
   onLeadClick, 
   onQuickAction 
 }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
@@ -106,6 +107,16 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
       action: 'change',
       context: 'lead_management',
       metadata: { sortBy: newSortBy, direction: sortDirection }
+    });
+  };
+
+  const handleLeadClick = (lead: Lead) => {
+    navigate(`/leads/${lead.id}`);
+    trackEvent({
+      feature: 'lead_card_click',
+      action: 'navigate_to_workspace',
+      context: 'lead_management',
+      metadata: { leadId: lead.id, leadScore: lead.score }
     });
   };
 
@@ -225,7 +236,7 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
           <LeadCard
             key={lead.id}
             lead={lead}
-            onCardClick={onLeadClick}
+            onCardClick={handleLeadClick}
             onQuickAction={onQuickAction}
             aiSuggestion={aiSuggestionsEnabled ? aiSuggestions[lead.id] : undefined}
           />
