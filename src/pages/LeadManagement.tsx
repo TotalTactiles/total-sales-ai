@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,21 +8,26 @@ import {
   Search,
   Filter,
   Phone,
-  MessageCircle,
+  MessageSquare,
   Mail,
   ArrowUp,
   ArrowDown,
-  User
+  User,
+  Brain
 } from 'lucide-react';
+import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
+import UsageTracker from '@/components/AIBrain/UsageTracker';
 
 const LeadManagement = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [isIntelligencePanelOpen, setIsIntelligencePanelOpen] = useState(false);
   
   // Mock data for leads
   const leads = [
     {
-      id: 1,
+      id: '1',
       name: 'Michael Scott',
       company: 'Dunder Mifflin',
       position: 'Regional Manager',
@@ -32,10 +36,13 @@ const LeadManagement = () => {
       status: 'new',
       priority: 'high',
       lastContact: '2 days ago',
-      score: 87
+      score: 87,
+      tags: ['Budget Approved', 'Q1 Implementation'],
+      isSensitive: false,
+      conversionLikelihood: 78
     },
     {
-      id: 2,
+      id: '2',
       name: 'Jim Halpert',
       company: 'Athlead',
       position: 'Sales Manager',
@@ -44,10 +51,13 @@ const LeadManagement = () => {
       status: 'contacted',
       priority: 'medium',
       lastContact: '5 days ago',
-      score: 74
+      score: 74,
+      tags: ['Price Sensitive'],
+      isSensitive: false,
+      conversionLikelihood: 62
     },
     {
-      id: 3,
+      id: '3',
       name: 'Pam Beesly',
       company: 'Pratt Institute',
       position: 'Art Director',
@@ -56,10 +66,13 @@ const LeadManagement = () => {
       status: 'qualified',
       priority: 'high',
       lastContact: '1 day ago',
-      score: 91
+      score: 91,
+      tags: ['Hot Lead', 'Demo Scheduled'],
+      isSensitive: false,
+      conversionLikelihood: 89
     },
     {
-      id: 4,
+      id: '4',
       name: 'Dwight Schrute',
       company: 'Schrute Farms',
       position: 'Owner',
@@ -71,7 +84,7 @@ const LeadManagement = () => {
       score: 65
     },
     {
-      id: 5,
+      id: '5',
       name: 'Angela Martin',
       company: 'Dunder Mifflin',
       position: 'Accountant',
@@ -110,6 +123,11 @@ const LeadManagement = () => {
       default:
         return 'text-slate-500';
     }
+  };
+  
+  const handleLeadClick = (lead: any) => {
+    setSelectedLead(lead);
+    setIsIntelligencePanelOpen(true);
   };
   
   const filteredLeads = activeFilter === 'all' 
@@ -210,41 +228,69 @@ const LeadManagement = () => {
                       </thead>
                       <tbody>
                         {filteredLeads.map((lead) => (
-                          <tr key={lead.id} className="border-b hover:bg-slate-50">
-                            <td className="py-4">
-                              <div className="font-medium">{lead.name}</div>
-                              <div className="text-sm text-slate-500">{lead.position}</div>
-                            </td>
-                            <td className="py-4">{lead.company}</td>
-                            <td className="py-4">
-                              <span className={`text-xs px-2 py-1 rounded-full ${getStatusClass(lead.status)}`}>
-                                {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-                              </span>
-                            </td>
-                            <td className="py-4">
-                              <span className={`font-medium ${getPriorityClass(lead.priority)}`}>
-                                {lead.priority.charAt(0).toUpperCase() + lead.priority.slice(1)}
-                              </span>
-                            </td>
-                            <td className="py-4">{lead.score}%</td>
-                            <td className="py-4">{lead.lastContact}</td>
-                            <td className="py-4">
-                              <div className="flex gap-1">
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                  <Phone className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                  <MessageCircle className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                  <Mail className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                  <User className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
+                          <UsageTracker
+                            key={lead.id}
+                            feature="lead_row"
+                            context="lead_management"
+                          >
+                            <tr className="border-b hover:bg-slate-50 transition-colors cursor-pointer">
+                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
+                                <div className="font-medium flex items-center gap-2">
+                                  {lead.name}
+                                  <Brain className="h-4 w-4 text-blue-500 opacity-50" />
+                                </div>
+                                <div className="text-sm text-slate-500">{lead.position}</div>
+                              </td>
+                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
+                                {lead.company}
+                              </td>
+                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
+                                <span className={`text-xs px-2 py-1 rounded-full ${getStatusClass(lead.status)}`}>
+                                  {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                                </span>
+                              </td>
+                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
+                                <span className={`font-medium ${getPriorityClass(lead.priority)}`}>
+                                  {lead.priority.charAt(0).toUpperCase() + lead.priority.slice(1)}
+                                </span>
+                              </td>
+                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
+                                {lead.score}%
+                              </td>
+                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
+                                {lead.lastContact}
+                              </td>
+                              <td className="py-4">
+                                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                  <UsageTracker feature="quick_call" context="lead_row">
+                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                      <Phone className="h-4 w-4" />
+                                    </Button>
+                                  </UsageTracker>
+                                  <UsageTracker feature="quick_email" context="lead_row">
+                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                      <Mail className="h-4 w-4" />
+                                    </Button>
+                                  </UsageTracker>
+                                  <UsageTracker feature="quick_sms" context="lead_row">
+                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                      <MessageSquare className="h-4 w-4" />
+                                    </Button>
+                                  </UsageTracker>
+                                  <UsageTracker feature="lead_intelligence_open" context="lead_row">
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="h-8 w-8 p-0"
+                                      onClick={() => handleLeadClick(lead)}
+                                    >
+                                      <Brain className="h-4 w-4" />
+                                    </Button>
+                                  </UsageTracker>
+                                </div>
+                              </td>
+                            </tr>
+                          </UsageTracker>
                         ))}
                       </tbody>
                     </table>
@@ -360,6 +406,13 @@ const LeadManagement = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Lead Intelligence Panel */}
+      <LeadIntelligencePanel
+        lead={selectedLead}
+        isOpen={isIntelligencePanelOpen}
+        onClose={() => setIsIntelligencePanelOpen(false)}
+      />
     </div>
   );
 };
