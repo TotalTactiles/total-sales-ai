@@ -2,7 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
-import { encode, decode } from "https://deno.land/x/gpt_tokenizer@v1.1.0/mod.ts";
+// Replace the missing tokenizer with tiktoken, which is available and maintained
+import { encoding_for_model } from 'https://esm.sh/tiktoken-node@0.0.7';
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
@@ -51,15 +52,31 @@ async function removePII(text: string): Promise<string> {
 
 // Function to create text chunks (≤750 tokens each)
 function createChunks(text: string, maxTokens = 750): string[] {
-  const tokens = encode(text);
-  const chunks: string[] = [];
-  
-  for (let i = 0; i < tokens.length; i += maxTokens) {
-    const chunkTokens = tokens.slice(i, i + maxTokens);
-    chunks.push(decode(chunkTokens));
+  try {
+    // Use tiktoken encoding for text-embedding-ada-002 model
+    const enc = encoding_for_model("text-embedding-ada-002");
+    const tokens = enc.encode(text);
+    const chunks: string[] = [];
+    
+    for (let i = 0; i < tokens.length; i += maxTokens) {
+      const chunkTokens = tokens.slice(i, i + maxTokens);
+      chunks.push(new TextDecoder().decode(enc.decode(chunkTokens)));
+    }
+    
+    return chunks;
+  } catch (error) {
+    console.error('Error creating chunks:', error);
+    // Fallback to a simpler chunking method if tiktoken fails
+    const approxCharsPerToken = 4; // Rough approximation
+    const chunkSize = maxTokens * approxCharsPerToken;
+    const chunks: string[] = [];
+    
+    for (let i = 0; i < text.length; i += chunkSize) {
+      chunks.push(text.substring(i, i + chunkSize));
+    }
+    
+    return chunks;
   }
-  
-  return chunks;
 }
 
 // Function to get embeddings from OpenAI
