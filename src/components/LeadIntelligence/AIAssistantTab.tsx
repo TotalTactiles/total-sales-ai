@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,12 +20,7 @@ import {
 import { toast } from 'sonner';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import UsageTracker from '@/components/AIBrain/UsageTracker';
-
-interface Lead {
-  id: string;
-  name: string;
-  company: string;
-}
+import { Lead } from '@/types/lead';
 
 interface AIAssistantTabProps {
   lead: Lead;
