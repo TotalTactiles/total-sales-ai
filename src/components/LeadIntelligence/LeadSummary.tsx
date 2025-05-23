@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,19 +18,7 @@ import {
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useAIBrainInsights } from '@/hooks/useAIBrainInsights';
 import UsageTracker from '@/components/AIBrain/UsageTracker';
-
-interface Lead {
-  id: string;
-  name: string;
-  company: string;
-  email: string;
-  phone: string;
-  status: string;
-  priority: string;
-  lastContact: string;
-  score: number;
-  conversionLikelihood: number;
-}
+import { Lead } from '@/types/lead';
 
 interface LeadSummaryProps {
   lead: Lead;
