@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from '@/contexts/AuthContext';
@@ -176,7 +175,7 @@ export function useAIBrain() {
     }
   };
 
-  // New function for crawling web content
+  // Fixed crawlWebContent function to handle the missing company_id column
   const crawlWebContent = async (url: string, industry: string, sourceType: string): Promise<IngestResponse | null> => {
     if (!user?.id) {
       setError("User must be authenticated to use AI Brain");
@@ -188,29 +187,18 @@ export function useAIBrain() {
     setError(null);
     
     try {
-      // First, fetch the user's company_id from the profiles table
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
-        
-      if (profileError) {
-        console.error("Error fetching user profile:", profileError);
-        setError("Could not determine company ID");
-        toast.error("User profile information not available");
-        return null;
-      }
+      // Since there's an error with company_id not existing in profiles,
+      // we'll make the crawl request without a company ID for now
+      // This can be revised once the database schema is updated
       
-      const companyId = profileData?.company_id;
-      
-      // Here we would call a different edge function specifically for crawling
       const { data, error } = await supabase.functions.invoke('ai-brain-crawl', {
         body: {
           url,
           industry,
           sourceType,
-          companyId
+          // Omitting companyId for now as it's causing errors
+          // If needed in the future, we'll need to update the profiles table schema
+          userId: user.id // Pass userId instead, which can be used to determine company context
         }
       });
 
@@ -234,7 +222,6 @@ export function useAIBrain() {
     }
   };
 
-  // Function to delete knowledge entry
   const deleteKnowledgeEntry = async (id: string): Promise<boolean> => {
     if (!user?.id) {
       setError("User must be authenticated to use AI Brain");
@@ -264,7 +251,6 @@ export function useAIBrain() {
     }
   };
 
-  // Function to mark an entry as a case study
   const markAsCaseStudy = async (id: string, metadata?: Record<string, any>): Promise<boolean> => {
     if (!user?.id) {
       setError("User must be authenticated to use AI Brain");
