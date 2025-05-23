@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,7 +14,7 @@ import NotFound from "./pages/NotFound";
 import LeadManagement from "./pages/LeadManagement";
 import Analytics from "./pages/Analytics";
 import AgentMissions from "./pages/AgentMissions";
-import CompanyBrain from "./pages/CompanyBrain";
+import CompanyBrain from "./pages/dashboard/CompanyBrain";
 import AgentTools from "./pages/AgentTools";
 import Settings from "./pages/Settings";
 import AIAgent from "./pages/AIAgent";
@@ -98,7 +99,7 @@ const App = () => {
                   />
                   
                   <Route 
-                    path="/brain" 
+                    path="/dashboard/company-brain" 
                     element={
                       <ProtectedRoute>
                         <CompanyBrain />
@@ -132,6 +133,9 @@ const App = () => {
                       </ProtectedRoute>
                     } 
                   />
+                  
+                  {/* Legacy route redirect */}
+                  <Route path="/brain" element={<Navigate to="/dashboard/company-brain" replace />} />
                   
                   {/* Catch-all route */}
                   <Route path="*" element={<NotFound />} />
