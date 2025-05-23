@@ -32,9 +32,16 @@ interface KnowledgeResult {
   sourceId: string;
 }
 
+interface ReindexResponse {
+  success: boolean;
+  recordsProcessed: number;
+  error?: string;
+}
+
 export function useAIBrain() {
   const [isIngesting, setIsIngesting] = useState(false);
   const [isQuerying, setIsQuerying] = useState(false);
+  const [isReindexing, setIsReindexing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
 
@@ -129,12 +136,53 @@ export function useAIBrain() {
       setIsQuerying(false);
     }
   };
+  
+  const reindexKnowledge = async (): Promise<ReindexResponse | null> => {
+    if (!user?.id) {
+      setError("User must be authenticated to use AI Brain");
+      toast.error("Authentication required to use AI Brain");
+      return null;
+    }
+
+    setIsReindexing(true);
+    setError(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-brain-reindex');
+
+      if (error) {
+        console.error("Error reindexing AI Brain:", error);
+        setError(error.message || "Error reindexing AI Brain data");
+        toast.error("Failed to reindex AI Brain data");
+        return null;
+      }
+
+      if (data.success) {
+        toast.success(`Successfully reindexed ${data.recordsProcessed} records`);
+      } else {
+        setError(data.error || "Unknown error during reindexing");
+        toast.error("Reindexing failed");
+      }
+      
+      return data;
+      
+    } catch (err: any) {
+      console.error("Exception when reindexing AI Brain:", err);
+      setError(err.message || "Unknown error occurred");
+      toast.error("Failed to reindex data");
+      return null;
+    } finally {
+      setIsReindexing(false);
+    }
+  };
 
   return {
     ingestKnowledge,
     queryKnowledge,
+    reindexKnowledge,
     isIngesting,
     isQuerying,
+    isReindexing,
     error
   };
 }
