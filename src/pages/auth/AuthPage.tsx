@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
@@ -109,8 +108,16 @@ const AuthPage = () => {
                 <AuthLoginForm 
                   setIsTransitioning={setIsTransitioning} 
                   simulateLoginTransition={simulateLoginTransition}
-                  formData={formData}
-                  setFormData={setFormData}
+                  formData={{
+                    email: formData.email,
+                    password: formData.password
+                  }}
+                  setFormData={(data: { email: string; password: string; }) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      ...data
+                    }));
+                  }}
                 />
               ) : (
                 <AuthSignupForm 
@@ -133,7 +140,12 @@ const AuthPage = () => {
               selectedRole={selectedRole} 
               setIsTransitioning={setIsTransitioning}
               simulateLoginTransition={simulateLoginTransition}
-              setFormData={setFormData}
+              setFormData={(data: { email: string; password: string; }) => {
+                setFormData(prev => ({
+                  ...prev,
+                  ...data
+                }));
+              }}
             />
           </div>
         </Tabs>
