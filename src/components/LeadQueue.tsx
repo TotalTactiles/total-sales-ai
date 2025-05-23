@@ -8,7 +8,7 @@ import LeadIntelligencePanel from './LeadIntelligence/LeadIntelligencePanel';
 import UsageTracker from './AIBrain/UsageTracker';
 
 interface Lead {
-  id: number;
+  id: string;
   name: string;
   company: string;
   source: string;
@@ -31,7 +31,7 @@ const LeadQueue = () => {
 
   const leads: Lead[] = [
     { 
-      id: 1, 
+      id: '1', 
       name: "Michael Scott", 
       company: "Dunder Mifflin", 
       source: "LinkedIn", 
@@ -47,7 +47,7 @@ const LeadQueue = () => {
       conversionLikelihood: 78
     },
     { 
-      id: 2, 
+      id: '2', 
       name: "Jim Halpert", 
       company: "Athlead", 
       source: "Facebook", 
@@ -55,19 +55,31 @@ const LeadQueue = () => {
       priority: 'medium', 
       lastContact: '2 days ago',
       sentiment: 'neutral',
-      objection: 'Price concern'
+      objection: 'Price concern',
+      email: 'jim@athlead.com',
+      phone: '(570) 555-5678',
+      status: 'contacted',
+      tags: ['Price Sensitive'],
+      isSensitive: false,
+      conversionLikelihood: 62
     },
     { 
-      id: 3, 
+      id: '3', 
       name: "Pam Beesly", 
       company: "Pratt Institute", 
       source: "Referral", 
       score: 93, 
       priority: 'high',
-      sentiment: 'positive'
+      sentiment: 'positive',
+      email: 'pam@pratt.edu',
+      phone: '(570) 555-9012',
+      status: 'qualified',
+      tags: ['Hot Lead', 'Demo Scheduled'],
+      isSensitive: false,
+      conversionLikelihood: 89
     },
     { 
-      id: 4, 
+      id: '4', 
       name: "Dwight Schrute", 
       company: "Schrute Farms", 
       source: "Website", 
@@ -75,10 +87,16 @@ const LeadQueue = () => {
       priority: 'medium', 
       lastContact: '1 week ago',
       sentiment: 'negative',
-      objection: 'Current provider'
+      objection: 'Current provider',
+      email: 'dwight@schrutefarms.com',
+      phone: '(570) 555-3456',
+      status: 'new',
+      tags: ['Existing Provider'],
+      isSensitive: false,
+      conversionLikelihood: 45
     },
     { 
-      id: 5, 
+      id: '5', 
       name: "Ryan Howard", 
       company: "WUPHF.com", 
       source: "LinkedIn", 
@@ -86,7 +104,13 @@ const LeadQueue = () => {
       priority: 'low', 
       lastContact: '3 days ago',
       sentiment: 'neutral',
-      objection: 'No budget'
+      objection: 'No budget',
+      email: 'ryan@wuphf.com',
+      phone: '(570) 555-7890',
+      status: 'contacted',
+      tags: ['Budget Constraints'],
+      isSensitive: false,
+      conversionLikelihood: 32
     },
   ];
   

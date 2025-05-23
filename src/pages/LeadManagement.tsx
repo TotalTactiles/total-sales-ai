@@ -9,6 +9,7 @@ import {
   Filter,
   Phone,
   MessageSquare,
+  MessageCircle,
   Mail,
   ArrowUp,
   ArrowDown,
@@ -81,7 +82,10 @@ const LeadManagement = () => {
       status: 'new',
       priority: 'low',
       lastContact: '1 week ago',
-      score: 65
+      score: 65,
+      tags: [],
+      isSensitive: false,
+      conversionLikelihood: 45
     },
     {
       id: '5',
@@ -93,7 +97,10 @@ const LeadManagement = () => {
       status: 'closed',
       priority: 'medium',
       lastContact: '3 days ago',
-      score: 83
+      score: 83,
+      tags: [],
+      isSensitive: false,
+      conversionLikelihood: 65
     },
   ];
   

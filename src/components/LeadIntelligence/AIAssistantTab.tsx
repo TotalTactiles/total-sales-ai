@@ -35,6 +35,13 @@ interface AIAssistantTabProps {
   onRationaleModeChange: (enabled: boolean) => void;
 }
 
+interface ChatMessage {
+  id: string;
+  type: 'ai' | 'user';
+  message: string;
+  timestamp: string;
+}
+
 const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
   lead,
   voiceEnabled,
@@ -42,10 +49,10 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
   onRationaleModeChange
 }) => {
   const [chatMessage, setChatMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState([
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
     {
       id: '1',
-      type: 'ai' as const,
+      type: 'ai',
       message: `Hi! I'm your AI assistant for ${lead.name} from ${lead.company}. I've analyzed their behavior and can help with strategy, content, or answer questions about this lead.`,
       timestamp: '2 minutes ago'
     }
@@ -57,9 +64,9 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
   const handleSendMessage = async () => {
     if (!chatMessage.trim()) return;
 
-    const userMessage = {
+    const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      type: 'user' as const,
+      type: 'user',
       message: chatMessage,
       timestamp: 'now'
     };
@@ -81,9 +88,9 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
     // Simulate AI response
     setTimeout(() => {
-      const aiMessage = {
+      const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        type: 'ai' as const,
+        type: 'ai',
         message: generateAIResponse(chatMessage),
         timestamp: 'now'
       };
@@ -118,9 +125,9 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       description: 'Get insights into engagement patterns',
       action: () => {
         trackClick('ai_quick_action', 'analyze_behavior');
-        const analysis = {
+        const analysis: ChatMessage = {
           id: Date.now().toString(),
-          type: 'ai' as const,
+          type: 'ai',
           message: `${lead.name} shows high intent signals: 3x pricing page visits, 2x case study downloads, and 45-minute discovery call completion. Engagement score: 87%. Recommended action: Send ROI calculator and schedule follow-up call within 48 hours for optimal conversion likelihood.`,
           timestamp: 'now'
         };
@@ -133,9 +140,9 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       description: 'Create personalized outreach message',
       action: () => {
         trackClick('ai_quick_action', 'draft_followup');
-        const draft = {
+        const draft: ChatMessage = {
           id: Date.now().toString(),
-          type: 'ai' as const,
+          type: 'ai',
           message: `Here's a personalized follow-up for ${lead.name}:\n\n"Hi ${lead.name.split(' ')[0]}, I ran the numbers for ${lead.company} based on our conversation. You could save approximately $45,000 annually with our solution. I've prepared a 15-minute overview showing exactly how this works for construction companies your size. Are you available Thursday at 2 PM for a quick call?"\n\nThis approach works because it's specific, time-bound, and addresses their main concern (ROI).`,
           timestamp: 'now'
         };
@@ -148,9 +155,9 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       description: 'Get closing recommendations',
       action: () => {
         trackClick('ai_quick_action', 'conversion_strategy');
-        const strategy = {
+        const strategy: ChatMessage = {
           id: Date.now().toString(),
-          type: 'ai' as const,
+          type: 'ai',
           message: `Conversion strategy for ${lead.company}:\n\n1. **Timing**: Strike while hot - they're in active research mode\n2. **Approach**: Lead with ROI data and implementation speed\n3. **Social Proof**: Share ABC Construction case study (similar size/industry)\n4. **Close**: Offer pilot program to reduce risk\n5. **Timeline**: Aim for decision within 2 weeks while interest is high\n\nSuccess probability: 78% based on current engagement patterns.`,
           timestamp: 'now'
         };
