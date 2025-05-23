@@ -5,7 +5,7 @@ import StatCard from './StatCard';
 import { useAIBrainStats } from '@/hooks/useAIBrainStats';
 
 const BrainStats = () => {
-  const { totalDocuments, totalChunks, lastReindexed, isLoading } = useAIBrainStats();
+  const { totalDocuments, totalChunks, lastReindexed, isLoading, trends } = useAIBrainStats();
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -14,6 +14,7 @@ const BrainStats = () => {
         value={totalDocuments}
         icon={<Database className="h-5 w-5" />}
         isLoading={isLoading}
+        trend={trends?.documents}
       />
       
       <StatCard
@@ -21,6 +22,7 @@ const BrainStats = () => {
         value={totalChunks}
         icon={<FileText className="h-5 w-5" />}
         isLoading={isLoading}
+        trend={trends?.chunks}
       />
       
       <StatCard
