@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -14,7 +15,7 @@ interface Lead {
   source: string;
   score: number;
   priority: 'high' | 'medium' | 'low';
-  lastContact?: string;
+  lastContact?: string;  // Made optional to match LeadIntelligencePanel
   sentiment?: 'positive' | 'neutral' | 'negative';
   objection?: string;
   email: string;
