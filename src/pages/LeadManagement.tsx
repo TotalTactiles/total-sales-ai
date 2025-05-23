@@ -1,29 +1,18 @@
+
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Search,
-  Filter,
-  Phone,
-  MessageSquare,
-  MessageCircle,
-  Mail,
-  ArrowUp,
-  ArrowDown,
-  User,
-  Brain
-} from 'lucide-react';
+import LeadCardGrid from '@/components/LeadManagement/LeadCardGrid';
+import LeadSlidePanel from '@/components/LeadManagement/LeadSlidePanel';
 import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
-import UsageTracker from '@/components/AIBrain/UsageTracker';
 import { Lead } from '@/types/lead';
+import { toast } from 'sonner';
 
 const LeadManagement = () => {
   const [activeFilter, setActiveFilter] = useState('all');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false);
   const [isIntelligencePanelOpen, setIsIntelligencePanelOpen] = useState(false);
   
   // Mock data for leads
@@ -105,37 +94,35 @@ const LeadManagement = () => {
     },
   ];
   
-  const getStatusClass = (status: string) => {
-    switch (status) {
-      case 'new':
-        return 'bg-blue-100 text-blue-800';
-      case 'contacted':
-        return 'bg-purple-100 text-purple-800';
-      case 'qualified':
-        return 'bg-green-100 text-green-800';
-      case 'closed':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-  
-  const getPriorityClass = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'text-salesRed';
-      case 'medium':
-        return 'text-amber-500';
-      case 'low':
-        return 'text-slate-500';
-      default:
-        return 'text-slate-500';
-    }
-  };
-  
   const handleLeadClick = (lead: Lead) => {
     setSelectedLead(lead);
-    setIsIntelligencePanelOpen(true);
+    setIsSlidePanelOpen(true);
+  };
+
+  const handleQuickAction = (action: string, lead: Lead) => {
+    switch (action) {
+      case 'call':
+        toast.success(`Initiating call to ${lead.name}`);
+        break;
+      case 'email':
+        toast.success(`Opening email composer for ${lead.name}`);
+        break;
+      case 'chat':
+        toast.success(`Starting chat with ${lead.name}`);
+        break;
+      case 'notes':
+        toast.success(`Opening notes for ${lead.name}`);
+        break;
+      case 'ai_assist':
+        setSelectedLead(lead);
+        setIsIntelligencePanelOpen(true);
+        break;
+      case 'help':
+        toast.success(`Requesting team help for ${lead.name}`);
+        break;
+      default:
+        break;
+    }
   };
   
   const filteredLeads = activeFilter === 'all' 
@@ -155,271 +142,70 @@ const LeadManagement = () => {
             </Button>
           </div>
           
-          {/* Search and filters section */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input 
-                placeholder="Search leads..." 
-                className="pl-10"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" className="flex gap-2">
-                <Filter className="h-4 w-4" />
-                Filter
-              </Button>
-              <Button variant="outline" size="sm" className="flex gap-2">
-                Sort
-                {sortDirection === 'asc' ? (
-                  <ArrowUp className="h-4 w-4" />
-                ) : (
-                  <ArrowDown className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-          
-          {/* Tabs for lead status */}
+          {/* Status Tabs */}
           <Tabs defaultValue="all" className="mb-6">
-            <TabsList className="mb-2">
+            <TabsList className="mb-4">
               <TabsTrigger 
                 value="all" 
                 onClick={() => setActiveFilter('all')}
               >
-                All Leads
+                All Leads ({leads.length})
               </TabsTrigger>
               <TabsTrigger 
                 value="new" 
                 onClick={() => setActiveFilter('new')}
               >
-                New
+                New ({leads.filter(l => l.status === 'new').length})
               </TabsTrigger>
               <TabsTrigger 
                 value="contacted" 
                 onClick={() => setActiveFilter('contacted')}
               >
-                Contacted
+                Contacted ({leads.filter(l => l.status === 'contacted').length})
               </TabsTrigger>
               <TabsTrigger 
                 value="qualified" 
                 onClick={() => setActiveFilter('qualified')}
               >
-                Qualified
+                Qualified ({leads.filter(l => l.status === 'qualified').length})
               </TabsTrigger>
               <TabsTrigger 
                 value="closed" 
                 onClick={() => setActiveFilter('closed')}
               >
-                Closed
+                Closed ({leads.filter(l => l.status === 'closed').length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="mt-0">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">All Leads ({filteredLeads.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="text-left border-b">
-                          <th className="pb-2">Name</th>
-                          <th className="pb-2">Company</th>
-                          <th className="pb-2">Status</th>
-                          <th className="pb-2">Priority</th>
-                          <th className="pb-2">Score</th>
-                          <th className="pb-2">Last Contact</th>
-                          <th className="pb-2">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredLeads.map((lead) => (
-                          <UsageTracker
-                            key={lead.id}
-                            feature="lead_row"
-                            context="lead_management"
-                          >
-                            <tr className="border-b hover:bg-slate-50 transition-colors cursor-pointer">
-                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
-                                <div className="font-medium flex items-center gap-2">
-                                  {lead.name}
-                                  <Brain className="h-4 w-4 text-blue-500 opacity-50" />
-                                </div>
-                                <div className="text-sm text-slate-500">{lead.email}</div>
-                              </td>
-                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
-                                {lead.company}
-                              </td>
-                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
-                                <span className={`text-xs px-2 py-1 rounded-full ${getStatusClass(lead.status)}`}>
-                                  {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-                                </span>
-                              </td>
-                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
-                                <span className={`font-medium ${getPriorityClass(lead.priority)}`}>
-                                  {lead.priority.charAt(0).toUpperCase() + lead.priority.slice(1)}
-                                </span>
-                              </td>
-                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
-                                {lead.score}%
-                              </td>
-                              <td className="py-4" onClick={() => handleLeadClick(lead)}>
-                                {lead.lastContact || 'No contact yet'}
-                              </td>
-                              <td className="py-4">
-                                <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                                  <UsageTracker feature="quick_call" context="lead_row">
-                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                      <Phone className="h-4 w-4" />
-                                    </Button>
-                                  </UsageTracker>
-                                  <UsageTracker feature="quick_email" context="lead_row">
-                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                      <Mail className="h-4 w-4" />
-                                    </Button>
-                                  </UsageTracker>
-                                  <UsageTracker feature="quick_sms" context="lead_row">
-                                    <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                      <MessageSquare className="h-4 w-4" />
-                                    </Button>
-                                  </UsageTracker>
-                                  <UsageTracker feature="lead_intelligence_open" context="lead_row">
-                                    <Button 
-                                      size="sm" 
-                                      variant="ghost" 
-                                      className="h-8 w-8 p-0"
-                                      onClick={() => handleLeadClick(lead)}
-                                    >
-                                      <Brain className="h-4 w-4" />
-                                    </Button>
-                                  </UsageTracker>
-                                </div>
-                              </td>
-                            </tr>
-                          </UsageTracker>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="new" className="mt-0">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">New Leads ({filteredLeads.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {/* Same table structure as "all" tab */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="text-left border-b">
-                          <th className="pb-2">Name</th>
-                          <th className="pb-2">Company</th>
-                          <th className="pb-2">Status</th>
-                          <th className="pb-2">Priority</th>
-                          <th className="pb-2">Score</th>
-                          <th className="pb-2">Last Contact</th>
-                          <th className="pb-2">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredLeads.map((lead) => (
-                          <tr key={lead.id} className="border-b hover:bg-slate-50">
-                            <td className="py-4">
-                              <div className="font-medium">{lead.name}</div>
-                              <div className="text-sm text-slate-500">{lead.email}</div>
-                            </td>
-                            <td className="py-4">{lead.company}</td>
-                            <td className="py-4">
-                              <span className={`text-xs px-2 py-1 rounded-full ${getStatusClass(lead.status)}`}>
-                                {lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
-                              </span>
-                            </td>
-                            <td className="py-4">
-                              <span className={`font-medium ${getPriorityClass(lead.priority)}`}>
-                                {lead.priority.charAt(0).toUpperCase() + lead.priority.slice(1)}
-                              </span>
-                            </td>
-                            <td className="py-4">{lead.score}%</td>
-                            <td className="py-4">{lead.lastContact || 'No contact yet'}</td>
-                            <td className="py-4">
-                              <div className="flex gap-1">
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                  <Phone className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                  <MessageCircle className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                  <Mail className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                  <User className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            {/* Additional tab contents would be similar */}
-            <TabsContent value="contacted" className="mt-0">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Contacted Leads ({filteredLeads.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-4 text-center text-slate-500">
-                    Similar table structure as the "all" tab, filtered for contacted leads
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="qualified" className="mt-0">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Qualified Leads ({filteredLeads.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-4 text-center text-slate-500">
-                    Similar table structure as the "all" tab, filtered for qualified leads
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="closed" className="mt-0">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Closed Leads ({filteredLeads.length})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="p-4 text-center text-slate-500">
-                    Similar table structure as the "all" tab, filtered for closed leads
-                  </div>
-                </CardContent>
-              </Card>
+              <LeadCardGrid
+                leads={filteredLeads}
+                onLeadClick={handleLeadClick}
+                onQuickAction={handleQuickAction}
+              />
             </TabsContent>
           </Tabs>
         </div>
       </div>
 
+      {/* Lead Slide Panel */}
+      <LeadSlidePanel
+        lead={selectedLead}
+        isOpen={isSlidePanelOpen}
+        onClose={() => {
+          setIsSlidePanelOpen(false);
+          setSelectedLead(null);
+        }}
+      />
+
       {/* Lead Intelligence Panel */}
       <LeadIntelligencePanel
         lead={selectedLead}
         isOpen={isIntelligencePanelOpen}
-        onClose={() => setIsIntelligencePanelOpen(false)}
+        onClose={() => {
+          setIsIntelligencePanelOpen(false);
+          setSelectedLead(null);
+        }}
       />
     </div>
   );
