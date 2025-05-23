@@ -164,7 +164,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Demo mode functions
   const initializeDemoUser = (role: Role) => {
-    // Create a mock user and profile for demo purposes with proper type casting
+    console.log("Initializing demo user with role:", role);
+    
+    // Create a mock user for demo purposes with safe type casting
     const demoUser = {
       id: role === 'manager' ? 'demo-manager-id' : 'demo-sales-rep-id',
       email: role === 'manager' ? 'manager@salesos.com' : 'rep@salesos.com',
@@ -178,16 +180,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const demoProfile = {
       id: demoUser.id,
-      full_name: demoUser.user_metadata.full_name,
+      full_name: role === 'manager' ? 'John Manager' : 'Sam Sales',
       role: role,
     };
 
+    console.log("Setting demo user:", demoUser);
+    console.log("Setting demo profile:", demoProfile);
+    
     setUser(demoUser);
     setProfile(demoProfile);
     // We don't set a session for demo mode since it's not a real auth session
   };
 
   const initializeDemoMode = (role: Role) => {
+    console.log("Initializing demo mode with role:", role);
     localStorage.setItem('demoMode', 'true');
     localStorage.setItem('demoRole', role);
     initializeDemoUser(role);

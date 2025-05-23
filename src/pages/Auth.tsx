@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
@@ -15,7 +14,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 type Role = 'manager' | 'sales_rep';
 
 const Auth = () => {
-  const { user, profile, signIn, signUp, setLastSelectedRole, getLastSelectedRole, initializeDemoMode } = useAuth();
+  const { user, profile, signIn, signUp, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
@@ -30,12 +29,20 @@ const Auth = () => {
     fullName: '',
   });
 
+  // Redirect if already logged in or in demo mode
   useEffect(() => {
     if (user && profile) {
       const redirectPath = profile.role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
       navigate(redirectPath);
+    } else if (isDemoMode()) {
+      // Check if demo mode is active but navigation didn't happen
+      const demoRole = localStorage.getItem('demoRole') as Role | null;
+      if (demoRole) {
+        const redirectPath = demoRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+        navigate(redirectPath);
+      }
     }
-  }, [user, profile, navigate]);
+  }, [user, profile, navigate, isDemoMode]);
 
   const handleRoleChange = (role: Role) => {
     setSelectedRole(role);
@@ -94,17 +101,21 @@ const Auth = () => {
   };
 
   const handleDemoMode = () => {
-    toast.info(`Loading ${selectedRole === 'manager' ? 'Manager' : 'Sales Rep'} demo mode...`);
-    
     try {
+      toast.info(`Loading ${selectedRole === 'manager' ? 'Manager' : 'Sales Rep'} demo mode...`);
+      
       // Initialize demo mode with the selected role
       initializeDemoMode(selectedRole);
       
+      // Show transition screen before navigating
+      setIsTransitioning(true);
+      
+      // Navigate after a short delay to allow state updates to complete
       setTimeout(() => {
-        // Navigate to appropriate dashboard
         const redirectPath = selectedRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+        console.log("Navigating to:", redirectPath);
         navigate(redirectPath);
-      }, 1500);
+      }, 1000);
     } catch (error) {
       console.error('Demo mode error:', error);
       toast.error('Failed to load demo mode');
@@ -127,6 +138,26 @@ const Auth = () => {
     }
   };
 
+  // If already in demo mode, show transition screen
+  if (isDemoMode()) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-salesBlue-dark text-white">
+        <div className="max-w-md w-full p-8 text-center">
+          <div className="animate-pulse mb-8">
+            <Logo />
+          </div>
+          
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-salesCyan mx-auto mb-6"></div>
+          
+          <div className="typewriter">
+            <h2 className="text-xl font-medium mb-2">Loading demo workspace...</h2>
+            <p className="text-salesCyan">Preparing {localStorage.getItem('demoRole') === 'manager' ? 'manager' : 'sales rep'} dashboard</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (isTransitioning) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-salesBlue-dark text-white">
@@ -145,36 +176,6 @@ const Auth = () => {
               <p className="text-salesCyan">Optimizing your sales toolkit for maximum results</p>
             )}
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isVoiceLogin) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-700 to-salesBlue text-white">
-        <div className="max-w-md w-full p-8 text-center">
-          <h2 className="text-2xl font-bold mb-8">Voice Recognition</h2>
-          
-          {!voiceRecognized ? (
-            <>
-              <div className="relative mx-auto w-32 h-32 mb-6">
-                <div className="absolute inset-0 bg-salesCyan rounded-full opacity-25 animate-ping"></div>
-                <div className="relative flex items-center justify-center w-32 h-32 bg-salesCyan rounded-full">
-                  <Headphones className="h-16 w-16" />
-                </div>
-              </div>
-              <p className="text-lg">Listening...</p>
-              <p className="text-sm text-slate-300 mt-2">Please state your name</p>
-            </>
-          ) : (
-            <>
-              <div className="mx-auto w-32 h-32 bg-salesGreen rounded-full flex items-center justify-center mb-6 animate-bounce">
-                <Headphones className="h-16 w-16" />
-              </div>
-              <p className="text-xl font-medium animate-fadeIn">{welcomeMessage}</p>
-            </>
-          )}
         </div>
       </div>
     );
