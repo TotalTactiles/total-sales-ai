@@ -62,7 +62,8 @@ export const useEmailConnection = () => {
     setLoading(true);
     try {
       let authUrl = '';
-      const redirectUri = `${supabase.supabaseUrl}/functions/v1/email-oauth-callback`;
+      const supabaseUrl = 'https://yztozysvxyjqguybokqj.supabase.co';
+      const redirectUri = `${supabaseUrl}/functions/v1/email-oauth-callback`;
       
       if (providerId === 'gmail') {
         const scopes = [

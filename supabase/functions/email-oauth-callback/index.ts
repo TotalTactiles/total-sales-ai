@@ -34,6 +34,7 @@ serve(async (req) => {
     }
 
     let tokenData
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     
     if (provider === 'gmail') {
       // Exchange code for tokens with Google
@@ -45,7 +46,7 @@ serve(async (req) => {
           client_secret: Deno.env.get('GOOGLE_CLIENT_SECRET') ?? '',
           code,
           grant_type: 'authorization_code',
-          redirect_uri: `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-oauth-callback`
+          redirect_uri: `${supabaseUrl}/functions/v1/email-oauth-callback`
         })
       })
       
@@ -83,7 +84,7 @@ serve(async (req) => {
           client_secret: Deno.env.get('MICROSOFT_CLIENT_SECRET') ?? '',
           code,
           grant_type: 'authorization_code',
-          redirect_uri: `${Deno.env.get('SUPABASE_URL')}/functions/v1/email-oauth-callback`
+          redirect_uri: `${supabaseUrl}/functions/v1/email-oauth-callback`
         })
       })
       
