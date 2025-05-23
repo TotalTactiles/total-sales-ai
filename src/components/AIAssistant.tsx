@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MessageCircle, ChevronUp, ChevronDown, Zap } from "lucide-react";
+import { MessageCircle, ChevronUp, ChevronDown, Zap, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAIAgent } from "@/hooks/useAIAgent";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,7 +13,8 @@ import AIMessageList from './AIAssistant/AIMessageList';
 import AINotificationList from './AIAssistant/AINotificationList';
 import AIInputBar from './AIAssistant/AIInputBar';
 import MiniNotification from './AIAssistant/MiniNotification';
-import { AIMessage, AINotification } from './AIAssistant/types';
+import NotificationSettings from './AIAssistant/NotificationSettings';
+import { AIMessage, AINotification, NotificationPreference } from './AIAssistant/types';
 
 const AIAssistant = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -60,6 +60,28 @@ const AIAssistant = () => {
   ]);
   
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [notificationPreferences, setNotificationPreferences] = useState<NotificationPreference[]>([
+    { 
+      type: 'alert', 
+      enabled: true, 
+      description: 'Important notifications about sales performance and trends',
+      icon: '📈'
+    },
+    { 
+      type: 'tip', 
+      enabled: true, 
+      description: 'Helpful advice to improve your sales process',
+      icon: '💡'
+    },
+    { 
+      type: 'achievement', 
+      enabled: true, 
+      description: 'Notifications when you unlock new features or reach goals',
+      icon: '🏆'
+    },
+  ]);
+  
   const { user } = useAuth();
   const { callAIAgent, isLoading, error } = useAIAgent();
   
@@ -189,6 +211,27 @@ const AIAssistant = () => {
     }
   };
   
+  // Handle notification preference changes
+  const handlePreferenceChange = (type: 'alert' | 'tip' | 'achievement', enabled: boolean) => {
+    // Update the preferences
+    setNotificationPreferences(prevPrefs => 
+      prevPrefs.map(pref => 
+        pref.type === type ? { ...pref, enabled } : pref
+      )
+    );
+    
+    // Show toast confirmation
+    toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} notifications ${enabled ? 'enabled' : 'disabled'}`);
+    
+    // In a real application, this would save to user preferences in the database
+  };
+  
+  // Filter notifications based on user preferences
+  const filteredNotifications = notifications.filter(notification => {
+    const preference = notificationPreferences.find(pref => pref.type === notification.type);
+    return preference?.enabled;
+  });
+  
   // Show a confetti animation when achievements are unlocked
   useEffect(() => {
     const hasUnreadAchievement = notifications.some(
@@ -252,11 +295,20 @@ const AIAssistant = () => {
                   variant="ghost" 
                   size="sm" 
                   className="text-white p-1 h-auto hover:bg-white/10"
+                  onClick={() => setIsSettingsOpen(true)}
+                  title="Notification Settings"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-white p-1 h-auto hover:bg-white/10"
                   onClick={() => setShowNotifications(!showNotifications)}
                 >
                   <div className="relative">
                     <Badge className="absolute -top-1 -right-1 bg-salesRed rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold p-0">
-                      {notifications.filter(n => !n.read).length}
+                      {filteredNotifications.filter(n => !n.read).length}
                     </Badge>
                     <span>🔔</span>
                   </div>
@@ -267,7 +319,7 @@ const AIAssistant = () => {
           
           {showNotifications ? (
             <CardContent className="p-0 flex-grow overflow-y-auto bg-white dark:bg-dark-card">
-              <AINotificationList notifications={notifications} />
+              <AINotificationList notifications={filteredNotifications} />
             </CardContent>
           ) : (
             <CardContent className="p-4 flex-grow overflow-y-auto bg-white dark:bg-dark-card">
@@ -291,9 +343,20 @@ const AIAssistant = () => {
         </Card>
       </div>
       
+      {/* Notification Settings Dialog */}
+      <NotificationSettings 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        preferences={notificationPreferences}
+        onPreferenceChange={handlePreferenceChange}
+      />
+      
       {/* Simplified AI Assistant (when collapsed) */}
       <div className={`fixed bottom-24 right-6 transition-all duration-300 z-10 max-w-xs transform ${isExpanded ? 'translate-y-10 opacity-0 invisible' : 'translate-y-0 opacity-100'}`}>
-        <MiniNotification message="You've got 5 new leads ready to call. Click for details." />
+        <MiniNotification 
+          message="You've got 5 new leads ready to call. Click for details."
+          icon="📞"
+        />
       </div>
     </>
   );

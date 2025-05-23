@@ -16,3 +16,10 @@ export interface AINotification {
   read: boolean;
   timestamp: Date;
 }
+
+export interface NotificationPreference {
+  type: 'alert' | 'tip' | 'achievement';
+  enabled: boolean;
+  description: string;
+  icon: string;
+}
