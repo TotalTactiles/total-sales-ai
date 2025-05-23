@@ -27,7 +27,8 @@ import {
   Video,
   BarChart,
   Bell,
-  AlertTriangle
+  AlertTriangle,
+  Trophy
 } from 'lucide-react';
 
 type TeamMember = {
