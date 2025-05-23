@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -23,8 +22,8 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   setLastSelectedRole: (role: Role) => void;
   getLastSelectedRole: () => Role;
-  initializeDemoMode: (role: Role) => void; // Added this function
-  isDemoMode: () => boolean; // Added this function
+  initializeDemoMode: (role: Role) => void;
+  isDemoMode: () => boolean;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -165,14 +164,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Demo mode functions
   const initializeDemoUser = (role: Role) => {
-    // Create a mock user and profile for demo purposes
+    // Create a mock user and profile for demo purposes with proper type casting
     const demoUser = {
       id: role === 'manager' ? 'demo-manager-id' : 'demo-sales-rep-id',
       email: role === 'manager' ? 'manager@salesos.com' : 'rep@salesos.com',
       user_metadata: {
         full_name: role === 'manager' ? 'John Manager' : 'Sam Sales',
       },
-    } as User;
+      app_metadata: {},
+      aud: "authenticated",
+      created_at: new Date().toISOString(),
+    } as unknown as User;
 
     const demoProfile = {
       id: demoUser.id,
