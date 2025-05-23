@@ -79,15 +79,47 @@ export function useAIBrain() {
     }
   };
 
-  // This will be implemented in Step 4
   const queryKnowledge = async (params: QueryParams): Promise<KnowledgeResult[] | null> => {
+    if (!user?.id) {
+      setError("User must be authenticated to use AI Brain");
+      toast.error("Authentication required to use AI Brain");
+      return null;
+    }
+
     setIsQuerying(true);
     setError(null);
     
     try {
-      // This function will be implemented in Step 4
-      toast.error("Query endpoint not implemented yet");
-      return null;
+      const { data, error } = await supabase.functions.invoke('ai-brain-query', {
+        body: {
+          companyId: params.companyId,
+          industry: params.industry,
+          query: params.query,
+          topK: params.topK || 5
+        }
+      });
+
+      if (error) {
+        console.error("Error querying AI Brain:", error);
+        setError(error.message || "Error communicating with AI Brain");
+        toast.error("Failed to query AI Brain");
+        return null;
+      }
+
+      if (!data.results) {
+        setError("No results returned from AI Brain");
+        return [];
+      }
+
+      // Transform the results to match the expected format
+      const results: KnowledgeResult[] = data.results.map((item: any) => ({
+        content: item.content,
+        sourceType: item.source_type,
+        sourceId: item.source_id
+      }));
+
+      return results;
+      
     } catch (err: any) {
       console.error("Exception when querying AI Brain:", err);
       setError(err.message || "Unknown error occurred");

@@ -6,3 +6,9 @@ verify_jwt = true
 
 [functions.ai-brain-ingest]
 verify_jwt = true
+
+[functions.ai-brain-query]
+verify_jwt = true
+
+[functions.ai-brain-reindex]
+verify_jwt = true
