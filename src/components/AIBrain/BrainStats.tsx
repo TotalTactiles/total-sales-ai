@@ -19,7 +19,9 @@ const BrainStats = () => {
         .not('source_id', 'eq', null);
 
       if (sourceError) throw sourceError;
-      setTotalDocuments(sourceData?.count || 0);
+      // Fix: Using the count directly from the response, not from data
+      const uniqueSourceCount = sourceData?.length || 0;
+      setTotalDocuments(uniqueSourceCount);
 
       // Get total chunks count
       const { count: chunkCount, error: chunkError } = await supabase

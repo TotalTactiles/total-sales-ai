@@ -188,13 +188,29 @@ export function useAIBrain() {
     setError(null);
     
     try {
+      // First, fetch the user's company_id from the profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+        
+      if (profileError) {
+        console.error("Error fetching user profile:", profileError);
+        setError("Could not determine company ID");
+        toast.error("User profile information not available");
+        return null;
+      }
+      
+      const companyId = profileData?.company_id;
+      
       // Here we would call a different edge function specifically for crawling
       const { data, error } = await supabase.functions.invoke('ai-brain-crawl', {
         body: {
           url,
           industry,
           sourceType,
-          companyId: user.company_id
+          companyId
         }
       });
 

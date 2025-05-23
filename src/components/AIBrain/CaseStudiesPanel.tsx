@@ -87,15 +87,21 @@ const CaseStudiesPanel: React.FC<CaseStudyProps> = ({ isManager }) => {
   useEffect(() => {
     const fetchIndustries = async () => {
       try {
+        // Fix: Removed the distinct() call and implement client-side deduplication
         const { data, error } = await supabase
           .from('industry_knowledge')
           .select('industry')
           .eq('source_type', 'case-study')
-          .order('industry')
-          .distinct();
+          .order('industry');
           
         if (error) throw error;
-        setIndustries(data.map(item => item.industry));
+        
+        // Client-side deduplication of industries
+        const uniqueIndustries = Array.from(
+          new Set(data.map(item => item.industry))
+        );
+        
+        setIndustries(uniqueIndustries);
       } catch (err) {
         console.error("Error fetching industries:", err);
       }
