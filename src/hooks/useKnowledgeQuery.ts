@@ -31,13 +31,34 @@ export function useKnowledgeQuery() {
       return null;
     }
 
+    // Get the user's company_id from their profile if not provided
+    let companyId = params.companyId;
+    
+    if (!companyId) {
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileError) {
+          console.error("Error fetching user's company_id:", profileError);
+        } else if (profileData) {
+          companyId = profileData.company_id;
+        }
+      } catch (err) {
+        console.error("Exception when fetching user's company_id:", err);
+      }
+    }
+
     setIsQuerying(true);
     setError(null);
     
     try {
       const { data, error } = await supabase.functions.invoke('ai-brain-query', {
         body: {
-          companyId: params.companyId,
+          companyId,
           industry: params.industry,
           query: params.query,
           topK: params.topK || 5

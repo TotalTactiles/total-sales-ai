@@ -134,6 +134,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          company_id: string | null
           created_at: string | null
           full_name: string | null
           id: string
@@ -142,6 +143,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          company_id?: string | null
           created_at?: string | null
           full_name?: string | null
           id: string
@@ -150,12 +152,34 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          company_id?: string | null
           created_at?: string | null
           full_name?: string | null
           id?: string
           last_login?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      stats_history: {
+        Row: {
+          chunk_count: number
+          created_at: string
+          document_count: number
+          id: string
+        }
+        Insert: {
+          chunk_count?: number
+          created_at?: string
+          document_count?: number
+          id?: string
+        }
+        Update: {
+          chunk_count?: number
+          created_at?: string
+          document_count?: number
+          id?: string
         }
         Relationships: []
       }
@@ -212,6 +236,19 @@ export type Database = {
       binary_quantize: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
+      }
+      execute_vector_search: {
+        Args: {
+          query_embedding: string
+          company_filter: string
+          industry_filter: string
+          match_limit: number
+        }
+        Returns: {
+          content: string
+          source_type: string
+          source_id: string
+        }[]
       }
       halfvec_avg: {
         Args: { "": number[] }

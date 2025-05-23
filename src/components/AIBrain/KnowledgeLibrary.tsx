@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +31,35 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
   const [companyFilter, setCompanyFilter] = useState<string>('all');
   const [isReindexing, setIsReindexing] = useState<boolean>(false);
   const { user } = useAuth();
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  
+  // Fetch user's company ID
+  useEffect(() => {
+    const fetchCompanyId = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) {
+          console.error("Error fetching user's company_id:", error);
+          return;
+        }
+        
+        if (data?.company_id) {
+          setCompanyId(data.company_id);
+        }
+      } catch (err) {
+        console.error("Error in fetching company ID:", err);
+      }
+    };
+    
+    fetchCompanyId();
+  }, [user]);
   
   // Fetch knowledge entries
   const fetchEntries = async () => {
@@ -47,8 +75,9 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
         query = query.eq('source_type', sourceTypeFilter);
       }
       
-      if (companyFilter === 'company') {
-        query = query.not('company_id', 'is', null);
+      // Apply company filter
+      if (companyFilter === 'company' && companyId) {
+        query = query.eq('company_id', companyId);
       } else if (companyFilter === 'industry') {
         query = query.is('company_id', null);
       }
@@ -157,7 +186,7 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
   // Load entries when component mounts or filters change
   useEffect(() => {
     fetchEntries();
-  }, [sourceTypeFilter, companyFilter]);
+  }, [sourceTypeFilter, companyFilter, companyId]);
   
   return (
     <Card className="w-full">

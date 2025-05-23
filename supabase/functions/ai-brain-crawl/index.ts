@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
@@ -97,7 +96,7 @@ serve(async (req) => {
   }
 
   try {
-    const { url, industry, sourceType, companyId } = await req.json();
+    const { url, industry, sourceType, companyId, userId } = await req.json();
 
     // Validate input
     if (!url || !industry || !sourceType) {
@@ -107,8 +106,29 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Crawling URL: ${url}`);
+    console.log(`Crawling URL: ${url} for company ID: ${companyId || 'null'}`);
     
+    // If companyId is not provided but userId is, try to get the company_id from the user's profile
+    let finalCompanyId = companyId;
+    if (!finalCompanyId && userId) {
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('id', userId)
+          .single();
+        
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+        } else if (profileData?.company_id) {
+          finalCompanyId = profileData.company_id;
+          console.log(`Retrieved company_id ${finalCompanyId} from user profile`);
+        }
+      } catch (err) {
+        console.error('Failed to retrieve company_id from profile:', err);
+      }
+    }
+
     // Fetch the web content
     const response = await fetch(url);
     if (!response.ok) {
@@ -139,7 +159,7 @@ serve(async (req) => {
         const { error } = await supabase
           .from('industry_knowledge')
           .upsert({
-            company_id: companyId || null,
+            company_id: finalCompanyId,
             industry,
             source_type: sourceType,
             source_id: sourceId,

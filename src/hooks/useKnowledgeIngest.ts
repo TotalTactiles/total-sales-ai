@@ -33,13 +33,34 @@ export function useKnowledgeIngest() {
       return null;
     }
 
+    // Get the user's company_id from their profile
+    let companyId = params.companyId;
+    
+    if (!companyId) {
+      try {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('id', user.id)
+          .single();
+        
+        if (profileError) {
+          console.error("Error fetching user's company_id:", profileError);
+        } else if (profileData) {
+          companyId = profileData.company_id;
+        }
+      } catch (err) {
+        console.error("Exception when fetching user's company_id:", err);
+      }
+    }
+
     setIsIngesting(true);
     setError(null);
     
     try {
       const { data, error } = await supabase.functions.invoke('ai-brain-ingest', {
         body: {
-          companyId: params.companyId,
+          companyId,
           industry: params.industry,
           sourceType: params.sourceType,
           sourceId: params.sourceId,
@@ -79,22 +100,35 @@ export function useKnowledgeIngest() {
       return null;
     }
 
+    // Get the user's company_id from their profile
+    let companyId;
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+      
+      if (profileError) {
+        console.error("Error fetching user's company_id:", profileError);
+      } else if (profileData) {
+        companyId = profileData.company_id;
+      }
+    } catch (err) {
+      console.error("Exception when fetching user's company_id:", err);
+    }
+
     setIsIngesting(true);
     setError(null);
     
     try {
-      // Since there's an error with company_id not existing in profiles,
-      // we'll make the crawl request without a company ID for now
-      // This can be revised once the database schema is updated
-      
       const { data, error } = await supabase.functions.invoke('ai-brain-crawl', {
         body: {
           url,
           industry,
           sourceType,
-          // Omitting companyId for now as it's causing errors
-          // If needed in the future, we'll need to update the profiles table schema
-          userId: user.id // Pass userId instead, which can be used to determine company context
+          companyId,
+          userId: user.id // Still pass userId as a fallback
         }
       });
 

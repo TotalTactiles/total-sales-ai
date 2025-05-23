@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
@@ -108,6 +107,31 @@ async function reindexEmbeddings(): Promise<{ success: boolean; recordsProcessed
       
     if (updateJobError) {
       console.error('Error updating job status:', updateJobError);
+    }
+    
+    // After reindex, update stats_history table with latest counts
+    try {
+      // Get the current document and chunk counts
+      const { data: sourceData } = await supabase
+        .from('industry_knowledge')
+        .select('source_id', { count: 'exact', head: true })
+        .not('source_id', 'is', null);
+
+      const { count: chunkCount } = await supabase
+        .from('industry_knowledge')
+        .select('*', { count: 'exact', head: true });
+
+      // Insert a new stats entry
+      await supabase
+        .from('stats_history')
+        .insert({
+          document_count: sourceData?.length || 0,
+          chunk_count: chunkCount || 0
+        });
+        
+      console.log('Updated stats history after reindex');
+    } catch (error) {
+      console.error('Error updating stats history:', error);
     }
     
     return {

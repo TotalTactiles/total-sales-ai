@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
@@ -119,6 +118,8 @@ serve(async (req) => {
       );
     }
 
+    console.log(`Processing ingest for company ID: ${companyId || 'null'}`);
+
     // Remove PII from the text
     const sanitizedText = await removePII(text);
     
@@ -155,6 +156,29 @@ serve(async (req) => {
     
     const results = await Promise.all(insertPromises);
     const successCount = results.filter(r => r.success).length;
+    
+    // Update the stats_history table
+    try {
+      // Get the current document and chunk counts
+      const { data: sourceData } = await supabase
+        .from('industry_knowledge')
+        .select('source_id', { count: 'exact', head: true })
+        .not('source_id', 'is', null);
+
+      const { count: chunkCount } = await supabase
+        .from('industry_knowledge')
+        .select('*', { count: 'exact', head: true });
+
+      // Insert a new stats entry
+      await supabase
+        .from('stats_history')
+        .insert({
+          document_count: sourceData?.length || 0,
+          chunk_count: chunkCount || 0
+        });
+    } catch (error) {
+      console.error('Error updating stats history:', error);
+    }
     
     return new Response(
       JSON.stringify({ 

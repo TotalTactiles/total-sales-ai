@@ -29,19 +29,51 @@ export function useAIBrainStats() {
 
   const fetchStats = async () => {
     try {
+      // Get the current user and their company_id
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      let companyId: string | null = null;
+      if (user) {
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('id', user.id)
+          .single();
+          
+        if (profileError) {
+          console.error("Error fetching user's company_id:", profileError);
+        } else if (profileData) {
+          companyId = profileData.company_id;
+        }
+      }
+
       // Get total documents count (counting unique source IDs)
-      const { data: sourceData, error: sourceError } = await supabase
+      let query = supabase
         .from('industry_knowledge')
         .select('source_id', { count: 'exact', head: true })
         .not('source_id', 'eq', null);
-
+        
+      // Filter by company_id if available
+      if (companyId) {
+        query = query.eq('company_id', companyId);
+      }
+      
+      const { data: sourceData, error: sourceError } = await query;
+      
       if (sourceError) throw sourceError;
       const uniqueSourceCount = sourceData?.length || 0;
       
       // Get total chunks count
-      const { count: chunkCount, error: chunkError } = await supabase
+      let chunkQuery = supabase
         .from('industry_knowledge')
         .select('*', { count: 'exact', head: true });
+        
+      // Filter by company_id if available
+      if (companyId) {
+        chunkQuery = chunkQuery.eq('company_id', companyId);
+      }
+      
+      const { count: chunkCount, error: chunkError } = await chunkQuery;
 
       if (chunkError) throw chunkError;
       
