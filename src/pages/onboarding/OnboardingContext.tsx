@@ -156,13 +156,15 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
       // Generate a unique code
       const code = `${settings.industry.toLowerCase().replace(/\s+/g, '-')}-${Math.random().toString(36).substring(2, 8)}`;
       
-      // Create the referral link in the database
+      // Create the referral link in the database - convert settings to plain object for JSON compatibility
+      const configSnapshot = JSON.parse(JSON.stringify(settings));
+      
       const { error } = await supabase
         .from('referral_links')
         .insert({
           company_id: settings.company_id,
           referral_code: code,
-          config_snapshot: settings
+          config_snapshot: configSnapshot
         });
         
       if (error) throw error;

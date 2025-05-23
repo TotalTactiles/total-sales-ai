@@ -9,7 +9,7 @@ interface FeedbackItem {
   report_summary: string;
   metrics: any;
   suggestions: any;
-  sentiment: 'positive' | 'neutral' | 'negative';
+  sentiment: string; // Changed from union type to string to match database
   created_at: string;
 }
 

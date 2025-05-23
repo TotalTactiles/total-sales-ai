@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { CheckCircle, Copy, Loader2, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useOnboarding } from '../OnboardingContext';
@@ -278,9 +279,6 @@ const RevealStep: React.FC<RevealStepProps> = ({ settings, completeOnboarding, i
       </motion.div>
     );
   }
-
-  // Necessary imports for the fallback UI
-  const Input = dynamic(() => import('@/components/ui/input'));
   
   // Fallback UI for browsers/devices that don't support advanced features
   return (
