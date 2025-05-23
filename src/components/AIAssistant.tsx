@@ -1,32 +1,20 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MessageCircle, ChevronUp, ChevronDown, Zap, Loader2 } from "lucide-react";
+import { MessageCircle, ChevronUp, ChevronDown, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useAIAgent, AIResponse } from "@/hooks/useAIAgent";
+import { useAIAgent } from "@/hooks/useAIAgent";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-interface AIMessage {
-  id: number;
-  text: string;
-  sender: 'ai' | 'user';
-  timestamp: Date;
-  suggestedActions?: string[];
-}
-
-interface AINotification {
-  id: number;
-  title: string;
-  message: string;
-  type: 'alert' | 'tip' | 'achievement';
-  icon: string;
-  read: boolean;
-  timestamp: Date;
-}
+// Import our new components
+import AIMessageList from './AIAssistant/AIMessageList';
+import AINotificationList from './AIAssistant/AINotificationList';
+import AIInputBar from './AIAssistant/AIInputBar';
+import MiniNotification from './AIAssistant/MiniNotification';
+import { AIMessage, AINotification } from './AIAssistant/types';
 
 const AIAssistant = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -72,7 +60,6 @@ const AIAssistant = () => {
   ]);
   
   const [showNotifications, setShowNotifications] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { callAIAgent, isLoading, error } = useAIAgent();
   
@@ -202,13 +189,6 @@ const AIAssistant = () => {
     }
   };
   
-  // Scroll to bottom of messages when new ones are added
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [messages]);
-  
   // Show a confetti animation when achievements are unlocked
   useEffect(() => {
     const hasUnreadAchievement = notifications.some(
@@ -287,109 +267,33 @@ const AIAssistant = () => {
           
           {showNotifications ? (
             <CardContent className="p-0 flex-grow overflow-y-auto bg-white dark:bg-dark-card">
-              <div className="p-4 border-b dark:border-dark-border">
-                <h3 className="text-sm font-semibold text-salesBlue dark:text-salesCyan">Recent Notifications</h3>
-              </div>
-              <div className="divide-y dark:divide-dark-border">
-                {notifications.map(notification => (
-                  <div 
-                    key={notification.id} 
-                    className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${notification.read ? 'opacity-70' : ''}`}
-                  >
-                    <div className="flex gap-3">
-                      <div className="text-xl">{notification.icon}</div>
-                      <div>
-                        <div className="font-medium text-sm dark:text-white">{notification.title}</div>
-                        <div className="text-sm text-slate-600 dark:text-slate-300">{notification.message}</div>
-                        <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                          {notification.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <AINotificationList notifications={notifications} />
             </CardContent>
           ) : (
             <CardContent className="p-4 flex-grow overflow-y-auto bg-white dark:bg-dark-card">
-              <div className="space-y-4">
-                {messages.map((message) => (
-                  <div 
-                    key={message.id}
-                    className={`${
-                      message.sender === 'ai' 
-                        ? 'bg-slate-100 dark:bg-slate-800 rounded-br-lg rounded-tl-lg rounded-tr-lg' 
-                        : 'bg-salesCyan-light dark:bg-salesBlue/30 text-slate-800 dark:text-slate-100 rounded-bl-lg rounded-tl-lg rounded-tr-lg ml-auto'
-                    } p-3 max-w-[85%] animate-fade-in`}
-                  >
-                    {message.text}
-                    <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
-                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                    
-                    {message.suggestedActions && message.suggestedActions.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {message.suggestedActions.map((action, i) => (
-                          <Button 
-                            key={i} 
-                            size="sm" 
-                            variant="outline" 
-                            className="bg-white dark:bg-slate-700 text-xs h-auto py-1 px-2 dark:text-white"
-                            onClick={() => handleSuggestedAction(action)}
-                          >
-                            {action}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
+              <AIMessageList 
+                messages={messages} 
+                onSuggestedActionClick={handleSuggestedAction}
+                isLoading={isLoading}
+              />
             </CardContent>
           )}
           
           <CardFooter className="p-4 bg-white dark:bg-dark-card border-t dark:border-dark-border flex-shrink-0">
-            <div className="flex w-full gap-2">
-              <Input 
-                placeholder="Ask your AI assistant..." 
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="flex-1 dark:bg-slate-800 dark:text-white"
-                disabled={isLoading}
-              />
-              <Button 
-                onClick={handleSendMessage} 
-                className="bg-salesCyan hover:bg-salesCyan-dark dark:bg-salesBlue dark:hover:bg-salesBlue-dark"
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                )}
-                Send
-              </Button>
-            </div>
+            <AIInputBar
+              inputMessage={inputMessage}
+              setInputMessage={setInputMessage}
+              handleSendMessage={handleSendMessage}
+              handleKeyDown={handleKeyDown}
+              isLoading={isLoading}
+            />
           </CardFooter>
         </Card>
       </div>
       
       {/* Simplified AI Assistant (when collapsed) */}
       <div className={`fixed bottom-24 right-6 transition-all duration-300 z-10 max-w-xs transform ${isExpanded ? 'translate-y-10 opacity-0 invisible' : 'translate-y-0 opacity-100'}`}>
-        <Card className="shadow-lg border-salesCyan-light dark:border-salesBlue">
-          <CardContent className="p-3 bg-white dark:bg-dark-card">
-            <div className="text-sm animate-slide-up flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-salesCyan-light flex items-center justify-center text-salesBlue dark:bg-salesBlue/20 dark:text-salesCyan">
-                <Zap className="h-4 w-4" />
-              </div>
-              <div className="dark:text-white">
-                You've got <span className="font-semibold text-salesRed dark:text-salesRed-light">5 new leads</span> ready to call. Click for details.
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <MiniNotification message="You've got 5 new leads ready to call. Click for details." />
       </div>
     </>
   );
