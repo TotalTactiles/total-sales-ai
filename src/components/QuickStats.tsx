@@ -4,7 +4,7 @@ import StatsCard from './StatsCard';
 
 const QuickStats = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <StatsCard 
         title="Today's Calls" 
         value={42} 
@@ -13,6 +13,7 @@ const QuickStats = () => {
         icon="📞"
         tooltip="Call volume is a leading indicator of your conversion success. Aim for 50+ daily calls for optimal results."
         chartData={[15, 22, 28, 32, 38, 42]}
+        color="yellow"
       />
       <StatsCard 
         title="Leads Converted" 
@@ -22,6 +23,7 @@ const QuickStats = () => {
         icon="🎯"
         tooltip="You're converting 16.7% of your calls today - well above the team average of 12%!"
         chartData={[2, 3, 4, 5, 6, 7]}
+        color="green"
       />
       <StatsCard 
         title="Meetings Scheduled" 
@@ -31,15 +33,17 @@ const QuickStats = () => {
         icon="🗓️"
         tooltip="Consistent meeting scheduling leads to more predictable revenue. You need 2 more today to hit your goal."
         chartData={[3, 5, 2, 6, 4, 4]}
+        color="blue"
       />
       <StatsCard 
-        title="Avg. Response Time" 
+        title="Response Time" 
         value="3:42" 
         change="-12% vs. yesterday" 
         changeType="increase" 
         icon="⏱️"
         tooltip="Faster response times correlate with 28% higher conversion rates. You're trending in the right direction!"
         chartData={[5.2, 4.8, 4.5, 4.1, 3.9, 3.7]}
+        color="purple"
       />
     </div>
   );

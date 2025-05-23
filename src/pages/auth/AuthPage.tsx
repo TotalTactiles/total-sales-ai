@@ -1,8 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card } from '@/components/ui/card';
 import { Role } from '@/contexts/auth/types';
+import { ThemeToggle } from '@/components/ThemeProvider';
 import Logo from '@/components/Logo';
 import AuthLoginForm from './components/AuthLoginForm';
 import AuthSignupForm from './components/AuthSignupForm';
@@ -68,12 +71,16 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted/80">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      
+      <Card className="max-w-md w-full p-8 shadow-lg border border-border/40 rounded-xl">
         <div className="text-center mb-6">
           <Logo />
-          <h2 className="text-2xl font-bold mt-4 text-salesBlue">Welcome to SalesOS</h2>
-          <p className="text-slate-500 mt-1">Your AI-powered sales acceleration platform</p>
+          <h2 className="text-2xl font-bold mt-4 text-foreground">Welcome to SalesOS</h2>
+          <p className="text-muted-foreground mt-1">Your AI-powered sales acceleration platform</p>
         </div>
       
         <Tabs 
@@ -92,11 +99,11 @@ const AuthPage = () => {
           </TabsList>
         
           <div className="space-y-6">
-            <div className="text-center p-4 mb-4 border border-dashed border-slate-300 rounded-lg">
+            <div className="text-center p-4 mb-4 border border-dashed border-border rounded-lg">
               <h3 className="font-medium text-lg mb-1">
                 {selectedRole === 'manager' ? 'Manager Dashboard' : 'Sales Rep Dashboard'}
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-muted-foreground">
                 {selectedRole === 'manager' 
                   ? 'Team analysis, performance tracking & AI coaching' 
                   : 'Smart dialer, call scripts & AI sales assistant'}
@@ -129,7 +136,7 @@ const AuthPage = () => {
               <div className="flex items-center justify-center">
                 <button 
                   onClick={() => setIsLogin(!isLogin)}
-                  className="text-sm text-salesBlue hover:text-salesBlue-dark bg-transparent border-none cursor-pointer"
+                  className="text-sm text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer"
                 >
                   {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
                 </button>
@@ -149,7 +156,7 @@ const AuthPage = () => {
             />
           </div>
         </Tabs>
-      </div>
+      </Card>
     </div>
   );
 };
