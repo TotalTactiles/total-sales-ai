@@ -1,22 +1,34 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
   simulateLoginTransition: () => void;
+  formData?: { email: string; password: string; };
+  setFormData?: (data: { email: string; password: string; }) => void;
 }
 
-const AuthLoginForm: React.FC<AuthLoginFormProps> = ({ setIsTransitioning, simulateLoginTransition }) => {
-  const { signIn } = useAuth();
-  const [formData, setFormData] = useState({
+const AuthLoginForm: React.FC<AuthLoginFormProps> = ({ 
+  setIsTransitioning, 
+  simulateLoginTransition,
+  formData: externalFormData,
+  setFormData: externalSetFormData
+}) => {
+  const { signIn, initializeDemoMode } = useAuth();
+  const [internalFormData, setInternalFormData] = useState({
     email: '',
     password: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Use either external or internal form data based on what's provided
+  const formData = externalFormData || internalFormData;
+  const setFormData = externalSetFormData || setInternalFormData;
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -27,13 +39,36 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({ setIsTransitioning, simul
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     try {
+      console.log('Attempting to sign in with:', formData.email);
+      
+      // Check if using demo credentials and switch to demo mode if so
+      if ((formData.email === 'manager@salesos.com' && formData.password === 'manager123') ||
+          (formData.email === 'rep@salesos.com' && formData.password === 'sales123')) {
+        
+        console.log('Using demo credentials, initializing demo mode');
+        const role = formData.email === 'manager@salesos.com' ? 'manager' : 'sales_rep';
+        
+        // Use demo mode directly instead of trying to authenticate with Supabase
+        initializeDemoMode(role);
+        setIsTransitioning(true);
+        simulateLoginTransition();
+        toast.success('Demo mode activated!');
+        return;
+      }
+      
+      // Otherwise proceed with normal authentication
       await signIn(formData.email, formData.password);
+      toast.success('Logged in successfully!');
       setIsTransitioning(true);
       simulateLoginTransition();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Authentication error:', error);
+      toast.error(error.message || 'Invalid login credentials');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -48,6 +83,8 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({ setIsTransitioning, simul
           value={formData.email}
           onChange={handleFormChange}
           required
+          disabled={isLoading}
+          autoComplete="email"
         />
       </div>
       <div>
@@ -59,11 +96,26 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({ setIsTransitioning, simul
           value={formData.password}
           onChange={handleFormChange}
           required
+          disabled={isLoading}
+          autoComplete="current-password"
         />
       </div>
       
-      <Button type="submit" className="w-full bg-salesBlue hover:bg-salesBlue-dark">
-        <LogIn className="mr-2 h-4 w-4" /> Login
+      <Button 
+        type="submit" 
+        className="w-full bg-salesBlue hover:bg-salesBlue-dark"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></div>
+            Logging in...
+          </>
+        ) : (
+          <>
+            <LogIn className="mr-2 h-4 w-4" /> Login
+          </>
+        )}
       </Button>
     </form>
   );

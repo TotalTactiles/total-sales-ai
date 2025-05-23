@@ -12,37 +12,38 @@ interface AuthDemoOptionsProps {
   selectedRole: Role;
   setIsTransitioning: (value: boolean) => void;
   simulateLoginTransition: () => void;
+  setFormData?: (data: { email: string; password: string; fullName: string; }) => void;
 }
 
 const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({ 
   selectedRole, 
   setIsTransitioning,
-  simulateLoginTransition
+  simulateLoginTransition,
+  setFormData
 }) => {
   const { initializeDemoMode } = useAuth();
   const [isCredentialsOpen, setIsCredentialsOpen] = useState(false);
   const [isVoiceLogin, setIsVoiceLogin] = useState(false);
   const [voiceRecognized, setVoiceRecognized] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState('');
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    fullName: '',
-  });
 
   const fillDemoCredentials = () => {
+    if (!setFormData) return;
+    
     if (selectedRole === 'manager') {
       setFormData({
         email: 'manager@salesos.com',
         password: 'manager123',
         fullName: 'John Manager',
       });
+      toast.info('Manager credentials filled');
     } else {
       setFormData({
         email: 'rep@salesos.com',
         password: 'sales123',
         fullName: 'Sam Sales',
       });
+      toast.info('Sales Rep credentials filled');
     }
   };
 

@@ -16,23 +16,35 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+  });
 
   // Redirect if already logged in or in demo mode
   useEffect(() => {
+    console.log("AuthPage: Checking login status. User:", !!user, "Profile:", !!profile, "Demo mode:", isDemoMode());
+    
     if (user && profile) {
+      console.log("AuthPage: User is logged in, redirecting to dashboard");
       const redirectPath = profile.role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
       navigate(redirectPath);
     } else if (isDemoMode()) {
       // Check if demo mode is active but navigation didn't happen
       const demoRole = localStorage.getItem('demoRole') as Role | null;
+      console.log("AuthPage: Demo mode is active with role:", demoRole);
+      
       if (demoRole) {
         const redirectPath = demoRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+        console.log("AuthPage: Redirecting to", redirectPath);
         navigate(redirectPath);
       }
     }
   }, [user, profile, navigate, isDemoMode]);
 
   const handleRoleChange = (role: Role) => {
+    console.log("AuthPage: Role changed to", role);
     setSelectedRole(role);
     setLastSelectedRole(role);
   };
@@ -41,6 +53,7 @@ const AuthPage = () => {
     // Simulate loading and transition to dashboard
     setTimeout(() => {
       const redirectPath = selectedRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+      console.log("AuthPage: Transitioning to", redirectPath);
       navigate(redirectPath);
     }, 2000);
   };
@@ -96,6 +109,8 @@ const AuthPage = () => {
                 <AuthLoginForm 
                   setIsTransitioning={setIsTransitioning} 
                   simulateLoginTransition={simulateLoginTransition}
+                  formData={formData}
+                  setFormData={setFormData}
                 />
               ) : (
                 <AuthSignupForm 
@@ -118,6 +133,7 @@ const AuthPage = () => {
               selectedRole={selectedRole} 
               setIsTransitioning={setIsTransitioning}
               simulateLoginTransition={simulateLoginTransition}
+              setFormData={setFormData}
             />
           </div>
         </Tabs>
