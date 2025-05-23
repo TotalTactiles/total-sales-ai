@@ -6,10 +6,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Headphones, LogIn, UserPlus } from 'lucide-react';
+import { Headphones, LogIn, UserPlus, Info, ChevronDown } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Logo from '@/components/Logo';
 import { toast } from 'sonner';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 type Role = 'manager' | 'sales_rep';
 
@@ -22,6 +23,7 @@ const Auth = () => {
   const [voiceRecognized, setVoiceRecognized] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isCredentialsOpen, setIsCredentialsOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -102,6 +104,22 @@ const Auth = () => {
       const redirectPath = selectedRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
       navigate(redirectPath);
     }, 1500);
+  };
+
+  const fillDemoCredentials = () => {
+    if (selectedRole === 'manager') {
+      setFormData({
+        email: 'manager@salesos.com',
+        password: 'manager123',
+        fullName: 'John Manager',
+      });
+    } else {
+      setFormData({
+        email: 'rep@salesos.com',
+        password: 'sales123',
+        fullName: 'Sam Sales',
+      });
+    }
   };
 
   if (isTransitioning) {
@@ -277,6 +295,44 @@ const Auth = () => {
             </div>
             
             <div className="border-t border-slate-200 pt-4 space-y-3">
+              <Collapsible
+                open={isCredentialsOpen}
+                onOpenChange={setIsCredentialsOpen}
+                className="w-full bg-slate-50 rounded-lg"
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full flex items-center justify-between text-slate-600">
+                    <div className="flex items-center">
+                      <Info className="h-4 w-4 mr-2" />
+                      <span>Demo Login Credentials</span>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isCredentialsOpen ? "transform rotate-180" : ""}`} />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="p-4">
+                  <div className="space-y-4">
+                    <div className="p-3 bg-white border border-slate-200 rounded-md">
+                      <h4 className="font-medium mb-2">Manager Credentials</h4>
+                      <p className="text-sm text-slate-600 mb-1"><strong>Email:</strong> manager@salesos.com</p>
+                      <p className="text-sm text-slate-600"><strong>Password:</strong> manager123</p>
+                    </div>
+                    
+                    <div className="p-3 bg-white border border-slate-200 rounded-md">
+                      <h4 className="font-medium mb-2">Sales Rep Credentials</h4>
+                      <p className="text-sm text-slate-600 mb-1"><strong>Email:</strong> rep@salesos.com</p>
+                      <p className="text-sm text-slate-600"><strong>Password:</strong> sales123</p>
+                    </div>
+                    
+                    <Button 
+                      onClick={fillDemoCredentials}
+                      className="w-full bg-slate-600 hover:bg-slate-700 text-white"
+                    >
+                      Fill in {selectedRole === 'manager' ? 'Manager' : 'Sales Rep'} Credentials
+                    </Button>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+              
               <Button 
                 variant="outline" 
                 onClick={simulateVoiceLogin} 
