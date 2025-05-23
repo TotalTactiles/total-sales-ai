@@ -15,7 +15,7 @@ import AIAssistantTab from './AIAssistantTab';
 import { Lead } from '@/types/lead';
 
 interface LeadIntelligencePanelProps {
-  lead: Lead;
+  lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -29,13 +29,20 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [rationaleMode, setRationaleMode] = useState(true);
   const [aiDelegationMode, setAiDelegationMode] = useState(false);
-  const [isSensitive, setIsSensitive] = useState(lead.isSensitive);
+  const [isSensitive, setIsSensitive] = useState(false);
 
   const { trackEvent, trackClick, trackTabOpen } = useUsageTracking();
   const { logGhostIntent } = useAIBrainInsights();
 
+  // Update isSensitive when lead changes
   useEffect(() => {
-    if (isOpen) {
+    if (lead) {
+      setIsSensitive(lead.isSensitive);
+    }
+  }, [lead]);
+
+  useEffect(() => {
+    if (isOpen && lead) {
       trackEvent({
         feature: 'lead_intelligence_panel',
         action: 'open',
@@ -78,7 +85,7 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
       feature: 'ai_delegation',
       action: 'activate',
       context: 'lead_intelligence_panel',
-      metadata: { leadId: lead.id, leadScore: lead.score }
+      metadata: { leadId: lead?.id, leadScore: lead?.score }
     });
     
     toast.success('AI Assistant is now handling this lead. You\'ll be notified of major updates.');
@@ -89,7 +96,8 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
     trackClick('voice_controls', voiceEnabled ? 'disable' : 'enable');
   };
 
-  if (!isOpen) return null;
+  // Don't render if dialog is not open or lead is null
+  if (!isOpen || !lead) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

@@ -18,20 +18,21 @@ import {
 } from 'lucide-react';
 import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
 import UsageTracker from '@/components/AIBrain/UsageTracker';
+import { Lead } from '@/types/lead';
 
 const LeadManagement = () => {
   const [activeFilter, setActiveFilter] = useState('all');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isIntelligencePanelOpen, setIsIntelligencePanelOpen] = useState(false);
   
   // Mock data for leads
-  const leads = [
+  const leads: Lead[] = [
     {
       id: '1',
       name: 'Michael Scott',
       company: 'Dunder Mifflin',
-      position: 'Regional Manager',
+      source: 'LinkedIn',
       email: 'michael@dundermifflin.com',
       phone: '(570) 555-1234',
       status: 'new',
@@ -46,7 +47,7 @@ const LeadManagement = () => {
       id: '2',
       name: 'Jim Halpert',
       company: 'Athlead',
-      position: 'Sales Manager',
+      source: 'Website',
       email: 'jim@athlead.com',
       phone: '(570) 555-5678',
       status: 'contacted',
@@ -61,7 +62,7 @@ const LeadManagement = () => {
       id: '3',
       name: 'Pam Beesly',
       company: 'Pratt Institute',
-      position: 'Art Director',
+      source: 'Referral',
       email: 'pam@pratt.edu',
       phone: '(570) 555-9012',
       status: 'qualified',
@@ -76,7 +77,7 @@ const LeadManagement = () => {
       id: '4',
       name: 'Dwight Schrute',
       company: 'Schrute Farms',
-      position: 'Owner',
+      source: 'Website',
       email: 'dwight@schrutefarms.com',
       phone: '(570) 555-3456',
       status: 'new',
@@ -91,7 +92,7 @@ const LeadManagement = () => {
       id: '5',
       name: 'Angela Martin',
       company: 'Dunder Mifflin',
-      position: 'Accountant',
+      source: 'Website',
       email: 'angela@dundermifflin.com',
       phone: '(570) 555-7890',
       status: 'closed',
@@ -132,7 +133,7 @@ const LeadManagement = () => {
     }
   };
   
-  const handleLeadClick = (lead: any) => {
+  const handleLeadClick = (lead: Lead) => {
     setSelectedLead(lead);
     setIsIntelligencePanelOpen(true);
   };
@@ -246,7 +247,7 @@ const LeadManagement = () => {
                                   {lead.name}
                                   <Brain className="h-4 w-4 text-blue-500 opacity-50" />
                                 </div>
-                                <div className="text-sm text-slate-500">{lead.position}</div>
+                                <div className="text-sm text-slate-500">{lead.email}</div>
                               </td>
                               <td className="py-4" onClick={() => handleLeadClick(lead)}>
                                 {lead.company}
@@ -265,7 +266,7 @@ const LeadManagement = () => {
                                 {lead.score}%
                               </td>
                               <td className="py-4" onClick={() => handleLeadClick(lead)}>
-                                {lead.lastContact}
+                                {lead.lastContact || 'No contact yet'}
                               </td>
                               <td className="py-4">
                                 <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
@@ -331,7 +332,7 @@ const LeadManagement = () => {
                           <tr key={lead.id} className="border-b hover:bg-slate-50">
                             <td className="py-4">
                               <div className="font-medium">{lead.name}</div>
-                              <div className="text-sm text-slate-500">{lead.position}</div>
+                              <div className="text-sm text-slate-500">{lead.email}</div>
                             </td>
                             <td className="py-4">{lead.company}</td>
                             <td className="py-4">
@@ -345,7 +346,7 @@ const LeadManagement = () => {
                               </span>
                             </td>
                             <td className="py-4">{lead.score}%</td>
-                            <td className="py-4">{lead.lastContact}</td>
+                            <td className="py-4">{lead.lastContact || 'No contact yet'}</td>
                             <td className="py-4">
                               <div className="flex gap-1">
                                 <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
