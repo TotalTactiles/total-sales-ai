@@ -30,7 +30,15 @@ const AIBrainReindex: React.FC = () => {
       
       if (data) {
         setLastRun(data.last_run);
-        setRecordsProcessed(data.metadata?.records_processed || 0);
+        
+        // Check if metadata exists and is an object before accessing records_processed
+        if (data.metadata && typeof data.metadata === 'object' && data.metadata !== null) {
+          // Using type assertion to tell TypeScript that metadata has the records_processed property
+          const metadata = data.metadata as { records_processed?: number };
+          setRecordsProcessed(metadata.records_processed || 0);
+        } else {
+          setRecordsProcessed(0);
+        }
       }
     } catch (err: any) {
       console.error("Error fetching reindex job info:", err);
