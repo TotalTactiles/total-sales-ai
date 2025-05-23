@@ -15,7 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 type Role = 'manager' | 'sales_rep';
 
 const Auth = () => {
-  const { user, profile, signIn, signUp, setLastSelectedRole, getLastSelectedRole } = useAuth();
+  const { user, profile, signIn, signUp, setLastSelectedRole, getLastSelectedRole, initializeDemoMode } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
@@ -94,16 +94,21 @@ const Auth = () => {
   };
 
   const handleDemoMode = () => {
-    toast.info("Loading demo mode...");
-    setTimeout(() => {
-      // Set demo user in localStorage
-      localStorage.setItem('demoMode', 'true');
-      localStorage.setItem('demoRole', selectedRole);
+    toast.info(`Loading ${selectedRole === 'manager' ? 'Manager' : 'Sales Rep'} demo mode...`);
+    
+    try {
+      // Initialize demo mode with the selected role
+      initializeDemoMode(selectedRole);
       
-      // Navigate to appropriate dashboard
-      const redirectPath = selectedRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
-      navigate(redirectPath);
-    }, 1500);
+      setTimeout(() => {
+        // Navigate to appropriate dashboard
+        const redirectPath = selectedRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+        navigate(redirectPath);
+      }, 1500);
+    } catch (error) {
+      console.error('Demo mode error:', error);
+      toast.error('Failed to load demo mode');
+    }
   };
 
   const fillDemoCredentials = () => {

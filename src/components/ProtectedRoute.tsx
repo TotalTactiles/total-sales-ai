@@ -9,7 +9,7 @@ type ProtectedRouteProps = {
 };
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole = null }) => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isDemoMode } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -20,6 +20,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
     );
   }
 
+  // Check if in demo mode
+  if (isDemoMode()) {
+    // In demo mode, we already checked role in AuthContext
+    // so we can just render the children
+    if (!requiredRole || (profile && profile.role === requiredRole)) {
+      return <>{children}</>;
+    }
+    
+    // If specific role is required but doesn't match, redirect
+    const redirectPath = profile?.role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  // Standard auth check
   if (!user) {
     // Redirect to login if not authenticated
     return <Navigate to="/auth" state={{ from: location }} replace />;

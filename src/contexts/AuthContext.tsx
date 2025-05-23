@@ -23,6 +23,8 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   setLastSelectedRole: (role: Role) => void;
   getLastSelectedRole: () => Role;
+  initializeDemoMode: (role: Role) => void; // Added this function
+  isDemoMode: () => boolean; // Added this function
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,6 +37,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Check if demo mode is active on initial load
+    const demoMode = localStorage.getItem('demoMode');
+    const demoRole = localStorage.getItem('demoRole') as Role | null;
+
+    if (demoMode === 'true' && demoRole) {
+      // Initialize demo mode user
+      initializeDemoUser(demoRole);
+      setLoading(false);
+      return;
+    }
+
     // Set up the auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
@@ -135,12 +148,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      // Clear demo mode if active
+      localStorage.removeItem('demoMode');
+      localStorage.removeItem('demoRole');
+      
       await supabase.auth.signOut();
+      setUser(null);
+      setSession(null);
+      setProfile(null);
       navigate('/auth');
       toast.info('You have been logged out');
     } catch (error: any) {
       toast.error(error.message || 'Error signing out');
     }
+  };
+
+  // Demo mode functions
+  const initializeDemoUser = (role: Role) => {
+    // Create a mock user and profile for demo purposes
+    const demoUser = {
+      id: role === 'manager' ? 'demo-manager-id' : 'demo-sales-rep-id',
+      email: role === 'manager' ? 'manager@salesos.com' : 'rep@salesos.com',
+      user_metadata: {
+        full_name: role === 'manager' ? 'John Manager' : 'Sam Sales',
+      },
+    } as User;
+
+    const demoProfile = {
+      id: demoUser.id,
+      full_name: demoUser.user_metadata.full_name,
+      role: role,
+    };
+
+    setUser(demoUser);
+    setProfile(demoProfile);
+    // We don't set a session for demo mode since it's not a real auth session
+  };
+
+  const initializeDemoMode = (role: Role) => {
+    localStorage.setItem('demoMode', 'true');
+    localStorage.setItem('demoRole', role);
+    initializeDemoUser(role);
+  };
+
+  const isDemoMode = () => {
+    return localStorage.getItem('demoMode') === 'true';
   };
 
   // Local storage for last selected role tab
@@ -164,6 +216,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signOut,
         setLastSelectedRole,
         getLastSelectedRole,
+        initializeDemoMode,
+        isDemoMode,
       }}
     >
       {children}
