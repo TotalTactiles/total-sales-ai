@@ -1,0 +1,24 @@
+
+import { Session, User } from '@supabase/supabase-js';
+
+export type Role = 'manager' | 'sales_rep';
+
+export type Profile = {
+  id: string;
+  full_name: string | null;
+  role: Role;
+};
+
+export type AuthContextType = {
+  user: User | null;
+  session: Session | null;
+  profile: Profile | null;
+  loading: boolean;
+  signUp: (email: string, password: string, fullName: string, role: Role) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  setLastSelectedRole: (role: Role) => void;
+  getLastSelectedRole: () => Role;
+  initializeDemoMode: (role: Role) => void;
+  isDemoMode: () => boolean;
+};
