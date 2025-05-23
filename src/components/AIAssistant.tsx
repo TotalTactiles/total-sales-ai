@@ -1,11 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { MessageCircle, ChevronUp, ChevronDown, Zap } from "lucide-react";
+import { MessageCircle, ChevronUp, ChevronDown, Zap, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useAIAgent, AIResponse } from "@/hooks/useAIAgent";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 interface AIMessage {
   id: number;
@@ -69,8 +72,12 @@ const AIAssistant = () => {
   ]);
   
   const [showNotifications, setShowNotifications] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const { callAIAgent, isLoading, error } = useAIAgent();
   
-  const handleSendMessage = () => {
+  // Handle sending a message using the AI Agent
+  const handleSendMessage = async () => {
     if (inputMessage.trim()) {
       // Add user message
       const userMessage: AIMessage = {
@@ -79,83 +86,128 @@ const AIAssistant = () => {
         sender: 'user',
         timestamp: new Date(),
       };
-      setMessages([...messages, userMessage]);
+      setMessages(prevMessages => [...prevMessages, userMessage]);
       setInputMessage('');
       
-      // Simulate AI response
-      setTimeout(() => {
-        let aiResponse = '';
-        let suggestedActions: string[] = [];
-        
-        if (inputMessage.toLowerCase().includes('call') || inputMessage.toLowerCase().includes('dial')) {
-          aiResponse = "Let me set up your next call. Based on your schedule, I recommend calling Michael from Acme Corp. He's most likely to answer right now based on his past engagement patterns.";
-          suggestedActions = ['Call Michael now', 'View Michael\'s profile', 'Skip to next lead'];
-        } else if (inputMessage.toLowerCase().includes('script')) {
-          aiResponse = "Based on your next lead's profile, I suggest using our 'Tech Solution' pitch script. I'll adapt it to highlight cost savings since their recent quarterly report mentioned budget concerns.";
-          suggestedActions = ['Show me the script', 'Customize it further', 'Practice with me'];
-        } else if (inputMessage.toLowerCase().includes('break') || inputMessage.toLowerCase().includes('rest')) {
-          aiResponse = "Taking a short break is a great idea! You've been on calls for 2 hours straight. I'll block 15 minutes on your calendar and resume notifications after.";
-          suggestedActions = ['Set break timer', 'Show me mindfulness tips', 'Check my performance first'];
-        } else {
-          aiResponse = "I'm here to help you succeed today! Would you like me to prepare your call queue, review your performance stats, or suggest your next best action?";
-          suggestedActions = ['Prepare call queue', 'Show performance stats', 'Suggest next action'];
-        }
-        
+      if (!user) {
+        // Handle unauthenticated user
         const aiMessage: AIMessage = {
           id: messages.length + 2,
-          text: aiResponse,
+          text: "Please log in to use the AI assistant features.",
           sender: 'ai',
           timestamp: new Date(),
-          suggestedActions: suggestedActions
         };
-        setMessages(prev => [...prev, aiMessage]);
-      }, 1000);
+        setMessages(prevMessages => [...prevMessages, aiMessage]);
+        return;
+      }
+      
+      try {
+        // Call the AI agent with the user's message
+        const response = await callAIAgent({
+          prompt: inputMessage
+        });
+        
+        if (response) {
+          // Add AI response to messages
+          const aiMessage: AIMessage = {
+            id: messages.length + 2,
+            text: response.response,
+            sender: 'ai',
+            timestamp: new Date(),
+            suggestedActions: response.suggestedAction ? [response.suggestedAction.type] : undefined
+          };
+          setMessages(prevMessages => [...prevMessages, aiMessage]);
+        } else if (error) {
+          // Handle error from AI agent
+          const aiMessage: AIMessage = {
+            id: messages.length + 2,
+            text: `I'm having trouble responding right now. Please try again later. (Error: ${error})`,
+            sender: 'ai',
+            timestamp: new Date(),
+          };
+          setMessages(prevMessages => [...prevMessages, aiMessage]);
+        }
+      } catch (err: any) {
+        console.error("Error processing AI response:", err);
+        toast.error("Failed to get AI response");
+        
+        // Add error message
+        const aiMessage: AIMessage = {
+          id: messages.length + 2,
+          text: "I'm having trouble connecting to my brain right now. Please try again in a moment.",
+          sender: 'ai',
+          timestamp: new Date(),
+        };
+        setMessages(prevMessages => [...prevMessages, aiMessage]);
+      }
     }
   };
   
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !isLoading) {
       handleSendMessage();
     }
   };
   
-  const handleSuggestedAction = (action: string) => {
+  const handleSuggestedAction = async (action: string) => {
     const userMessage: AIMessage = {
       id: messages.length + 1,
       text: action,
       sender: 'user',
       timestamp: new Date(),
     };
-    setMessages([...messages, userMessage]);
+    setMessages(prevMessages => [...prevMessages, userMessage]);
     
-    // Simulate AI response to the action
-    setTimeout(() => {
-      let aiResponse = '';
-      
-      // Different responses based on the action
-      switch(action) {
-        case 'Show me my priority leads':
-          aiResponse = "I've pulled up your priority leads. You have 5 high-priority leads today, with Michael Scott having the highest match score at 85%. Would you like to call him now?";
-          break;
-        case 'Schedule my next call':
-          aiResponse = "Based on your calendar and lead engagement patterns, I recommend scheduling your next call with Jim Halpert at 2:30pm. He's most active during afternoon hours.";
-          break;
-        case 'Give me a winning script':
-          aiResponse = "For your next call with Michael Scott, I've prepared a script that addresses his main pain point: team productivity. Would you like to see it?";
-          break;
-        default:
-          aiResponse = "I'll help you with that. Let me gather the relevant information...";
-      }
-      
+    if (!user) {
+      // Handle unauthenticated user
       const aiMessage: AIMessage = {
         id: messages.length + 2,
-        text: aiResponse,
+        text: "Please log in to use the AI assistant features.",
         sender: 'ai',
         timestamp: new Date(),
       };
-      setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
+      setMessages(prevMessages => [...prevMessages, aiMessage]);
+      return;
+    }
+    
+    try {
+      // Call AI agent with the selected action
+      const response = await callAIAgent({
+        prompt: `Perform this action: ${action}`
+      });
+      
+      if (response) {
+        // Add AI response
+        const aiMessage: AIMessage = {
+          id: messages.length + 2,
+          text: response.response,
+          sender: 'ai',
+          timestamp: new Date(),
+          suggestedActions: response.suggestedAction ? 
+            [response.suggestedAction.type] : undefined
+        };
+        setMessages(prevMessages => [...prevMessages, aiMessage]);
+      }
+    } catch (err) {
+      console.error("Error processing suggested action:", err);
+      
+      // Add error message
+      const aiMessage: AIMessage = {
+        id: messages.length + 2,
+        text: "I'm having trouble processing that action right now. Let's try something else.",
+        sender: 'ai',
+        timestamp: new Date(),
+      };
+      setMessages(prevMessages => [...prevMessages, aiMessage]);
+    }
   };
+  
+  // Scroll to bottom of messages when new ones are added
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
   
   // Show a confetti animation when achievements are unlocked
   useEffect(() => {
@@ -234,22 +286,22 @@ const AIAssistant = () => {
           </CardHeader>
           
           {showNotifications ? (
-            <CardContent className="p-0 flex-grow overflow-y-auto bg-white">
-              <div className="p-4 border-b">
-                <h3 className="text-sm font-semibold text-salesBlue">Recent Notifications</h3>
+            <CardContent className="p-0 flex-grow overflow-y-auto bg-white dark:bg-dark-card">
+              <div className="p-4 border-b dark:border-dark-border">
+                <h3 className="text-sm font-semibold text-salesBlue dark:text-salesCyan">Recent Notifications</h3>
               </div>
-              <div className="divide-y">
+              <div className="divide-y dark:divide-dark-border">
                 {notifications.map(notification => (
                   <div 
                     key={notification.id} 
-                    className={`p-4 hover:bg-slate-50 transition-colors ${notification.read ? 'opacity-70' : ''}`}
+                    className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${notification.read ? 'opacity-70' : ''}`}
                   >
                     <div className="flex gap-3">
                       <div className="text-xl">{notification.icon}</div>
                       <div>
-                        <div className="font-medium text-sm">{notification.title}</div>
-                        <div className="text-sm text-slate-600">{notification.message}</div>
-                        <div className="text-xs text-slate-400 mt-1">
+                        <div className="font-medium text-sm dark:text-white">{notification.title}</div>
+                        <div className="text-sm text-slate-600 dark:text-slate-300">{notification.message}</div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                           {notification.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
@@ -259,19 +311,19 @@ const AIAssistant = () => {
               </div>
             </CardContent>
           ) : (
-            <CardContent className="p-4 flex-grow overflow-y-auto bg-white">
+            <CardContent className="p-4 flex-grow overflow-y-auto bg-white dark:bg-dark-card">
               <div className="space-y-4">
                 {messages.map((message) => (
                   <div 
                     key={message.id}
                     className={`${
                       message.sender === 'ai' 
-                        ? 'bg-slate-100 rounded-br-lg rounded-tl-lg rounded-tr-lg' 
-                        : 'bg-salesCyan-light text-slate-800 rounded-bl-lg rounded-tl-lg rounded-tr-lg ml-auto'
+                        ? 'bg-slate-100 dark:bg-slate-800 rounded-br-lg rounded-tl-lg rounded-tr-lg' 
+                        : 'bg-salesCyan-light dark:bg-salesBlue/30 text-slate-800 dark:text-slate-100 rounded-bl-lg rounded-tl-lg rounded-tr-lg ml-auto'
                     } p-3 max-w-[85%] animate-fade-in`}
                   >
                     {message.text}
-                    <div className="text-[10px] text-slate-400 mt-1">
+                    <div className="text-[10px] text-slate-400 dark:text-slate-500 mt-1">
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
                     
@@ -282,7 +334,7 @@ const AIAssistant = () => {
                             key={i} 
                             size="sm" 
                             variant="outline" 
-                            className="bg-white text-xs h-auto py-1 px-2"
+                            className="bg-white dark:bg-slate-700 text-xs h-auto py-1 px-2 dark:text-white"
                             onClick={() => handleSuggestedAction(action)}
                           >
                             {action}
@@ -292,24 +344,31 @@ const AIAssistant = () => {
                     )}
                   </div>
                 ))}
+                <div ref={messagesEndRef} />
               </div>
             </CardContent>
           )}
           
-          <CardFooter className="p-4 bg-white border-t flex-shrink-0">
+          <CardFooter className="p-4 bg-white dark:bg-dark-card border-t dark:border-dark-border flex-shrink-0">
             <div className="flex w-full gap-2">
               <Input 
                 placeholder="Ask your AI assistant..." 
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="flex-1"
+                className="flex-1 dark:bg-slate-800 dark:text-white"
+                disabled={isLoading}
               />
               <Button 
                 onClick={handleSendMessage} 
-                className="bg-salesCyan hover:bg-salesCyan-dark"
+                className="bg-salesCyan hover:bg-salesCyan-dark dark:bg-salesBlue dark:hover:bg-salesBlue-dark"
+                disabled={isLoading}
               >
-                <MessageCircle className="h-4 w-4 mr-1" />
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                )}
                 Send
               </Button>
             </div>
@@ -319,14 +378,14 @@ const AIAssistant = () => {
       
       {/* Simplified AI Assistant (when collapsed) */}
       <div className={`fixed bottom-24 right-6 transition-all duration-300 z-10 max-w-xs transform ${isExpanded ? 'translate-y-10 opacity-0 invisible' : 'translate-y-0 opacity-100'}`}>
-        <Card className="shadow-lg border-salesCyan-light">
-          <CardContent className="p-3 bg-white">
+        <Card className="shadow-lg border-salesCyan-light dark:border-salesBlue">
+          <CardContent className="p-3 bg-white dark:bg-dark-card">
             <div className="text-sm animate-slide-up flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-salesCyan-light flex items-center justify-center text-salesBlue">
+              <div className="w-8 h-8 rounded-full bg-salesCyan-light flex items-center justify-center text-salesBlue dark:bg-salesBlue/20 dark:text-salesCyan">
                 <Zap className="h-4 w-4" />
               </div>
-              <div>
-                You've got <span className="font-semibold text-salesRed">5 new leads</span> ready to call. Click for details.
+              <div className="dark:text-white">
+                You've got <span className="font-semibold text-salesRed dark:text-salesRed-light">5 new leads</span> ready to call. Click for details.
               </div>
             </div>
           </CardContent>
