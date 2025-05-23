@@ -2,6 +2,9 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useOnboarding } from '../OnboardingContext';
+import { motion } from 'framer-motion';
+import FoggedGlassSelection from '../components/metaphorical-ui/FoggedGlassSelection';
 
 interface SalesModelStepProps {
   settings: any;
@@ -9,6 +12,8 @@ interface SalesModelStepProps {
 }
 
 const SalesModelStep: React.FC<SalesModelStepProps> = ({ settings, updateSettings }) => {
+  const { canUseMetaphoricalUI } = useOnboarding();
+  
   const salesModels = [
     { id: 'inbound', label: 'Inbound Sales', description: 'Customers contact you first' },
     { id: 'outbound', label: 'Outbound Sales', description: 'Your team contacts potential customers' },
@@ -28,6 +33,56 @@ const SalesModelStep: React.FC<SalesModelStepProps> = ({ settings, updateSetting
     updateSettings({ sales_model: updatedModels });
   };
 
+  // Render enhanced UI if supported, otherwise fall back to simple version
+  if (canUseMetaphoricalUI) {
+    return (
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center mb-6">
+          <motion.h1 
+            className="text-2xl font-bold"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            How do you sell?
+          </motion.h1>
+          <motion.p 
+            className="text-muted-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
+            Select all the sales methods that apply to your business
+          </motion.p>
+        </div>
+
+        <FoggedGlassSelection
+          options={salesModels}
+          selectedOptions={settings.sales_model || []}
+          onChange={toggleSalesModel}
+          label="Sales Methods"
+        />
+
+        {settings.sales_model?.length === 0 && (
+          <motion.p 
+            className="text-amber-500 text-sm mt-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            Please select at least one sales model to continue
+          </motion.p>
+        )}
+      </motion.div>
+    );
+  }
+
+  // Fallback UI for browsers/devices that don't support advanced features
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">

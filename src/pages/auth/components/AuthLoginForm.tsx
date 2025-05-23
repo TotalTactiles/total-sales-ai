@@ -57,10 +57,10 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         return null;
       }
       
-      // Check if company settings exist
+      // Check if company settings exist and if onboarding is completed
       const { data: settingsData, error: settingsError } = await supabase
         .from('company_settings')
-        .select('*')
+        .select('onboarding_completed_at')
         .eq('company_id', profileData.company_id)
         .maybeSingle();
       
@@ -69,6 +69,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       // Return combination of profile and settings
       return {
         hasSettings: !!settingsData,
+        onboardingCompleted: !!settingsData?.onboarding_completed_at,
         isManager: profileData.role === 'manager',
         companyId: profileData.company_id
       };
@@ -102,11 +103,15 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
 
       // Direct navigation based on settings status
       setTimeout(() => {
-        if (companyStatus && companyStatus.isManager && !companyStatus.hasSettings) {
-          // Manager with no company settings -> onboarding
-          navigate('/onboarding');
+        if (companyStatus) {
+          if (companyStatus.isManager && (!companyStatus.hasSettings || !companyStatus.onboardingCompleted)) {
+            // Manager with no company settings or incomplete onboarding -> onboarding
+            navigate('/onboarding');
+          } else {
+            // Regular navigation based on role
+            navigate('/dashboard/rep');
+          }
         } else {
-          // Regular navigation based on role
           navigate('/dashboard/rep');
         }
       }, 1500);

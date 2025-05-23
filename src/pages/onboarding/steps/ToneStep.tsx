@@ -2,6 +2,10 @@
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { motion } from 'framer-motion';
+import { useOnboarding } from '../OnboardingContext';
+import WaterFlowSlider from '../components/metaphorical-ui/WaterFlowSlider';
+import ColorToneSlider from '../components/metaphorical-ui/ColorToneSlider';
 
 interface ToneStepProps {
   settings: any;
@@ -9,6 +13,8 @@ interface ToneStepProps {
 }
 
 const ToneStep: React.FC<ToneStepProps> = ({ settings, updateSettings }) => {
+  const { canUseMetaphoricalUI } = useOnboarding();
+
   const updateTone = (key: string, value: number) => {
     updateSettings({
       tone: {
@@ -18,6 +24,85 @@ const ToneStep: React.FC<ToneStepProps> = ({ settings, updateSettings }) => {
     });
   };
 
+  // Enhanced UI with metaphorical elements
+  if (canUseMetaphoricalUI) {
+    return (
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="text-center mb-6">
+          <motion.h1 
+            className="text-2xl font-bold"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+          >
+            Set your communication style
+          </motion.h1>
+          <motion.p 
+            className="text-muted-foreground"
+            initial={{ y: -10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            Adjust these settings to match your team's sales approach
+          </motion.p>
+        </div>
+
+        <motion.div 
+          className="space-y-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          {/* Humor Level - Color Tone */}
+          <ColorToneSlider
+            label="Humor Level"
+            value={settings.tone.humor}
+            onChange={(value) => updateTone('humor', value)}
+            leftLabel="Strictly professional"
+            rightLabel="Lighthearted and witty"
+            leftColor="rgba(59, 130, 246, 0.5)" // Blue
+            rightColor="rgba(236, 72, 153, 0.5)" // Pink
+          />
+
+          {/* Formality - Water Flow */}
+          <WaterFlowSlider
+            label="Formality"
+            value={settings.tone.formality}
+            onChange={(value) => updateTone('formality', value)}
+            leftLabel="Casual and conversational"
+            rightLabel="Formal and structured"
+          />
+
+          {/* Pushiness - Color Tone */}
+          <ColorToneSlider
+            label="Assertiveness"
+            value={settings.tone.pushiness}
+            onChange={(value) => updateTone('pushiness', value)}
+            leftLabel="Soft and consultative"
+            rightLabel="Direct and persuasive"
+            leftColor="rgba(52, 211, 153, 0.5)" // Green
+            rightColor="rgba(239, 68, 68, 0.5)" // Red
+          />
+
+          {/* Detail Level - Water Flow */}
+          <WaterFlowSlider
+            label="Detail Level"
+            value={settings.tone.detail}
+            onChange={(value) => updateTone('detail', value)}
+            leftLabel="Brief and to the point"
+            rightLabel="Comprehensive and detailed"
+          />
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // Fallback UI for browsers/devices that don't support advanced features
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">

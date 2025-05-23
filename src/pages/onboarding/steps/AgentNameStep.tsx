@@ -4,6 +4,9 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sparkles, Bot, User } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useOnboarding } from '../OnboardingContext';
+import AgentBirthPod from '../components/metaphorical-ui/AgentBirthPod';
 
 interface AgentNameStepProps {
   settings: any;
@@ -12,6 +15,7 @@ interface AgentNameStepProps {
 
 const AgentNameStep: React.FC<AgentNameStepProps> = ({ settings, updateSettings }) => {
   const [nameSource, setNameSource] = React.useState<string>('suggested');
+  const { canUseMetaphoricalUI } = useOnboarding();
   
   const suggestedNames = [
     'SalesOS',
@@ -23,14 +27,52 @@ const AgentNameStep: React.FC<AgentNameStepProps> = ({ settings, updateSettings 
     'RevenueOS'
   ];
 
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    updateSettings({ agent_name: e.target.value });
-  };
-
-  const selectSuggestedName = (name: string) => {
+  const handleNameChange = (name: string) => {
     updateSettings({ agent_name: name });
   };
 
+  const selectSuggestion = (name: string) => {
+    updateSettings({ agent_name: name });
+  };
+
+  // Enhanced UI with metaphorical elements
+  if (canUseMetaphoricalUI) {
+    return (
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.div 
+          className="text-center mb-6"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="text-2xl font-bold">Name your AI sales assistant</h1>
+          <p className="text-muted-foreground">
+            Choose a name that resonates with your team's identity
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          <AgentBirthPod
+            value={settings.agent_name}
+            onChange={handleNameChange}
+            label="AI Assistant Name"
+            suggestions={suggestedNames}
+          />
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // Fallback UI for browsers/devices that don't support advanced features
   return (
     <div className="space-y-6">
       <div className="text-center mb-6">
@@ -64,7 +106,7 @@ const AgentNameStep: React.FC<AgentNameStepProps> = ({ settings, updateSettings 
                     ? 'border-primary bg-primary/5' 
                     : 'border-border'
                 }`}
-                onClick={() => selectSuggestedName(name)}
+                onClick={() => selectSuggestion(name)}
               >
                 <div className="flex items-center gap-2">
                   <Bot className="h-5 w-5 text-primary" />
@@ -83,7 +125,7 @@ const AgentNameStep: React.FC<AgentNameStepProps> = ({ settings, updateSettings 
                 id="agentName"
                 placeholder="Enter a name for your AI assistant"
                 value={settings.agent_name}
-                onChange={handleNameChange}
+                onChange={(e) => handleNameChange(e.target.value)}
                 className="mt-1"
               />
               <p className="mt-2 text-sm text-muted-foreground">

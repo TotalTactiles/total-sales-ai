@@ -51,8 +51,11 @@ export type Database = {
           company_id: string
           created_at: string | null
           enabled_modules: Json | null
+          guided_tour_completed: boolean | null
           id: string
           industry: string | null
+          last_feedback_check: string | null
+          onboarding_completed_at: string | null
           original_goal: string | null
           pain_points: string[] | null
           personalization_flags: Json | null
@@ -66,8 +69,11 @@ export type Database = {
           company_id: string
           created_at?: string | null
           enabled_modules?: Json | null
+          guided_tour_completed?: boolean | null
           id?: string
           industry?: string | null
+          last_feedback_check?: string | null
+          onboarding_completed_at?: string | null
           original_goal?: string | null
           pain_points?: string[] | null
           personalization_flags?: Json | null
@@ -81,8 +87,11 @@ export type Database = {
           company_id?: string
           created_at?: string | null
           enabled_modules?: Json | null
+          guided_tour_completed?: boolean | null
           id?: string
           industry?: string | null
+          last_feedback_check?: string | null
+          onboarding_completed_at?: string | null
           original_goal?: string | null
           pain_points?: string[] | null
           personalization_flags?: Json | null
@@ -252,33 +261,45 @@ export type Database = {
           created_at: string | null
           feedback_period_end: string | null
           feedback_period_start: string | null
+          feedback_type: string | null
+          goals_alignment_score: number | null
           id: string
           metrics: Json | null
+          recommended_actions: Json | null
           report_summary: string | null
           sentiment: string | null
           suggestions: Json | null
+          user_accepted_suggestions: boolean | null
         }
         Insert: {
           company_id: string
           created_at?: string | null
           feedback_period_end?: string | null
           feedback_period_start?: string | null
+          feedback_type?: string | null
+          goals_alignment_score?: number | null
           id?: string
           metrics?: Json | null
+          recommended_actions?: Json | null
           report_summary?: string | null
           sentiment?: string | null
           suggestions?: Json | null
+          user_accepted_suggestions?: boolean | null
         }
         Update: {
           company_id?: string
           created_at?: string | null
           feedback_period_end?: string | null
           feedback_period_start?: string | null
+          feedback_type?: string | null
+          goals_alignment_score?: number | null
           id?: string
           metrics?: Json | null
+          recommended_actions?: Json | null
           report_summary?: string | null
           sentiment?: string | null
           suggestions?: Json | null
+          user_accepted_suggestions?: boolean | null
         }
         Relationships: []
       }
@@ -321,6 +342,60 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_links: {
+        Row: {
+          company_id: string
+          config_snapshot: Json
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          referral_code: string
+        }
+        Insert: {
+          company_id: string
+          config_snapshot: Json
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          referral_code: string
+        }
+        Update: {
+          company_id?: string
+          config_snapshot?: Json
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          referral_code?: string
+        }
+        Relationships: []
+      }
+      referral_usage: {
+        Row: {
+          created_at: string | null
+          discount_applied: number | null
+          id: string
+          new_company_id: string
+          referral_code: string
+          referring_company_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          discount_applied?: number | null
+          id?: string
+          new_company_id: string
+          referral_code: string
+          referring_company_id: string
+        }
+        Update: {
+          created_at?: string | null
+          discount_applied?: number | null
+          id?: string
+          new_company_id?: string
+          referral_code?: string
+          referring_company_id?: string
+        }
+        Relationships: []
+      }
       stats_history: {
         Row: {
           chunk_count: number
@@ -339,6 +414,33 @@ export type Database = {
           created_at?: string
           document_count?: number
           id?: string
+        }
+        Relationships: []
+      }
+      usage_analytics: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
