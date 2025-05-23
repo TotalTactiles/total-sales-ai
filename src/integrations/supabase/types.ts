@@ -75,6 +75,39 @@ export type Database = {
         }
         Relationships: []
       }
+      email_tokens: {
+        Row: {
+          access_token: string | null
+          created_at: string | null
+          id: string
+          provider: string
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string | null
+          id?: string
+          provider: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string | null
+          id?: string
+          provider?: string
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       industry_knowledge: {
         Row: {
           company_id: string | null
@@ -136,6 +169,9 @@ export type Database = {
         Row: {
           company_id: string | null
           created_at: string | null
+          email_account: string | null
+          email_connected: boolean | null
+          email_provider: string | null
           full_name: string | null
           id: string
           last_login: string | null
@@ -145,6 +181,9 @@ export type Database = {
         Insert: {
           company_id?: string | null
           created_at?: string | null
+          email_account?: string | null
+          email_connected?: boolean | null
+          email_provider?: string | null
           full_name?: string | null
           id: string
           last_login?: string | null
@@ -154,6 +193,9 @@ export type Database = {
         Update: {
           company_id?: string | null
           created_at?: string | null
+          email_account?: string | null
+          email_connected?: boolean | null
+          email_provider?: string | null
           full_name?: string | null
           id?: string
           last_login?: string | null
