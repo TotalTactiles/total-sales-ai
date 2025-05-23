@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,21 +32,7 @@ import LeadTasks from './LeadTasks';
 import AIAssistantTab from './AIAssistantTab';
 import ConversionMeter from './ConversionMeter';
 import VoiceControls from './VoiceControls';
-
-interface Lead {
-  id: string;
-  name: string;
-  company: string;
-  email: string;
-  phone: string;
-  status: 'new' | 'contacted' | 'qualified' | 'closed';
-  priority: 'high' | 'medium' | 'low';
-  lastContact: string;
-  score: number;
-  tags: string[];
-  isSensitive: boolean;
-  conversionLikelihood: number;
-}
+import { Lead } from '@/types/lead';
 
 interface LeadIntelligencePanelProps {
   lead: Lead;
@@ -210,7 +195,7 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Last Contact</span>
-                    <span className="font-semibold">{lead.lastContact}</span>
+                    <span className="font-semibold">{lead.lastContact || 'No contact yet'}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-slate-600">Status</span>
