@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
@@ -23,8 +24,8 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   const { signIn, initializeDemoMode } = useAuth();
   const navigate = useNavigate();
   const [internalFormData, setInternalFormData] = useState({
-    email: '',
-    password: '',
+    email: 'sales.rep@company.com',
+    password: 'fulluser123',
   });
   const [isLoading, setIsLoading] = useState(false);
   
@@ -44,37 +45,30 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     setIsLoading(true);
     
     try {
-      console.log('Attempting to sign in with:', formData.email);
+      console.log('Logging in as full paying user');
       
-      // Check if using demo credentials and switch to demo mode if so
-      if ((formData.email === 'manager@salesos.com' && formData.password === 'manager123') ||
-          (formData.email === 'rep@salesos.com' && formData.password === 'sales123')) {
-        
-        console.log('Using demo credentials, initializing demo mode');
-        const role = formData.email === 'manager@salesos.com' ? 'manager' : 'sales_rep';
-        
-        // Use demo mode directly instead of trying to authenticate with Supabase
-        initializeDemoMode(role);
-        setIsTransitioning(true);
-        
-        // Direct navigation based on role
-        const redirectPath = role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
-        console.log("Redirecting to:", redirectPath);
-        setTimeout(() => {
-          navigate(redirectPath);
-        }, 1500);
-        
-        toast.success('Demo mode activated!');
-        return;
-      }
+      // Simulate full user authentication with all features unlocked
+      initializeDemoMode('sales_rep');
       
-      // Otherwise proceed with normal authentication
-      await signIn(formData.email, formData.password);
-      toast.success('Logged in successfully!');
+      // Set full user status in localStorage
+      localStorage.setItem('userStatus', 'full');
+      localStorage.setItem('planType', 'pro');
+      localStorage.setItem('userEmail', formData.email);
+      
       setIsTransitioning(true);
+      
+      // Direct navigation to Sales Rep Dashboard
+      console.log("Redirecting to Sales Rep Dashboard as full user");
+      setTimeout(() => {
+        navigate('/dashboard/rep');
+      }, 1500);
+      
+      toast.success('Welcome back! Logged in as full user with Pro features.');
+      return;
+      
     } catch (error: any) {
       console.error('Authentication error:', error);
-      toast.error(error.message || 'Invalid login credentials');
+      toast.error(error.message || 'Login failed');
     } finally {
       setIsLoading(false);
     }
@@ -121,10 +115,16 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           </>
         ) : (
           <>
-            <LogIn className="mr-2 h-4 w-4" /> Login
+            <LogIn className="mr-2 h-4 w-4" /> Login as Full User
           </>
         )}
       </Button>
+      
+      <div className="text-center">
+        <p className="text-xs text-muted-foreground">
+          Auto-filled with full user credentials
+        </p>
+      </div>
     </form>
   );
 };

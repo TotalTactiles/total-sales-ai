@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,7 +26,9 @@ import {
   MessageCircle,
   AlertCircle,
   ArrowUpRight,
-  BarChart
+  BarChart,
+  Crown,
+  Sparkles
 } from 'lucide-react';
 
 type AIPersona = {
@@ -66,69 +67,83 @@ const SalesRepDashboard = () => {
   const [showVoiceTraining, setShowVoiceTraining] = useState(false);
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
+  const [isFullUser, setIsFullUser] = useState(false);
   
-  // Check if in demo mode
+  // Check if user is full user
   useEffect(() => {
+    const userStatus = localStorage.getItem('userStatus');
+    const planType = localStorage.getItem('planType');
+    setIsFullUser(userStatus === 'full' && planType === 'pro');
+    
     const isDemoMode = localStorage.getItem('demoMode') === 'true';
-    if (isDemoMode) {
-      setDemoMode(true);
-      initializeDemoData();
+    if (isDemoMode || userStatus === 'full') {
+      setDemoMode(isDemoMode && userStatus !== 'full');
+      initializeFullUserData();
     } else {
       fetchData();
     }
   }, [user]);
 
-  const initializeDemoData = () => {
-    // Set demo data
+  const initializeFullUserData = () => {
+    // Set enhanced data for full user
     setAiPersona({
-      id: 'demo-1',
-      name: 'Alex',
-      level: 3,
-      tone: 'confident',
-      delivery_style: 'conversational'
+      id: 'full-user-1',
+      name: 'Alex Pro',
+      level: 5,
+      tone: 'adaptive',
+      delivery_style: 'personalized'
     });
     
     setUserStats({
-      call_count: 142,
-      win_count: 37,
-      current_streak: 4,
+      call_count: 347,
+      win_count: 89,
+      current_streak: 12,
       best_time_start: '14:00',
       best_time_end: '16:00',
-      mood_score: 85
+      mood_score: 92
     });
     
     setConfidenceCache([
       {
-        id: 'demo-conf-1',
-        win_description: 'Handled pricing objection with value-based approach',
-        objection_handled: 'Too expensive',
+        id: 'full-conf-1',
+        win_description: 'Closed $50K enterprise deal using AI-powered objection handling',
+        objection_handled: 'Budget constraints',
         date_achieved: new Date().toISOString()
       },
       {
-        id: 'demo-conf-2',
-        win_description: 'Converted hesitant prospect with ROI demonstration',
-        objection_handled: 'Need to think about it',
+        id: 'full-conf-2',
+        win_description: 'Converted skeptical prospect with personalized ROI calculator',
+        objection_handled: 'Competitor preference',
         date_achieved: new Date(Date.now() - 86400000).toISOString()
       },
       {
-        id: 'demo-conf-3',
-        win_description: 'Closed deal after addressing implementation concerns',
-        objection_handled: 'Integration complexity',
+        id: 'full-conf-3',
+        win_description: 'Upsold existing client 40% using AI conversation insights',
+        objection_handled: 'Feature limitations',
         date_achieved: new Date(Date.now() - 172800000).toISOString()
+      },
+      {
+        id: 'full-conf-4',
+        win_description: 'Landed whale account after AI-coached persistence strategy',
+        objection_handled: 'Long sales cycle',
+        date_achieved: new Date(Date.now() - 259200000).toISOString()
+      },
+      {
+        id: 'full-conf-5',
+        win_description: 'Recovered lost deal with AI sentiment analysis insights',
+        objection_handled: 'Trust issues',
+        date_achieved: new Date(Date.now() - 345600000).toISOString()
       }
     ]);
     
     setLoading(false);
     
-    // Show pro feature messages after timeout
+    // Welcome message for full user
     setTimeout(() => {
-      toast.info("Unlock advanced AI coaching with Pro Plan", {
-        action: {
-          label: "Upgrade",
-          onClick: () => toast.success("This would navigate to pricing page in a real app")
-        }
+      toast.success("Welcome back! All Pro features are active.", {
+        description: "Your AI assistant is fully trained and ready to help.",
       });
-    }, 10000);
+    }, 2000);
   };
 
   const fetchData = async () => {
@@ -248,9 +263,17 @@ const SalesRepDashboard = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h1 className="text-2xl font-bold text-salesBlue">Sales Rep Dashboard</h1>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-2xl font-bold text-salesBlue">Sales Rep Dashboard</h1>
+                  {isFullUser && (
+                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+                      <Crown className="h-3 w-3 mr-1" />
+                      Pro User
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-slate-500">
-                  Welcome back, {demoMode ? 'Sam' : profile?.full_name || 'Sales Rep'}! 
+                  Welcome back, {isFullUser ? 'Sam' : profile?.full_name || 'Sales Rep'}! 
                   {userStats?.current_streak ? 
                     ` You're on a ${userStats.current_streak} day winning streak! 🔥` : 
                     ' Ready to make some calls?'}
@@ -269,12 +292,14 @@ const SalesRepDashboard = () => {
                   {focusMode ? 'Exit Focus Mode' : 'Focus Mode'}
                 </Button>
                 
-                {demoMode && (
+                {!isFullUser && (
                   <Button 
                     variant="destructive"
                     onClick={() => {
                       localStorage.removeItem('demoMode');
                       localStorage.removeItem('demoRole');
+                      localStorage.removeItem('userStatus');
+                      localStorage.removeItem('planType');
                       window.location.href = '/auth';
                     }}
                   >
@@ -284,37 +309,41 @@ const SalesRepDashboard = () => {
               </div>
             </div>
             
-            {/* KPI Cards Row */}
+            {/* Enhanced KPI Cards Row for Full User */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Card>
+              <Card className={isFullUser ? "border-2 border-gradient-to-r from-yellow-400 to-orange-500" : ""}>
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                   <PhoneCall className="h-8 w-8 text-salesBlue mb-2" />
                   <p className="text-sm text-muted-foreground">Total Calls</p>
                   <p className="text-3xl font-bold">{userStats?.call_count || 0}</p>
+                  {isFullUser && <Badge variant="outline" className="mt-1">+23% vs last month</Badge>}
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className={isFullUser ? "border-2 border-gradient-to-r from-green-400 to-blue-500" : ""}>
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                   <Trophy className="h-8 w-8 text-salesGreen mb-2" />
                   <p className="text-sm text-muted-foreground">Wins</p>
                   <p className="text-3xl font-bold">{userStats?.win_count || 0}</p>
+                  {isFullUser && <Badge variant="outline" className="mt-1">25.7% conversion</Badge>}
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className={isFullUser ? "border-2 border-gradient-to-r from-purple-400 to-pink-500" : ""}>
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                   <Zap className="h-8 w-8 text-salesCyan mb-2" />
                   <p className="text-sm text-muted-foreground">Current Streak</p>
                   <p className="text-3xl font-bold">{userStats?.current_streak || 0}</p>
+                  {isFullUser && <Badge variant="outline" className="mt-1">Personal best!</Badge>}
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className={isFullUser ? "border-2 border-gradient-to-r from-red-400 to-yellow-500" : ""}>
                 <CardContent className="p-4 flex flex-col items-center justify-center text-center">
                   <Heart className="h-8 w-8 text-salesRed mb-2" />
                   <p className="text-sm text-muted-foreground">Energy Level</p>
                   <p className="text-3xl font-bold">{userStats?.mood_score || 70}%</p>
+                  {isFullUser && <Badge variant="outline" className="mt-1">Optimized</Badge>}
                 </CardContent>
               </Card>
             </div>
@@ -322,26 +351,29 @@ const SalesRepDashboard = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              {/* Main content area */}
-              <Card className="overflow-hidden border-salesCyan-light">
-                <CardHeader className="bg-gradient-to-r from-salesBlue to-salesCyan text-white pb-2">
+              {/* Enhanced AI Assistant for Full User */}
+              <Card className={`overflow-hidden ${isFullUser ? 'border-2 border-gradient-to-r from-blue-500 to-purple-600' : 'border-salesCyan-light'}`}>
+                <CardHeader className={`${isFullUser ? 'bg-gradient-to-r from-salesBlue via-purple-600 to-salesCyan' : 'bg-gradient-to-r from-salesBlue to-salesCyan'} text-white pb-2`}>
                   <CardTitle className="flex items-center gap-2">
                     <Brain className="h-5 w-5" />
-                    AI Sales Assistant
+                    {isFullUser ? 'AI Sales Assistant Pro' : 'AI Sales Assistant'}
+                    {isFullUser && <Sparkles className="h-4 w-4 ml-2" />}
                   </CardTitle>
                   <CardDescription className="text-white text-opacity-90">
-                    Your personalized AI coach is ready to help
+                    {isFullUser ? 'Your fully personalized AI coach with advanced insights' : 'Your personalized AI coach is ready to help'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="bg-salesBlue-light rounded-full p-3">
-                      <Headphones className="h-8 w-8 text-salesBlue" />
+                    <div className={`${isFullUser ? 'bg-gradient-to-r from-purple-500 to-blue-500' : 'bg-salesBlue-light'} rounded-full p-3`}>
+                      <Headphones className={`h-8 w-8 ${isFullUser ? 'text-white' : 'text-salesBlue'}`} />
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg">{aiPersona?.name || 'AI Assistant'}</h3>
                       <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <Badge variant="outline" className="bg-salesBlue-light text-salesBlue">Level {aiPersona?.level || 1}</Badge>
+                        <Badge variant="outline" className={`${isFullUser ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' : 'bg-salesBlue-light text-salesBlue'}`}>
+                          Level {aiPersona?.level || 1} {isFullUser && '(Max)'}
+                        </Badge>
                         <span>|</span>
                         <span className="capitalize">{aiPersona?.tone || 'Professional'} Tone</span>
                         <span>|</span>
@@ -362,27 +394,29 @@ const SalesRepDashboard = () => {
                     </div>
                     
                     <div className="pt-4 border-t border-slate-200">
-                      <h4 className="font-medium mb-3">Personalize Your AI Assistant</h4>
+                      <h4 className="font-medium mb-3">
+                        {isFullUser ? 'Advanced AI Features' : 'Personalize Your AI Assistant'}
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Button variant="outline" className="border-salesCyan text-salesCyan hover:bg-salesCyan-light">
-                          Edit Voice & Tone
+                          {isFullUser ? 'Advanced Voice Training' : 'Edit Voice & Tone'}
                         </Button>
                         <Button variant="outline" className="border-salesCyan text-salesCyan hover:bg-salesCyan-light">
-                          Train With Your Calls
+                          {isFullUser ? 'Real-time Call Analysis' : 'Train With Your Calls'}
                         </Button>
                         <Button variant="outline" className="border-salesCyan text-salesCyan hover:bg-salesCyan-light">
-                          Manage Knowledge Base
+                          {isFullUser ? 'Custom Knowledge Base' : 'Manage Knowledge Base'}
                         </Button>
                         <Button variant="outline" className="border-salesCyan text-salesCyan hover:bg-salesCyan-light">
-                          Set Goals & Targets
+                          {isFullUser ? 'AI Performance Coaching' : 'Set Goals & Targets'}
                         </Button>
                       </div>
                       
-                      {demoMode && (
-                        <div className="mt-4 bg-amber-50 border border-amber-200 p-3 rounded-md">
-                          <p className="text-amber-700 text-sm flex items-center">
-                            <AlertCircle className="h-4 w-4 mr-2" />
-                            Unlock advanced AI personalization with Pro Plan
+                      {isFullUser && (
+                        <div className="mt-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 p-3 rounded-md">
+                          <p className="text-green-700 text-sm flex items-center">
+                            <Crown className="h-4 w-4 mr-2" />
+                            All Pro features are active and personalized to your selling style
                           </p>
                         </div>
                       )}
@@ -391,7 +425,7 @@ const SalesRepDashboard = () => {
                 </CardContent>
               </Card>
               
-              {/* Recovery Mode Section */}
+              {/* Enhanced Recovery Mode Section */}
               {recoveryMode ? (
                 <Card>
                   <CardHeader>
@@ -469,10 +503,10 @@ const SalesRepDashboard = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Award className="h-5 w-5 text-salesGreen" />
-                      Confidence Cache
+                      {isFullUser ? 'Victory Archive' : 'Confidence Cache'}
                     </CardTitle>
                     <CardDescription>
-                      Your recent wins and successful objection handling
+                      {isFullUser ? 'Your most impactful wins and AI-powered strategies' : 'Your recent wins and successful objection handling'}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -488,7 +522,7 @@ const SalesRepDashboard = () => {
                                 </Badge>
                               )}
                             </div>
-                            <Badge className="bg-salesBlue text-white ml-2">
+                            <Badge className={`${isFullUser ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 'bg-salesBlue'} text-white ml-2`}>
                               {formatDate(entry.date_achieved)}
                             </Badge>
                           </div>
@@ -504,22 +538,25 @@ const SalesRepDashboard = () => {
                   </CardContent>
                   <CardFooter className="bg-slate-50 px-6 py-3">
                     <Button variant="ghost" className="text-salesBlue">
-                      View All Wins
+                      {isFullUser ? 'View Detailed Analytics' : 'View All Wins'}
                     </Button>
                   </CardFooter>
                 </Card>
               )}
               
-              {/* Voice Style Training (shown only when streak >= 3) */}
+              {/* Enhanced Voice Style Training */}
               {showVoiceTraining && (
-                <Card className="border-salesGreen">
-                  <CardHeader className="bg-salesGreen bg-opacity-10">
-                    <CardTitle className="flex items-center gap-2 text-salesGreen">
+                <Card className={`${isFullUser ? 'border-2 border-gradient-to-r from-green-400 to-blue-500' : 'border-salesGreen'}`}>
+                  <CardHeader className={`${isFullUser ? 'bg-gradient-to-r from-green-400 to-blue-500' : 'bg-salesGreen bg-opacity-10'}`}>
+                    <CardTitle className={`flex items-center gap-2 ${isFullUser ? 'text-white' : 'text-salesGreen'}`}>
                       <Trophy className="h-5 w-5" />
-                      Voice Style Training
+                      {isFullUser ? 'AI Voice Mastery Training' : 'Voice Style Training'}
                     </CardTitle>
-                    <CardDescription>
-                      You're on a {userStats?.current_streak || 3}+ win streak! Let's analyze what's working.
+                    <CardDescription className={isFullUser ? 'text-white text-opacity-90' : ''}>
+                      {isFullUser ? 
+                        `Your ${userStats?.current_streak || 3}+ win streak unlocked advanced voice analysis!` :
+                        `You're on a ${userStats?.current_streak || 3}+ win streak! Let's analyze what's working.`
+                      }
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-6">
@@ -578,29 +615,32 @@ const SalesRepDashboard = () => {
             </div>
             
             <div className="space-y-6">
-              {/* Sidebar content */}
+              {/* Enhanced sidebar for full user */}
               
               {/* Best Performance Time */}
-              <Card>
+              <Card className={isFullUser ? "border-2 border-gradient-to-r from-cyan-400 to-blue-500" : ""}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="h-5 w-5 text-salesCyan" />
-                    Best Performance Times
+                    {isFullUser ? 'AI-Optimized Call Times' : 'Best Performance Times'}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {userStats?.best_time_start && userStats?.best_time_end ? (
                     <div className="text-center">
-                      <div className="bg-salesBlue-light rounded-lg p-4 mb-3">
-                        <p className="text-lg font-medium text-salesBlue">
+                      <div className={`${isFullUser ? 'bg-gradient-to-r from-cyan-400 to-blue-500' : 'bg-salesBlue-light'} rounded-lg p-4 mb-3`}>
+                        <p className={`text-lg font-medium ${isFullUser ? 'text-white' : 'text-salesBlue'}`}>
                           {userStats.best_time_start} - {userStats.best_time_end}
                         </p>
                       </div>
                       <p className="text-sm text-slate-600">
-                        You close 42% more deals during this time window
+                        {isFullUser ? 
+                          'AI analysis shows 67% higher close rates during this window' :
+                          'You close 42% more deals during this time window'
+                        }
                       </p>
                       <Button variant="outline" className="mt-4 w-full border-salesCyan text-salesCyan hover:bg-salesCyan-light">
-                        Schedule Calls During Peak Hours
+                        {isFullUser ? 'Auto-Schedule Optimal Calls' : 'Schedule Calls During Peak Hours'}
                       </Button>
                     </div>
                   ) : (
@@ -612,7 +652,7 @@ const SalesRepDashboard = () => {
                 </CardContent>
               </Card>
               
-              {/* Talk It Out Feature */}
+              {/* Enhanced Talk It Out Feature */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -672,8 +712,8 @@ const SalesRepDashboard = () => {
                 </CardContent>
               </Card>
               
-              {/* Recovery Mode Card (only shown when not in recovery mode) */}
-              {!recoveryMode && (
+              {/* Remove demo upsell for full user, replace with advanced features */}
+              {!isFullUser ? (
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="flex items-center gap-2">
@@ -693,38 +733,38 @@ const SalesRepDashboard = () => {
                     </Button>
                   </CardContent>
                 </Card>
-              )}
-              
-              {/* Demo mode upsell if in demo */}
-              {demoMode && (
-                <Card className="bg-gradient-to-br from-salesBlue to-salesCyan text-white">
+              ) : (
+                <Card className="bg-gradient-to-br from-purple-600 to-blue-600 text-white">
                   <CardHeader>
-                    <CardTitle>Unlock Full Platform</CardTitle>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5" />
+                      AI Insights Hub
+                    </CardTitle>
                     <CardDescription className="text-white text-opacity-90">
-                      See how companies boost revenue by 27%
+                      Advanced analytics powered by your Pro subscription
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 mb-4">
                       <li className="flex items-center gap-2">
-                        <Badge className="bg-white text-salesBlue">✓</Badge>
-                        <span>AI-powered call coaching</span>
+                        <Badge className="bg-white text-purple-600">●</Badge>
+                        <span>Real-time sentiment analysis</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <Badge className="bg-white text-salesBlue">✓</Badge>
-                        <span>Advanced performance analytics</span>
+                        <Badge className="bg-white text-purple-600">●</Badge>
+                        <span>Predictive lead scoring</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <Badge className="bg-white text-salesBlue">✓</Badge>
-                        <span>Smart lead management</span>
+                        <Badge className="bg-white text-purple-600">●</Badge>
+                        <span>Custom conversation playbooks</span>
                       </li>
                       <li className="flex items-center gap-2">
-                        <Badge className="bg-white text-salesBlue">✓</Badge>
-                        <span>Custom sales brain training</span>
+                        <Badge className="bg-white text-purple-600">●</Badge>
+                        <span>Advanced performance forecasting</span>
                       </li>
                     </ul>
-                    <Button variant="secondary" className="w-full text-salesBlue">
-                      Get Started Free
+                    <Button variant="secondary" className="w-full text-purple-600">
+                      View Advanced Analytics
                     </Button>
                   </CardContent>
                 </Card>
