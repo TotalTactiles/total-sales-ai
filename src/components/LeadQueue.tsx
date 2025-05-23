@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -19,7 +20,7 @@ interface Lead {
   objection?: string;
   email: string;
   phone: string;
-  status: string;
+  status: 'new' | 'contacted' | 'qualified' | 'closed';
   tags: string[];
   isSensitive: boolean;
   conversionLikelihood: number;
