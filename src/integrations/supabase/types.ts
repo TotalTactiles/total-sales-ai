@@ -9,7 +9,144 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      ai_agent_personas: {
+        Row: {
+          created_at: string | null
+          delivery_style: string | null
+          id: string
+          last_training: string | null
+          level: number
+          name: string
+          tone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_style?: string | null
+          id?: string
+          last_training?: string | null
+          level?: number
+          name: string
+          tone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          delivery_style?: string | null
+          id?: string
+          last_training?: string | null
+          level?: number
+          name?: string
+          tone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      confidence_cache: {
+        Row: {
+          context: string | null
+          created_at: string | null
+          date_achieved: string | null
+          id: string
+          objection_handled: string | null
+          user_id: string
+          win_description: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string | null
+          date_achieved?: string | null
+          id?: string
+          objection_handled?: string | null
+          user_id: string
+          win_description: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string | null
+          date_achieved?: string | null
+          id?: string
+          objection_handled?: string | null
+          user_id?: string
+          win_description?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string
+          last_login: string | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          full_name?: string | null
+          id: string
+          last_login?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          full_name?: string | null
+          id?: string
+          last_login?: string | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_stats: {
+        Row: {
+          best_time_end: string | null
+          best_time_start: string | null
+          burnout_risk: number | null
+          call_count: number | null
+          created_at: string | null
+          current_streak: number | null
+          id: string
+          last_active: string | null
+          mood_score: number | null
+          updated_at: string | null
+          user_id: string
+          win_count: number | null
+        }
+        Insert: {
+          best_time_end?: string | null
+          best_time_start?: string | null
+          burnout_risk?: number | null
+          call_count?: number | null
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_active?: string | null
+          mood_score?: number | null
+          updated_at?: string | null
+          user_id: string
+          win_count?: number | null
+        }
+        Update: {
+          best_time_end?: string | null
+          best_time_start?: string | null
+          burnout_risk?: number | null
+          call_count?: number | null
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_active?: string | null
+          mood_score?: number | null
+          updated_at?: string | null
+          user_id?: string
+          win_count?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +155,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      user_role: "manager" | "sales_rep"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +270,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["manager", "sales_rep"],
+    },
   },
 } as const

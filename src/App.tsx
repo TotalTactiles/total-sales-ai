@@ -1,10 +1,11 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { AuthProvider } from "@/contexts/AuthContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Dialer from "./pages/Dialer";
 import NotFound from "./pages/NotFound";
@@ -15,6 +16,9 @@ import CompanyBrain from "./pages/CompanyBrain";
 import AgentTools from "./pages/AgentTools";
 import Settings from "./pages/Settings";
 import AIAgent from "./pages/AIAgent";
+import Auth from "./pages/Auth";
+import SalesRepDashboard from "./pages/SalesRepDashboard";
+import ManagerDashboard from "./pages/ManagerDashboard";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -27,19 +31,110 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/dialer" element={<Dialer />} />
-              <Route path="/leads" element={<LeadManagement />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/missions" element={<AgentMissions />} />
-              <Route path="/brain" element={<CompanyBrain />} />
-              <Route path="/tools" element={<AgentTools />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/ai-agent" element={<AIAgent />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AuthProvider>
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                
+                {/* Public landing page */}
+                <Route path="/" element={<Navigate to="/auth" replace />} />
+                
+                {/* Protected routes for Sales Rep */}
+                <Route 
+                  path="/dashboard/rep" 
+                  element={
+                    <ProtectedRoute requiredRole="sales_rep">
+                      <SalesRepDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Protected routes for Manager */}
+                <Route 
+                  path="/dashboard/manager" 
+                  element={
+                    <ProtectedRoute requiredRole="manager">
+                      <ManagerDashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Other protected routes - accessible to all authenticated users */}
+                <Route 
+                  path="/dialer" 
+                  element={
+                    <ProtectedRoute>
+                      <Dialer />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/leads" 
+                  element={
+                    <ProtectedRoute>
+                      <LeadManagement />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/analytics" 
+                  element={
+                    <ProtectedRoute>
+                      <Analytics />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/missions" 
+                  element={
+                    <ProtectedRoute>
+                      <AgentMissions />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/brain" 
+                  element={
+                    <ProtectedRoute>
+                      <CompanyBrain />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/tools" 
+                  element={
+                    <ProtectedRoute>
+                      <AgentTools />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/settings" 
+                  element={
+                    <ProtectedRoute>
+                      <Settings />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                <Route 
+                  path="/ai-agent" 
+                  element={
+                    <ProtectedRoute>
+                      <AIAgent />
+                    </ProtectedRoute>
+                  } 
+                />
+                
+                {/* Catch-all route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
