@@ -45,6 +45,72 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_brain_insights: {
+        Row: {
+          accepted: boolean | null
+          company_id: string | null
+          context: Json | null
+          id: string
+          suggestion_text: string | null
+          timestamp: string | null
+          triggered_by: string | null
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accepted?: boolean | null
+          company_id?: string | null
+          context?: Json | null
+          id?: string
+          suggestion_text?: string | null
+          timestamp?: string | null
+          triggered_by?: string | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accepted?: boolean | null
+          company_id?: string | null
+          context?: Json | null
+          id?: string
+          suggestion_text?: string | null
+          timestamp?: string | null
+          triggered_by?: string | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      ai_brain_logs: {
+        Row: {
+          company_id: string | null
+          event_summary: string | null
+          id: string
+          payload: Json | null
+          timestamp: string | null
+          type: string | null
+          visibility: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          event_summary?: string | null
+          id?: string
+          payload?: Json | null
+          timestamp?: string | null
+          type?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          event_summary?: string | null
+          id?: string
+          payload?: Json | null
+          timestamp?: string | null
+          type?: string | null
+          visibility?: string | null
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           agent_name: string | null
@@ -99,6 +165,27 @@ export type Database = {
           team_roles?: string[] | null
           tone?: Json | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      company_summary: {
+        Row: {
+          ai_insights: Json | null
+          company_id: string
+          last_updated: string | null
+          summary: string | null
+        }
+        Insert: {
+          ai_insights?: Json | null
+          company_id: string
+          last_updated?: string | null
+          summary?: string | null
+        }
+        Update: {
+          ai_insights?: Json | null
+          company_id?: string
+          last_updated?: string | null
+          summary?: string | null
         }
         Relationships: []
       }
@@ -195,6 +282,33 @@ export type Database = {
           industry?: string | null
           validated?: boolean | null
           votes?: number | null
+        }
+        Relationships: []
+      }
+      ghost_intent_events: {
+        Row: {
+          feature_attempted: string | null
+          id: string
+          intent_description: string | null
+          metadata: Json | null
+          timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          feature_attempted?: string | null
+          id?: string
+          intent_description?: string | null
+          metadata?: Json | null
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          feature_attempted?: string | null
+          id?: string
+          intent_description?: string | null
+          metadata?: Json | null
+          timestamp?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -396,6 +510,30 @@ export type Database = {
         }
         Relationships: []
       }
+      session_summary: {
+        Row: {
+          company_id: string
+          generated_at: string | null
+          id: string
+          summary: string | null
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          generated_at?: string | null
+          id?: string
+          summary?: string | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          generated_at?: string | null
+          id?: string
+          summary?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       stats_history: {
         Row: {
           chunk_count: number
@@ -414,6 +552,33 @@ export type Database = {
           created_at?: string
           document_count?: number
           id?: string
+        }
+        Relationships: []
+      }
+      unused_features: {
+        Row: {
+          company_id: string | null
+          feature: string | null
+          flagged: boolean | null
+          id: string
+          last_seen: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          company_id?: string | null
+          feature?: string | null
+          flagged?: boolean | null
+          id?: string
+          last_seen?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          company_id?: string | null
+          feature?: string | null
+          flagged?: boolean | null
+          id?: string
+          last_seen?: string | null
+          usage_count?: number | null
         }
         Relationships: []
       }
@@ -441,6 +606,45 @@ export type Database = {
           event_type?: string
           id?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      usage_events: {
+        Row: {
+          action: string | null
+          company_id: string
+          context: string | null
+          feature: string | null
+          id: string
+          metadata: Json | null
+          outcome: string | null
+          role: string | null
+          timestamp: string | null
+          user_id: string
+        }
+        Insert: {
+          action?: string | null
+          company_id: string
+          context?: string | null
+          feature?: string | null
+          id?: string
+          metadata?: Json | null
+          outcome?: string | null
+          role?: string | null
+          timestamp?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string | null
+          company_id?: string
+          context?: string | null
+          feature?: string | null
+          id?: string
+          metadata?: Json | null
+          outcome?: string | null
+          role?: string | null
+          timestamp?: string | null
+          user_id?: string
         }
         Relationships: []
       }
