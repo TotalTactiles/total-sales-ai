@@ -21,6 +21,7 @@ import AIAgent from "./pages/AIAgent";
 import Auth from "./pages/Auth";
 import SalesRepDashboard from "./pages/SalesRepDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
+import OnboardingPage from "./pages/onboarding/OnboardingPage";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -40,6 +41,16 @@ const App = () => {
                   
                   {/* Public landing page */}
                   <Route path="/" element={<Navigate to="/auth" replace />} />
+                  
+                  {/* Onboarding route */}
+                  <Route 
+                    path="/onboarding" 
+                    element={
+                      <ProtectedRoute requiredRole="manager">
+                        <OnboardingPage />
+                      </ProtectedRoute>
+                    } 
+                  />
                   
                   {/* Protected routes for Sales Rep */}
                   <Route 

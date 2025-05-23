@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
@@ -40,6 +41,43 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     });
   };
 
+  const checkCompanySettings = async (userId: string) => {
+    try {
+      // Get the user's profile to find company_id
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('company_id, role')
+        .eq('id', userId)
+        .single();
+      
+      if (profileError) throw profileError;
+      
+      // If no company_id, we can't check settings
+      if (!profileData.company_id) {
+        return null;
+      }
+      
+      // Check if company settings exist
+      const { data: settingsData, error: settingsError } = await supabase
+        .from('company_settings')
+        .select('*')
+        .eq('company_id', profileData.company_id)
+        .maybeSingle();
+      
+      if (settingsError) throw settingsError;
+      
+      // Return combination of profile and settings
+      return {
+        hasSettings: !!settingsData,
+        isManager: profileData.role === 'manager',
+        companyId: profileData.company_id
+      };
+    } catch (error) {
+      console.error('Error checking company settings:', error);
+      return null;
+    }
+  };
+
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -57,10 +95,20 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       
       setIsTransitioning(true);
       
-      // Direct navigation to Sales Rep Dashboard
-      console.log("Redirecting to Sales Rep Dashboard as full user");
+      // Check for company settings (only in real mode, not demo mode)
+      // In a real implementation, you would check after actual authentication
+      const userId = localStorage.getItem('userId') || '123e4567-e89b-12d3-a456-426614174000'; // Mock user ID for demo
+      const companyStatus = await checkCompanySettings(userId);
+
+      // Direct navigation based on settings status
       setTimeout(() => {
-        navigate('/dashboard/rep');
+        if (companyStatus && companyStatus.isManager && !companyStatus.hasSettings) {
+          // Manager with no company settings -> onboarding
+          navigate('/onboarding');
+        } else {
+          // Regular navigation based on role
+          navigate('/dashboard/rep');
+        }
       }, 1500);
       
       toast.success('Welcome back! Logged in as full user with Pro features.');

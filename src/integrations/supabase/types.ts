@@ -45,6 +45,54 @@ export type Database = {
         }
         Relationships: []
       }
+      company_settings: {
+        Row: {
+          agent_name: string | null
+          company_id: string
+          created_at: string | null
+          enabled_modules: Json | null
+          id: string
+          industry: string | null
+          original_goal: string | null
+          pain_points: string[] | null
+          personalization_flags: Json | null
+          sales_model: string[] | null
+          team_roles: string[] | null
+          tone: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_name?: string | null
+          company_id: string
+          created_at?: string | null
+          enabled_modules?: Json | null
+          id?: string
+          industry?: string | null
+          original_goal?: string | null
+          pain_points?: string[] | null
+          personalization_flags?: Json | null
+          sales_model?: string[] | null
+          team_roles?: string[] | null
+          tone?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_name?: string | null
+          company_id?: string
+          created_at?: string | null
+          enabled_modules?: Json | null
+          id?: string
+          industry?: string | null
+          original_goal?: string | null
+          pain_points?: string[] | null
+          personalization_flags?: Json | null
+          sales_model?: string[] | null
+          team_roles?: string[] | null
+          tone?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       confidence_cache: {
         Row: {
           context: string | null
@@ -108,6 +156,39 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_requests: {
+        Row: {
+          company_id: string | null
+          context: string | null
+          created_at: string | null
+          feature_name: string | null
+          id: string
+          industry: string | null
+          validated: boolean | null
+          votes: number | null
+        }
+        Insert: {
+          company_id?: string | null
+          context?: string | null
+          created_at?: string | null
+          feature_name?: string | null
+          id?: string
+          industry?: string | null
+          validated?: boolean | null
+          votes?: number | null
+        }
+        Update: {
+          company_id?: string | null
+          context?: string | null
+          created_at?: string | null
+          feature_name?: string | null
+          id?: string
+          industry?: string | null
+          validated?: boolean | null
+          votes?: number | null
+        }
+        Relationships: []
+      }
       industry_knowledge: {
         Row: {
           company_id: string | null
@@ -162,6 +243,42 @@ export type Database = {
           last_run?: string | null
           metadata?: Json | null
           status?: string
+        }
+        Relationships: []
+      }
+      manager_feedback: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          feedback_period_end: string | null
+          feedback_period_start: string | null
+          id: string
+          metrics: Json | null
+          report_summary: string | null
+          sentiment: string | null
+          suggestions: Json | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          feedback_period_end?: string | null
+          feedback_period_start?: string | null
+          id?: string
+          metrics?: Json | null
+          report_summary?: string | null
+          sentiment?: string | null
+          suggestions?: Json | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          feedback_period_end?: string | null
+          feedback_period_start?: string | null
+          id?: string
+          metrics?: Json | null
+          report_summary?: string | null
+          sentiment?: string | null
+          suggestions?: Json | null
         }
         Relationships: []
       }
