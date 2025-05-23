@@ -3,3 +3,6 @@ project_id = "yztozysvxyjqguybokqj"
 
 [functions.ai-agent]
 verify_jwt = true
+
+[functions.ai-brain-ingest]
+verify_jwt = true
