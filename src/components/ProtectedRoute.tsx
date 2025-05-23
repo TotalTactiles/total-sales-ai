@@ -16,10 +16,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
   useEffect(() => {
     // Debug logging to help troubleshoot
     console.log("ProtectedRoute - User:", user?.id);
-    console.log("ProtectedRoute - Profile:", profile);
+    console.log("ProtectedRoute - Profile:", profile?.role);
     console.log("ProtectedRoute - Demo Mode:", isDemoMode());
     console.log("ProtectedRoute - Required Role:", requiredRole);
-  }, [user, profile, isDemoMode, requiredRole]);
+    console.log("ProtectedRoute - Current Path:", location.pathname);
+  }, [user, profile, isDemoMode, requiredRole, location]);
 
   if (loading) {
     return (

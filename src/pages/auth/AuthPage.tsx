@@ -57,7 +57,7 @@ const AuthPage = () => {
       const redirectPath = selectedRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
       console.log("AuthPage: Transitioning to", redirectPath);
       navigate(redirectPath);
-    }, 2000);
+    }, 1500);
   };
 
   // If already in demo mode or transitioning, show loading screen
@@ -71,16 +71,16 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted/80">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted/80 dark:from-dark dark:to-dark/90">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
       
-      <Card className="max-w-md w-full p-8 shadow-lg border border-border/40 rounded-xl">
+      <Card className="max-w-md w-full p-8 shadow-lg border border-border/40 rounded-xl dark:bg-dark-card dark:border-dark-border">
         <div className="text-center mb-6">
           <Logo />
-          <h2 className="text-2xl font-bold mt-4 text-foreground">Welcome to SalesOS</h2>
-          <p className="text-muted-foreground mt-1">Your AI-powered sales acceleration platform</p>
+          <h2 className="text-2xl font-bold mt-4 text-foreground dark:text-white">Welcome to SalesOS</h2>
+          <p className="text-muted-foreground dark:text-gray-400 mt-1">Your AI-powered sales acceleration platform</p>
         </div>
       
         <Tabs 
@@ -99,11 +99,11 @@ const AuthPage = () => {
           </TabsList>
         
           <div className="space-y-6">
-            <div className="text-center p-4 mb-4 border border-dashed border-border rounded-lg">
+            <div className="text-center p-4 mb-4 border border-dashed border-border rounded-lg dark:border-dark-border">
               <h3 className="font-medium text-lg mb-1">
                 {selectedRole === 'manager' ? 'Manager Dashboard' : 'Sales Rep Dashboard'}
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground dark:text-gray-400">
                 {selectedRole === 'manager' 
                   ? 'Team analysis, performance tracking & AI coaching' 
                   : 'Smart dialer, call scripts & AI sales assistant'}

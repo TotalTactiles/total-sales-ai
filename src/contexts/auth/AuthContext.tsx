@@ -24,6 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (demoMode === 'true' && demoRole) {
       // Initialize demo mode user
+      console.log("Initializing demo mode from stored values");
       const { demoUser, demoProfile } = initializeDemoUser(demoRole);
       setUser(demoUser);
       setProfile(demoProfile);
@@ -34,10 +35,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up the auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        console.log("Auth state change:", event);
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
+          // We're using setTimeout(0) to avoid Supabase deadlocks
+          // This defers the profile fetch until after the auth state update completes
           setTimeout(async () => {
             await fetchUserProfile(currentSession.user.id);
           }, 0);
@@ -49,6 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Then check for existing session
     supabase.auth.getSession().then(async ({ data: { session: currentSession } }) => {
+      console.log("Checking for existing session:", currentSession ? "Found" : "None");
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       
@@ -66,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, role')
@@ -78,6 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data) {
+        console.log("Profile fetched successfully:", data);
         setProfile(data as Profile);
         
         // Update last login timestamp
@@ -85,6 +92,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('profiles')
           .update({ last_login: new Date().toISOString() })
           .eq('id', userId);
+      } else {
+        console.warn("No profile found for user:", userId);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -93,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, fullName: string, role: Role) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -106,8 +115,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
       
+      console.log("Sign up successful:", data);
       toast.success('Account created successfully! Please log in.');
     } catch (error: any) {
+      console.error("Sign up error:", error);
       toast.error(error.message || 'Error signing up');
       throw error;
     }
@@ -115,15 +126,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error, data } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
       
+      console.log("Sign in successful:", data);
       toast.success('Logged in successfully!');
+      
+      // Redirect based on user role
+      if (data.session?.user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.session.user.id)
+          .maybeSingle();
+          
+        if (profileData) {
+          const redirectPath = profileData.role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+          navigate(redirectPath);
+        }
+      }
     } catch (error: any) {
+      console.error("Sign in error:", error);
       toast.error(error.message || 'Error signing in');
       throw error;
     }
@@ -141,6 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/auth');
       toast.info('You have been logged out');
     } catch (error: any) {
+      console.error("Sign out error:", error);
       toast.error(error.message || 'Error signing out');
     }
   };

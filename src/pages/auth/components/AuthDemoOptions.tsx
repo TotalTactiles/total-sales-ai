@@ -2,6 +2,8 @@
 import React from 'react';
 import { Role } from '@/contexts/auth/types';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AuthDemoOptionsProps {
   selectedRole: Role;
@@ -16,11 +18,30 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
   simulateLoginTransition,
   setFormData
 }) => {
+  const navigate = useNavigate();
+  const { initializeDemoMode } = useAuth();
+  
   const handleDemoLogin = () => {
+    // First fill in the form with demo credentials
     const email = selectedRole === 'manager' ? 'manager@salesos.com' : 'rep@salesos.com';
     const password = selectedRole === 'manager' ? 'manager123' : 'sales123';
     
     setFormData({ email, password });
+  };
+  
+  const handleDirectDemoLogin = () => {
+    // Skip the form and directly log in with demo mode
+    console.log("Direct demo login with role:", selectedRole);
+    initializeDemoMode(selectedRole);
+    setIsTransitioning(true);
+    
+    // Direct navigation based on role
+    const redirectPath = selectedRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+    console.log("Redirecting to:", redirectPath);
+    
+    setTimeout(() => {
+      navigate(redirectPath);
+    }, 1500);
   };
 
   return (
@@ -29,13 +50,21 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
         Try the <span className="font-semibold">demo version</span> instead
       </p>
       
-      <div className="flex flex-col space-y-2">
+      <div className="flex flex-col space-y-3">
         <Button
           onClick={handleDemoLogin}
           variant="outline"
           className="w-full py-2 border border-border hover:bg-accent text-sm font-medium transition-colors"
         >
           Fill in Demo Credentials
+        </Button>
+        
+        <Button
+          onClick={handleDirectDemoLogin}
+          variant="default"
+          className="w-full py-2 bg-salesBlue hover:bg-salesBlue/90 text-sm font-medium transition-colors"
+        >
+          Quick Demo Login
         </Button>
       </div>
       

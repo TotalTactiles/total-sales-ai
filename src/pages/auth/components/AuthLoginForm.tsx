@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
@@ -20,6 +21,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   setFormData: externalSetFormData
 }) => {
   const { signIn, initializeDemoMode } = useAuth();
+  const navigate = useNavigate();
   const [internalFormData, setInternalFormData] = useState({
     email: '',
     password: '',
@@ -54,7 +56,14 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         // Use demo mode directly instead of trying to authenticate with Supabase
         initializeDemoMode(role);
         setIsTransitioning(true);
-        simulateLoginTransition();
+        
+        // Direct navigation based on role
+        const redirectPath = role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+        console.log("Redirecting to:", redirectPath);
+        setTimeout(() => {
+          navigate(redirectPath);
+        }, 1500);
+        
         toast.success('Demo mode activated!');
         return;
       }
@@ -63,7 +72,6 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       await signIn(formData.email, formData.password);
       toast.success('Logged in successfully!');
       setIsTransitioning(true);
-      simulateLoginTransition();
     } catch (error: any) {
       console.error('Authentication error:', error);
       toast.error(error.message || 'Invalid login credentials');
