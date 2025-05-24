@@ -12,7 +12,7 @@ export interface Notification {
   title: string;
   message?: string;
   is_read: boolean;
-  metadata: Record<string, any>;
+  metadata: any; // Changed from Record<string, any> to any to match Supabase Json type
   created_at: string;
 }
 
@@ -48,7 +48,7 @@ export const useNotifications = () => {
     type: string;
     title: string;
     message?: string;
-    metadata?: Record<string, any>;
+    metadata?: any;
   }) => {
     if (!user?.id || !profile?.company_id) return;
 

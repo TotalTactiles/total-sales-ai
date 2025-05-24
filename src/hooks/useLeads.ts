@@ -49,7 +49,7 @@ export const useLeads = () => {
     }
   };
 
-  const createLead = async (leadData: Partial<DatabaseLead>) => {
+  const createLead = async (leadData: Omit<DatabaseLead, 'id' | 'company_id' | 'created_at' | 'updated_at'>) => {
     if (!profile?.company_id) {
       toast.error('Company not found');
       return null;
