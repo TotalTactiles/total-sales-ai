@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import LeadManagementHeader from '@/components/LeadManagement/LeadManagementHeader';
 import LeadManagementActions from '@/components/LeadManagement/LeadManagementActions';
@@ -17,6 +18,7 @@ import { convertMockLeadToLead } from '@/utils/mockDataUtils';
 import { toast } from 'sonner';
 
 const LeadManagement = () => {
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false);
@@ -46,8 +48,8 @@ const LeadManagement = () => {
       : [];
 
   const handleLeadClick = (lead: Lead) => {
-    setSelectedLead(lead);
-    setIsSlidePanelOpen(true);
+    // Navigate to the lead workspace instead of opening slide panel
+    navigate(`/workspace/${lead.id}`);
   };
 
   const handleQuickAction = (action: string, lead: Lead) => {

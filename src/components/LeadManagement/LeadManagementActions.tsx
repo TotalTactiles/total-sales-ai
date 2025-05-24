@@ -24,18 +24,21 @@ const LeadManagementActions: React.FC<LeadManagementActionsProps> = ({
 }) => {
   return (
     <div className="flex gap-2">
-      {(isInDemoMode || (!hasRealData && showDemo)) && (
+      {/* Show exit demo button when in interactive demo mode (not global demo mode) */}
+      {!isInDemoMode && showDemo && (
+        <Button 
+          variant="outline"
+          onClick={onExitDemo}
+          className="flex items-center gap-2 text-red-600 hover:text-red-700"
+        >
+          <X className="h-4 w-4" />
+          Exit Demo
+        </Button>
+      )}
+      
+      {/* Show demo controls when using mock data */}
+      {(isInDemoMode || showDemo) && (
         <>
-          {!isInDemoMode && showDemo && (
-            <Button 
-              variant="outline"
-              onClick={onExitDemo}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700"
-            >
-              <X className="h-4 w-4" />
-              Exit Demo
-            </Button>
-          )}
           <Button 
             variant="outline"
             onClick={onResetMockData}
@@ -54,6 +57,7 @@ const LeadManagementActions: React.FC<LeadManagementActionsProps> = ({
           </Button>
         </>
       )}
+      
       <Button 
         variant="outline"
         onClick={onImportDialogOpen}
