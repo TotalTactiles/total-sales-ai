@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Trash2, RotateCcw } from 'lucide-react';
+import { Upload, Trash2, RotateCcw, X } from 'lucide-react';
 
 interface LeadManagementActionsProps {
   isInDemoMode: boolean;
@@ -10,6 +10,7 @@ interface LeadManagementActionsProps {
   onResetMockData: () => void;
   onClearMockData: () => void;
   onImportDialogOpen: () => void;
+  onExitDemo: () => void;
 }
 
 const LeadManagementActions: React.FC<LeadManagementActionsProps> = ({
@@ -18,12 +19,23 @@ const LeadManagementActions: React.FC<LeadManagementActionsProps> = ({
   showDemo,
   onResetMockData,
   onClearMockData,
-  onImportDialogOpen
+  onImportDialogOpen,
+  onExitDemo
 }) => {
   return (
     <div className="flex gap-2">
       {(isInDemoMode || (!hasRealData && showDemo)) && (
         <>
+          {!isInDemoMode && showDemo && (
+            <Button 
+              variant="outline"
+              onClick={onExitDemo}
+              className="flex items-center gap-2 text-red-600 hover:text-red-700"
+            >
+              <X className="h-4 w-4" />
+              Exit Demo
+            </Button>
+          )}
           <Button 
             variant="outline"
             onClick={onResetMockData}

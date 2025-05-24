@@ -25,7 +25,7 @@ const LeadManagementHeader: React.FC<LeadManagementHeaderProps> = ({
           <h1 className="text-2xl font-bold text-salesBlue">Lead Management</h1>
           {(isInDemoMode || (!hasRealData && showDemo)) && (
             <p className="text-sm text-slate-600 mt-1">
-              Showing mock data - see how your leads would look in the system
+              Exploring with demo data - see how your leads would appear in the system
             </p>
           )}
         </div>

@@ -37,16 +37,19 @@ const LeadManagement = () => {
   const hasRealData = leads && leads.length > 0;
   const isInDemoMode = isDemoMode();
   
-  // Auto-enable showDemo if we're in demo mode
+  // Auto-enable showDemo if we're in demo mode OR if no real data
   useEffect(() => {
-    if (isInDemoMode && !hasRealData) {
+    if (isInDemoMode || !hasRealData) {
       setShowDemo(true);
     }
   }, [isInDemoMode, hasRealData]);
   
-  const displayLeads: Lead[] = hasRealData 
-    ? leads.map(convertDatabaseLeadToLead) 
-    : mockLeads.map(convertMockLeadToLead);
+  // Choose which leads to display based on demo state
+  const displayLeads: Lead[] = (isInDemoMode || showDemo) && !hasRealData
+    ? mockLeads.map(convertMockLeadToLead)
+    : hasRealData 
+      ? leads.map(convertDatabaseLeadToLead)
+      : [];
 
   const handleLeadClick = (lead: Lead) => {
     setSelectedLead(lead);
@@ -75,7 +78,7 @@ const LeadManagement = () => {
         toast.success(`Requesting team help for ${lead.name}`);
         break;
       case 'delete':
-        if (!hasRealData) {
+        if ((isInDemoMode || showDemo) && !hasRealData) {
           deleteLead(lead.id);
         } else {
           toast.error('Cannot delete real leads from demo mode');
@@ -96,17 +99,24 @@ const LeadManagement = () => {
     toast.success('Demo mode activated! Explore with mock data to see the full potential.');
   };
 
+  const handleExitDemo = () => {
+    setShowDemo(false);
+    toast.info('Demo mode deactivated. Showing real data.');
+  };
+
   const handleClearMockData = () => {
-    if (!hasRealData) {
+    if ((isInDemoMode || showDemo) && !hasRealData) {
       clearAllMockData();
+      toast.success('All demo data cleared');
     } else {
       toast.error('Cannot clear data when real leads are present');
     }
   };
 
   const handleResetMockData = () => {
-    if (!hasRealData) {
+    if ((isInDemoMode || showDemo) && !hasRealData) {
       resetMockData();
+      toast.success('Demo data reset to original state');
     } else {
       toast.error('Cannot reset when real leads are present');
     }
@@ -116,7 +126,7 @@ const LeadManagement = () => {
     ? displayLeads 
     : displayLeads.filter(lead => lead.status === activeFilter);
 
-  // Show workspace showcase only if no real data, not in demo mode, and demo not manually started
+  // Show workspace showcase only if no real data, not in global demo mode, and demo not manually started
   if (!hasRealData && !isInDemoMode && !showDemo) {
     return (
       <div className="min-h-screen flex flex-col bg-slate-50">
@@ -140,7 +150,7 @@ const LeadManagement = () => {
       <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <LeadManagementHeader
-            showDemoIndicator={(isInDemoMode || (!hasRealData && showDemo))}
+            showDemoIndicator={(isInDemoMode || showDemo) && !hasRealData}
             isInDemoMode={isInDemoMode}
             hasRealData={hasRealData}
             showDemo={showDemo}
@@ -154,6 +164,7 @@ const LeadManagement = () => {
               onResetMockData={handleResetMockData}
               onClearMockData={handleClearMockData}
               onImportDialogOpen={() => setIsImportDialogOpen(true)}
+              onExitDemo={handleExitDemo}
             />
           </div>
           
