@@ -24,6 +24,7 @@ const WorkspaceShowcase: React.FC<WorkspaceShowcaseProps> = ({ workspace, onStar
   const getWorkspaceInfo = (ws: string) => {
     switch (ws.toLowerCase()) {
       case 'leads':
+      case 'lead management':
         return {
           title: 'Lead Management Workspace',
           description: 'Centralized hub for managing your entire lead pipeline with AI-powered insights',

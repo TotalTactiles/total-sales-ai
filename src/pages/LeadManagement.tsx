@@ -37,15 +37,9 @@ const LeadManagement = () => {
   const hasRealData = leads && leads.length > 0;
   const isInDemoMode = isDemoMode();
   
-  // Auto-enable showDemo if we're in demo mode OR if no real data
-  useEffect(() => {
-    if (isInDemoMode || !hasRealData) {
-      setShowDemo(true);
-    }
-  }, [isInDemoMode, hasRealData]);
-  
   // Choose which leads to display based on demo state
-  const displayLeads: Lead[] = (isInDemoMode || showDemo) && !hasRealData
+  const shouldShowMockData = isInDemoMode || showDemo;
+  const displayLeads: Lead[] = shouldShowMockData
     ? mockLeads.map(convertMockLeadToLead)
     : hasRealData 
       ? leads.map(convertDatabaseLeadToLead)
@@ -78,8 +72,9 @@ const LeadManagement = () => {
         toast.success(`Requesting team help for ${lead.name}`);
         break;
       case 'delete':
-        if ((isInDemoMode || showDemo) && !hasRealData) {
+        if (shouldShowMockData) {
           deleteLead(lead.id);
+          toast.success('Demo lead deleted successfully');
         } else {
           toast.error('Cannot delete real leads from demo mode');
         }
@@ -95,17 +90,19 @@ const LeadManagement = () => {
   };
 
   const handleStartDemo = () => {
+    console.log('Starting interactive demo mode');
     setShowDemo(true);
     toast.success('Demo mode activated! Explore with mock data to see the full potential.');
   };
 
   const handleExitDemo = () => {
+    console.log('Exiting interactive demo mode');
     setShowDemo(false);
     toast.info('Demo mode deactivated. Showing real data.');
   };
 
   const handleClearMockData = () => {
-    if ((isInDemoMode || showDemo) && !hasRealData) {
+    if (shouldShowMockData) {
       clearAllMockData();
       toast.success('All demo data cleared');
     } else {
@@ -114,7 +111,7 @@ const LeadManagement = () => {
   };
 
   const handleResetMockData = () => {
-    if ((isInDemoMode || showDemo) && !hasRealData) {
+    if (shouldShowMockData) {
       resetMockData();
       toast.success('Demo data reset to original state');
     } else {
@@ -134,7 +131,7 @@ const LeadManagement = () => {
         <div className="flex-1 p-6">
           <div className="max-w-4xl mx-auto py-12">
             <WorkspaceShowcase 
-              workspace="Lead Management" 
+              workspace="leads" 
               onStartDemo={handleStartDemo}
             />
           </div>
@@ -150,7 +147,7 @@ const LeadManagement = () => {
       <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <LeadManagementHeader
-            showDemoIndicator={(isInDemoMode || showDemo) && !hasRealData}
+            showDemoIndicator={shouldShowMockData}
             isInDemoMode={isInDemoMode}
             hasRealData={hasRealData}
             showDemo={showDemo}
@@ -173,7 +170,7 @@ const LeadManagement = () => {
             setActiveFilter={setActiveFilter}
             displayLeads={displayLeads}
             filteredLeads={filteredLeads}
-            isLoading={isLoading}
+            isLoading={!shouldShowMockData && isLoading}
             onLeadClick={handleLeadClick}
             onQuickAction={handleQuickAction}
           />
