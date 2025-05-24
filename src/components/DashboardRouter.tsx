@@ -19,27 +19,27 @@ const DashboardRouter = () => {
   if (userStatus === 'demo' && demoRole) {
     switch (demoRole) {
       case 'sales-rep':
-        return <Navigate to="/sales-rep-dashboard" replace />;
+        return <Navigate to="/" replace />;
       case 'manager':
         return <Navigate to="/manager-dashboard" replace />;
       case 'admin':
         return <Navigate to="/admin-dashboard" replace />;
       default:
-        return <Navigate to="/sales-rep-dashboard" replace />;
+        return <Navigate to="/" replace />;
     }
   }
   
   // Handle authenticated users based on profile role
-  const role = profile?.role || 'sales-rep';
+  const role = profile?.role || 'sales_rep';
   
   switch (role) {
     case 'manager':
       return <Navigate to="/manager-dashboard" replace />;
     case 'admin':
       return <Navigate to="/admin-dashboard" replace />;
-    case 'sales-rep':
+    case 'sales_rep':
     default:
-      return <Navigate to="/sales-rep-dashboard" replace />;
+      return <Navigate to="/" replace />;
   }
 };
 
