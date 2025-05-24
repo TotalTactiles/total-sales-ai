@@ -44,7 +44,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
     
     // If specific role is required but doesn't match, redirect
     console.log("Demo access denied - redirecting");
-    const redirectPath = demoRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+    const redirectPath = demoRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -59,7 +59,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
   if (requiredRole && profile && profile.role !== requiredRole) {
     console.log("Role mismatch - redirecting");
     // Redirect to appropriate dashboard
-    const redirectPath = profile.role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+    const redirectPath = profile.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 

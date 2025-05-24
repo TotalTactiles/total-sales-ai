@@ -136,7 +136,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log("Sign in successful:", data);
       toast.success('Logged in successfully!');
       
-      // Redirect based on user role
+      // Redirect based on user role - using correct existing routes
       if (data.session?.user) {
         const { data: profileData } = await supabase
           .from('profiles')
@@ -145,7 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .maybeSingle();
           
         if (profileData) {
-          const redirectPath = profileData.role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+          const redirectPath = profileData.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
           navigate(redirectPath);
         }
       }

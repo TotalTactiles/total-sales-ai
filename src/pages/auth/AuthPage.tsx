@@ -30,7 +30,7 @@ const AuthPage = () => {
     
     if (user && profile) {
       console.log("AuthPage: User is logged in, redirecting to dashboard");
-      const redirectPath = profile.role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+      const redirectPath = profile.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
       navigate(redirectPath);
     } else if (isDemoMode()) {
       // Check if demo mode is active but navigation didn't happen
@@ -38,7 +38,7 @@ const AuthPage = () => {
       console.log("AuthPage: Demo mode is active with role:", demoRole);
       
       if (demoRole) {
-        const redirectPath = demoRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+        const redirectPath = demoRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
         console.log("AuthPage: Redirecting to", redirectPath);
         navigate(redirectPath);
       }
@@ -54,7 +54,7 @@ const AuthPage = () => {
   const simulateLoginTransition = () => {
     // Simulate loading and transition to dashboard
     setTimeout(() => {
-      const redirectPath = selectedRole === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+      const redirectPath = selectedRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
       console.log("AuthPage: Transitioning to", redirectPath);
       navigate(redirectPath);
     }, 1500);
