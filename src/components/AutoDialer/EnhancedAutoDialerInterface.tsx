@@ -19,13 +19,13 @@ import {
 } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import { useAIContext } from '@/contexts/AIContext';
 
 import LeadPriorityQueue from './LeadPriorityQueue';
 import CallFeedback from './CallFeedback';
 import DialerOverlay from './DialerOverlay';
 import SpeedToLeadAlert from './SpeedToLeadAlert';
 import AIAutopilotToggle from './AIAutopilotToggle';
-import UnifiedAIAssistant from '../UnifiedAI/UnifiedAIAssistant';
 
 interface EnhancedAutoDialerInterfaceProps {
   leads: Lead[];
@@ -44,30 +44,28 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
   const [callProgress, setCallProgress] = useState(0);
   const [autopilotLeads, setAutopilotLeads] = useState<Set<string>>(new Set());
 
+  const { setCallActive, setCallDuration } = useAIContext();
+
   // Stats
   const totalLeads = leads.length;
   const freshLeads = leads.filter(lead => (lead.speedToLead || 0) < 15);
   const highPriorityLeads = leads.filter(lead => lead.priority === 'high');
-  const completedCalls = Math.floor(totalLeads * 0.23); // Mock completion rate
+  const completedCalls = Math.floor(totalLeads * 0.23);
 
   // Auto-select next lead based on priority algorithm
   useEffect(() => {
     if (!currentLead && leads.length > 0) {
-      // AI-powered lead selection: Speed-to-lead + conversion likelihood + priority
       const scoredLeads = leads
         .filter(lead => !autopilotLeads.has(lead.id))
         .map(lead => {
           let score = 0;
           
-          // Speed-to-lead scoring (higher for fresher leads)
           if ((lead.speedToLead || 0) < 5) score += 100;
           else if ((lead.speedToLead || 0) < 15) score += 50;
           else if ((lead.speedToLead || 0) < 60) score += 20;
           
-          // Conversion likelihood
           score += (lead.conversionLikelihood || 0);
           
-          // Priority multiplier
           if (lead.priority === 'high') score *= 1.5;
           else if (lead.priority === 'medium') score *= 1.2;
           
@@ -84,6 +82,8 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
   const handleStartCalling = () => {
     if (currentLead) {
       setIsDialerOpen(true);
+      setCallActive(true);
+      setCallDuration(0);
       toast.success(`Initiating call to ${currentLead.name}`);
     } else {
       toast.warning('Please select a lead first');
@@ -125,25 +125,11 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
     });
   };
 
-  const handleAIAction = (action: string, data?: any) => {
-    switch (action) {
-      case 'initiate_call':
-        handleStartCalling();
-        break;
-      case 'suggest_close':
-        toast.info('AI suggests moving to close. Perfect timing!');
-        break;
-      case 'show_objection_scripts':
-        toast.info('Opening objection handling scripts...');
-        break;
-      case 'ai_response':
-        if (data?.response) {
-          toast.success(`AI: ${data.response}`);
-        }
-        break;
-      default:
-        console.log('AI Action:', action, data);
-    }
+  const handleEndCall = () => {
+    setIsDialerOpen(false);
+    setCallActive(false);
+    setCallDuration(0);
+    handleNextLead();
   };
 
   return (
@@ -207,6 +193,7 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
             onCallLead={(lead) => {
               onLeadSelect(lead);
               setIsDialerOpen(true);
+              setCallActive(true);
             }}
             onSelectLead={onLeadSelect}
           />
@@ -320,7 +307,7 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
           />
         </div>
 
-        {/* Right Panel - AI Insights & Performance */}
+        {/* Right Panel - Performance */}
         <div className="col-span-3 space-y-4 overflow-y-auto">
           <Card>
             <CardHeader>
@@ -379,26 +366,13 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
         </div>
       </div>
 
-      {/* Unified AI Assistant */}
-      <UnifiedAIAssistant
-        context={{
-          workspace: 'dialer',
-          currentLead: currentLead || undefined,
-          isCallActive: isDialerOpen
-        }}
-        onAction={handleAIAction}
-      />
-
       {/* Dialer Overlay */}
       {isDialerOpen && currentLead && (
         <DialerOverlay
           lead={currentLead}
           isOpen={isDialerOpen}
           onClose={() => setIsDialerOpen(false)}
-          onEndCall={() => {
-            setIsDialerOpen(false);
-            handleNextLead();
-          }}
+          onEndCall={handleEndCall}
         />
       )}
     </div>

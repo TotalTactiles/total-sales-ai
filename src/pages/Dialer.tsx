@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import AIAssistant from '@/components/AIAssistant';
 import EnhancedAutoDialerInterface from '@/components/AutoDialer/EnhancedAutoDialerInterface';
 import { Lead } from '@/types/lead';
+import { useAIContext } from '@/contexts/AIContext';
 
 const Dialer = () => {
   const [currentLead, setCurrentLead] = useState<Lead | null>(null);
+  const { setCurrentLead: setAICurrentLead, setCallActive } = useAIContext();
 
   // Enhanced mock leads with new priority system and speed-to-lead data
   const mockLeads: Lead[] = [
@@ -25,7 +26,7 @@ const Dialer = () => {
       tags: ['qualified', 'budget-approved', 'demo-requested'],
       isSensitive: false,
       conversionLikelihood: 88,
-      speedToLead: 3, // 3 minutes old - CRITICAL
+      speedToLead: 3,
       leadSource: 'marketing',
       autopilotEnabled: false,
       timezonePref: 'Australia/Sydney',
@@ -140,29 +141,33 @@ const Dialer = () => {
 
   // Auto-select highest priority lead with AI optimization
   useEffect(() => {
-    // AI selection logic: Speed-to-lead < 5 minutes gets highest priority
     const criticalSpeedLeads = mockLeads.filter(lead => 
       (lead.speedToLead || 0) < 5 && !lead.doNotCall
     );
     
     if (criticalSpeedLeads.length > 0) {
-      // Select the one with highest conversion likelihood
       const bestCriticalLead = criticalSpeedLeads.sort((a, b) => 
         (b.conversionLikelihood || 0) - (a.conversionLikelihood || 0)
       )[0];
       setCurrentLead(bestCriticalLead);
+      setAICurrentLead(bestCriticalLead);
       return;
     }
 
-    // Fallback to highest priority with best conversion
     const highPriorityLead = mockLeads
       .filter(lead => lead.priority === 'high' && !lead.doNotCall)
       .sort((a, b) => (b.conversionLikelihood || 0) - (a.conversionLikelihood || 0))[0];
     
     if (highPriorityLead) {
       setCurrentLead(highPriorityLead);
+      setAICurrentLead(highPriorityLead);
     }
-  }, []);
+  }, [setAICurrentLead]);
+
+  const handleLeadSelect = (lead: Lead) => {
+    setCurrentLead(lead);
+    setAICurrentLead(lead);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -172,11 +177,9 @@ const Dialer = () => {
         <EnhancedAutoDialerInterface
           leads={mockLeads}
           currentLead={currentLead}
-          onLeadSelect={setCurrentLead}
+          onLeadSelect={handleLeadSelect}
         />
       </div>
-      
-      <AIAssistant />
     </div>
   );
 };

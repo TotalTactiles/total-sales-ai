@@ -4,140 +4,124 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/components/ThemeProvider";
+import { AIContextProvider, useAIContext } from "@/contexts/AIContext";
+import UnifiedAIBubble from "@/components/UnifiedAI/UnifiedAIBubble";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import LeadManagement from "./pages/LeadManagement";
-import LeadWorkspace from "./pages/LeadWorkspace";
-import Analytics from "./pages/Analytics";
-import Dialer from "./pages/Dialer";
-import Settings from "./pages/Settings";
-import CompanyBrain from "./pages/dashboard/CompanyBrain";
 import SalesRepDashboard from "./pages/SalesRepDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
-import AIAgent from "./pages/AIAgent";
+import AdminDashboard from "./pages/AdminDashboard";
+import Dialer from "./pages/Dialer";
+import LeadWorkspace from "./pages/LeadWorkspace";
+import CompanyBrain from "./pages/CompanyBrain";
 import AgentMissions from "./pages/AgentMissions";
-import AgentTools from "./pages/AgentTools";
-import OnboardingPage from "./pages/onboarding/OnboardingPage";
-import AuthPage from "./pages/auth/AuthPage";
-import NotFound from "./pages/NotFound";
+import "./App.css";
 
 const queryClient = new QueryClient();
+
+// Component that renders the AI bubble with context
+const AIBubbleWithContext = () => {
+  const aiContext = useAIContext();
+  
+  return (
+    <UnifiedAIBubble
+      context={{
+        workspace: aiContext.workspace,
+        currentLead: aiContext.currentLead,
+        isCallActive: aiContext.isCallActive,
+        callDuration: aiContext.callDuration,
+        emailContext: aiContext.emailContext,
+        smsContext: aiContext.smsContext
+      }}
+    />
+  );
+};
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-          <Toaster />
-          <BrowserRouter>
-            <AuthProvider>
-              <Routes>
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/login" element={<Auth />} />
-                <Route path="/onboarding" element={<OnboardingPage />} />
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <Index />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/leads"
-                  element={
-                    <ProtectedRoute>
-                      <LeadManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/leads/:leadId"
-                  element={
-                    <ProtectedRoute>
-                      <LeadWorkspace />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/analytics"
-                  element={
-                    <ProtectedRoute>
-                      <Analytics />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/dialer"
-                  element={
-                    <ProtectedRoute>
-                      <Dialer />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/settings"
-                  element={
-                    <ProtectedRoute>
-                      <Settings />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/company-brain"
-                  element={
-                    <ProtectedRoute>
-                      <CompanyBrain />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/sales-rep-dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <SalesRepDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/manager-dashboard"
-                  element={
-                    <ProtectedRoute>
-                      <ManagerDashboard />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/ai-agent"
-                  element={
-                    <ProtectedRoute>
-                      <AIAgent />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/agent-missions"
-                  element={
-                    <ProtectedRoute>
-                      <AgentMissions />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/agent-tools"
-                  element={
-                    <ProtectedRoute>
-                      <AgentTools />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AuthProvider>
-          </BrowserRouter>
-        </ThemeProvider>
+        <Toaster />
+        <BrowserRouter>
+          <AuthProvider>
+            <AIContextProvider>
+              <div className="min-h-screen bg-background font-sans antialiased">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route
+                    path="/sales-rep-dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <SalesRepDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/manager-dashboard"
+                    element={
+                      <ProtectedRoute requiredRole="manager">
+                        <ManagerDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin-dashboard"
+                    element={
+                      <ProtectedRoute requiredRole="admin">
+                        <AdminDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dialer"
+                    element={
+                      <ProtectedRoute>
+                        <Dialer />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/lead/:leadId"
+                    element={
+                      <ProtectedRoute>
+                        <LeadWorkspace />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/company-brain"
+                    element={
+                      <ProtectedRoute>
+                        <CompanyBrain />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/agent-missions"
+                    element={
+                      <ProtectedRoute>
+                        <AgentMissions />
+                      </ProtectedRoute>
+                    }
+                  />
+                </Routes>
+                
+                {/* Unified AI Assistant - Always present on protected routes */}
+                <Routes>
+                  <Route path="/sales-rep-dashboard" element={<AIBubbleWithContext />} />
+                  <Route path="/manager-dashboard" element={<AIBubbleWithContext />} />
+                  <Route path="/admin-dashboard" element={<AIBubbleWithContext />} />
+                  <Route path="/dialer" element={<AIBubbleWithContext />} />
+                  <Route path="/lead/:leadId" element={<AIBubbleWithContext />} />
+                  <Route path="/company-brain" element={<AIBubbleWithContext />} />
+                  <Route path="/agent-missions" element={<AIBubbleWithContext />} />
+                </Routes>
+              </div>
+            </AIContextProvider>
+          </AuthProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );

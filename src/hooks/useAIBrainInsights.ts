@@ -36,7 +36,6 @@ export const useAIBrainInsights = () => {
     if (!user?.id || !profile?.company_id) return;
     
     try {
-      // Log the ghost intent using the correct table structure
       await supabase
         .from('ai_brain_logs')
         .insert({
@@ -89,13 +88,11 @@ export const useAIBrainInsights = () => {
 
   const acceptInsight = async (insightId: string) => {
     try {
-      // Update insight in database
       await supabase
         .from('ai_brain_insights')
         .update({ accepted: true })
         .eq('id', insightId);
 
-      // Update local state
       setInsights(prev => prev.map(insight => 
         insight.id === insightId 
           ? { ...insight, accepted: true }
@@ -111,13 +108,11 @@ export const useAIBrainInsights = () => {
 
   const dismissInsight = async (insightId: string) => {
     try {
-      // Update insight in database
       await supabase
         .from('ai_brain_insights')
         .update({ accepted: false })
         .eq('id', insightId);
 
-      // Update local state
       setInsights(prev => prev.map(insight => 
         insight.id === insightId 
           ? { ...insight, accepted: false }
@@ -137,7 +132,6 @@ export const useAIBrainInsights = () => {
     setIsAnalyzing(true);
     
     try {
-      // Fetch recent usage patterns using correct column names
       const { data: recentLogs } = await supabase
         .from('ai_brain_logs')
         .select('*')
@@ -148,14 +142,14 @@ export const useAIBrainInsights = () => {
 
       if (!recentLogs) return;
 
-      // Analyze patterns and generate insights
       const generatedInsights: AIInsight[] = [];
 
       // Pattern: High ghost intent on specific features
       const ghostIntents = recentLogs.filter(log => log.type === 'ghost_intent');
       if (ghostIntents.length > 5) {
         const commonActions = ghostIntents.reduce((acc, log) => {
-          const action = log.payload?.action;
+          const payload = log.payload as any;
+          const action = payload?.action;
           if (action) {
             acc[action] = (acc[action] || 0) + 1;
           }
@@ -184,14 +178,17 @@ export const useAIBrainInsights = () => {
       }
 
       // Pattern: Call success rates
-      const callLogs = recentLogs.filter(log => 
-        log.payload?.feature === 'dialer' && log.payload?.outcome
-      );
+      const callLogs = recentLogs.filter(log => {
+        const payload = log.payload as any;
+        return payload?.feature === 'dialer' && payload?.outcome;
+      });
       
       if (callLogs.length > 10) {
-        const successRate = callLogs.filter(log => 
-          log.payload?.outcome?.includes('success') || log.payload?.outcome?.includes('converted')
-        ).length / callLogs.length;
+        const successRate = callLogs.filter(log => {
+          const payload = log.payload as any;
+          const outcome = payload?.outcome;
+          return outcome?.includes('success') || outcome?.includes('converted');
+        }).length / callLogs.length;
 
         if (successRate < 0.3) {
           generatedInsights.push({
@@ -213,7 +210,8 @@ export const useAIBrainInsights = () => {
 
       // Pattern: Feature usage trends
       const featureUsage = recentLogs.reduce((acc, log) => {
-        const feature = log.payload?.feature;
+        const payload = log.payload as any;
+        const feature = payload?.feature;
         if (feature) {
           acc[feature] = (acc[feature] || 0) + 1;
         }
@@ -259,7 +257,6 @@ export const useAIBrainInsights = () => {
     if (!user?.id || !profile?.company_id) return;
     
     try {
-      // Delete logs older than 90 days to prevent data bloat
       const cutoffDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
       
       const { error } = await supabase
@@ -279,7 +276,7 @@ export const useAIBrainInsights = () => {
   return {
     insights,
     isAnalyzing,
-    isLoading: isAnalyzing, // Add alias for compatibility
+    isLoading: isAnalyzing,
     generateInsights,
     logGhostIntent,
     logInteraction,
