@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +31,7 @@ import {
 } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import UnifiedAIAssistant from '../UnifiedAI/UnifiedAIAssistant';
 
 interface DialerOverlayProps {
   lead: Lead;
@@ -52,19 +54,7 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
   const [emailDraft, setEmailDraft] = useState('');
   const [activeTab, setActiveTab] = useState('notes');
   const [sentimentPulse, setSentimentPulse] = useState<'positive' | 'neutral' | 'negative'>('neutral');
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
   const [showAiFeedback, setShowAiFeedback] = useState(false);
-
-  // Mock AI suggestions based on call context
-  useEffect(() => {
-    const suggestions = [
-      "Lead seems interested - mention ROI calculator",
-      "Good time to discuss timeline and next steps",
-      "Consider scheduling a demo for next week",
-      "Budget concerns detected - emphasize payment flexibility"
-    ];
-    setAiSuggestions(suggestions);
-  }, [lead]);
 
   // Call timer
   useEffect(() => {
@@ -99,24 +89,24 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
     }, 3000);
   };
 
-  const handleAiSuggestionAccept = (suggestion: string) => {
-    toast.success(`AI suggestion accepted: ${suggestion}`);
-    // Implement action based on suggestion
-  };
-
-  const handleAiDraft = (type: 'sms' | 'email' | 'notes') => {
-    switch (type) {
-      case 'sms':
-        setSmsMessage(`Hi ${lead.name.split(' ')[0]}, thanks for the great conversation! Following up as discussed. Let me know if you have any questions.`);
+  const handleAIAction = (action: string, data?: any) => {
+    switch (action) {
+      case 'ai_response':
+        if (data?.response) {
+          // Handle AI response during call
+          toast.success(`AI: ${data.response}`);
+        }
         break;
-      case 'email':
-        setEmailDraft(`Hi ${lead.name},\n\nThank you for taking the time to speak with me today about ${lead.company}'s needs.\n\nAs discussed, I'll follow up with:\n• Product information\n• Pricing details\n• Next steps\n\nI'll be in touch within 24 hours.\n\nBest regards`);
+      case 'suggest_close':
+        toast.info('🎯 AI suggests moving to close now - perfect timing!');
         break;
-      case 'notes':
-        setCallNotes(`Call with ${lead.name} - ${new Date().toLocaleDateString()}\n\nDuration: ${formatTime(callDuration)}\nCompany: ${lead.company}\nSentiment: ${sentimentPulse}\n\nKey Points:\n• [AI detected interest in ROI]\n• [Budget discussion needed]\n• [Timeline: Q1 implementation]\n\nNext Steps:\n• Send ROI calculator\n• Schedule demo\n• Follow up in 2 days\n\nAI Confidence: High conversion probability`);
+      case 'show_objection_scripts':
+        // Could open a modal with objection handling scripts
+        toast.info('📋 Opening objection handling scripts...');
         break;
+      default:
+        console.log('Dialer AI Action:', action, data);
     }
-    toast.success(`AI ${type} draft generated`);
   };
 
   const getSentimentColor = () => {
@@ -177,7 +167,7 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
         </div>
 
         <div className="flex-1 flex overflow-hidden">
-          {/* Left Panel - Lead Details & AI Assistant */}
+          {/* Left Panel - Lead Details */}
           <div className="w-80 bg-white border-r overflow-y-auto">
             {/* Lead Info */}
             <div className="p-4 border-b">
@@ -218,70 +208,6 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
                 )}
               </div>
             </div>
-
-            {/* AI Assistant */}
-            <div className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Brain className="h-5 w-5 text-blue-600" />
-                <h4 className="font-medium">AI Assistant</h4>
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              </div>
-              
-              <div className="space-y-3">
-                {aiSuggestions.map((suggestion, index) => (
-                  <div key={index} className="p-3 bg-blue-50 rounded-lg border">
-                    <p className="text-sm text-blue-800 mb-2">{suggestion}</p>
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleAiSuggestionAccept(suggestion)}
-                        className="bg-blue-600 hover:bg-blue-700"
-                      >
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Accept
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Quick AI Actions */}
-              <div className="mt-4 space-y-2">
-                <h5 className="text-sm font-medium text-gray-700">Quick AI Actions</h5>
-                <div className="grid gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="justify-start text-xs"
-                    onClick={() => handleAiDraft('notes')}
-                  >
-                    <Brain className="h-3 w-3 mr-2" />
-                    Generate Call Summary
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="justify-start text-xs"
-                    onClick={() => handleAiDraft('email')}
-                  >
-                    <Mail className="h-3 w-3 mr-2" />
-                    Draft Follow-up Email
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="justify-start text-xs"
-                    onClick={() => handleAiDraft('sms')}
-                  >
-                    <MessageSquare className="h-3 w-3 mr-2" />
-                    Draft SMS
-                  </Button>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Center Panel - Tabbed Interface */}
@@ -306,17 +232,7 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
                 <TabsContent value="notes" className="h-full m-0">
                   <Card className="h-full">
                     <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        Call Notes
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAiDraft('notes')}
-                        >
-                          <Brain className="h-4 w-4 mr-1" />
-                          AI Summary
-                        </Button>
-                      </CardTitle>
+                      <CardTitle>Call Notes</CardTitle>
                     </CardHeader>
                     <CardContent className="h-[calc(100%-80px)]">
                       <Textarea
@@ -336,17 +252,7 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
                 <TabsContent value="sms" className="h-full m-0">
                   <Card className="h-full">
                     <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        Send SMS (Twilio AU)
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAiDraft('sms')}
-                        >
-                          <Brain className="h-4 w-4 mr-1" />
-                          AI Draft
-                        </Button>
-                      </CardTitle>
+                      <CardTitle>Send SMS (Twilio AU)</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Textarea
@@ -374,17 +280,7 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
                 <TabsContent value="email" className="h-full m-0">
                   <Card className="h-full">
                     <CardHeader>
-                      <CardTitle className="flex items-center justify-between">
-                        Send Email (Gmail/Outlook)
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAiDraft('email')}
-                        >
-                          <Brain className="h-4 w-4 mr-1" />
-                          AI Draft
-                        </Button>
-                      </CardTitle>
+                      <CardTitle>Send Email (Gmail/Outlook)</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <Textarea
@@ -460,25 +356,6 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
                 Send Information
               </Button>
             </div>
-
-            {/* AI Suggested Actions */}
-            <div className="border-t pt-4">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">AI Suggested Actions</h4>
-              <div className="space-y-2">
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Zap className="h-4 w-4 mr-2" />
-                  Schedule Demo (92% success rate)
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Send ROI Calculator
-                </Button>
-                <Button variant="outline" size="sm" className="w-full justify-start">
-                  <Star className="h-4 w-4 mr-2" />
-                  Add to Hot Leads
-                </Button>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -524,6 +401,19 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
           </div>
         )}
       </div>
+
+      {/* Unified AI Assistant - Positioned for call context */}
+      <UnifiedAIAssistant
+        context={{
+          workspace: 'dialer',
+          currentLead: lead,
+          isCallActive: true,
+          callDuration,
+          currentSentiment: sentimentPulse
+        }}
+        onAction={handleAIAction}
+        className="!fixed !bottom-6 !right-6 !z-60"
+      />
     </div>
   );
 };

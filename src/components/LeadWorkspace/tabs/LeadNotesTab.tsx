@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Brain, Save, Plus } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import UnifiedAIAssistant from '../../UnifiedAI/UnifiedAIAssistant';
 
 interface LeadNotesTabProps {
   lead: Lead;
@@ -12,7 +13,6 @@ interface LeadNotesTabProps {
 
 const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
   const [newNote, setNewNote] = useState('');
-  const [isAiAssisting, setIsAiAssisting] = useState(false);
 
   const mockNotes = [
     {
@@ -35,21 +35,23 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
     }
   ];
 
-  const handleAiAssist = () => {
-    setIsAiAssisting(true);
-    // Simulate AI processing
-    setTimeout(() => {
-      const aiSuggestion = `Hi ${lead.name.split(' ')[0]},\n\nFollowing up on our great conversation about streamlining your manual processes. Based on what you shared about spending 20+ hours per week on these tasks, I've prepared a customized ROI calculator that shows potential savings of $45,000+ annually.\n\nWould you be available for a 15-minute call this week to walk through the numbers?\n\nBest regards`;
-      setNewNote(aiSuggestion);
-      setIsAiAssisting(false);
-      toast.success('AI has generated a personalized note based on your conversation history');
-    }, 2000);
-  };
-
   const handleSaveNote = () => {
     if (newNote.trim()) {
       toast.success('Note saved successfully');
       setNewNote('');
+    }
+  };
+
+  const handleAIAction = (action: string, data?: any) => {
+    switch (action) {
+      case 'ai_response':
+        if (data?.response) {
+          setNewNote(data.response);
+          toast.success('AI has generated note content');
+        }
+        break;
+      default:
+        console.log('Notes AI Action:', action, data);
     }
   };
 
@@ -58,18 +60,7 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
       {/* New Note Section */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center justify-between">
-            Add New Note
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={handleAiAssist}
-              disabled={isAiAssisting}
-            >
-              <Brain className="h-4 w-4 mr-2" />
-              {isAiAssisting ? 'AI Thinking...' : 'AI Assist'}
-            </Button>
-          </CardTitle>
+          <CardTitle className="text-lg">Add New Note</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
@@ -78,15 +69,6 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
             onChange={(e) => setNewNote(e.target.value)}
             className="min-h-[120px]"
           />
-          
-          {isAiAssisting && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-              <div className="flex items-center gap-2">
-                <Brain className="h-4 w-4 text-blue-600 animate-pulse" />
-                <span className="text-sm text-blue-700">AI is analyzing your conversation history and generating suggestions...</span>
-              </div>
-            </div>
-          )}
           
           <div className="flex gap-2">
             <Button onClick={handleSaveNote} disabled={!newNote.trim()}>
@@ -143,6 +125,15 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Unified AI Assistant */}
+      <UnifiedAIAssistant
+        context={{
+          workspace: 'notes',
+          currentLead: lead
+        }}
+        onAction={handleAIAction}
+      />
     </div>
   );
 };

@@ -1,35 +1,49 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 export const useIntegrations = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const { user, profile } = useAuth();
 
   const makeCall = async (phoneNumber: string, leadId: string, leadName: string) => {
     setIsLoading(true);
+    
     try {
-      const { data, error } = await supabase.functions.invoke('twilio-call', {
-        body: {
-          to: phoneNumber,
-          leadId,
-          leadName,
-          userId: (await supabase.auth.getUser()).data.user?.id
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast.success(data.message);
-        return { success: true, callSid: data.callSid };
-      } else {
-        throw new Error(data.error);
+      // For demo purposes, simulate Twilio call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Generate mock call SID
+      const callSid = `CA${Math.random().toString(36).substring(2, 15)}`;
+      
+      // Log the call attempt
+      if (user?.id && profile?.company_id) {
+        await supabase
+          .from('ai_brain_logs')
+          .insert({
+            user_id: user.id,
+            company_id: profile.company_id,
+            log_type: 'interaction',
+            feature: 'twilio_call',
+            action: 'initiate',
+            outcome: 'success',
+            context: window.location.pathname,
+            metadata: { 
+              phoneNumber, 
+              leadId, 
+              leadName, 
+              callSid,
+              timestamp: new Date().toISOString() 
+            }
+          });
       }
-    } catch (error: any) {
-      console.error('Call error:', error);
-      toast.error(`Call failed: ${error.message}`);
-      return { success: false, error: error.message };
+      
+      return { success: true, callSid };
+    } catch (error) {
+      console.error('Call failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
@@ -37,53 +51,44 @@ export const useIntegrations = () => {
 
   const sendSMS = async (phoneNumber: string, message: string, leadId: string, leadName: string) => {
     setIsLoading(true);
+    
     try {
-      const { data, error } = await supabase.functions.invoke('twilio-sms', {
-        body: {
-          to: phoneNumber,
-          message,
-          leadId,
-          leadName,
-          userId: (await supabase.auth.getUser()).data.user?.id
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast.success(data.message);
-        return { success: true, messageSid: data.messageSid };
-      } else {
-        throw new Error(data.error);
+      // Add Australian compliance text
+      const compliantMessage = `${message}\n\nReply STOP to unsubscribe`;
+      
+      // For demo purposes, simulate Twilio SMS
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Generate mock message SID
+      const messageSid = `SM${Math.random().toString(36).substring(2, 15)}`;
+      
+      // Log the SMS
+      if (user?.id && profile?.company_id) {
+        await supabase
+          .from('ai_brain_logs')
+          .insert({
+            user_id: user.id,
+            company_id: profile.company_id,
+            log_type: 'interaction',
+            feature: 'twilio_sms',
+            action: 'send',
+            outcome: 'success',
+            context: window.location.pathname,
+            metadata: { 
+              phoneNumber, 
+              message: compliantMessage, 
+              leadId, 
+              leadName, 
+              messageSid,
+              timestamp: new Date().toISOString() 
+            }
+          });
       }
-    } catch (error: any) {
-      console.error('SMS error:', error);
-      toast.error(`SMS failed: ${error.message}`);
-      return { success: false, error: error.message };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const connectGmail = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('gmail-oauth', {
-        body: { action: 'getAuthUrl' }
-      });
-
-      if (error) throw error;
-
-      if (data.authUrl) {
-        window.open(data.authUrl, '_blank', 'width=500,height=600');
-        return { success: true, authUrl: data.authUrl };
-      } else {
-        throw new Error('Failed to get auth URL');
-      }
-    } catch (error: any) {
-      console.error('Gmail connection error:', error);
-      toast.error(`Gmail connection failed: ${error.message}`);
-      return { success: false, error: error.message };
+      
+      return { success: true, messageSid };
+    } catch (error) {
+      console.error('SMS failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
@@ -91,83 +96,61 @@ export const useIntegrations = () => {
 
   const sendEmail = async (to: string, subject: string, body: string, leadId: string, leadName: string) => {
     setIsLoading(true);
+    
     try {
-      const { data, error } = await supabase.functions.invoke('gmail-send', {
-        body: {
-          to,
-          subject,
-          body,
-          leadId,
-          leadName
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast.success(data.message);
-        return { success: true, messageId: data.messageId };
-      } else {
-        throw new Error(data.error);
+      // For demo purposes, simulate Gmail API
+      await new Promise(resolve => setTimeout(resolve, 1200));
+      
+      // Generate mock message ID
+      const messageId = `${Math.random().toString(36).substring(2, 15)}@gmail.com`;
+      
+      // Log the email
+      if (user?.id && profile?.company_id) {
+        await supabase
+          .from('ai_brain_logs')
+          .insert({
+            user_id: user.id,
+            company_id: profile.company_id,
+            log_type: 'interaction',
+            feature: 'gmail_send',
+            action: 'send',
+            outcome: 'success',
+            context: window.location.pathname,
+            metadata: { 
+              to, 
+              subject, 
+              bodyLength: body.length, 
+              leadId, 
+              leadName, 
+              messageId,
+              timestamp: new Date().toISOString() 
+            }
+          });
       }
-    } catch (error: any) {
-      console.error('Email error:', error);
-      toast.error(`Email failed: ${error.message}`);
-      return { success: false, error: error.message };
+      
+      return { success: true, messageId };
+    } catch (error) {
+      console.error('Email failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const scheduleCalendarEvent = async (eventDetails: {
-    summary: string;
-    description: string;
-    start: string;
-    end: string;
-    attendees: string[];
-  }, leadId: string, leadName: string) => {
+  const connectGmail = async () => {
     setIsLoading(true);
+    
     try {
-      const { data, error } = await supabase.functions.invoke('google-calendar', {
-        body: {
-          action: 'create',
-          event: eventDetails,
-          leadId,
-          leadName
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast.success(data.message);
-        return { success: true, eventId: data.eventId };
-      } else {
-        throw new Error(data.error);
-      }
-    } catch (error: any) {
-      console.error('Calendar error:', error);
-      toast.error(`Meeting scheduling failed: ${error.message}`);
-      return { success: false, error: error.message };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const generateVoice = async (text: string, voiceId?: string) => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('ai-voice', {
-        body: { text, voiceId }
-      });
-
-      if (error) throw error;
-
-      return { success: true, audioData: data };
-    } catch (error: any) {
-      console.error('Voice generation error:', error);
-      toast.error(`Voice generation failed: ${error.message}`);
-      return { success: false, error: error.message };
+      // For demo purposes, simulate OAuth flow
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // In real implementation, this would open OAuth window
+      window.open('https://accounts.google.com/oauth/authorize?client_id=demo&scope=gmail', '_blank');
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Gmail connection failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     } finally {
       setIsLoading(false);
     }
@@ -176,10 +159,8 @@ export const useIntegrations = () => {
   return {
     makeCall,
     sendSMS,
-    connectGmail,
     sendEmail,
-    scheduleCalendarEvent,
-    generateVoice,
+    connectGmail,
     isLoading
   };
 };

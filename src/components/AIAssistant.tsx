@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -22,40 +23,31 @@ const AIAssistant = () => {
   const [messages, setMessages] = useState<AIMessage[]>([
     {
       id: 1,
-      text: "Good morning! 👋 You're having a great sales day! You've already completed 3 calls and scheduled 1 follow-up meeting. Your energy levels seem high - perfect time to tackle those 5 priority leads from LinkedIn.",
+      text: "Good morning! 👋 Welcome to your unified AI Assistant. I'm here to help with calls, emails, notes, and provide coaching. Try asking me: 'What should I focus on today?'",
       sender: 'ai',
       timestamp: new Date(),
-      suggestedActions: ['Show me my priority leads', 'Schedule my next call', 'Give me a winning script']
+      suggestedActions: ['Show priority leads', 'Draft follow-up email', 'Coaching tip']
     }
   ]);
 
   const [notifications, setNotifications] = useState<AINotification[]>([
     {
       id: 1,
-      title: 'Objection Trending',
-      message: 'The objection "Too expensive" has increased 25% this week across your team.',
+      title: 'Speed-to-Lead Alert',
+      message: 'You have 3 fresh leads under 5 minutes old. Call now for 21x better results!',
       type: 'alert',
-      icon: '📈',
+      icon: '📞',
       read: false,
-      timestamp: new Date(Date.now() - 35 * 60000) // 35 mins ago
+      timestamp: new Date(Date.now() - 2 * 60000) // 2 mins ago
     },
     {
       id: 2,
-      title: 'Achievement Unlocked',
-      message: 'You reached Level 12! New script templates are now available in the Store.',
-      type: 'achievement',
-      icon: '🏆',
-      read: false,
-      timestamp: new Date(Date.now() - 3 * 3600000) // 3 hours ago
-    },
-    {
-      id: 3,
-      title: 'Lead Source Performance',
-      message: 'LinkedIn leads are converting 33% better than Facebook leads this month.',
+      title: 'Coaching Insight',
+      message: 'Your close rate improves 34% when you mention ROI within first 3 minutes.',
       type: 'tip',
-      icon: '💡',
+      icon: '🎯',
       read: false,
-      timestamp: new Date(Date.now() - 7 * 3600000) // 7 hours ago
+      timestamp: new Date(Date.now() - 15 * 60000) // 15 mins ago
     }
   ]);
   
@@ -65,19 +57,19 @@ const AIAssistant = () => {
     { 
       type: 'alert', 
       enabled: true, 
-      description: 'Important notifications about sales performance and trends',
-      icon: '📈'
+      description: 'Critical notifications like fresh leads and urgent actions',
+      icon: '🚨'
     },
     { 
       type: 'tip', 
       enabled: true, 
-      description: 'Helpful advice to improve your sales process',
+      description: 'AI coaching tips and performance insights',
       icon: '💡'
     },
     { 
       type: 'achievement', 
       enabled: true, 
-      description: 'Notifications when you unlock new features or reach goals',
+      description: 'Milestone celebrations and feature unlocks',
       icon: '🏆'
     },
   ]);
@@ -102,7 +94,7 @@ const AIAssistant = () => {
         // Handle unauthenticated user
         const aiMessage: AIMessage = {
           id: messages.length + 2,
-          text: "Please log in to use the AI assistant features.",
+          text: "Please log in to access the full AI assistant capabilities.",
           sender: 'ai',
           timestamp: new Date(),
         };
@@ -113,7 +105,7 @@ const AIAssistant = () => {
       try {
         // Call the AI agent with the user's message
         const response = await callAIAgent({
-          prompt: inputMessage
+          prompt: `Global AI Assistant Query: ${inputMessage}`
         });
         
         if (response) {
@@ -182,7 +174,7 @@ const AIAssistant = () => {
     try {
       // Call AI agent with the selected action
       const response = await callAIAgent({
-        prompt: `Perform this action: ${action}`
+        prompt: `Execute action: ${action}`
       });
       
       if (response) {
@@ -213,17 +205,13 @@ const AIAssistant = () => {
   
   // Handle notification preference changes
   const handlePreferenceChange = (type: 'alert' | 'tip' | 'achievement', enabled: boolean) => {
-    // Update the preferences
     setNotificationPreferences(prevPrefs => 
       prevPrefs.map(pref => 
         pref.type === type ? { ...pref, enabled } : pref
       )
     );
     
-    // Show toast confirmation
     toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} notifications ${enabled ? 'enabled' : 'disabled'}`);
-    
-    // In a real application, this would save to user preferences in the database
   };
   
   // Filter notifications based on user preferences
@@ -231,27 +219,6 @@ const AIAssistant = () => {
     const preference = notificationPreferences.find(pref => pref.type === notification.type);
     return preference?.enabled;
   });
-  
-  // Show a confetti animation when achievements are unlocked
-  useEffect(() => {
-    const hasUnreadAchievement = notifications.some(
-      notif => notif.type === 'achievement' && !notif.read
-    );
-    
-    if (hasUnreadAchievement) {
-      // This would trigger a confetti animation in a real implementation
-      console.log('Achievement unlocked! Showing confetti animation');
-      
-      // Mark achievement as read after a delay
-      setTimeout(() => {
-        setNotifications(prevNotifs => 
-          prevNotifs.map(notif => 
-            notif.type === 'achievement' ? { ...notif, read: true } : notif
-          )
-        );
-      }, 3000);
-    }
-  }, []);
   
   return (
     <>
@@ -269,10 +236,15 @@ const AIAssistant = () => {
                 ) : (
                   <MessageCircle className="h-6 w-6" />
                 )}
+                {filteredNotifications.filter(n => !n.read).length > 0 && (
+                  <Badge className="absolute -top-2 -right-2 bg-red-500 rounded-full w-5 h-5 flex items-center justify-center text-xs p-0">
+                    {filteredNotifications.filter(n => !n.read).length}
+                  </Badge>
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
-              <p>Your AI Assistant</p>
+              <p>Your Unified AI Assistant</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -288,7 +260,7 @@ const AIAssistant = () => {
                   <Zap className="h-5 w-5" />
                   <div className="w-2 h-2 rounded-full bg-white absolute -top-0.5 -right-0.5 animate-pulse-soft"></div>
                 </div>
-                Your AI Sales Assistant
+                Unified AI Assistant
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Button 
@@ -314,6 +286,9 @@ const AIAssistant = () => {
                   </div>
                 </Button>
               </div>
+            </div>
+            <div className="text-xs text-blue-100 mt-1">
+              Your AI guide across calls, emails, notes & coaching
             </div>
           </CardHeader>
           
@@ -354,8 +329,8 @@ const AIAssistant = () => {
       {/* Simplified AI Assistant (when collapsed) */}
       <div className={`fixed bottom-24 right-6 transition-all duration-300 z-10 max-w-xs transform ${isExpanded ? 'translate-y-10 opacity-0 invisible' : 'translate-y-0 opacity-100'}`}>
         <MiniNotification 
-          message="You've got 5 new leads ready to call. Click for details."
-          icon="📞"
+          message="AI Assistant ready! Click to access coaching, drafts, and insights."
+          icon="🤖"
         />
       </div>
     </>
