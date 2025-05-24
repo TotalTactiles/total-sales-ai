@@ -1,13 +1,12 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Lead } from '@/types/lead';
-import { useLocation } from 'react-router-dom';
 
-interface AIContextData {
-  workspace: 'dashboard' | 'dialer' | 'lead_details' | 'email' | 'sms' | 'notes' | 'meetings' | 'company_brain' | 'agent_missions';
+interface AIContextType {
+  workspace: 'dashboard' | 'dialer' | 'lead_details' | 'email' | 'sms' | 'notes' | 'meetings' | 'company_brain' | 'agent_missions' | 'leads';
   currentLead?: Lead;
-  isCallActive?: boolean;
-  callDuration?: number;
+  isCallActive: boolean;
+  callDuration: number;
   emailContext?: {
     to?: string;
     subject?: string;
@@ -17,60 +16,36 @@ interface AIContextData {
     phoneNumber?: string;
     conversation?: any[];
   };
+  setWorkspace: (workspace: AIContextType['workspace']) => void;
   setCurrentLead: (lead?: Lead) => void;
   setCallActive: (active: boolean) => void;
   setCallDuration: (duration: number) => void;
-  setEmailContext: (context: any) => void;
-  setSmsContext: (context: any) => void;
+  setEmailContext: (context?: AIContextType['emailContext']) => void;
+  setSmsContext: (context?: AIContextType['smsContext']) => void;
 }
 
-const AIContext = createContext<AIContextData | undefined>(undefined);
-
-export const useAIContext = () => {
-  const context = useContext(AIContext);
-  if (!context) {
-    throw new Error('useAIContext must be used within an AIContextProvider');
-  }
-  return context;
-};
+const AIContext = createContext<AIContextType | undefined>(undefined);
 
 interface AIContextProviderProps {
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 export const AIContextProvider: React.FC<AIContextProviderProps> = ({ children }) => {
-  const location = useLocation();
-  const [currentLead, setCurrentLead] = useState<Lead | undefined>();
+  const [workspace, setWorkspace] = useState<AIContextType['workspace']>('dashboard');
+  const [currentLead, setCurrentLead] = useState<Lead>();
   const [isCallActive, setCallActive] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
-  const [emailContext, setEmailContext] = useState<any>();
-  const [smsContext, setSmsContext] = useState<any>();
+  const [emailContext, setEmailContext] = useState<AIContextType['emailContext']>();
+  const [smsContext, setSmsContext] = useState<AIContextType['smsContext']>();
 
-  // Determine workspace based on current route
-  const getWorkspace = (): AIContextData['workspace'] => {
-    const path = location.pathname;
-    
-    if (path.includes('/dialer')) return 'dialer';
-    if (path.includes('/lead/')) return 'lead_details';
-    if (path.includes('/email')) return 'email';
-    if (path.includes('/sms')) return 'sms';
-    if (path.includes('/notes')) return 'notes';
-    if (path.includes('/meetings')) return 'meetings';
-    if (path.includes('/company-brain')) return 'company_brain';
-    if (path.includes('/agent-missions')) return 'agent_missions';
-    
-    return 'dashboard';
-  };
-
-  const workspace = getWorkspace();
-
-  const value: AIContextData = {
+  const value: AIContextType = {
     workspace,
     currentLead,
     isCallActive,
     callDuration,
     emailContext,
     smsContext,
+    setWorkspace,
     setCurrentLead,
     setCallActive,
     setCallDuration,
@@ -78,9 +53,13 @@ export const AIContextProvider: React.FC<AIContextProviderProps> = ({ children }
     setSmsContext
   };
 
-  return (
-    <AIContext.Provider value={value}>
-      {children}
-    </AIContext.Provider>
-  );
+  return <AIContext.Provider value={value}>{children}</AIContext.Provider>;
+};
+
+export const useAIContext = () => {
+  const context = useContext(AIContext);
+  if (context === undefined) {
+    throw new Error('useAIContext must be used within an AIContextProvider');
+  }
+  return context;
 };
