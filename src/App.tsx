@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import SalesRepDashboard from "./pages/SalesRepDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import LeadManagement from "./pages/LeadManagement";
 import Dialer from "./pages/Dialer";
 import LeadWorkspace from "./pages/LeadWorkspace";
 import CompanyBrain from "./pages/CompanyBrain";
@@ -75,6 +76,14 @@ function App() {
                     }
                   />
                   <Route
+                    path="/leads"
+                    element={
+                      <ProtectedRoute>
+                        <LeadManagement />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/dialer"
                     element={
                       <ProtectedRoute>
@@ -121,6 +130,7 @@ function App() {
                   <Route path="/sales-rep-dashboard" element={<AIBubbleWithContext />} />
                   <Route path="/manager-dashboard" element={<AIBubbleWithContext />} />
                   <Route path="/admin-dashboard" element={<AIBubbleWithContext />} />
+                  <Route path="/leads" element={<AIBubbleWithContext />} />
                   <Route path="/dialer" element={<AIBubbleWithContext />} />
                   <Route path="/lead/:leadId" element={<AIBubbleWithContext />} />
                   <Route path="/company-brain" element={<AIBubbleWithContext />} />
