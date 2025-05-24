@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import AIAgentDashboard from '@/components/AIAgent/AIAgentDashboard';
@@ -10,16 +9,14 @@ import AIAgentLearningEngine from '@/components/AIAgent/AIAgentLearningEngine';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Headphones, ClipboardList, Clock, Settings, LineChart, Brain } from 'lucide-react';
-
 interface AIAgentProps {
   hideNavigation?: boolean;
 }
-
-const AIAgent: React.FC<AIAgentProps> = ({ hideNavigation = false }) => {
+const AIAgent: React.FC<AIAgentProps> = ({
+  hideNavigation = false
+}) => {
   const [activeTab, setActiveTab] = useState("dashboard");
-
-  return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
+  return <div className="min-h-screen flex flex-col bg-slate-50">
       {!hideNavigation && <Navigation />}
       
       <div className="flex-1 px-4 md:px-6 py-6">
@@ -32,7 +29,7 @@ const AIAgent: React.FC<AIAgentProps> = ({ hideNavigation = false }) => {
                   <Headphones className="h-6 w-6" />
                   AI Calling Agent
                 </h1>
-                <Badge className="bg-salesCyan text-white px-2 py-1">BETA</Badge>
+                
               </div>
             </div>
             <p className="text-slate-500">Autonomous voice AI for cold lead outreach and qualification</p>
@@ -93,8 +90,6 @@ const AIAgent: React.FC<AIAgentProps> = ({ hideNavigation = false }) => {
           </Tabs>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AIAgent;
