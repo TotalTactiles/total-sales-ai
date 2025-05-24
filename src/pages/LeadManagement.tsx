@@ -1,14 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload, Trash2, RotateCcw } from 'lucide-react';
-import LeadCardGrid from '@/components/LeadManagement/LeadCardGrid';
+import LeadManagementHeader from '@/components/LeadManagement/LeadManagementHeader';
+import LeadManagementActions from '@/components/LeadManagement/LeadManagementActions';
+import LeadManagementTabs from '@/components/LeadManagement/LeadManagementTabs';
 import LeadSlidePanel from '@/components/LeadManagement/LeadSlidePanel';
 import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
 import LeadImportDialog from '@/components/LeadImport/LeadImportDialog';
-import DemoModeIndicator from '@/components/Demo/DemoModeIndicator';
 import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
 import { Lead } from '@/types/lead';
 import { useLeads } from '@/hooks/useLeads';
@@ -30,8 +28,6 @@ const LeadManagement = () => {
   const { isDemoMode } = useAuth();
   const { 
     leads: mockLeads, 
-    getLeadsByStatus, 
-    getLeadMetrics,
     deleteLead,
     clearAllMockData,
     resetMockData
@@ -143,103 +139,33 @@ const LeadManagement = () => {
       
       <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Demo Mode Indicator */}
-          {(isInDemoMode || (!hasRealData && showDemo)) && <DemoModeIndicator workspace="Lead Management" />}
+          <LeadManagementHeader
+            showDemoIndicator={(isInDemoMode || (!hasRealData && showDemo))}
+            isInDemoMode={isInDemoMode}
+            hasRealData={hasRealData}
+            showDemo={showDemo}
+          />
           
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-salesBlue">Lead Management</h1>
-              {(isInDemoMode || (!hasRealData && showDemo)) && (
-                <p className="text-sm text-slate-600 mt-1">
-                  Showing mock data - see how your leads would look in the system
-                </p>
-              )}
-            </div>
-            <div className="flex gap-2">
-              {(isInDemoMode || (!hasRealData && showDemo)) && (
-                <>
-                  <Button 
-                    variant="outline"
-                    onClick={handleResetMockData}
-                    className="flex items-center gap-2"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                    Reset Demo Data
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={handleClearMockData}
-                    className="flex items-center gap-2 text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Clear All Demo Data
-                  </Button>
-                </>
-              )}
-              <Button 
-                variant="outline"
-                onClick={() => setIsImportDialogOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <Upload className="h-4 w-4" />
-                Import Leads
-              </Button>
-              <Button className="bg-salesGreen hover:bg-salesGreen-dark">
-                + Add New Lead
-              </Button>
-            </div>
+          <div className="flex justify-end mb-6">
+            <LeadManagementActions
+              isInDemoMode={isInDemoMode}
+              hasRealData={hasRealData}
+              showDemo={showDemo}
+              onResetMockData={handleResetMockData}
+              onClearMockData={handleClearMockData}
+              onImportDialogOpen={() => setIsImportDialogOpen(true)}
+            />
           </div>
           
-          {/* Status Tabs */}
-          <Tabs defaultValue="all" className="mb-6">
-            <TabsList className="mb-4">
-              <TabsTrigger 
-                value="all" 
-                onClick={() => setActiveFilter('all')}
-              >
-                All Leads ({displayLeads.length})
-              </TabsTrigger>
-              <TabsTrigger 
-                value="new" 
-                onClick={() => setActiveFilter('new')}
-              >
-                New ({displayLeads.filter(l => l.status === 'new').length})
-              </TabsTrigger>
-              <TabsTrigger 
-                value="contacted" 
-                onClick={() => setActiveFilter('contacted')}
-              >
-                Contacted ({displayLeads.filter(l => l.status === 'contacted').length})
-              </TabsTrigger>
-              <TabsTrigger 
-                value="qualified" 
-                onClick={() => setActiveFilter('qualified')}
-              >
-                Qualified ({displayLeads.filter(l => l.status === 'qualified').length})
-              </TabsTrigger>
-              <TabsTrigger 
-                value="closed" 
-                onClick={() => setActiveFilter('closed')}
-              >
-                Closed ({displayLeads.filter(l => l.status === 'closed').length})
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="all" className="mt-0">
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                  <p>Loading leads...</p>
-                </div>
-              ) : (
-                <LeadCardGrid
-                  leads={filteredLeads}
-                  onLeadClick={handleLeadClick}
-                  onQuickAction={handleQuickAction}
-                />
-              )}
-            </TabsContent>
-          </Tabs>
+          <LeadManagementTabs
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
+            displayLeads={displayLeads}
+            filteredLeads={filteredLeads}
+            isLoading={isLoading}
+            onLeadClick={handleLeadClick}
+            onQuickAction={handleQuickAction}
+          />
         </div>
       </div>
 
