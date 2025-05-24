@@ -10,14 +10,12 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Star,
-  Clock,
-  TrendingUp
+  Clock
 } from 'lucide-react';
-import { Lead } from '@/types/lead';
+import { DatabaseLead } from '@/hooks/useLeads';
 
 interface LeadWorkspaceLeftProps {
-  lead: Lead;
+  lead: DatabaseLead;
   onQuickAction: (action: string) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
@@ -52,6 +50,18 @@ const LeadWorkspaceLeft: React.FC<LeadWorkspaceLeftProps> = ({
     if (score >= 80) return 'text-green-600';
     if (score >= 60) return 'text-amber-600';
     return 'text-red-600';
+  };
+
+  const formatLastContact = (lastContact?: string) => {
+    if (!lastContact) return 'Never';
+    const date = new Date(lastContact);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
   };
 
   if (collapsed) {
@@ -134,7 +144,7 @@ const LeadWorkspaceLeft: React.FC<LeadWorkspaceLeftProps> = ({
           </Avatar>
           <div className="flex-1">
             <h3 className="text-xl font-bold">{lead.name}</h3>
-            <p className="text-slate-600">{lead.company}</p>
+            <p className="text-slate-600">{lead.company || 'No company'}</p>
             <div className="flex items-center gap-2 mt-1">
               <Badge className={getStatusColor(lead.status)}>
                 {lead.status}
@@ -148,20 +158,22 @@ const LeadWorkspaceLeft: React.FC<LeadWorkspaceLeftProps> = ({
 
         {/* Contact Info */}
         <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Mail className="h-4 w-4 text-slate-400" />
-            <span>{lead.email}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Phone className="h-4 w-4 text-slate-400" />
-            <span>{lead.phone}</span>
-          </div>
-          {lead.lastContact && (
-            <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Clock className="h-4 w-4" />
-              <span>Last contact: {lead.lastContact}</span>
+          {lead.email && (
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="h-4 w-4 text-slate-400" />
+              <span>{lead.email}</span>
             </div>
           )}
+          {lead.phone && (
+            <div className="flex items-center gap-2 text-sm">
+              <Phone className="h-4 w-4 text-slate-400" />
+              <span>{lead.phone}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <Clock className="h-4 w-4" />
+            <span>Last contact: {formatLastContact(lead.last_contact)}</span>
+          </div>
         </div>
 
         {/* Score and Metrics */}
@@ -174,7 +186,7 @@ const LeadWorkspaceLeft: React.FC<LeadWorkspaceLeftProps> = ({
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {lead.conversionLikelihood}%
+              {lead.conversion_likelihood}%
             </div>
             <div className="text-xs text-slate-500">Conversion</div>
           </div>
@@ -242,7 +254,7 @@ const LeadWorkspaceLeft: React.FC<LeadWorkspaceLeftProps> = ({
           <label className="text-sm font-medium text-slate-700 mb-2 block">Lead Source</label>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-            <span className="text-sm">{lead.source}</span>
+            <span className="text-sm">{lead.source || 'Unknown'}</span>
           </div>
         </div>
 

@@ -2,17 +2,18 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Brain, Search } from 'lucide-react';
-import { Lead } from '@/types/lead';
+import { Brain } from 'lucide-react';
+import { DatabaseLead } from '@/hooks/useLeads';
 import LeadOverviewTab from './tabs/LeadOverviewTab';
 import LeadNotesTab from './tabs/LeadNotesTab';
 import LeadEmailTab from './tabs/LeadEmailTab';
 import LeadCallTab from './tabs/LeadCallTab';
 import LeadSMSTab from './tabs/LeadSMSTab';
 import LeadMeetingsTab from './tabs/LeadMeetingsTab';
+import { convertDatabaseLeadToLead } from '@/utils/leadUtils';
 
 interface LeadWorkspaceCenterProps {
-  lead: Lead;
+  lead: DatabaseLead;
   activeTab: string;
   onTabChange: (tab: string) => void;
   aiSummaryEnabled: boolean;
@@ -26,6 +27,9 @@ const LeadWorkspaceCenter: React.FC<LeadWorkspaceCenterProps> = ({
   aiSummaryEnabled,
   onAiSummaryToggle
 }) => {
+  // Convert DatabaseLead to Lead for components that expect the old interface
+  const convertedLead = convertDatabaseLeadToLead(lead);
+
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
@@ -52,12 +56,12 @@ const LeadWorkspaceCenter: React.FC<LeadWorkspaceCenterProps> = ({
               <div className="flex-1">
                 <h3 className="font-medium text-blue-900 mb-1">AI Summary - Where we're up to</h3>
                 <p className="text-sm text-blue-700 mb-2">
-                  {lead.name} from {lead.company} is highly engaged ({lead.score}% score) 
-                  but hasn't responded to the last follow-up. They downloaded pricing info 3x this week.
+                  {lead.name} from {lead.company || 'their company'} is {lead.score >= 70 ? 'highly engaged' : 'moderately engaged'} ({lead.score}% score) 
+                  {lead.last_contact ? ` and was last contacted ${new Date(lead.last_contact).toLocaleDateString()}` : ' but hasn\'t been contacted yet'}.
                 </p>
                 <p className="text-sm font-medium text-blue-800">
-                  <strong>Next step:</strong> Send ROI calculator with personalized savings estimate. 
-                  Call probability: {lead.conversionLikelihood}% if contacted within 24 hours.
+                  <strong>Next step:</strong> {lead.conversion_likelihood >= 70 ? 'Send follow-up with next steps' : 'Send personalized ROI information'}. 
+                  Success probability: {lead.conversion_likelihood}% if contacted within 24 hours.
                 </p>
               </div>
             </div>
@@ -80,27 +84,27 @@ const LeadWorkspaceCenter: React.FC<LeadWorkspaceCenterProps> = ({
 
         <div className="flex-1 overflow-hidden">
           <TabsContent value="overview" className="h-full m-0">
-            <LeadOverviewTab lead={lead} />
+            <LeadOverviewTab lead={convertedLead} />
           </TabsContent>
 
           <TabsContent value="notes" className="h-full m-0">
-            <LeadNotesTab lead={lead} />
+            <LeadNotesTab lead={convertedLead} />
           </TabsContent>
 
           <TabsContent value="email" className="h-full m-0">
-            <LeadEmailTab lead={lead} />
+            <LeadEmailTab lead={convertedLead} />
           </TabsContent>
 
           <TabsContent value="call" className="h-full m-0">
-            <LeadCallTab lead={lead} />
+            <LeadCallTab lead={convertedLead} />
           </TabsContent>
 
           <TabsContent value="sms" className="h-full m-0">
-            <LeadSMSTab lead={lead} />
+            <LeadSMSTab lead={convertedLead} />
           </TabsContent>
 
           <TabsContent value="meetings" className="h-full m-0">
-            <LeadMeetingsTab lead={lead} />
+            <LeadMeetingsTab lead={convertedLead} />
           </TabsContent>
         </div>
       </Tabs>

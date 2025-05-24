@@ -2,60 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { Lead } from '@/types/lead';
+import { DatabaseLead } from '@/hooks/useLeads';
 import LeadWorkspaceLeft from '@/components/LeadWorkspace/LeadWorkspaceLeft';
 import LeadWorkspaceCenter from '@/components/LeadWorkspace/LeadWorkspaceCenter';
 import LeadWorkspaceRight from '@/components/LeadWorkspace/LeadWorkspaceRight';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { useLeads } from '@/hooks/useLeads';
 import { toast } from 'sonner';
 
 const LeadWorkspace = () => {
   const { leadId } = useParams();
   const navigate = useNavigate();
   const { trackEvent } = useUsageTracking();
-  const [lead, setLead] = useState<Lead | null>(null);
+  const { leads, isLoading } = useLeads();
+  const [lead, setLead] = useState<DatabaseLead | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [aiSummaryEnabled, setAiSummaryEnabled] = useState(true);
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
 
-  // Mock lead data - in real app this would come from API
-  const mockLeads: Lead[] = [
-    {
-      id: '1',
-      name: 'Michael Scott',
-      company: 'Dunder Mifflin',
-      source: 'LinkedIn',
-      email: 'michael@dundermifflin.com',
-      phone: '(570) 555-1234',
-      status: 'new',
-      priority: 'high',
-      lastContact: '2 days ago',
-      score: 87,
-      tags: ['Budget Approved', 'Q1 Implementation'],
-      isSensitive: false,
-      conversionLikelihood: 78
-    },
-    {
-      id: '2',
-      name: 'Jim Halpert',
-      company: 'Athlead',
-      source: 'Website',
-      email: 'jim@athlead.com',
-      phone: '(570) 555-5678',
-      status: 'contacted',
-      priority: 'medium',
-      lastContact: '5 days ago',
-      score: 74,
-      tags: ['Price Sensitive'],
-      isSensitive: false,
-      conversionLikelihood: 62
-    }
-  ];
-
   useEffect(() => {
-    if (leadId) {
-      const foundLead = mockLeads.find(l => l.id === leadId);
+    if (leadId && leads.length > 0) {
+      const foundLead = leads.find(l => l.id === leadId);
       if (foundLead) {
         setLead(foundLead);
         trackEvent({
@@ -64,12 +32,12 @@ const LeadWorkspace = () => {
           context: `lead_${leadId}`,
           metadata: { leadScore: foundLead.score, priority: foundLead.priority }
         });
-      } else {
+      } else if (!isLoading) {
         toast.error('Lead not found');
         navigate('/leads');
       }
     }
-  }, [leadId, navigate, trackEvent]);
+  }, [leadId, leads, isLoading, navigate, trackEvent]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -110,13 +78,32 @@ const LeadWorkspace = () => {
     }
   };
 
-  if (!lead) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-slate-50">
         <Navigation />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-xl font-semibold text-gray-900">Loading lead...</h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!lead) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-900">Lead not found</h2>
+            <button 
+              onClick={() => navigate('/leads')}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Back to Leads
+            </button>
           </div>
         </div>
       </div>

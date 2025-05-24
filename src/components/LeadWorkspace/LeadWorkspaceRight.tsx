@@ -16,10 +16,10 @@ import {
   Calculator,
   Users
 } from 'lucide-react';
-import { Lead } from '@/types/lead';
+import { DatabaseLead } from '@/hooks/useLeads';
 
 interface LeadWorkspaceRightProps {
-  lead: Lead;
+  lead: DatabaseLead;
   activeTab: string;
   collapsed: boolean;
   onToggleCollapse: () => void;
@@ -33,11 +33,37 @@ const LeadWorkspaceRight: React.FC<LeadWorkspaceRightProps> = ({
 }) => {
   const getNextStepProbability = () => {
     switch (activeTab) {
-      case 'email': return 85;
-      case 'call': return lead.conversionLikelihood;
-      case 'sms': return 65;
-      case 'meetings': return 92;
-      default: return 78;
+      case 'email': return Math.min(85, lead.conversion_likelihood + 10);
+      case 'call': return lead.conversion_likelihood;
+      case 'sms': return Math.min(65, lead.conversion_likelihood - 5);
+      case 'meetings': return Math.min(92, lead.conversion_likelihood + 15);
+      default: return lead.conversion_likelihood;
+    }
+  };
+
+  const getRecommendedAction = () => {
+    if (lead.score >= 80) {
+      return "Schedule a demo call - high engagement detected";
+    } else if (lead.score >= 60) {
+      return "Send personalized ROI calculator";
+    } else {
+      return "Share relevant case study to build interest";
+    }
+  };
+
+  const getOptimalTiming = () => {
+    const lastContact = lead.last_contact ? new Date(lead.last_contact) : null;
+    if (!lastContact) {
+      return "Contact ASAP - fresh lead";
+    }
+    
+    const daysSince = Math.floor((Date.now() - lastContact.getTime()) / (1000 * 60 * 60 * 24));
+    if (daysSince < 1) {
+      return "Wait 2-3 hours before next touchpoint";
+    } else if (daysSince < 3) {
+      return "Good time for follow-up";
+    } else {
+      return "Overdue for follow-up";
     }
   };
 
@@ -124,7 +150,7 @@ const LeadWorkspaceRight: React.FC<LeadWorkspaceRightProps> = ({
                 <span className="text-xs font-medium">Recommended Action</span>
               </div>
               <p className="text-sm text-slate-700">
-                Send personalized ROI calculator. Similar companies saw 3.2x response rates.
+                {getRecommendedAction()}
               </p>
             </div>
 
@@ -134,7 +160,7 @@ const LeadWorkspaceRight: React.FC<LeadWorkspaceRightProps> = ({
                 <span className="text-xs font-medium">Optimal Timing</span>
               </div>
               <p className="text-sm text-slate-700">
-                Best contact window: Today 2-4 PM EST (67% answer rate)
+                {getOptimalTiming()}
               </p>
             </div>
           </CardContent>
@@ -165,24 +191,30 @@ const LeadWorkspaceRight: React.FC<LeadWorkspaceRightProps> = ({
           </CardContent>
         </Card>
 
-        {/* Upcoming Tasks */}
+        {/* Lead Performance */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Upcoming Tasks</CardTitle>
+            <CardTitle className="text-sm">Lead Performance</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm">Follow-up call</span>
-                <Badge variant="outline" className="text-xs">Tomorrow</Badge>
+                <span className="text-sm">Lead Score</span>
+                <Badge variant={lead.score >= 70 ? "default" : "outline"} className="text-xs">
+                  {lead.score}%
+                </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm">Send proposal</span>
-                <Badge variant="outline" className="text-xs">This week</Badge>
+                <span className="text-sm">Conversion Likelihood</span>
+                <Badge variant={lead.conversion_likelihood >= 70 ? "default" : "outline"} className="text-xs">
+                  {lead.conversion_likelihood}%
+                </Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm">Demo preparation</span>
-                <Badge variant="outline" className="text-xs">Next week</Badge>
+                <span className="text-sm">Priority</span>
+                <Badge variant={lead.priority === 'high' ? "destructive" : "outline"} className="text-xs">
+                  {lead.priority}
+                </Badge>
               </div>
             </div>
           </CardContent>
@@ -229,7 +261,7 @@ const LeadWorkspaceRight: React.FC<LeadWorkspaceRightProps> = ({
                 📞 Best call success: Tuesday-Thursday, 2-4 PM
               </p>
               <p className="text-xs text-slate-600">
-                💡 Similar leads respond well to case studies
+                💡 Similar leads from {lead.source} respond well to case studies
               </p>
             </div>
           </CardContent>
