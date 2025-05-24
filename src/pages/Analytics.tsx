@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,16 +124,6 @@ const Analytics = () => {
   if (showFullAIAgent) {
     return (
       <div className="min-h-screen flex flex-col bg-slate-50">
-        <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
-          <Button 
-            variant="ghost" 
-            onClick={() => setShowFullAIAgent(false)}
-            className="flex items-center gap-2"
-          >
-            ← Back to Analytics
-          </Button>
-          <h1 className="text-xl font-semibold">AI Calling Agent</h1>
-        </div>
         <AIAgent />
       </div>
     );
@@ -175,6 +166,18 @@ const Analytics = () => {
               <TabsTrigger value="objections">Objection Tracking</TabsTrigger>
               <TabsTrigger value="ai-agent">AI Agent</TabsTrigger>
             </TabsList>
+
+            {/* Header for AI Agent tab */}
+            <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
+              <Button 
+                variant="ghost" 
+                onClick={() => setShowFullAIAgent(false)}
+                className="flex items-center gap-2"
+              >
+                ← Back to Analytics
+              </Button>
+              <h1 className="text-xl font-semibold">AI Calling Agent</h1>
+            </div>
             
             <TabsContent value="performance" className="mt-4">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
