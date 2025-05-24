@@ -469,13 +469,28 @@ export const useLeadImport = () => {
         }
       };
 
+      // Convert ImportSummary to a plain object that can be saved as JSON
+      const summaryJson = {
+        totalLeads: summary.totalLeads,
+        readyToImport: summary.readyToImport,
+        flaggedForAttention: summary.flaggedForAttention,
+        duplicatesFound: summary.duplicatesFound,
+        skippedRecords: summary.skippedRecords,
+        dataQuality: {
+          hasEmail: summary.dataQuality.hasEmail,
+          hasPhone: summary.dataQuality.hasPhone,
+          hasCompany: summary.dataQuality.hasCompany,
+          missingCriticalData: summary.dataQuality.missingCriticalData
+        }
+      };
+
       await supabase
         .from('import_sessions')
         .update({ 
           status: 'completed',
           successful_imports: successCount,
           failed_imports: errorCount,
-          import_summary: summary,
+          import_summary: summaryJson,
           completed_at: new Date().toISOString()
         })
         .eq('id', sessionId);
