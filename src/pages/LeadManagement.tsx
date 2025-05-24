@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +13,7 @@ import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
 import { Lead } from '@/types/lead';
 import { useLeads } from '@/hooks/useLeads';
 import { useMockData } from '@/hooks/useMockData';
+import { useAuth } from '@/contexts/AuthContext';
 import { convertDatabaseLeadToLead } from '@/utils/leadUtils';
 import { convertMockLeadToLead } from '@/utils/mockDataUtils';
 import { toast } from 'sonner';
@@ -25,6 +27,7 @@ const LeadManagement = () => {
   const [showDemo, setShowDemo] = useState(false);
   
   const { leads, isLoading, refetch } = useLeads();
+  const { isDemoMode } = useAuth();
   const { 
     leads: mockLeads, 
     getLeadsByStatus, 
@@ -36,6 +39,15 @@ const LeadManagement = () => {
   
   // Use mock data for demo or real data if available
   const hasRealData = leads && leads.length > 0;
+  const isInDemoMode = isDemoMode();
+  
+  // Auto-enable showDemo if we're in demo mode
+  useEffect(() => {
+    if (isInDemoMode && !hasRealData) {
+      setShowDemo(true);
+    }
+  }, [isInDemoMode, hasRealData]);
+  
   const displayLeads: Lead[] = hasRealData 
     ? leads.map(convertDatabaseLeadToLead) 
     : mockLeads.map(convertMockLeadToLead);
@@ -108,8 +120,8 @@ const LeadManagement = () => {
     ? displayLeads 
     : displayLeads.filter(lead => lead.status === activeFilter);
 
-  // Show workspace showcase if no real data and demo not started
-  if (!hasRealData && !showDemo) {
+  // Show workspace showcase only if no real data, not in demo mode, and demo not manually started
+  if (!hasRealData && !isInDemoMode && !showDemo) {
     return (
       <div className="min-h-screen flex flex-col bg-slate-50">
         <Navigation />
@@ -132,19 +144,19 @@ const LeadManagement = () => {
       <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Demo Mode Indicator */}
-          {!hasRealData && <DemoModeIndicator workspace="Lead Management" />}
+          {(isInDemoMode || (!hasRealData && showDemo)) && <DemoModeIndicator workspace="Lead Management" />}
           
           <div className="flex justify-between items-center mb-6">
             <div>
               <h1 className="text-2xl font-bold text-salesBlue">Lead Management</h1>
-              {!hasRealData && (
+              {(isInDemoMode || (!hasRealData && showDemo)) && (
                 <p className="text-sm text-slate-600 mt-1">
                   Showing mock data - see how your leads would look in the system
                 </p>
               )}
             </div>
             <div className="flex gap-2">
-              {!hasRealData && (
+              {(isInDemoMode || (!hasRealData && showDemo)) && (
                 <>
                   <Button 
                     variant="outline"
