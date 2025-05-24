@@ -1,179 +1,128 @@
 
 import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  Clock, 
-  TrendingUp, 
-  Phone, 
-  AlertTriangle,
-  Zap,
-  Shield
-} from 'lucide-react';
+import { Phone, Clock, TrendingUp, AlertTriangle } from 'lucide-react';
 import { Lead } from '@/types/lead';
 
 interface LeadPriorityQueueProps {
   leads: Lead[];
-  currentLead?: Lead | null;
   onLeadSelect: (lead: Lead) => void;
-  hotLeads: Lead[];
-  speedToLeadCritical: Lead[];
+  currentLead?: Lead | null;
 }
 
 const LeadPriorityQueue: React.FC<LeadPriorityQueueProps> = ({
   leads,
-  currentLead,
   onLeadSelect,
-  hotLeads,
-  speedToLeadCritical
+  currentLead
 }) => {
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'high': return <AlertTriangle className="h-3 w-3 text-red-600" />;
-      case 'medium': return <Clock className="h-3 w-3 text-yellow-600" />;
-      case 'low': return <TrendingUp className="h-3 w-3 text-green-600" />;
-      default: return null;
+  // Sort leads by priority and speed-to-lead
+  const sortedLeads = [...leads].sort((a, b) => {
+    // Speed-to-lead takes priority (fresher leads first)
+    const aSpeed = a.speedToLead || 9999;
+    const bSpeed = b.speedToLead || 9999;
+    
+    if (aSpeed !== bSpeed) {
+      return aSpeed - bSpeed;
     }
-  };
+    
+    // Then by conversion likelihood
+    const aConversion = a.conversionLikelihood || 0;
+    const bConversion = b.conversionLikelihood || 0;
+    
+    return bConversion - aConversion;
+  });
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'border-l-red-500 bg-red-50';
-      case 'medium': return 'border-l-yellow-500 bg-yellow-50';
-      case 'low': return 'border-l-green-500 bg-green-50';
-      default: return 'border-l-gray-500 bg-gray-50';
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-gray-100 text-gray-800 border-gray-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
+  const getSpeedToLeadBadge = (minutes?: number) => {
+    if (!minutes) return null;
+    
+    if (minutes < 5) {
+      return <Badge className="bg-red-600 text-white">🔥 {minutes}m</Badge>;
+    } else if (minutes < 15) {
+      return <Badge className="bg-orange-600 text-white">⚡ {minutes}m</Badge>;
+    } else if (minutes < 60) {
+      return <Badge className="bg-yellow-600 text-white">⏰ {minutes}m</Badge>;
+    }
+    
+    return <Badge variant="secondary">{Math.floor(minutes / 60)}h</Badge>;
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Speed-to-Lead Critical Section */}
-      {speedToLeadCritical.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <h3 className="font-medium text-red-800">Fresh Leads (Call Now!)</h3>
-          </div>
-          <div className="space-y-2">
-            {speedToLeadCritical.slice(0, 3).map((lead) => (
-              <div
-                key={lead.id}
-                className={`p-3 border-l-4 border-l-red-500 bg-red-50 rounded-r-lg cursor-pointer hover:bg-red-100 transition-colors ${
-                  currentLead?.id === lead.id ? 'ring-2 ring-blue-500' : ''
-                }`}
-                onClick={() => onLeadSelect(lead)}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-sm">{lead.name}</span>
-                  <Badge className="bg-red-100 text-red-800 text-xs">
-                    {lead.speedToLead}min
-                  </Badge>
-                </div>
-                <div className="text-xs text-gray-600">{lead.company}</div>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center gap-1">
-                    {lead.autopilotEnabled && <Zap className="h-3 w-3 text-blue-600" />}
-                    {lead.isSensitive && <Shield className="h-3 w-3 text-orange-600" />}
-                  </div>
-                  <span className="text-xs font-medium text-green-600">
-                    {lead.conversionLikelihood}% likely
-                  </span>
-                </div>
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <TrendingUp className="h-5 w-5" />
+          Lead Priority Queue
+          <Badge variant="outline">{leads.length} leads</Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3 max-h-96 overflow-y-auto">
+        {sortedLeads.map((lead) => (
+          <div
+            key={lead.id}
+            className={`border rounded-lg p-3 cursor-pointer transition-all ${
+              currentLead?.id === lead.id
+                ? 'border-blue-500 bg-blue-50'
+                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+            }`}
+            onClick={() => onLeadSelect(lead)}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h4 className="font-medium text-sm">{lead.name}</h4>
+                <p className="text-xs text-gray-600">{lead.company}</p>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Hot Leads Section */}
-      {hotLeads.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
-            <h3 className="font-medium text-red-800">Hot Leads</h3>
-            <Badge className="bg-red-100 text-red-800">{hotLeads.length}</Badge>
-          </div>
-          <div className="space-y-2">
-            {hotLeads.slice(0, 5).map((lead) => (
-              <div
-                key={lead.id}
-                className={`p-3 border-l-4 ${getPriorityColor(lead.priority)} rounded-r-lg cursor-pointer hover:opacity-80 transition-colors ${
-                  currentLead?.id === lead.id ? 'ring-2 ring-blue-500' : ''
-                }`}
-                onClick={() => onLeadSelect(lead)}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-sm">{lead.name}</span>
-                  <div className="flex items-center gap-1">
-                    {getPriorityIcon(lead.priority)}
-                  </div>
-                </div>
-                <div className="text-xs text-gray-600 mb-1">{lead.company}</div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    {lead.speedToLead !== undefined && (
-                      <Badge variant="outline" className="text-xs">
-                        <Clock className="h-2 w-2 mr-1" />
-                        {lead.speedToLead}min
-                      </Badge>
-                    )}
-                    {lead.autopilotEnabled && <Zap className="h-3 w-3 text-blue-600" />}
-                    {lead.isSensitive && <Shield className="h-3 w-3 text-orange-600" />}
-                  </div>
-                  <span className="text-xs font-medium text-green-600">
-                    {lead.conversionLikelihood}%
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* All Leads Section */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <Phone className="h-4 w-4 text-gray-600" />
-          <h3 className="font-medium text-gray-800">All Leads</h3>
-          <Badge variant="outline">{leads.length}</Badge>
-        </div>
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {leads.map((lead) => (
-            <div
-              key={lead.id}
-              className={`p-3 border-l-4 ${getPriorityColor(lead.priority)} rounded-r-lg cursor-pointer hover:opacity-80 transition-colors ${
-                currentLead?.id === lead.id ? 'ring-2 ring-blue-500' : ''
-              }`}
-              onClick={() => onLeadSelect(lead)}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-sm">{lead.name}</span>
-                <div className="flex items-center gap-1">
-                  {getPriorityIcon(lead.priority)}
-                </div>
-              </div>
-              <div className="text-xs text-gray-600 mb-1">{lead.company}</div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  {lead.speedToLead !== undefined && lead.speedToLead < 60 && (
-                    <Badge variant="outline" className="text-xs">
-                      <Clock className="h-2 w-2 mr-1" />
-                      {lead.speedToLead}min
-                    </Badge>
-                  )}
-                  {lead.autopilotEnabled && <Zap className="h-3 w-3 text-blue-600" />}
-                  {lead.isSensitive && <Shield className="h-3 w-3 text-orange-600" />}
-                  {lead.doNotCall && <Shield className="h-3 w-3 text-red-600" />}
-                </div>
-                <span className="text-xs font-medium text-green-600">
-                  {lead.conversionLikelihood}%
-                </span>
+              <div className="flex items-center gap-1">
+                {getSpeedToLeadBadge(lead.speedToLead)}
+                <Badge className={getPriorityColor(lead.priority)}>
+                  {lead.priority}
+                </Badge>
               </div>
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <Clock className="h-3 w-3" />
+                <span>{lead.lastContact}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-green-600 font-medium">
+                  {lead.conversionLikelihood}%
+                </span>
+                <Button 
+                  size="sm" 
+                  className="h-6 px-2 text-xs"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onLeadSelect(lead);
+                  }}
+                >
+                  <Phone className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {leads.length === 0 && (
+          <div className="text-center text-gray-500 py-8">
+            <AlertTriangle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+            <p>No leads in queue</p>
+            <p className="text-sm">Fresh leads will appear here automatically</p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

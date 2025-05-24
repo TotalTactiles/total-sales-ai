@@ -315,7 +315,7 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
           {/* Lead Priority Queue */}
           <LeadPriorityQueue
             leads={leads.filter(lead => !autopilotLeads.has(lead.id))}
-            onSelectLead={onLeadSelect}
+            onLeadSelect={onLeadSelect}
             currentLead={currentLead}
           />
         </div>

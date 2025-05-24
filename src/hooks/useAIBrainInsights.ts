@@ -14,6 +14,10 @@ export interface AIInsight {
   actionable: boolean;
   metadata: Record<string, any>;
   timestamp: Date;
+  accepted?: boolean | null;
+  suggestion_text?: string;
+  triggered_by?: string;
+  context?: any;
 }
 
 export interface GhostIntent {
@@ -32,16 +36,20 @@ export const useAIBrainInsights = () => {
     if (!user?.id || !profile?.company_id) return;
     
     try {
-      // Log the ghost intent (action user tried but couldn't complete)
+      // Log the ghost intent using the correct table structure
       await supabase
         .from('ai_brain_logs')
         .insert({
-          user_id: user.id,
           company_id: profile.company_id,
-          log_type: 'ghost_intent',
-          action,
-          context: window.location.pathname,
-          metadata: { reasoning, timestamp: new Date().toISOString() }
+          type: 'ghost_intent',
+          event_summary: `Ghost intent: ${action}`,
+          payload: { 
+            user_id: user.id,
+            action, 
+            context: window.location.pathname,
+            reasoning, 
+            timestamp: new Date().toISOString() 
+          }
         });
         
       console.log('Ghost intent logged:', { action, reasoning });
@@ -62,17 +70,64 @@ export const useAIBrainInsights = () => {
       await supabase
         .from('ai_brain_logs')
         .insert({
-          user_id: user.id,
           company_id: profile.company_id,
-          log_type: 'interaction',
-          feature,
-          action,
-          outcome,
-          context: window.location.pathname,
-          metadata: { ...metadata, timestamp: new Date().toISOString() }
+          type: 'interaction',
+          event_summary: `${feature}: ${action}`,
+          payload: { 
+            user_id: user.id,
+            feature,
+            action,
+            outcome,
+            context: window.location.pathname,
+            metadata: { ...metadata, timestamp: new Date().toISOString() }
+          }
         });
     } catch (error) {
       console.error('Error logging interaction:', error);
+    }
+  };
+
+  const acceptInsight = async (insightId: string) => {
+    try {
+      // Update insight in database
+      await supabase
+        .from('ai_brain_insights')
+        .update({ accepted: true })
+        .eq('id', insightId);
+
+      // Update local state
+      setInsights(prev => prev.map(insight => 
+        insight.id === insightId 
+          ? { ...insight, accepted: true }
+          : insight
+      ));
+
+      toast.success('Insight accepted and will be implemented');
+    } catch (error) {
+      console.error('Error accepting insight:', error);
+      toast.error('Failed to accept insight');
+    }
+  };
+
+  const dismissInsight = async (insightId: string) => {
+    try {
+      // Update insight in database
+      await supabase
+        .from('ai_brain_insights')
+        .update({ accepted: false })
+        .eq('id', insightId);
+
+      // Update local state
+      setInsights(prev => prev.map(insight => 
+        insight.id === insightId 
+          ? { ...insight, accepted: false }
+          : insight
+      ));
+
+      toast.info('Insight dismissed');
+    } catch (error) {
+      console.error('Error dismissing insight:', error);
+      toast.error('Failed to dismiss insight');
     }
   };
 
@@ -82,13 +137,13 @@ export const useAIBrainInsights = () => {
     setIsAnalyzing(true);
     
     try {
-      // Fetch recent usage patterns
+      // Fetch recent usage patterns using correct column names
       const { data: recentLogs } = await supabase
         .from('ai_brain_logs')
         .select('*')
         .eq('company_id', profile.company_id)
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .order('created_at', { ascending: false })
+        .gte('timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .order('timestamp', { ascending: false })
         .limit(1000);
 
       if (!recentLogs) return;
@@ -97,10 +152,13 @@ export const useAIBrainInsights = () => {
       const generatedInsights: AIInsight[] = [];
 
       // Pattern: High ghost intent on specific features
-      const ghostIntents = recentLogs.filter(log => log.log_type === 'ghost_intent');
+      const ghostIntents = recentLogs.filter(log => log.type === 'ghost_intent');
       if (ghostIntents.length > 5) {
         const commonActions = ghostIntents.reduce((acc, log) => {
-          acc[log.action] = (acc[log.action] || 0) + 1;
+          const action = log.payload?.action;
+          if (action) {
+            acc[action] = (acc[action] || 0) + 1;
+          }
           return acc;
         }, {} as Record<string, number>);
 
@@ -117,19 +175,22 @@ export const useAIBrainInsights = () => {
             impact: 'high',
             actionable: true,
             metadata: { action: topGhostAction[0], frequency: topGhostAction[1] },
-            timestamp: new Date()
+            timestamp: new Date(),
+            accepted: null,
+            suggestion_text: `Implement ${topGhostAction[0]} feature`,
+            triggered_by: 'ghost_intent_analysis'
           });
         }
       }
 
       // Pattern: Call success rates
       const callLogs = recentLogs.filter(log => 
-        log.feature === 'dialer' && log.outcome
+        log.payload?.feature === 'dialer' && log.payload?.outcome
       );
       
       if (callLogs.length > 10) {
         const successRate = callLogs.filter(log => 
-          log.outcome?.includes('success') || log.outcome?.includes('converted')
+          log.payload?.outcome?.includes('success') || log.payload?.outcome?.includes('converted')
         ).length / callLogs.length;
 
         if (successRate < 0.3) {
@@ -142,15 +203,19 @@ export const useAIBrainInsights = () => {
             impact: 'high',
             actionable: true,
             metadata: { successRate, totalCalls: callLogs.length },
-            timestamp: new Date()
+            timestamp: new Date(),
+            accepted: null,
+            suggestion_text: 'Implement additional call coaching',
+            triggered_by: 'call_performance_analysis'
           });
         }
       }
 
       // Pattern: Feature usage trends
       const featureUsage = recentLogs.reduce((acc, log) => {
-        if (log.feature) {
-          acc[log.feature] = (acc[log.feature] || 0) + 1;
+        const feature = log.payload?.feature;
+        if (feature) {
+          acc[feature] = (acc[feature] || 0) + 1;
         }
         return acc;
       }, {} as Record<string, number>);
@@ -169,7 +234,10 @@ export const useAIBrainInsights = () => {
           impact: 'medium',
           actionable: true,
           metadata: { underusedFeatures },
-          timestamp: new Date()
+          timestamp: new Date(),
+          accepted: null,
+          suggestion_text: 'Improve feature discoverability',
+          triggered_by: 'feature_usage_analysis'
         });
       }
 
@@ -198,7 +266,7 @@ export const useAIBrainInsights = () => {
         .from('ai_brain_logs')
         .delete()
         .eq('company_id', profile.company_id)
-        .lt('created_at', cutoffDate);
+        .lt('timestamp', cutoffDate);
         
       if (error) throw error;
       
@@ -211,9 +279,12 @@ export const useAIBrainInsights = () => {
   return {
     insights,
     isAnalyzing,
+    isLoading: isAnalyzing, // Add alias for compatibility
     generateInsights,
     logGhostIntent,
     logInteraction,
+    acceptInsight,
+    dismissInsight,
     pruneOldData
   };
 };
