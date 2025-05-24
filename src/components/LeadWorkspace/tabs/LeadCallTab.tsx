@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Phone, PhoneCall, Clock, Mic, MicOff, Brain, Save } from 'lucide-react';
+import { Phone, PhoneCall, Clock, Mic, MicOff, Brain, Save, Zap } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/useIntegrations';
+import { useRetellAI } from '@/hooks/useRetellAI';
 
 interface LeadCallTabProps {
   lead: Lead;
@@ -17,6 +18,7 @@ const LeadCallTab: React.FC<LeadCallTabProps> = ({ lead }) => {
   const [callNotes, setCallNotes] = useState('');
   const [isAiAssisting, setIsAiAssisting] = useState(false);
   const { makeCall, isLoading } = useIntegrations();
+  const { makeConversationalCall, isLoading: isAICallLoading } = useRetellAI();
 
   const mockCallHistory = [
     {
@@ -96,6 +98,15 @@ Probability: 85% likely to move forward`;
     }, 2000);
   };
 
+  const handleAIConversationCall = async () => {
+    const result = await makeConversationalCall(lead);
+    
+    if (result.success) {
+      setIsRecording(true); // Auto-start recording for AI calls
+      toast.success(`AI Assistant is calling ${lead.name}. The conversation will be fully automated.`);
+    }
+  };
+
   const handleSaveNotes = () => {
     if (callNotes.trim()) {
       toast.success('Call notes saved successfully');
@@ -144,7 +155,7 @@ Probability: 85% likely to move forward`;
                 disabled={isLoading}
               >
                 <PhoneCall className="h-4 w-4 mr-2" />
-                {isLoading ? 'Calling...' : 'Twilio Call'}
+                {isLoading ? 'Calling...' : 'Manual Call'}
               </Button>
               <Button 
                 onClick={handleNativeCall} 
@@ -153,6 +164,39 @@ Probability: 85% likely to move forward`;
                 <Phone className="h-4 w-4 mr-2" />
                 Native Call
               </Button>
+            </div>
+          </div>
+
+          {/* AI Conversation Call */}
+          <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <div className="font-semibold text-purple-800">AI Conversation Call</div>
+                <div className="text-sm text-purple-600">
+                  Let our AI assistant have a full conversation with {lead.name}
+                </div>
+              </div>
+              <Zap className="h-6 w-6 text-purple-600" />
+            </div>
+            <Button
+              onClick={handleAIConversationCall}
+              disabled={isAICallLoading}
+              className="w-full bg-purple-600 hover:bg-purple-700"
+            >
+              {isAICallLoading ? (
+                <>
+                  <Mic className="h-4 w-4 mr-2 animate-pulse" />
+                  Starting AI Conversation...
+                </>
+              ) : (
+                <>
+                  <Brain className="h-4 w-4 mr-2" />
+                  Start AI Conversation
+                </>
+              )}
+            </Button>
+            <div className="text-xs text-purple-600 mt-2">
+              ✨ AI will qualify, handle objections, and schedule follow-ups automatically
             </div>
           </div>
 

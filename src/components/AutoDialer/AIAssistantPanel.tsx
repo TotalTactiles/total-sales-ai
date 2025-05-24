@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,10 +11,13 @@ import {
   Target,
   Send,
   Mic,
-  MicOff
+  MicOff,
+  Phone,
+  Zap
 } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import { useRetellAI } from '@/hooks/useRetellAI';
 
 interface AIAssistantPanelProps {
   currentLead?: Lead | null;
@@ -31,6 +33,7 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
   const [aiQuery, setAiQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const { makeConversationalCall, isLoading: isCallingAI } = useRetellAI();
 
   // Mock AI suggestions based on call context
   useEffect(() => {
@@ -52,6 +55,19 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
       setSuggestions(preSuggestions);
     }
   }, [currentLead, isCallActive]);
+
+  const handleAICall = async () => {
+    if (!currentLead) {
+      toast.error('No lead selected');
+      return;
+    }
+
+    const result = await makeConversationalCall(currentLead);
+    
+    if (result.success) {
+      onSuggestion(`AI Assistant is now calling ${currentLead.name}. Call ID: ${result.callId}`);
+    }
+  };
 
   const handleAIQuery = () => {
     if (!aiQuery.trim()) return;
@@ -109,12 +125,45 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
       <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
         <Brain className="h-5 w-5 text-blue-600" />
         <div>
-          <div className="font-medium text-blue-800">AI Assistant Active</div>
+          <div className="font-medium text-blue-800">Retell AI Assistant Active</div>
           <div className="text-xs text-blue-600">
-            {isCallActive ? 'Listening & ready to assist' : 'Analyzing lead data'}
+            {isCallActive ? 'AI conversation in progress' : 'Ready for conversational calls'}
           </div>
         </div>
       </div>
+
+      {/* AI Call Button */}
+      {currentLead && !isCallActive && (
+        <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="font-semibold text-purple-800">AI Conversation Call</div>
+              <div className="text-sm text-purple-600">Let AI have a full conversation with {currentLead.name}</div>
+            </div>
+            <Zap className="h-8 w-8 text-purple-600" />
+          </div>
+          <Button
+            onClick={handleAICall}
+            disabled={isCallingAI}
+            className="w-full bg-purple-600 hover:bg-purple-700"
+          >
+            {isCallingAI ? (
+              <>
+                <Mic className="h-4 w-4 mr-2 animate-pulse" />
+                Initiating AI Call...
+              </>
+            ) : (
+              <>
+                <Phone className="h-4 w-4 mr-2" />
+                Start AI Conversation
+              </>
+            )}
+          </Button>
+          <div className="text-xs text-purple-600 mt-2">
+            ✨ AI will handle the entire conversation, qualify the lead, and provide analysis
+          </div>
+        </div>
+      )}
 
       {/* AI Insights */}
       {aiInsights.length > 0 && (
