@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MessageSquare, Send, Brain, Settings } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import { useIntegrations } from '@/hooks/useIntegrations';
 
 interface LeadSMSTabProps {
   lead: Lead;
@@ -14,7 +14,8 @@ interface LeadSMSTabProps {
 const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
   const [message, setMessage] = useState('');
   const [isAiAssisting, setIsAiAssisting] = useState(false);
-  const [smsConnected, setSmsConnected] = useState(false);
+  const [smsConnected, setSmsConnected] = useState(true); // Start with connected for demo
+  const { sendSMS, isLoading } = useIntegrations();
 
   const mockSmsHistory = [
     {
@@ -57,15 +58,19 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
     }, 2000);
   };
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (message.trim()) {
-      toast.success(`SMS sent to ${lead.name}`);
-      setMessage('');
+      const result = await sendSMS(lead.phone, message, lead.id, lead.name);
+      
+      if (result.success) {
+        setMessage('');
+        toast.success(`SMS sent to ${lead.name}. Message SID: ${result.messageSid}`);
+      }
     }
   };
 
   const connectSMS = () => {
-    toast.success('SMS integration setup started');
+    toast.success('Twilio SMS integration is ready');
     setSmsConnected(true);
   };
 
@@ -75,15 +80,15 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <MessageSquare className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <CardTitle>Connect SMS</CardTitle>
+            <CardTitle>Connect Twilio SMS</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-slate-600 text-center">
-              Connect Twilio or your SMS provider to send and receive text messages directly from the lead workspace.
+              Connect Twilio AU for SMS functionality. Includes 2-way messaging, auto-compliance, and AI assistance.
             </p>
             <Button onClick={connectSMS} className="w-full">
               <MessageSquare className="h-4 w-4 mr-2" />
-              Connect SMS Provider
+              Connect Twilio AU SMS
             </Button>
           </CardContent>
         </Card>
@@ -102,10 +107,11 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
           </h3>
           <Button variant="outline" size="sm">
             <Settings className="h-4 w-4 mr-2" />
-            SMS Settings
+            Twilio Settings
           </Button>
         </div>
         <p className="text-sm text-slate-600 mt-1">{lead.phone}</p>
+        <p className="text-xs text-green-600 mt-1">✅ Twilio AU Connected - Compliance Enabled</p>
       </div>
 
       {/* SMS Thread */}
@@ -131,7 +137,7 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center justify-between">
-              Send SMS
+              Send SMS (AU Compliant)
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -147,20 +153,18 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type your message..."
+              placeholder="Type your message... (Auto-compliance: 'Reply STOP to unsubscribe' will be added)"
               className="min-h-[80px] resize-none"
-              maxLength={160}
+              maxLength={140} // Leave room for compliance text
             />
             
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-500">
-                {message.length}/160 characters
+                {message.length}/140 characters (20 chars reserved for compliance)
               </span>
-              {message.length > 160 && (
-                <span className="text-xs text-amber-600">
-                  Will send as {Math.ceil(message.length / 160)} messages
-                </span>
-              )}
+              <span className="text-xs text-green-600">
+                AU Compliant: Auto-adds opt-out
+              </span>
             </div>
 
             {isAiAssisting && (
@@ -172,9 +176,13 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
               </div>
             )}
 
-            <Button onClick={handleSendMessage} disabled={!message.trim()} className="w-full">
+            <Button 
+              onClick={handleSendMessage} 
+              disabled={!message.trim() || isLoading} 
+              className="w-full"
+            >
               <Send className="h-4 w-4 mr-2" />
-              Send SMS
+              {isLoading ? 'Sending via Twilio...' : 'Send SMS'}
             </Button>
           </CardContent>
         </Card>

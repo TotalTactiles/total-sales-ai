@@ -1,13 +1,13 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Send, Mail, Paperclip, Settings } from 'lucide-react';
+import { Brain, Send, Mail, Paperclip, Settings, Link } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import { useIntegrations } from '@/hooks/useIntegrations';
 
 interface LeadEmailTabProps {
   lead: Lead;
@@ -18,6 +18,7 @@ const LeadEmailTab: React.FC<LeadEmailTabProps> = ({ lead }) => {
   const [emailBody, setEmailBody] = useState('');
   const [isAiAssisting, setIsAiAssisting] = useState(false);
   const [emailConnected, setEmailConnected] = useState(false);
+  const { connectGmail, sendEmail, isLoading } = useIntegrations();
 
   const mockEmailThreads = [
     {
@@ -78,17 +79,24 @@ P.S. Similar manufacturing companies typically see ROI within 3-4 months of impl
     }, 2000);
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (emailSubject.trim() && emailBody.trim()) {
-      toast.success(`Email sent to ${lead.name}`);
-      setEmailSubject('');
-      setEmailBody('');
+      const result = await sendEmail(lead.email, emailSubject, emailBody, lead.id, lead.name);
+      
+      if (result.success) {
+        setEmailSubject('');
+        setEmailBody('');
+        toast.success(`Email sent to ${lead.name}. Message ID: ${result.messageId}`);
+      }
     }
   };
 
-  const connectEmail = () => {
-    toast.success('Email integration setup started');
-    setEmailConnected(true);
+  const handleConnectGmail = async () => {
+    const result = await connectGmail();
+    if (result.success) {
+      setEmailConnected(true);
+      toast.success('Gmail OAuth window opened. Please authorize the application.');
+    }
   };
 
   if (!emailConnected) {
@@ -101,18 +109,25 @@ P.S. Similar manufacturing companies typically see ROI within 3-4 months of impl
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-slate-600 text-center">
-              Connect Gmail or Outlook to view email threads and send AI-powered responses directly from here.
+              Connect Gmail via secure OAuth 2.0 to view email threads and send AI-powered responses directly from here.
             </p>
             <div className="space-y-2">
-              <Button onClick={connectEmail} className="w-full">
-                <Mail className="h-4 w-4 mr-2" />
-                Connect Gmail
+              <Button onClick={handleConnectGmail} className="w-full" disabled={isLoading}>
+                <Link className="h-4 w-4 mr-2" />
+                {isLoading ? 'Connecting...' : 'Connect Gmail (OAuth)'}
               </Button>
-              <Button onClick={connectEmail} variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" disabled>
                 <Mail className="h-4 w-4 mr-2" />
-                Connect Outlook
+                Connect Outlook (Coming Soon)
+              </Button>
+              <Button variant="outline" className="w-full" disabled>
+                <Mail className="h-4 w-4 mr-2" />
+                Connect Zoho (Coming Soon)
               </Button>
             </div>
+            <p className="text-xs text-center text-slate-500">
+              Secure OAuth authentication - we never store your email password
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -155,7 +170,11 @@ P.S. Similar manufacturing companies typically see ROI within 3-4 months of impl
         <Card>
           <CardHeader>
             <CardTitle className="text-lg flex items-center justify-between">
-              Compose Email to {lead.name}
+              <div className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Compose Email to {lead.name}
+                <Badge className="bg-green-100 text-green-800">Gmail Connected</Badge>
+              </div>
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -203,9 +222,12 @@ P.S. Similar manufacturing companies typically see ROI within 3-4 months of impl
             )}
 
             <div className="flex gap-2">
-              <Button onClick={handleSendEmail} disabled={!emailSubject.trim() || !emailBody.trim()}>
+              <Button 
+                onClick={handleSendEmail} 
+                disabled={!emailSubject.trim() || !emailBody.trim() || isLoading}
+              >
                 <Send className="h-4 w-4 mr-2" />
-                Send Email
+                {isLoading ? 'Sending via Gmail...' : 'Send Email'}
               </Button>
               <Button variant="outline">
                 <Paperclip className="h-4 w-4 mr-2" />
@@ -215,7 +237,7 @@ P.S. Similar manufacturing companies typically see ROI within 3-4 months of impl
           </CardContent>
         </Card>
 
-        {/* AI Email Suggestions */}
+        {/* AI Email Insights */}
         <Card className="mt-6">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">

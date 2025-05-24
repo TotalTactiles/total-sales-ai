@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Phone, PhoneCall, Clock, Mic, MicOff, Brain, Save } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import { useIntegrations } from '@/hooks/useIntegrations';
 
 interface LeadCallTabProps {
   lead: Lead;
@@ -16,6 +16,7 @@ const LeadCallTab: React.FC<LeadCallTabProps> = ({ lead }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [callNotes, setCallNotes] = useState('');
   const [isAiAssisting, setIsAiAssisting] = useState(false);
+  const { makeCall, isLoading } = useIntegrations();
 
   const mockCallHistory = [
     {
@@ -47,8 +48,22 @@ const LeadCallTab: React.FC<LeadCallTabProps> = ({ lead }) => {
     }
   ];
 
-  const handleStartCall = () => {
-    toast.success(`Initiating call to ${lead.name} (${lead.phone})`);
+  const handleStartCall = async () => {
+    const result = await makeCall(lead.phone, lead.id, lead.name);
+    
+    if (result.success) {
+      // Start recording automatically when call begins
+      setIsRecording(true);
+      toast.success(`Call initiated to ${lead.name}. Call SID: ${result.callSid}`);
+    }
+  };
+
+  const handleNativeCall = () => {
+    // Fallback to native mobile dialer
+    window.location.href = `tel:${lead.phone}`;
+    
+    // Log the action
+    toast.info(`Opening native dialer for ${lead.name}`);
   };
 
   const handleToggleRecording = () => {
@@ -122,10 +137,23 @@ Probability: 85% likely to move forward`;
               <div className="font-medium">{lead.phone}</div>
               <div className="text-sm text-slate-600">Best time to call: Today 2-4 PM (78% connect rate)</div>
             </div>
-            <Button onClick={handleStartCall} className="bg-green-600 hover:bg-green-700">
-              <PhoneCall className="h-4 w-4 mr-2" />
-              Start Call
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleStartCall} 
+                className="bg-green-600 hover:bg-green-700"
+                disabled={isLoading}
+              >
+                <PhoneCall className="h-4 w-4 mr-2" />
+                {isLoading ? 'Calling...' : 'Twilio Call'}
+              </Button>
+              <Button 
+                onClick={handleNativeCall} 
+                variant="outline"
+              >
+                <Phone className="h-4 w-4 mr-2" />
+                Native Call
+              </Button>
+            </div>
           </div>
 
           {/* Recording Controls */}
