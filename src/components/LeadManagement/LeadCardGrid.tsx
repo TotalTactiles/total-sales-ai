@@ -34,7 +34,7 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('score');
+  const [sortBy, setSortBy] = useState('ai_optimized');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [aiSuggestionsEnabled, setAiSuggestionsEnabled] = useState(true);
@@ -64,6 +64,12 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
       let aValue, bValue;
       
       switch (sortBy) {
+        case 'ai_optimized':
+          // AI-optimized scoring: conversion likelihood * score * priority weight
+          const priorityWeight = { high: 1.2, medium: 1.0, low: 0.8 };
+          aValue = (a.conversion_likelihood || 50) * (a.score || 50) * (priorityWeight[a.priority] || 1.0);
+          bValue = (b.conversion_likelihood || 50) * (b.score || 50) * (priorityWeight[b.priority] || 1.0);
+          break;
         case 'score':
           aValue = a.score;
           bValue = b.score;
@@ -100,7 +106,7 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortBy(newSortBy);
-      setSortDirection('desc');
+      setSortDirection(newSortBy === 'ai_optimized' ? 'desc' : 'desc');
     }
     
     trackEvent({
@@ -208,10 +214,11 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
         </Select>
         
         <Select value={sortBy} onValueChange={handleSortChange}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="ai_optimized">🤖 AI Optimized</SelectItem>
             <SelectItem value="score">Score</SelectItem>
             <SelectItem value="name">Name</SelectItem>
             <SelectItem value="company">Company</SelectItem>
@@ -248,6 +255,9 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
       {/* Results Summary */}
       <div className="text-center text-sm text-slate-500">
         Showing {filteredAndSortedLeads.length} of {leads.length} leads
+        {sortBy === 'ai_optimized' && (
+          <span className="ml-2 text-blue-600">• Sorted by AI optimization for highest conversion probability</span>
+        )}
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import LeadWorkspaceRight from '@/components/LeadWorkspace/LeadWorkspaceRight';
 import DemoModeIndicator from '@/components/Demo/DemoModeIndicator';
 import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
 import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
 import { useMockData } from '@/hooks/useMockData';
 import { toast } from 'sonner';
@@ -81,6 +82,11 @@ const LeadWorkspace = () => {
     setShowDemo(false);
     navigate('/leads');
     toast.info('Exiting lead workspace demo. Returning to lead management.');
+  };
+
+  const handleBackToLeads = () => {
+    navigate('/leads');
+    toast.info('Returning to Lead Management');
   };
 
   // Show workspace showcase if no real data and demo not started
@@ -160,6 +166,18 @@ const LeadWorkspace = () => {
 
         {/* Center Content */}
         <div className="flex-1 flex flex-col min-w-0">
+          {/* Back Navigation */}
+          <div className="p-4 pb-0">
+            <Button 
+              variant="ghost" 
+              onClick={handleBackToLeads}
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Lead Management
+            </Button>
+          </div>
+
           {/* Demo Mode Indicator with Exit Button */}
           {!hasRealData && (
             <div className="p-4 pb-0">
