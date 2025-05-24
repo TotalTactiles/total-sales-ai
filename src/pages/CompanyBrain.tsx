@@ -9,7 +9,7 @@ const CompanyBrain = () => {
   const { profile } = useAuth();
   
   // Route to appropriate component based on user role
-  const isManager = profile?.role === 'manager' || profile?.role === 'admin';
+  const isManager = profile?.role === 'manager';
   
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
