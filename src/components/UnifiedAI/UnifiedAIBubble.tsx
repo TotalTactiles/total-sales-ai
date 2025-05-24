@@ -1,6 +1,6 @@
 
 import React from 'react';
-import EnhancedUnifiedAIBubble from './EnhancedUnifiedAIBubble';
+import ContextAwareAIBubble from './ContextAwareAIBubble';
 
 interface AIContext {
   workspace: 'dashboard' | 'dialer' | 'lead_details' | 'email' | 'sms' | 'notes' | 'meetings' | 'company_brain' | 'agent_missions' | 'leads';
@@ -23,9 +23,9 @@ interface UnifiedAIBubbleProps {
   className?: string;
 }
 
-// Wrapper component to maintain backward compatibility
+// Updated wrapper component to use the new context-aware AI bubble
 const UnifiedAIBubble: React.FC<UnifiedAIBubbleProps> = ({ context, className }) => {
-  return <EnhancedUnifiedAIBubble context={context} className={className} />;
+  return <ContextAwareAIBubble context={context} className={className} />;
 };
 
 export default UnifiedAIBubble;
