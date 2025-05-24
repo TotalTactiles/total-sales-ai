@@ -1,54 +1,12 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { 
-  BookOpen, 
-  Star, 
-  Clock, 
-  TrendingUp, 
-  Award,
-  CheckCircle,
-  Bookmark,
-  Play,
-  FileText,
-  Video,
-  Mic,
-  Target,
-  Brain,
-  Lightbulb
-} from 'lucide-react';
+import { Brain } from 'lucide-react';
 import { useEnhancedUsageTracking } from '@/hooks/useEnhancedUsageTracking';
-
-interface ContentItem {
-  id: string;
-  title: string;
-  type: 'video' | 'document' | 'audio' | 'guide' | 'script';
-  category: string;
-  duration: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  completed: boolean;
-  bookmarked: boolean;
-  rating: number;
-  views: number;
-  description: string;
-  tags: string[];
-  aiRecommended?: boolean;
-  trending?: boolean;
-  addedRecently?: boolean;
-}
-
-interface LearningProgress {
-  totalItems: number;
-  completedItems: number;
-  completionPercentage: number;
-  streak: number;
-  weeklyGoal: number;
-  weeklyProgress: number;
-}
+import AcademyHeader from './components/AcademyHeader';
+import ContentCard, { ContentItem } from './components/ContentCard';
+import CategorySidebar from './components/CategorySidebar';
 
 const AcademyLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all-content');
@@ -59,7 +17,7 @@ const AcademyLayout: React.FC = () => {
     trackPageView('sales_rep_academy');
   }, []);
 
-  const learningProgress: LearningProgress = {
+  const learningProgress = {
     totalItems: 156,
     completedItems: 89,
     completionPercentage: 57,
@@ -141,26 +99,6 @@ const AcademyLayout: React.FC = () => {
     { id: 'industry-insights', name: 'Industry Insights', count: 37 }
   ];
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'video': return <Video className="h-4 w-4" />;
-      case 'document': return <FileText className="h-4 w-4" />;
-      case 'audio': return <Mic className="h-4 w-4" />;
-      case 'guide': return <BookOpen className="h-4 w-4" />;
-      case 'script': return <FileText className="h-4 w-4" />;
-      default: return <FileText className="h-4 w-4" />;
-    }
-  };
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'beginner': return 'bg-green-100 text-green-700';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-700';
-      case 'advanced': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
   const handleContentClick = (item: ContentItem) => {
     trackEvent({
       feature: 'academy_content',
@@ -200,42 +138,7 @@ const AcademyLayout: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
-                <Award className="h-8 w-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-slate-900">Sales Academy</h1>
-                <p className="text-slate-600">Your AI-powered learning companion</p>
-              </div>
-            </div>
-            
-            {/* Progress Overview */}
-            <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-blue-600">{learningProgress.completionPercentage}%</div>
-                    <div className="text-xs text-slate-600">Complete</div>
-                  </div>
-                  <div className="w-16 h-16 relative">
-                    <Progress 
-                      value={learningProgress.completionPercentage} 
-                      className="transform rotate-90 w-16"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-semibold text-green-600">{learningProgress.streak}</div>
-                    <div className="text-xs text-slate-600">Day Streak</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <AcademyHeader learningProgress={learningProgress} />
 
         {/* AI Insights Banner */}
         <Card className="mb-6 bg-gradient-to-r from-purple-600 to-pink-600 border-0 text-white">
@@ -266,125 +169,21 @@ const AcademyLayout: React.FC = () => {
 
           <TabsContent value="all-content">
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-              {/* Sidebar Categories */}
-              <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="text-lg">Categories</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    {categories.map((category) => (
-                      <Button
-                        key={category.id}
-                        variant={selectedCategory === category.id ? "default" : "ghost"}
-                        className="w-full justify-between"
-                        onClick={() => setSelectedCategory(category.id)}
-                      >
-                        <span>{category.name}</span>
-                        <Badge variant="secondary">{category.count}</Badge>
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <CategorySidebar
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={setSelectedCategory}
+              />
 
-              {/* Content Grid */}
               <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredContent.map((item) => (
-                  <Card 
-                    key={item.id} 
-                    className="bg-white/90 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group"
-                    onClick={() => handleContentClick(item)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-2">
-                          {getTypeIcon(item.type)}
-                          <span className="text-sm text-slate-600 capitalize">{item.type}</span>
-                          {item.aiRecommended && (
-                            <Badge className="bg-purple-100 text-purple-700">
-                              <Lightbulb className="h-3 w-3 mr-1" />
-                              AI Pick
-                            </Badge>
-                          )}
-                          {item.trending && (
-                            <Badge className="bg-orange-100 text-orange-700">
-                              <TrendingUp className="h-3 w-3 mr-1" />
-                              Trending
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleBookmark(item.id);
-                            }}
-                            className="p-1 h-auto"
-                          >
-                            <Bookmark className={`h-4 w-4 ${item.bookmarked ? 'fill-yellow-400 text-yellow-400' : 'text-slate-400'}`} />
-                          </Button>
-                          {item.completed && (
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                          )}
-                        </div>
-                      </div>
-                      <CardTitle className="text-lg group-hover:text-blue-600 transition-colors">
-                        {item.title}
-                      </CardTitle>
-                    </CardHeader>
-                    
-                    <CardContent>
-                      <p className="text-sm text-slate-600 mb-4">{item.description}</p>
-                      
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-slate-400" />
-                          <span className="text-sm text-slate-600">{item.duration}</span>
-                        </div>
-                        <Badge className={getDifficultyColor(item.difficulty)}>
-                          {item.difficulty}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                          <span className="text-sm text-slate-600">{item.rating}</span>
-                          <span className="text-xs text-slate-500">({item.views} views)</span>
-                        </div>
-                        
-                        {!item.completed ? (
-                          <Button
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              markComplete(item.id);
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            <Play className="h-4 w-4 mr-1" />
-                            Start
-                          </Button>
-                        ) : (
-                          <Button variant="outline" size="sm">
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Review
-                          </Button>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {item.tags.map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <ContentCard
+                    key={item.id}
+                    item={item}
+                    onContentClick={handleContentClick}
+                    onToggleBookmark={toggleBookmark}
+                    onMarkComplete={markComplete}
+                  />
                 ))}
               </div>
             </div>
