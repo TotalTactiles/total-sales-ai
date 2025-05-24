@@ -7,6 +7,7 @@ import LeadWorkspaceCenter from '@/components/LeadWorkspace/LeadWorkspaceCenter'
 import LeadWorkspaceRight from '@/components/LeadWorkspace/LeadWorkspaceRight';
 import DemoModeIndicator from '@/components/Demo/DemoModeIndicator';
 import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
+import { Button } from '@/components/ui/button';
 import { useLeads } from '@/hooks/useLeads';
 import { useMockData } from '@/hooks/useMockData';
 import { toast } from 'sonner';
