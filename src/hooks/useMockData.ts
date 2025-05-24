@@ -12,11 +12,12 @@ import {
   type MockActivity,
   type MockCall
 } from '@/data/mockData';
+import { toast } from 'sonner';
 
 export const useMockData = () => {
-  const [leads] = useState(mockLeads);
-  const [activities] = useState(mockActivities);
-  const [calls] = useState(mockCalls);
+  const [leads, setLeads] = useState(mockLeads);
+  const [activities, setActivities] = useState(mockActivities);
+  const [calls, setCalls] = useState(mockCalls);
   const [importSessions] = useState(mockImportSessions);
   const [aiInsights] = useState(mockAIInsights);
   const [emailTemplates] = useState(mockEmailTemplates);
@@ -67,6 +68,37 @@ export const useMockData = () => {
     };
   };
 
+  const deleteLead = (id: string) => {
+    setLeads(prev => prev.filter(lead => lead.id !== id));
+    setActivities(prev => prev.filter(activity => activity.leadId !== id));
+    setCalls(prev => prev.filter(call => call.leadId !== id));
+    toast.success('Mock lead deleted successfully');
+  };
+
+  const deleteActivity = (id: string) => {
+    setActivities(prev => prev.filter(activity => activity.id !== id));
+    toast.success('Mock activity deleted successfully');
+  };
+
+  const deleteCall = (id: string) => {
+    setCalls(prev => prev.filter(call => call.id !== id));
+    toast.success('Mock call deleted successfully');
+  };
+
+  const clearAllMockData = () => {
+    setLeads([]);
+    setActivities([]);
+    setCalls([]);
+    toast.success('All mock data cleared successfully');
+  };
+
+  const resetMockData = () => {
+    setLeads(mockLeads);
+    setActivities(mockActivities);
+    setCalls(mockCalls);
+    toast.success('Mock data reset to original state');
+  };
+
   return {
     leads,
     activities,
@@ -81,6 +113,11 @@ export const useMockData = () => {
     getLeadsByStatus,
     getHighPriorityLeads,
     getRecentActivities,
-    getLeadMetrics
+    getLeadMetrics,
+    deleteLead,
+    deleteActivity,
+    deleteCall,
+    clearAllMockData,
+    resetMockData
   };
 };

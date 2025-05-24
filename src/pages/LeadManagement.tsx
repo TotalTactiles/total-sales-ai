@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Upload } from 'lucide-react';
+import { Upload, Trash2, RotateCcw } from 'lucide-react';
 import LeadCardGrid from '@/components/LeadManagement/LeadCardGrid';
 import LeadSlidePanel from '@/components/LeadManagement/LeadSlidePanel';
 import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
@@ -25,28 +25,37 @@ const LeadManagement = () => {
   const [showDemo, setShowDemo] = useState(false);
   
   const { leads, isLoading, refetch } = useLeads();
-  const { leads: mockLeads, getLeadsByStatus, getLeadMetrics } = useMockData();
+  const { 
+    leads: mockLeads, 
+    getLeadsByStatus, 
+    getLeadMetrics,
+    deleteLead,
+    clearAllMockData,
+    resetMockData
+  } = useMockData();
   
   // Use mock data for demo or real data if available
   const hasRealData = leads && leads.length > 0;
-  const displayLeads = hasRealData ? leads.map(convertDatabaseLeadToLead) : mockLeads.map(lead => ({
-    id: lead.id,
-    name: lead.name,
-    email: lead.email,
-    phone: lead.phone,
-    company: lead.company,
-    source: lead.source,
-    status: lead.status,
-    priority: lead.priority,
-    score: lead.score,
-    tags: lead.tags,
-    last_contact: lead.last_contact,
-    conversion_likelihood: lead.conversion_likelihood,
-    speed_to_lead: lead.speed_to_lead,
-    is_sensitive: lead.is_sensitive,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }));
+  const displayLeads: Lead[] = hasRealData 
+    ? leads.map(convertDatabaseLeadToLead) 
+    : mockLeads.map(lead => ({
+        id: lead.id,
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        company: lead.company,
+        source: lead.source,
+        status: lead.status,
+        priority: lead.priority,
+        score: lead.score,
+        tags: lead.tags,
+        lastContact: lead.last_contact,
+        conversionLikelihood: lead.conversion_likelihood,
+        speedToLead: lead.speed_to_lead,
+        isSensitive: lead.is_sensitive,
+        created_at: lead.created_at,
+        updated_at: lead.updated_at
+      }));
 
   const handleLeadClick = (lead: Lead) => {
     setSelectedLead(lead);
@@ -74,6 +83,13 @@ const LeadManagement = () => {
       case 'help':
         toast.success(`Requesting team help for ${lead.name}`);
         break;
+      case 'delete':
+        if (!hasRealData) {
+          deleteLead(lead.id);
+        } else {
+          toast.error('Cannot delete real leads from demo mode');
+        }
+        break;
       default:
         break;
     }
@@ -87,6 +103,22 @@ const LeadManagement = () => {
   const handleStartDemo = () => {
     setShowDemo(true);
     toast.success('Demo mode activated! Explore with mock data to see the full potential.');
+  };
+
+  const handleClearMockData = () => {
+    if (!hasRealData) {
+      clearAllMockData();
+    } else {
+      toast.error('Cannot clear data when real leads are present');
+    }
+  };
+
+  const handleResetMockData = () => {
+    if (!hasRealData) {
+      resetMockData();
+    } else {
+      toast.error('Cannot reset when real leads are present');
+    }
   };
   
   const filteredLeads = activeFilter === 'all' 
@@ -129,6 +161,26 @@ const LeadManagement = () => {
               )}
             </div>
             <div className="flex gap-2">
+              {!hasRealData && (
+                <>
+                  <Button 
+                    variant="outline"
+                    onClick={handleResetMockData}
+                    className="flex items-center gap-2"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    Reset Demo Data
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={handleClearMockData}
+                    className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Clear All Demo Data
+                  </Button>
+                </>
+              )}
               <Button 
                 variant="outline"
                 onClick={() => setIsImportDialogOpen(true)}

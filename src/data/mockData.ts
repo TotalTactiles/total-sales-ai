@@ -1,4 +1,3 @@
-
 // Mock data for demonstrations across all workspaces
 export interface MockLead {
   id: string;
@@ -19,6 +18,8 @@ export interface MockLead {
   industry: string;
   annual_revenue?: string;
   employee_count?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface MockActivity {
@@ -63,7 +64,9 @@ export const mockLeads: MockLead[] = [
     is_sensitive: false,
     industry: 'Technology',
     annual_revenue: '$50M - $100M',
-    employee_count: '200-500'
+    employee_count: '200-500',
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-20T14:30:00Z'
   },
   {
     id: '2',
@@ -83,7 +86,9 @@ export const mockLeads: MockLead[] = [
     is_sensitive: false,
     industry: 'Manufacturing',
     annual_revenue: '$25M - $50M',
-    employee_count: '100-200'
+    employee_count: '100-200',
+    created_at: '2024-01-10T09:00:00Z',
+    updated_at: '2024-01-18T10:15:00Z'
   },
   {
     id: '3',
@@ -102,7 +107,9 @@ export const mockLeads: MockLead[] = [
     is_sensitive: true,
     industry: 'Healthcare',
     annual_revenue: '$10M - $25M',
-    employee_count: '50-100'
+    employee_count: '50-100',
+    created_at: '2024-01-21T08:30:00Z',
+    updated_at: '2024-01-21T08:30:00Z'
   },
   {
     id: '4',
@@ -122,7 +129,9 @@ export const mockLeads: MockLead[] = [
     is_sensitive: false,
     industry: 'Retail',
     annual_revenue: '$5M - $10M',
-    employee_count: '25-50'
+    employee_count: '25-50',
+    created_at: '2024-01-12T14:20:00Z',
+    updated_at: '2024-01-15T16:45:00Z'
   },
   {
     id: '5',
@@ -142,7 +151,9 @@ export const mockLeads: MockLead[] = [
     is_sensitive: true,
     industry: 'Financial Services',
     annual_revenue: '$100M+',
-    employee_count: '500+'
+    employee_count: '500+',
+    created_at: '2024-01-05T11:20:00Z',
+    updated_at: '2024-01-10T11:20:00Z'
   }
 ];
 

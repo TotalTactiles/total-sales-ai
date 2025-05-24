@@ -37,6 +37,8 @@ const Dialer = () => {
     );
   }
 
+  const displayLeads = hasRealData ? leads : mockLeads;
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navigation />
@@ -51,7 +53,10 @@ const Dialer = () => {
           </div>
         )}
         
-        <AutoDialerInterface />
+        <AutoDialerInterface 
+          leads={displayLeads}
+          onLeadSelect={(lead) => console.log('Selected lead:', lead)}
+        />
       </div>
     </div>
   );
