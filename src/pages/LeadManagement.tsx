@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import { Lead } from '@/types/lead';
 import { useLeads } from '@/hooks/useLeads';
 import { useMockData } from '@/hooks/useMockData';
 import { convertDatabaseLeadToLead } from '@/utils/leadUtils';
+import { convertMockLeadToLead } from '@/utils/mockDataUtils';
 import { toast } from 'sonner';
 
 const LeadManagement = () => {
@@ -38,24 +38,7 @@ const LeadManagement = () => {
   const hasRealData = leads && leads.length > 0;
   const displayLeads: Lead[] = hasRealData 
     ? leads.map(convertDatabaseLeadToLead) 
-    : mockLeads.map(lead => ({
-        id: lead.id,
-        name: lead.name,
-        email: lead.email,
-        phone: lead.phone,
-        company: lead.company,
-        source: lead.source,
-        status: lead.status,
-        priority: lead.priority,
-        score: lead.score,
-        tags: lead.tags,
-        lastContact: lead.last_contact,
-        conversionLikelihood: lead.conversion_likelihood,
-        speedToLead: lead.speed_to_lead,
-        isSensitive: lead.is_sensitive,
-        created_at: lead.created_at,
-        updated_at: lead.updated_at
-      }));
+    : mockLeads.map(convertMockLeadToLead);
 
   const handleLeadClick = (lead: Lead) => {
     setSelectedLead(lead);

@@ -6,6 +6,8 @@ import DemoModeIndicator from '@/components/Demo/DemoModeIndicator';
 import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
 import { useLeads } from '@/hooks/useLeads';
 import { useMockData } from '@/hooks/useMockData';
+import { convertDatabaseLeadToLead } from '@/utils/leadUtils';
+import { convertMockLeadToLead } from '@/utils/mockDataUtils';
 import { toast } from 'sonner';
 
 const Dialer = () => {
@@ -37,7 +39,9 @@ const Dialer = () => {
     );
   }
 
-  const displayLeads = hasRealData ? leads : mockLeads;
+  const displayLeads = hasRealData 
+    ? leads.map(convertDatabaseLeadToLead) 
+    : mockLeads.map(convertMockLeadToLead);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
