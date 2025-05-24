@@ -360,6 +360,45 @@ export type Database = {
         }
         Relationships: []
       }
+      field_mapping_templates: {
+        Row: {
+          company_id: string | null
+          confidence_score: number | null
+          created_at: string
+          id: string
+          import_type: string
+          industry: string | null
+          source_field: string
+          target_field: string
+          updated_at: string
+          usage_count: number | null
+        }
+        Insert: {
+          company_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          import_type: string
+          industry?: string | null
+          source_field: string
+          target_field: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Update: {
+          company_id?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          import_type?: string
+          industry?: string | null
+          source_field?: string
+          target_field?: string
+          updated_at?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       ghost_intent_events: {
         Row: {
           feature_attempted: string | null
@@ -384,6 +423,165 @@ export type Database = {
           metadata?: Json | null
           timestamp?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      import_duplicates: {
+        Row: {
+          action: string | null
+          confidence_score: number
+          created_at: string
+          duplicate_reason: string
+          existing_lead_id: string | null
+          id: string
+          import_session_id: string
+          raw_data_id: string
+        }
+        Insert: {
+          action?: string | null
+          confidence_score: number
+          created_at?: string
+          duplicate_reason: string
+          existing_lead_id?: string | null
+          id?: string
+          import_session_id: string
+          raw_data_id: string
+        }
+        Update: {
+          action?: string | null
+          confidence_score?: number
+          created_at?: string
+          duplicate_reason?: string
+          existing_lead_id?: string | null
+          id?: string
+          import_session_id?: string
+          raw_data_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_duplicates_existing_lead_id_fkey"
+            columns: ["existing_lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_duplicates_import_session_id_fkey"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "import_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_duplicates_raw_data_id_fkey"
+            columns: ["raw_data_id"]
+            isOneToOne: false
+            referencedRelation: "import_raw_data"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_raw_data: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          import_session_id: string
+          processed_data: Json | null
+          raw_data: Json
+          row_index: number
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_session_id: string
+          processed_data?: Json | null
+          raw_data: Json
+          row_index: number
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_session_id?: string
+          processed_data?: Json | null
+          raw_data?: Json
+          row_index?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_raw_data_import_session_id_fkey"
+            columns: ["import_session_id"]
+            isOneToOne: false
+            referencedRelation: "import_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      import_sessions: {
+        Row: {
+          ai_recommendations: Json | null
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          duplicate_records: number | null
+          error_details: string | null
+          failed_imports: number | null
+          field_mapping: Json | null
+          file_name: string | null
+          id: string
+          import_summary: Json | null
+          import_type: string
+          processed_records: number | null
+          status: string
+          successful_imports: number | null
+          total_records: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_recommendations?: Json | null
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          duplicate_records?: number | null
+          error_details?: string | null
+          failed_imports?: number | null
+          field_mapping?: Json | null
+          file_name?: string | null
+          id?: string
+          import_summary?: Json | null
+          import_type: string
+          processed_records?: number | null
+          status?: string
+          successful_imports?: number | null
+          total_records?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_recommendations?: Json | null
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          duplicate_records?: number | null
+          error_details?: string | null
+          failed_imports?: number | null
+          field_mapping?: Json | null
+          file_name?: string | null
+          id?: string
+          import_summary?: Json | null
+          import_type?: string
+          processed_records?: number | null
+          status?: string
+          successful_imports?: number | null
+          total_records?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

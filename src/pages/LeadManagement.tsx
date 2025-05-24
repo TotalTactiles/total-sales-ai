@@ -3,10 +3,14 @@ import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Upload } from 'lucide-react';
 import LeadCardGrid from '@/components/LeadManagement/LeadCardGrid';
 import LeadSlidePanel from '@/components/LeadManagement/LeadSlidePanel';
 import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
+import LeadImportDialog from '@/components/LeadImport/LeadImportDialog';
 import { Lead } from '@/types/lead';
+import { useLeads } from '@/hooks/useLeads';
+import { convertDatabaseLeadToLead } from '@/utils/leadUtils';
 import { toast } from 'sonner';
 
 const LeadManagement = () => {
@@ -14,85 +18,12 @@ const LeadManagement = () => {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false);
   const [isIntelligencePanelOpen, setIsIntelligencePanelOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   
-  // Mock data for leads
-  const leads: Lead[] = [
-    {
-      id: '1',
-      name: 'Michael Scott',
-      company: 'Dunder Mifflin',
-      source: 'LinkedIn',
-      email: 'michael@dundermifflin.com',
-      phone: '(570) 555-1234',
-      status: 'new',
-      priority: 'high',
-      lastContact: '2 days ago',
-      score: 87,
-      tags: ['Budget Approved', 'Q1 Implementation'],
-      isSensitive: false,
-      conversionLikelihood: 78
-    },
-    {
-      id: '2',
-      name: 'Jim Halpert',
-      company: 'Athlead',
-      source: 'Website',
-      email: 'jim@athlead.com',
-      phone: '(570) 555-5678',
-      status: 'contacted',
-      priority: 'medium',
-      lastContact: '5 days ago',
-      score: 74,
-      tags: ['Price Sensitive'],
-      isSensitive: false,
-      conversionLikelihood: 62
-    },
-    {
-      id: '3',
-      name: 'Pam Beesly',
-      company: 'Pratt Institute',
-      source: 'Referral',
-      email: 'pam@pratt.edu',
-      phone: '(570) 555-9012',
-      status: 'qualified',
-      priority: 'high',
-      lastContact: '1 day ago',
-      score: 91,
-      tags: ['Hot Lead', 'Demo Scheduled'],
-      isSensitive: false,
-      conversionLikelihood: 89
-    },
-    {
-      id: '4',
-      name: 'Dwight Schrute',
-      company: 'Schrute Farms',
-      source: 'Website',
-      email: 'dwight@schrutefarms.com',
-      phone: '(570) 555-3456',
-      status: 'new',
-      priority: 'low',
-      lastContact: '1 week ago',
-      score: 65,
-      tags: [],
-      isSensitive: false,
-      conversionLikelihood: 45
-    },
-    {
-      id: '5',
-      name: 'Angela Martin',
-      company: 'Dunder Mifflin',
-      source: 'Website',
-      email: 'angela@dundermifflin.com',
-      phone: '(570) 555-7890',
-      status: 'closed',
-      priority: 'medium',
-      lastContact: '3 days ago',
-      score: 83,
-      tags: [],
-      isSensitive: false,
-      conversionLikelihood: 65
-    },
-  ];
+  const { leads, isLoading, refetch } = useLeads();
+  
+  // Convert database leads to frontend Lead type
+  const convertedLeads: Lead[] = leads.map(convertDatabaseLeadToLead);
   
   const handleLeadClick = (lead: Lead) => {
     setSelectedLead(lead);
@@ -124,10 +55,15 @@ const LeadManagement = () => {
         break;
     }
   };
+
+  const handleImportComplete = () => {
+    refetch();
+    toast.success('Leads refreshed with new imports');
+  };
   
   const filteredLeads = activeFilter === 'all' 
-    ? leads 
-    : leads.filter(lead => lead.status === activeFilter);
+    ? convertedLeads 
+    : convertedLeads.filter(lead => lead.status === activeFilter);
   
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -137,9 +73,19 @@ const LeadManagement = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-salesBlue">Lead Management</h1>
-            <Button className="bg-salesGreen hover:bg-salesGreen-dark">
-              + Add New Lead
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => setIsImportDialogOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <Upload className="h-4 w-4" />
+                Import Leads
+              </Button>
+              <Button className="bg-salesGreen hover:bg-salesGreen-dark">
+                + Add New Lead
+              </Button>
+            </div>
           </div>
           
           {/* Status Tabs */}
@@ -149,40 +95,47 @@ const LeadManagement = () => {
                 value="all" 
                 onClick={() => setActiveFilter('all')}
               >
-                All Leads ({leads.length})
+                All Leads ({convertedLeads.length})
               </TabsTrigger>
               <TabsTrigger 
                 value="new" 
                 onClick={() => setActiveFilter('new')}
               >
-                New ({leads.filter(l => l.status === 'new').length})
+                New ({convertedLeads.filter(l => l.status === 'new').length})
               </TabsTrigger>
               <TabsTrigger 
                 value="contacted" 
                 onClick={() => setActiveFilter('contacted')}
               >
-                Contacted ({leads.filter(l => l.status === 'contacted').length})
+                Contacted ({convertedLeads.filter(l => l.status === 'contacted').length})
               </TabsTrigger>
               <TabsTrigger 
                 value="qualified" 
                 onClick={() => setActiveFilter('qualified')}
               >
-                Qualified ({leads.filter(l => l.status === 'qualified').length})
+                Qualified ({convertedLeads.filter(l => l.status === 'qualified').length})
               </TabsTrigger>
               <TabsTrigger 
                 value="closed" 
                 onClick={() => setActiveFilter('closed')}
               >
-                Closed ({leads.filter(l => l.status === 'closed').length})
+                Closed ({convertedLeads.filter(l => l.status === 'closed').length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="mt-0">
-              <LeadCardGrid
-                leads={filteredLeads}
-                onLeadClick={handleLeadClick}
-                onQuickAction={handleQuickAction}
-              />
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p>Loading leads...</p>
+                </div>
+              ) : (
+                <LeadCardGrid
+                  leads={filteredLeads}
+                  onLeadClick={handleLeadClick}
+                  onQuickAction={handleQuickAction}
+                />
+              )}
             </TabsContent>
           </Tabs>
         </div>
@@ -206,6 +159,13 @@ const LeadManagement = () => {
           setIsIntelligencePanelOpen(false);
           setSelectedLead(null);
         }}
+      />
+
+      {/* Lead Import Dialog */}
+      <LeadImportDialog
+        isOpen={isImportDialogOpen}
+        onClose={() => setIsImportDialogOpen(false)}
+        onImportComplete={handleImportComplete}
       />
     </div>
   );
