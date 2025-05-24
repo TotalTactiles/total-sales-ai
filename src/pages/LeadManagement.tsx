@@ -8,8 +8,11 @@ import LeadCardGrid from '@/components/LeadManagement/LeadCardGrid';
 import LeadSlidePanel from '@/components/LeadManagement/LeadSlidePanel';
 import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
 import LeadImportDialog from '@/components/LeadImport/LeadImportDialog';
+import DemoModeIndicator from '@/components/Demo/DemoModeIndicator';
+import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
 import { Lead } from '@/types/lead';
 import { useLeads } from '@/hooks/useLeads';
+import { useMockData } from '@/hooks/useMockData';
 import { convertDatabaseLeadToLead } from '@/utils/leadUtils';
 import { toast } from 'sonner';
 
@@ -19,12 +22,32 @@ const LeadManagement = () => {
   const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false);
   const [isIntelligencePanelOpen, setIsIntelligencePanelOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
   
   const { leads, isLoading, refetch } = useLeads();
+  const { leads: mockLeads, getLeadsByStatus, getLeadMetrics } = useMockData();
   
-  // Convert database leads to frontend Lead type
-  const convertedLeads: Lead[] = leads.map(convertDatabaseLeadToLead);
-  
+  // Use mock data for demo or real data if available
+  const hasRealData = leads && leads.length > 0;
+  const displayLeads = hasRealData ? leads.map(convertDatabaseLeadToLead) : mockLeads.map(lead => ({
+    id: lead.id,
+    name: lead.name,
+    email: lead.email,
+    phone: lead.phone,
+    company: lead.company,
+    source: lead.source,
+    status: lead.status,
+    priority: lead.priority,
+    score: lead.score,
+    tags: lead.tags,
+    last_contact: lead.last_contact,
+    conversion_likelihood: lead.conversion_likelihood,
+    speed_to_lead: lead.speed_to_lead,
+    is_sensitive: lead.is_sensitive,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }));
+
   const handleLeadClick = (lead: Lead) => {
     setSelectedLead(lead);
     setIsSlidePanelOpen(true);
@@ -60,10 +83,32 @@ const LeadManagement = () => {
     refetch();
     toast.success('Leads refreshed with new imports');
   };
+
+  const handleStartDemo = () => {
+    setShowDemo(true);
+    toast.success('Demo mode activated! Explore with mock data to see the full potential.');
+  };
   
   const filteredLeads = activeFilter === 'all' 
-    ? convertedLeads 
-    : convertedLeads.filter(lead => lead.status === activeFilter);
+    ? displayLeads 
+    : displayLeads.filter(lead => lead.status === activeFilter);
+
+  // Show workspace showcase if no real data and demo not started
+  if (!hasRealData && !showDemo) {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-50">
+        <Navigation />
+        <div className="flex-1 p-6">
+          <div className="max-w-4xl mx-auto py-12">
+            <WorkspaceShowcase 
+              workspace="Lead Management" 
+              onStartDemo={handleStartDemo}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -71,8 +116,18 @@ const LeadManagement = () => {
       
       <div className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
+          {/* Demo Mode Indicator */}
+          {!hasRealData && <DemoModeIndicator workspace="Lead Management" />}
+          
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-salesBlue">Lead Management</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-salesBlue">Lead Management</h1>
+              {!hasRealData && (
+                <p className="text-sm text-slate-600 mt-1">
+                  Showing mock data - see how your leads would look in the system
+                </p>
+              )}
+            </div>
             <div className="flex gap-2">
               <Button 
                 variant="outline"
@@ -95,31 +150,31 @@ const LeadManagement = () => {
                 value="all" 
                 onClick={() => setActiveFilter('all')}
               >
-                All Leads ({convertedLeads.length})
+                All Leads ({displayLeads.length})
               </TabsTrigger>
               <TabsTrigger 
                 value="new" 
                 onClick={() => setActiveFilter('new')}
               >
-                New ({convertedLeads.filter(l => l.status === 'new').length})
+                New ({displayLeads.filter(l => l.status === 'new').length})
               </TabsTrigger>
               <TabsTrigger 
                 value="contacted" 
                 onClick={() => setActiveFilter('contacted')}
               >
-                Contacted ({convertedLeads.filter(l => l.status === 'contacted').length})
+                Contacted ({displayLeads.filter(l => l.status === 'contacted').length})
               </TabsTrigger>
               <TabsTrigger 
                 value="qualified" 
                 onClick={() => setActiveFilter('qualified')}
               >
-                Qualified ({convertedLeads.filter(l => l.status === 'qualified').length})
+                Qualified ({displayLeads.filter(l => l.status === 'qualified').length})
               </TabsTrigger>
               <TabsTrigger 
                 value="closed" 
                 onClick={() => setActiveFilter('closed')}
               >
-                Closed ({convertedLeads.filter(l => l.status === 'closed').length})
+                Closed ({displayLeads.filter(l => l.status === 'closed').length})
               </TabsTrigger>
             </TabsList>
 
