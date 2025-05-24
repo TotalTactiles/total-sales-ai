@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from 'react-router-dom';
@@ -5,6 +6,7 @@ import Logo from './Logo';
 import UserProfile from './UserProfile';
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from './ThemeProvider';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Bell, 
   Calendar, 
@@ -26,8 +28,40 @@ import {
 
 const Navigation = () => {
   const location = useLocation();
+  const { profile } = useAuth();
   const [activeItem, setActiveItem] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Determine the correct dashboard URL based on user role
+  const getDashboardUrl = () => {
+    const userStatus = localStorage.getItem('userStatus');
+    const demoRole = localStorage.getItem('demoRole');
+    
+    // Handle demo mode
+    if (userStatus === 'demo' && demoRole) {
+      switch (demoRole) {
+        case 'manager':
+          return '/manager-dashboard';
+        case 'admin':
+          return '/admin-dashboard';
+        case 'sales-rep':
+        default:
+          return '/';
+      }
+    }
+    
+    // Handle authenticated users based on profile role
+    const role = profile?.role || 'sales_rep';
+    switch (role) {
+      case 'manager':
+        return '/manager-dashboard';
+      case 'admin':
+        return '/admin-dashboard';
+      case 'sales_rep':
+      default:
+        return '/';
+    }
+  };
   
   // Update active item based on current location
   useEffect(() => {
@@ -44,7 +78,7 @@ const Navigation = () => {
   }, [location]);
   
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', href: '/', icon: <Home className="h-5 w-5" /> },
+    { id: 'dashboard', label: 'Dashboard', href: getDashboardUrl(), icon: <Home className="h-5 w-5" /> },
     { id: 'dialer', label: 'Smart Dialer', href: '/dialer', icon: <Headphones className="h-5 w-5" /> }, 
     { id: 'leads', label: 'Lead Management', href: '/leads', icon: <Users className="h-5 w-5" /> },
     { id: 'analytics', label: 'Analytics', href: '/analytics', icon: <BarChart className="h-5 w-5" /> },
@@ -204,7 +238,7 @@ const Navigation = () => {
       
       {/* Mobile Bottom Tab Bar - Visible on small screens */}
       <div className="md:hidden mobile-tab-bar">
-        <Link to="/" className={`mobile-tab-item ${activeItem === 'dashboard' ? 'active' : ''}`}>
+        <Link to={getDashboardUrl()} className={`mobile-tab-item ${activeItem === 'dashboard' ? 'active' : ''}`}>
           <Home className="h-5 w-5 mb-1" />
           <span>Home</span>
         </Link>
