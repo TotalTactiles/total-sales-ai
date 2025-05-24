@@ -111,6 +111,48 @@ export type Database = {
         }
         Relationships: []
       }
+      call_logs: {
+        Row: {
+          call_sid: string | null
+          call_type: string
+          company_id: string
+          created_at: string | null
+          duration: number | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          recording_url: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          call_sid?: string | null
+          call_type: string
+          company_id: string
+          created_at?: string | null
+          duration?: number | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          recording_url?: string | null
+          status: string
+          user_id: string
+        }
+        Update: {
+          call_sid?: string | null
+          call_type?: string
+          company_id?: string
+          created_at?: string | null
+          duration?: number | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          recording_url?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           agent_name: string | null
@@ -216,6 +258,39 @@ export type Database = {
           objection_handled?: string | null
           user_id?: string
           win_description?: string
+        }
+        Relationships: []
+      }
+      email_sequences: {
+        Row: {
+          body_template: string
+          company_id: string
+          created_at: string | null
+          delay_hours: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subject_template: string
+        }
+        Insert: {
+          body_template: string
+          company_id: string
+          created_at?: string | null
+          delay_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject_template: string
+        }
+        Update: {
+          body_template?: string
+          company_id?: string
+          created_at?: string | null
+          delay_hours?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject_template?: string
         }
         Relationships: []
       }
@@ -369,6 +444,66 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          company: string | null
+          company_id: string
+          conversion_likelihood: number | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_sensitive: boolean | null
+          last_contact: string | null
+          name: string
+          phone: string | null
+          priority: string | null
+          score: number | null
+          source: string | null
+          speed_to_lead: number | null
+          status: string | null
+          tags: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          company?: string | null
+          company_id: string
+          conversion_likelihood?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_sensitive?: boolean | null
+          last_contact?: string | null
+          name: string
+          phone?: string | null
+          priority?: string | null
+          score?: number | null
+          source?: string | null
+          speed_to_lead?: number | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          company?: string | null
+          company_id?: string
+          conversion_likelihood?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_sensitive?: boolean | null
+          last_contact?: string | null
+          name?: string
+          phone?: string | null
+          priority?: string | null
+          score?: number | null
+          source?: string | null
+          speed_to_lead?: number | null
+          status?: string | null
+          tags?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       manager_feedback: {
         Row: {
           company_id: string
@@ -414,6 +549,42 @@ export type Database = {
           sentiment?: string | null
           suggestions?: Json | null
           user_accepted_suggestions?: boolean | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string | null
+          metadata: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          metadata?: Json | null
+          title?: string
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
