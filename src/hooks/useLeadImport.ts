@@ -152,7 +152,40 @@ export const useLeadImport = () => {
 
       if (error) throw error;
 
-      const session = data as ImportSession;
+      // Convert database response to ImportSession type
+      const session: ImportSession = {
+        id: data.id,
+        company_id: data.company_id,
+        user_id: data.user_id,
+        import_type: data.import_type as ImportSession['import_type'],
+        status: data.status as ImportSession['status'],
+        file_name: data.file_name || undefined,
+        total_records: data.total_records,
+        processed_records: data.processed_records,
+        successful_imports: data.successful_imports,
+        failed_imports: data.failed_imports,
+        duplicate_records: data.duplicate_records,
+        field_mapping: (data.field_mapping as Record<string, string>) || {},
+        import_summary: (data.import_summary as ImportSummary) || {
+          totalLeads: 0,
+          readyToImport: 0,
+          flaggedForAttention: 0,
+          duplicatesFound: 0,
+          skippedRecords: 0,
+          dataQuality: {
+            hasEmail: 0,
+            hasPhone: 0,
+            hasCompany: 0,
+            missingCriticalData: 0
+          }
+        },
+        ai_recommendations: (data.ai_recommendations as AIRecommendation[]) || [],
+        error_details: data.error_details || undefined,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        completed_at: data.completed_at || undefined
+      };
+
       setCurrentSession(session);
       toast.success('Import session created');
       return session;
@@ -324,7 +357,7 @@ export const useLeadImport = () => {
       // Process each record
       for (const record of rawData) {
         try {
-          const mappedData = this.mapRawDataToLead(record.raw_data, session.field_mapping);
+          const mappedData = mapRawDataToLead(record.raw_data, session.field_mapping as Record<string, string>);
           
           // Create lead
           const { error: leadError } = await supabase
@@ -343,7 +376,7 @@ export const useLeadImport = () => {
             .eq('id', record.id);
 
           successCount++;
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error importing record:', error);
           
           // Update raw data with error
@@ -367,9 +400,18 @@ export const useLeadImport = () => {
         duplicatesFound: 0, // TODO: Implement duplicate detection
         skippedRecords: 0,
         dataQuality: {
-          hasEmail: rawData.filter(r => r.raw_data.email).length,
-          hasPhone: rawData.filter(r => r.raw_data.phone).length,
-          hasCompany: rawData.filter(r => r.raw_data.company).length,
+          hasEmail: rawData.filter(r => {
+            const data = r.raw_data as Record<string, any>;
+            return data?.email;
+          }).length,
+          hasPhone: rawData.filter(r => {
+            const data = r.raw_data as Record<string, any>;
+            return data?.phone;
+          }).length,
+          hasCompany: rawData.filter(r => {
+            const data = r.raw_data as Record<string, any>;
+            return data?.company;
+          }).length,
           missingCriticalData: errorCount
         }
       };
@@ -380,14 +422,14 @@ export const useLeadImport = () => {
           status: 'completed',
           successful_imports: successCount,
           failed_imports: errorCount,
-          import_summary: summary,
+          import_summary: summary as any,
           completed_at: new Date().toISOString()
         })
         .eq('id', sessionId);
 
       toast.success(`Import completed: ${successCount} leads imported, ${errorCount} errors`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error processing import:', error);
       
       // Update session with error
@@ -465,7 +507,41 @@ export const useLeadImport = () => {
 
       if (error) throw error;
 
-      setImportSessions(data || []);
+      // Convert database response to ImportSession array
+      const sessions: ImportSession[] = (data || []).map(item => ({
+        id: item.id,
+        company_id: item.company_id,
+        user_id: item.user_id,
+        import_type: item.import_type as ImportSession['import_type'],
+        status: item.status as ImportSession['status'],
+        file_name: item.file_name || undefined,
+        total_records: item.total_records,
+        processed_records: item.processed_records,
+        successful_imports: item.successful_imports,
+        failed_imports: item.failed_imports,
+        duplicate_records: item.duplicate_records,
+        field_mapping: (item.field_mapping as Record<string, string>) || {},
+        import_summary: (item.import_summary as ImportSummary) || {
+          totalLeads: 0,
+          readyToImport: 0,
+          flaggedForAttention: 0,
+          duplicatesFound: 0,
+          skippedRecords: 0,
+          dataQuality: {
+            hasEmail: 0,
+            hasPhone: 0,
+            hasCompany: 0,
+            missingCriticalData: 0
+          }
+        },
+        ai_recommendations: (item.ai_recommendations as AIRecommendation[]) || [],
+        error_details: item.error_details || undefined,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        completed_at: item.completed_at || undefined
+      }));
+
+      setImportSessions(sessions);
     } catch (error) {
       console.error('Error fetching import sessions:', error);
       toast.error('Failed to fetch import history');
