@@ -76,9 +76,126 @@ export const useIntegrations = () => {
     }
   };
 
+  const makeCall = async (phoneNumber: string, leadId: string, leadName: string) => {
+    if (!user?.id) {
+      toast.error('Authentication required');
+      return { success: false };
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // For now, we'll simulate a call initiation
+      // In a real implementation, this would connect to Twilio or similar service
+      console.log(`Initiating call to ${phoneNumber} for lead ${leadName}`);
+      
+      // Log the call attempt
+      await supabase.from('usage_events').insert({
+        user_id: user.id,
+        feature: 'call_initiation',
+        action: 'initiated',
+        context: 'lead_communication',
+        metadata: { leadId, leadName, phoneNumber }
+      });
+
+      // Simulate call SID for demo purposes
+      const callSid = `CA${Math.random().toString(36).substr(2, 9)}`;
+      
+      return { 
+        success: true, 
+        callSid 
+      };
+    } catch (error) {
+      console.error('Call initiation error:', error);
+      toast.error('Failed to initiate call');
+      return { success: false, error };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendSMS = async (phoneNumber: string, message: string, leadId: string, leadName: string) => {
+    if (!user?.id) {
+      toast.error('Authentication required');
+      return { success: false };
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // For now, we'll simulate SMS sending
+      // In a real implementation, this would connect to Twilio SMS service
+      console.log(`Sending SMS to ${phoneNumber}: ${message}`);
+      
+      // Log the SMS attempt
+      await supabase.from('usage_events').insert({
+        user_id: user.id,
+        feature: 'sms_send',
+        action: 'sent',
+        context: 'lead_communication',
+        metadata: { leadId, leadName, phoneNumber, message }
+      });
+
+      // Simulate message SID for demo purposes
+      const messageSid = `SM${Math.random().toString(36).substr(2, 9)}`;
+      
+      return { 
+        success: true, 
+        messageSid 
+      };
+    } catch (error) {
+      console.error('SMS send error:', error);
+      toast.error('Failed to send SMS');
+      return { success: false, error };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const scheduleCalendarEvent = async (eventDetails: any, leadId: string, leadName: string) => {
+    if (!user?.id) {
+      toast.error('Authentication required');
+      return { success: false };
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // For now, we'll simulate calendar event creation
+      // In a real implementation, this would connect to Google Calendar API
+      console.log(`Scheduling calendar event for ${leadName}:`, eventDetails);
+      
+      // Log the calendar event attempt
+      await supabase.from('usage_events').insert({
+        user_id: user.id,
+        feature: 'calendar_event',
+        action: 'scheduled',
+        context: 'lead_communication',
+        metadata: { leadId, leadName, eventDetails }
+      });
+
+      // Simulate event ID for demo purposes
+      const eventId = `event_${Math.random().toString(36).substr(2, 9)}`;
+      
+      return { 
+        success: true, 
+        eventId 
+      };
+    } catch (error) {
+      console.error('Calendar event error:', error);
+      toast.error('Failed to schedule meeting');
+      return { success: false, error };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     connectGmail,
     sendEmail,
+    makeCall,
+    sendSMS,
+    scheduleCalendarEvent,
     isLoading
   };
 };
