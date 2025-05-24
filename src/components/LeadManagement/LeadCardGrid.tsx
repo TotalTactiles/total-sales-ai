@@ -67,8 +67,8 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
         case 'ai_optimized':
           // AI-optimized scoring: conversion likelihood * score * priority weight
           const priorityWeight = { high: 1.2, medium: 1.0, low: 0.8 };
-          aValue = (a.conversion_likelihood || 50) * (a.score || 50) * (priorityWeight[a.priority] || 1.0);
-          bValue = (b.conversion_likelihood || 50) * (b.score || 50) * (priorityWeight[b.priority] || 1.0);
+          aValue = (a.conversionLikelihood || 50) * (a.score || 50) * (priorityWeight[a.priority] || 1.0);
+          bValue = (b.conversionLikelihood || 50) * (b.score || 50) * (priorityWeight[b.priority] || 1.0);
           break;
         case 'score':
           aValue = a.score;

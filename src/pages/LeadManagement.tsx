@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -49,8 +50,8 @@ const LeadManagement = () => {
   // Sort leads by AI optimization: conversion_likelihood * score, with priority boost
   displayLeads = displayLeads.sort((a, b) => {
     const priorityWeight = { high: 1.2, medium: 1.0, low: 0.8 };
-    const aScore = (a.conversion_likelihood || 50) * (a.score || 50) * (priorityWeight[a.priority] || 1.0);
-    const bScore = (b.conversion_likelihood || 50) * (b.score || 50) * (priorityWeight[b.priority] || 1.0);
+    const aScore = (a.conversionLikelihood || 50) * (a.score || 50) * (priorityWeight[a.priority] || 1.0);
+    const bScore = (b.conversionLikelihood || 50) * (b.score || 50) * (priorityWeight[b.priority] || 1.0);
     return bScore - aScore; // Descending order (highest probability first)
   });
 
