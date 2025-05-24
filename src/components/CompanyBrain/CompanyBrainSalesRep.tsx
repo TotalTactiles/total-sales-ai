@@ -1,10 +1,13 @@
 
 import React, { useState } from 'react';
 import AcademyLayout from './AcademyLayout';
+import UnifiedAIBubble from '../UnifiedAI/UnifiedAIBubble';
 import { useEnhancedUsageTracking } from '@/hooks/useEnhancedUsageTracking';
+import { useAILearningInsights } from '@/hooks/useAILearningInsights';
 
 const CompanyBrainSalesRep: React.FC = () => {
   const { trackEvent } = useEnhancedUsageTracking();
+  const { insights, patterns, isAnalyzing } = useAILearningInsights();
 
   React.useEffect(() => {
     trackEvent({
@@ -15,7 +18,17 @@ const CompanyBrainSalesRep: React.FC = () => {
     });
   }, []);
 
-  return <AcademyLayout />;
+  return (
+    <div className="relative">
+      <AcademyLayout />
+      <UnifiedAIBubble 
+        context={{
+          workspace: 'company_brain'
+        }}
+        className="z-50"
+      />
+    </div>
+  );
 };
 
 export default CompanyBrainSalesRep;
