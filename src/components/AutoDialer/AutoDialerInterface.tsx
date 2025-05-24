@@ -1,36 +1,27 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Phone, 
   PhoneCall, 
-  Mic, 
-  MicOff, 
-  Volume2, 
-  VolumeX,
-  Clock,
-  Users,
-  Brain,
-  Settings,
-  Star,
-  MessageSquare,
-  Mail,
-  Calendar,
+  Clock, 
+  TrendingUp,
+  AlertTriangle,
   Zap,
-  Shield,
-  TrendingUp
+  Brain,
+  Play,
+  Pause,
+  SkipForward
 } from 'lucide-react';
 import { Lead } from '@/types/lead';
-import { useIntegrations } from '@/hooks/useIntegrations';
 import { toast } from 'sonner';
+
 import LeadPriorityQueue from './LeadPriorityQueue';
-import CallInterface from './CallInterface';
 import AIAssistantPanel from './AIAssistantPanel';
-import WorkflowSelector from './WorkflowSelector';
 import CallFeedback from './CallFeedback';
+import MockCallInterface from './MockCallInterface';
 
 interface AutoDialerInterfaceProps {
   leads: Lead[];
@@ -43,334 +34,342 @@ const AutoDialerInterface: React.FC<AutoDialerInterfaceProps> = ({
   currentLead,
   onLeadSelect
 }) => {
-  const [isCallActive, setIsCallActive] = useState(false);
-  const [callDuration, setCallDuration] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [aiAssistantActive, setAiAssistantActive] = useState(true);
-  const [autopilotMode, setAutopilotMode] = useState(false);
-  const [callOutcome, setCallOutcome] = useState<string>('');
-  
-  const { makeCall, isLoading } = useIntegrations();
+  const [isAutoDialing, setIsAutoDialing] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [dialerStats, setDialerStats] = useState({
+    totalCalls: 0,
+    connected: 0,
+    voicemails: 0,
+    noAnswers: 0
+  });
+  const [showCallFeedback, setShowCallFeedback] = useState(false);
+  const [lastCallOutcome, setLastCallOutcome] = useState('');
+  const [isInCall, setIsInCall] = useState(false);
+  const [callStartTime, setCallStartTime] = useState<Date | null>(null);
 
-  // Prioritize leads by urgency and speed-to-lead
-  const prioritizedLeads = leads
-    .filter(lead => !lead.doNotCall)
-    .sort((a, b) => {
-      // High priority first
-      const priorityWeight = { high: 3, medium: 2, low: 1 };
-      const priorityDiff = (priorityWeight[b.priority] || 1) - (priorityWeight[a.priority] || 1);
-      
-      if (priorityDiff !== 0) return priorityDiff;
-      
-      // Then by speed-to-lead (newer leads first)
-      const speedDiff = (a.speedToLead || 999) - (b.speedToLead || 999);
-      if (speedDiff !== 0) return speedDiff;
-      
-      // Finally by conversion likelihood
-      return (b.conversionLikelihood || 0) - (a.conversionLikelihood || 0);
-    });
+  // Filter leads for different priorities
+  const hotLeads = leads.filter(lead => 
+    lead.priority === 'high' && 
+    lead.conversionLikelihood > 70 &&
+    !lead.doNotCall
+  );
 
-  const hotLeads = prioritizedLeads.filter(lead => lead.priority === 'high');
-  const speedToLeadCritical = prioritizedLeads.filter(lead => (lead.speedToLead || 0) < 5);
+  const speedToLeadCritical = leads.filter(lead => 
+    lead.speedToLead !== undefined && 
+    lead.speedToLead < 15 && // Less than 15 minutes old
+    !lead.doNotCall
+  );
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isCallActive) {
-      interval = setInterval(() => {
-        setCallDuration(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isCallActive]);
-
-  const handleStartCall = async () => {
+  // Mock dialer functionality
+  const handleStartAutoDialer = () => {
     if (!currentLead) {
-      toast.error('Please select a lead to call');
+      toast.error('Please select a lead first');
       return;
     }
-
-    const result = await makeCall(currentLead.phone, currentLead.id, currentLead.name);
     
-    if (result.success) {
-      setIsCallActive(true);
-      setCallDuration(0);
-      toast.success(`Call connected to ${currentLead.name}`);
-    }
+    setIsAutoDialing(true);
+    setIsPaused(false);
+    toast.success('Auto-dialer started');
+    
+    // Simulate calling the current lead after 2 seconds
+    setTimeout(() => {
+      if (currentLead) {
+        handleCallLead(currentLead);
+      }
+    }, 2000);
+  };
+
+  const handlePauseDialer = () => {
+    setIsPaused(!isPaused);
+    toast.info(isPaused ? 'Auto-dialer resumed' : 'Auto-dialer paused');
+  };
+
+  const handleStopDialer = () => {
+    setIsAutoDialing(false);
+    setIsPaused(false);
+    toast.info('Auto-dialer stopped');
+  };
+
+  const handleCallLead = (lead: Lead) => {
+    setIsInCall(true);
+    setCallStartTime(new Date());
+    toast.success(`Calling ${lead.name}...`);
   };
 
   const handleEndCall = () => {
-    setIsCallActive(false);
-    setCallDuration(0);
-    setShowFeedback(true);
-    toast.info('Call ended. Please provide feedback.');
-  };
+    setIsInCall(false);
+    setCallStartTime(null);
+    
+    // Show feedback modal
+    setLastCallOutcome('connected');
+    setShowCallFeedback(true);
+    
+    // Update stats
+    setDialerStats(prev => ({
+      ...prev,
+      totalCalls: prev.totalCalls + 1,
+      connected: prev.connected + 1
+    }));
 
-  const handleCallOutcome = (outcome: string) => {
-    setCallOutcome(outcome);
-    setShowFeedback(true);
-    setIsCallActive(false);
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    // Move to next lead if auto-dialing
+    if (isAutoDialing && !isPaused) {
+      setTimeout(() => {
+        const nextLead = getNextLead();
+        if (nextLead) {
+          onLeadSelect(nextLead);
+          setTimeout(() => handleCallLead(nextLead), 3000);
+        }
+      }, 2000);
     }
   };
 
+  const getNextLead = () => {
+    // Prioritize hot leads, then speed-to-lead critical, then regular leads
+    const availableLeads = leads.filter(lead => 
+      lead.id !== currentLead?.id && 
+      !lead.doNotCall &&
+      lead.status !== 'closed'
+    );
+
+    return availableLeads.find(lead => lead.priority === 'high') ||
+           availableLeads.find(lead => (lead.speedToLead || 0) < 15) ||
+           availableLeads[0];
+  };
+
+  const handleSkipLead = () => {
+    const nextLead = getNextLead();
+    if (nextLead) {
+      onLeadSelect(nextLead);
+      toast.info(`Skipped to ${nextLead.name}`);
+    }
+  };
+
+  const handleFeedbackSubmit = (feedback: any) => {
+    console.log('Call feedback:', feedback);
+    toast.success('Feedback submitted successfully');
+  };
+
+  // Mock toggle for testing the in-call interface
+  const [showMockCall, setShowMockCall] = useState(false);
+
+  if (showMockCall && currentLead) {
+    return (
+      <div className="h-full">
+        <div className="p-4 bg-white border-b">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowMockCall(false)}
+            className="mb-2"
+          >
+            ← Back to Dialer
+          </Button>
+          <h2 className="text-lg font-semibold">Mock In-Call Interface</h2>
+        </div>
+        <MockCallInterface 
+          lead={currentLead} 
+          onEndCall={() => setShowMockCall(false)}
+        />
+      </div>
+    );
+  }
+
+  if (isInCall && currentLead) {
+    return (
+      <MockCallInterface 
+        lead={currentLead} 
+        onEndCall={handleEndCall}
+      />
+    );
+  }
+
   return (
-    <div className="h-screen flex bg-gray-50">
-      {/* Left Panel - Lead Queue & AI Assistant */}
-      <div className="w-80 bg-white border-r flex flex-col">
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Auto-Dialer</h2>
-            <div className="flex items-center gap-2">
-              <Badge className="bg-green-100 text-green-800">
-                {prioritizedLeads.length} Leads
-              </Badge>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAutopilotMode(!autopilotMode)}
-                className={autopilotMode ? 'bg-blue-100 text-blue-800' : ''}
-              >
-                <Zap className="h-4 w-4 mr-1" />
-                {autopilotMode ? 'Autopilot ON' : 'Manual'}
-              </Button>
+    <div className="flex h-full">
+      {/* Left Panel - Lead Queue */}
+      <div className="w-96 bg-white border-r overflow-y-auto">
+        <div className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Auto-Dialer Queue</h2>
+          
+          {/* Dialer Stats */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{dialerStats.totalCalls}</div>
+              <div className="text-sm text-blue-600">Total Calls</div>
+            </div>
+            <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{dialerStats.connected}</div>
+              <div className="text-sm text-green-600">Connected</div>
             </div>
           </div>
 
-          {/* Speed-to-Lead Alert */}
-          {speedToLeadCritical.length > 0 && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center gap-2 text-red-700">
-                <Clock className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  {speedToLeadCritical.length} Fresh Leads (&lt;5min)
-                </span>
-              </div>
-              <p className="text-xs text-red-600 mt-1">
-                Call within 5 minutes for 21x higher conversion rate
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 overflow-y-auto">
-          <Tabs defaultValue="queue" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mx-4 mt-2">
-              <TabsTrigger value="queue">Lead Queue</TabsTrigger>
-              <TabsTrigger value="ai">AI Assistant</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="queue" className="mt-4 px-4">
-              <LeadPriorityQueue
-                leads={prioritizedLeads}
-                currentLead={currentLead}
-                onLeadSelect={onLeadSelect}
-                hotLeads={hotLeads}
-                speedToLeadCritical={speedToLeadCritical}
-              />
-            </TabsContent>
-            
-            <TabsContent value="ai" className="mt-4 px-4">
-              <AIAssistantPanel
-                currentLead={currentLead}
-                isCallActive={isCallActive}
-                onSuggestion={(suggestion) => toast.info(suggestion)}
-              />
-            </TabsContent>
-          </Tabs>
+          <LeadPriorityQueue
+            leads={leads}
+            currentLead={currentLead}
+            onLeadSelect={onLeadSelect}
+            hotLeads={hotLeads}
+            speedToLeadCritical={speedToLeadCritical}
+          />
         </div>
       </div>
 
-      {/* Center Panel - Call Interface */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="bg-white border-b p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              {currentLead ? (
-                <div>
-                  <h1 className="text-2xl font-bold">{currentLead.name}</h1>
-                  <p className="text-gray-600">{currentLead.company} • {currentLead.phone}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge className={getPriorityColor(currentLead.priority)}>
-                      {currentLead.priority.toUpperCase()} PRIORITY
+      {/* Center Panel - Dialer Controls */}
+      <div className="flex-1 bg-slate-50 p-6">
+        <div className="max-w-2xl mx-auto">
+          {/* Current Lead Display */}
+          {currentLead ? (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xl">{currentLead.name}</div>
+                    <div className="text-sm text-gray-600">{currentLead.company}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge variant={currentLead.priority === 'high' ? 'destructive' : 'secondary'}>
+                      {currentLead.priority}
                     </Badge>
-                    {currentLead.speedToLead !== undefined && (
-                      <Badge variant="outline">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {currentLead.speedToLead}min old
-                      </Badge>
-                    )}
-                    {currentLead.autopilotEnabled && (
-                      <Badge className="bg-blue-100 text-blue-800">
-                        <Zap className="h-3 w-3 mr-1" />
-                        Autopilot Active
-                      </Badge>
-                    )}
-                    {currentLead.doNotCall && (
-                      <Badge className="bg-red-100 text-red-800">
-                        <Shield className="h-3 w-3 mr-1" />
-                        Do Not Call
-                      </Badge>
-                    )}
+                    <Badge variant="outline">{currentLead.conversionLikelihood}%</Badge>
+                  </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="text-lg font-mono">{currentLead.phone}</div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => setShowMockCall(true)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Phone className="h-4 w-4 mr-2" />
+                      Preview Call Interface
+                    </Button>
+                    <Button 
+                      onClick={() => handleCallLead(currentLead)}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <PhoneCall className="h-4 w-4 mr-2" />
+                      Call Now
+                    </Button>
                   </div>
                 </div>
-              ) : (
-                <div>
-                  <h1 className="text-2xl font-bold">Auto-Dialer Ready</h1>
-                  <p className="text-gray-600">Select a lead to start calling</p>
-                </div>
-              )}
-            </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="mb-6">
+              <CardContent className="text-center py-12">
+                <Phone className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">No Lead Selected</h3>
+                <p className="text-gray-500">Select a lead from the queue to start dialing</p>
+              </CardContent>
+            </Card>
+          )}
 
-            <div className="flex items-center gap-4">
-              {isCallActive && (
-                <div className="flex items-center gap-2 text-green-600">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="font-mono text-lg">{formatTime(callDuration)}</span>
-                </div>
-              )}
-              
-              <div className="flex gap-2">
-                <Button
-                  onClick={isCallActive ? handleEndCall : handleStartCall}
-                  disabled={!currentLead || isLoading}
-                  className={isCallActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
+          {/* Auto-Dialer Controls */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-blue-600" />
+                Auto-Dialer Controls
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                {!isAutoDialing ? (
+                  <Button 
+                    onClick={handleStartAutoDialer}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={!currentLead}
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Start Auto-Dialer
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handlePauseDialer}
+                      variant="outline"
+                    >
+                      {isPaused ? <Play className="h-4 w-4 mr-2" /> : <Pause className="h-4 w-4 mr-2" />}
+                      {isPaused ? 'Resume' : 'Pause'}
+                    </Button>
+                    <Button 
+                      onClick={handleStopDialer}
+                      variant="destructive"
+                    >
+                      Stop Dialer
+                    </Button>
+                  </div>
+                )}
+                
+                <Button 
+                  onClick={handleSkipLead}
+                  variant="outline"
+                  disabled={!currentLead}
                 >
-                  {isCallActive ? (
-                    <>
-                      <Phone className="h-4 w-4 mr-2" />
-                      End Call
-                    </>
-                  ) : (
-                    <>
-                      <PhoneCall className="h-4 w-4 mr-2" />
-                      {isLoading ? 'Calling...' : 'Start Call'}
-                    </>
-                  )}
+                  <SkipForward className="h-4 w-4 mr-2" />
+                  Skip Lead
                 </Button>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* Main Interface */}
-        <div className="flex-1 p-6">
-          {isCallActive && currentLead ? (
-            <CallInterface
-              lead={currentLead}
-              callDuration={callDuration}
-              isMuted={isMuted}
-              onMuteToggle={() => setIsMuted(!isMuted)}
-              onCallOutcome={handleCallOutcome}
-              aiAssistantActive={aiAssistantActive}
-            />
-          ) : currentLead ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Lead Details
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Email</label>
-                      <p>{currentLead.email}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Source</label>
-                      <p>{currentLead.source}</p>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Lead Score</label>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-gray-200 rounded-full">
-                          <div 
-                            className="h-full bg-green-500 rounded-full" 
-                            style={{ width: `${currentLead.score}%` }}
-                          ></div>
-                        </div>
-                        <span className="text-sm font-medium">{currentLead.score}%</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Conversion Likelihood</label>
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-green-600" />
-                        <span>{currentLead.conversionLikelihood}%</span>
-                      </div>
-                    </div>
+              {isAutoDialing && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></div>
+                    <span className="text-sm text-blue-800">
+                      Auto-dialer is {isPaused ? 'paused' : 'active'}
+                    </span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="h-5 w-5" />
-                    AI Recommendations
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        <strong>Best Call Time:</strong> Now (78% connect rate for this industry)
-                      </p>
-                    </div>
-                    <div className="p-3 bg-green-50 rounded-lg">
-                      <p className="text-sm text-green-800">
-                        <strong>Talking Points:</strong> Focus on ROI and time savings based on their company size
-                      </p>
-                    </div>
-                    <div className="p-3 bg-yellow-50 rounded-lg">
-                      <p className="text-sm text-yellow-800">
-                        <strong>Follow-up:</strong> Send pricing info immediately after call for 34% higher close rate
-                      </p>
-                    </div>
+          {/* Performance Insights */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Today's Performance
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {dialerStats.connected > 0 ? Math.round((dialerStats.connected / dialerStats.totalCalls) * 100) : 0}%
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <Phone className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Ready to Dial</h3>
-              <p className="text-gray-600">Select a lead from the queue to start calling</p>
-            </div>
-          )}
+                  <div className="text-sm text-gray-600">Connect Rate</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{hotLeads.length}</div>
+                  <div className="text-sm text-gray-600">Hot Leads</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600">{speedToLeadCritical.length}</div>
+                  <div className="text-sm text-gray-600">Fresh Leads</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      {/* Feedback Modal */}
-      {showFeedback && (
-        <CallFeedback
-          isOpen={showFeedback}
-          onClose={() => setShowFeedback(false)}
-          callOutcome={callOutcome}
-          leadName={currentLead?.name || ''}
-          onFeedbackSubmit={(feedback) => {
-            console.log('Call feedback:', feedback);
-            toast.success('Feedback submitted successfully');
-          }}
+      {/* Right Panel - AI Assistant */}
+      <div className="w-80 bg-white border-l overflow-y-auto">
+        <AIAssistantPanel
+          currentLead={currentLead}
+          isCallActive={isInCall}
+          onSuggestion={(suggestion) => toast.info(`AI: ${suggestion}`)}
         />
-      )}
+      </div>
+
+      {/* Call Feedback Modal */}
+      <CallFeedback
+        isOpen={showCallFeedback}
+        onClose={() => setShowCallFeedback(false)}
+        callOutcome={lastCallOutcome}
+        leadName={currentLead?.name || ''}
+        onFeedbackSubmit={handleFeedbackSubmit}
+      />
     </div>
   );
 };
