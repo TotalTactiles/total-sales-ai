@@ -106,6 +106,14 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/missions"
+                    element={
+                      <ProtectedRoute>
+                        <AgentMissions />
+                      </ProtectedRoute>
+                    }
+                  />
                 </Routes>
                 
                 {/* Unified AI Assistant - Always present on protected routes */}
@@ -117,6 +125,7 @@ function App() {
                   <Route path="/lead/:leadId" element={<AIBubbleWithContext />} />
                   <Route path="/company-brain" element={<AIBubbleWithContext />} />
                   <Route path="/agent-missions" element={<AIBubbleWithContext />} />
+                  <Route path="/missions" element={<AIBubbleWithContext />} />
                 </Routes>
               </div>
             </AIContextProvider>

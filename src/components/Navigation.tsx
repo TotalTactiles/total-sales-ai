@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from 'react-router-dom';
@@ -36,20 +37,20 @@ const Navigation = () => {
     else if (path === '/dialer') setActiveItem('dialer');
     else if (path === '/leads') setActiveItem('leads');
     else if (path === '/analytics') setActiveItem('analytics');
-    else if (path === '/missions') setActiveItem('missions');
-    else if (path === '/dashboard/company-brain') setActiveItem('brain');
+    else if (path === '/missions' || path === '/agent-missions') setActiveItem('missions');
+    else if (path === '/company-brain') setActiveItem('brain');
     else if (path === '/tools') setActiveItem('tools');
     else if (path === '/settings') setActiveItem('settings');
     else if (path === '/ai-agent') setActiveItem('ai-agent');
   }, [location]);
   
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', href: '/', icon: <Home className="h-5 w-5" /> },
+    { id: 'dashboard', label: 'Dashboard', href: '/sales-rep-dashboard', icon: <Home className="h-5 w-5" /> },
     { id: 'dialer', label: 'Smart Dialer', href: '/dialer', icon: <Headphones className="h-5 w-5" /> }, 
     { id: 'leads', label: 'Lead Management', href: '/leads', icon: <Users className="h-5 w-5" /> },
     { id: 'analytics', label: 'Analytics', href: '/analytics', icon: <BarChart className="h-5 w-5" /> },
-    { id: 'missions', label: 'Agent Missions', href: '/missions', icon: <Briefcase className="h-5 w-5" /> }, 
-    { id: 'brain', label: 'Company Brain', href: '/dashboard/company-brain', icon: <BookOpen className="h-5 w-5" /> }, 
+    { id: 'missions', label: 'Agent Missions', href: '/agent-missions', icon: <Briefcase className="h-5 w-5" /> }, 
+    { id: 'brain', label: 'Company Brain', href: '/company-brain', icon: <BookOpen className="h-5 w-5" /> }, 
     { id: 'tools', label: 'Agent Tools', href: '/tools', icon: <ShoppingBag className="h-5 w-5" /> }, 
     { id: 'reports', label: 'Reports', href: '/reports', icon: <FileText className="h-5 w-5" /> },
     { id: 'access', label: 'Access Control', href: '/access', icon: <Shield className="h-5 w-5" /> },
@@ -204,7 +205,7 @@ const Navigation = () => {
       
       {/* Mobile Bottom Tab Bar - Visible on small screens */}
       <div className="md:hidden mobile-tab-bar">
-        <Link to="/" className={`mobile-tab-item ${activeItem === 'dashboard' ? 'active' : ''}`}>
+        <Link to="/sales-rep-dashboard" className={`mobile-tab-item ${activeItem === 'dashboard' ? 'active' : ''}`}>
           <Home className="h-5 w-5 mb-1" />
           <span>Home</span>
         </Link>
