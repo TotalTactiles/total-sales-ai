@@ -152,7 +152,51 @@ export const useLeadImport = () => {
 
       if (error) throw error;
 
-      // Convert database response to ImportSession type
+      // Convert database response to ImportSession type with proper type guards
+      const defaultSummary: ImportSummary = {
+        totalLeads: 0,
+        readyToImport: 0,
+        flaggedForAttention: 0,
+        duplicatesFound: 0,
+        skippedRecords: 0,
+        dataQuality: {
+          hasEmail: 0,
+          hasPhone: 0,
+          hasCompany: 0,
+          missingCriticalData: 0
+        }
+      };
+
+      const parseImportSummary = (summary: any): ImportSummary => {
+        if (!summary || typeof summary !== 'object') return defaultSummary;
+        return {
+          totalLeads: summary.totalLeads || 0,
+          readyToImport: summary.readyToImport || 0,
+          flaggedForAttention: summary.flaggedForAttention || 0,
+          duplicatesFound: summary.duplicatesFound || 0,
+          skippedRecords: summary.skippedRecords || 0,
+          dataQuality: {
+            hasEmail: summary.dataQuality?.hasEmail || 0,
+            hasPhone: summary.dataQuality?.hasPhone || 0,
+            hasCompany: summary.dataQuality?.hasCompany || 0,
+            missingCriticalData: summary.dataQuality?.missingCriticalData || 0
+          }
+        };
+      };
+
+      const parseAIRecommendations = (recommendations: any): AIRecommendation[] => {
+        if (!Array.isArray(recommendations)) return [];
+        return recommendations.map((rec: any) => ({
+          id: rec.id || '',
+          type: rec.type || 'field_mapping',
+          title: rec.title || '',
+          description: rec.description || '',
+          action: rec.action,
+          confidence: rec.confidence || 0,
+          accepted: rec.accepted
+        }));
+      };
+
       const session: ImportSession = {
         id: data.id,
         company_id: data.company_id,
@@ -166,20 +210,8 @@ export const useLeadImport = () => {
         failed_imports: data.failed_imports,
         duplicate_records: data.duplicate_records,
         field_mapping: (data.field_mapping as Record<string, string>) || {},
-        import_summary: (data.import_summary as ImportSummary) || {
-          totalLeads: 0,
-          readyToImport: 0,
-          flaggedForAttention: 0,
-          duplicatesFound: 0,
-          skippedRecords: 0,
-          dataQuality: {
-            hasEmail: 0,
-            hasPhone: 0,
-            hasCompany: 0,
-            missingCriticalData: 0
-          }
-        },
-        ai_recommendations: (data.ai_recommendations as AIRecommendation[]) || [],
+        import_summary: parseImportSummary(data.import_summary),
+        ai_recommendations: parseAIRecommendations(data.ai_recommendations),
         error_details: data.error_details || undefined,
         created_at: data.created_at,
         updated_at: data.updated_at,
@@ -357,13 +389,34 @@ export const useLeadImport = () => {
       // Process each record
       for (const record of rawData) {
         try {
-          const mappedData = mapRawDataToLead(record.raw_data, session.field_mapping as Record<string, string>);
+          // Ensure raw_data is an object
+          const rawDataObj = typeof record.raw_data === 'object' && record.raw_data !== null 
+            ? record.raw_data as Record<string, any>
+            : {};
+            
+          const mappedData = mapRawDataToLead(rawDataObj, session.field_mapping as Record<string, string>);
           
-          // Create lead
+          // Ensure name is provided (required field)
+          if (!mappedData.name) {
+            throw new Error('Lead name is required');
+          }
+          
+          // Create lead with all required fields
           const { error: leadError } = await supabase
             .from('leads')
             .insert({
-              ...mappedData,
+              name: mappedData.name,
+              email: mappedData.email || null,
+              phone: mappedData.phone || null,
+              company: mappedData.company || null,
+              source: mappedData.source || null,
+              status: mappedData.status || 'new',
+              priority: mappedData.priority || 'medium',
+              score: mappedData.score || 0,
+              tags: mappedData.tags || [],
+              conversion_likelihood: mappedData.conversion_likelihood || 0,
+              speed_to_lead: mappedData.speed_to_lead || 0,
+              is_sensitive: mappedData.is_sensitive || false,
               company_id: profile.company_id
             });
 
@@ -422,7 +475,7 @@ export const useLeadImport = () => {
           status: 'completed',
           successful_imports: successCount,
           failed_imports: errorCount,
-          import_summary: summary as any,
+          import_summary: summary,
           completed_at: new Date().toISOString()
         })
         .eq('id', sessionId);
@@ -507,21 +560,9 @@ export const useLeadImport = () => {
 
       if (error) throw error;
 
-      // Convert database response to ImportSession array
-      const sessions: ImportSession[] = (data || []).map(item => ({
-        id: item.id,
-        company_id: item.company_id,
-        user_id: item.user_id,
-        import_type: item.import_type as ImportSession['import_type'],
-        status: item.status as ImportSession['status'],
-        file_name: item.file_name || undefined,
-        total_records: item.total_records,
-        processed_records: item.processed_records,
-        successful_imports: item.successful_imports,
-        failed_imports: item.failed_imports,
-        duplicate_records: item.duplicate_records,
-        field_mapping: (item.field_mapping as Record<string, string>) || {},
-        import_summary: (item.import_summary as ImportSummary) || {
+      // Convert database response to ImportSession array with proper type handling
+      const sessions: ImportSession[] = (data || []).map(item => {
+        const defaultSummary: ImportSummary = {
           totalLeads: 0,
           readyToImport: 0,
           flaggedForAttention: 0,
@@ -533,13 +574,59 @@ export const useLeadImport = () => {
             hasCompany: 0,
             missingCriticalData: 0
           }
-        },
-        ai_recommendations: (item.ai_recommendations as AIRecommendation[]) || [],
-        error_details: item.error_details || undefined,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        completed_at: item.completed_at || undefined
-      }));
+        };
+
+        const parseImportSummary = (summary: any): ImportSummary => {
+          if (!summary || typeof summary !== 'object') return defaultSummary;
+          return {
+            totalLeads: summary.totalLeads || 0,
+            readyToImport: summary.readyToImport || 0,
+            flaggedForAttention: summary.flaggedForAttention || 0,
+            duplicatesFound: summary.duplicatesFound || 0,
+            skippedRecords: summary.skippedRecords || 0,
+            dataQuality: {
+              hasEmail: summary.dataQuality?.hasEmail || 0,
+              hasPhone: summary.dataQuality?.hasPhone || 0,
+              hasCompany: summary.dataQuality?.hasCompany || 0,
+              missingCriticalData: summary.dataQuality?.missingCriticalData || 0
+            }
+          };
+        };
+
+        const parseAIRecommendations = (recommendations: any): AIRecommendation[] => {
+          if (!Array.isArray(recommendations)) return [];
+          return recommendations.map((rec: any) => ({
+            id: rec.id || '',
+            type: rec.type || 'field_mapping',
+            title: rec.title || '',
+            description: rec.description || '',
+            action: rec.action,
+            confidence: rec.confidence || 0,
+            accepted: rec.accepted
+          }));
+        };
+
+        return {
+          id: item.id,
+          company_id: item.company_id,
+          user_id: item.user_id,
+          import_type: item.import_type as ImportSession['import_type'],
+          status: item.status as ImportSession['status'],
+          file_name: item.file_name || undefined,
+          total_records: item.total_records,
+          processed_records: item.processed_records,
+          successful_imports: item.successful_imports,
+          failed_imports: item.failed_imports,
+          duplicate_records: item.duplicate_records,
+          field_mapping: (item.field_mapping as Record<string, string>) || {},
+          import_summary: parseImportSummary(item.import_summary),
+          ai_recommendations: parseAIRecommendations(item.ai_recommendations),
+          error_details: item.error_details || undefined,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          completed_at: item.completed_at || undefined
+        };
+      });
 
       setImportSessions(sessions);
     } catch (error) {
