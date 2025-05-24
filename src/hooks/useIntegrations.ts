@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 
 export const useIntegrations = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   const connectGmail = async () => {
     setIsLoading(true);
@@ -77,7 +77,7 @@ export const useIntegrations = () => {
   };
 
   const makeCall = async (phoneNumber: string, leadId: string, leadName: string) => {
-    if (!user?.id) {
+    if (!user?.id || !profile?.company_id) {
       toast.error('Authentication required');
       return { success: false };
     }
@@ -92,6 +92,7 @@ export const useIntegrations = () => {
       // Log the call attempt
       await supabase.from('usage_events').insert({
         user_id: user.id,
+        company_id: profile.company_id,
         feature: 'call_initiation',
         action: 'initiated',
         context: 'lead_communication',
@@ -115,7 +116,7 @@ export const useIntegrations = () => {
   };
 
   const sendSMS = async (phoneNumber: string, message: string, leadId: string, leadName: string) => {
-    if (!user?.id) {
+    if (!user?.id || !profile?.company_id) {
       toast.error('Authentication required');
       return { success: false };
     }
@@ -130,6 +131,7 @@ export const useIntegrations = () => {
       // Log the SMS attempt
       await supabase.from('usage_events').insert({
         user_id: user.id,
+        company_id: profile.company_id,
         feature: 'sms_send',
         action: 'sent',
         context: 'lead_communication',
@@ -153,7 +155,7 @@ export const useIntegrations = () => {
   };
 
   const scheduleCalendarEvent = async (eventDetails: any, leadId: string, leadName: string) => {
-    if (!user?.id) {
+    if (!user?.id || !profile?.company_id) {
       toast.error('Authentication required');
       return { success: false };
     }
@@ -168,6 +170,7 @@ export const useIntegrations = () => {
       // Log the calendar event attempt
       await supabase.from('usage_events').insert({
         user_id: user.id,
+        company_id: profile.company_id,
         feature: 'calendar_event',
         action: 'scheduled',
         context: 'lead_communication',
