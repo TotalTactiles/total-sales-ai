@@ -11,12 +11,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Headphones, ClipboardList, Clock, Settings, LineChart, Brain } from 'lucide-react';
 
-const AIAgent = () => {
+interface AIAgentProps {
+  hideNavigation?: boolean;
+}
+
+const AIAgent: React.FC<AIAgentProps> = ({ hideNavigation = false }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navigation />
+      {!hideNavigation && <Navigation />}
       
       <div className="flex-1 px-4 md:px-6 py-6">
         <div className="max-w-7xl mx-auto">

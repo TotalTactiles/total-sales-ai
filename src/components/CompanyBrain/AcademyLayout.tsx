@@ -1,8 +1,24 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Brain } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { 
+  BookOpen, 
+  Target, 
+  Clock, 
+  Award, 
+  CheckCircle, 
+  Bookmark, 
+  Play, 
+  Search, 
+  Filter,
+  TrendingUp,
+  Star,
+  User,
+  Calendar
+} from 'lucide-react';
 import { useEnhancedUsageTracking } from '@/hooks/useEnhancedUsageTracking';
 import AcademyHeader from './components/AcademyHeader';
 import ContentCard, { ContentItem } from './components/ContentCard';
@@ -11,6 +27,7 @@ import CategorySidebar from './components/CategorySidebar';
 const AcademyLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all-content');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const { trackEvent, trackPageView } = useEnhancedUsageTracking();
 
   React.useEffect(() => {
