@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -48,7 +47,7 @@ const LeadManagement = () => {
       : [];
 
   const handleLeadClick = (lead: Lead) => {
-    // Navigate to the lead workspace instead of opening slide panel
+    // Navigate to the lead workspace
     navigate(`/workspace/${lead.id}`);
   };
 
@@ -94,13 +93,13 @@ const LeadManagement = () => {
   const handleStartDemo = () => {
     console.log('Starting interactive demo mode');
     setShowDemo(true);
-    toast.success('Demo mode activated! Explore with mock data to see the full potential.');
+    toast.success('Interactive Demo activated! Click on any lead to explore the workspace experience.');
   };
 
   const handleExitDemo = () => {
     console.log('Exiting interactive demo mode');
     setShowDemo(false);
-    toast.info('Demo mode deactivated. Showing real data.');
+    toast.info('Interactive Demo deactivated. Showing real data view.');
   };
 
   const handleClearMockData = () => {

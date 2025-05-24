@@ -29,10 +29,10 @@ const LeadManagementActions: React.FC<LeadManagementActionsProps> = ({
         <Button 
           variant="outline"
           onClick={onExitDemo}
-          className="flex items-center gap-2 text-red-600 hover:text-red-700"
+          className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
         >
           <X className="h-4 w-4" />
-          Exit Demo
+          Exit Interactive Demo
         </Button>
       )}
       

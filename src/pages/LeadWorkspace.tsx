@@ -36,6 +36,13 @@ const LeadWorkspace = () => {
     }
   }, [id, mockLead, navigate]);
 
+  useEffect(() => {
+    // If we're viewing a mock lead, automatically enable demo mode
+    if (mockLead && !realLead) {
+      setShowDemo(true);
+    }
+  }, [mockLead, realLead]);
+
   const handleQuickAction = (action: string) => {
     if (!lead) return;
     
@@ -67,6 +74,12 @@ const LeadWorkspace = () => {
       navigate(`/workspace/${mockLead.id}`);
     }
     toast.success('Demo mode activated! Explore the full lead workspace experience.');
+  };
+
+  const handleExitDemo = () => {
+    setShowDemo(false);
+    navigate('/leads');
+    toast.info('Exiting lead workspace demo. Returning to lead management.');
   };
 
   // Show workspace showcase if no real data and demo not started
@@ -146,10 +159,34 @@ const LeadWorkspace = () => {
 
         {/* Center Content */}
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Demo Mode Indicator */}
+          {/* Demo Mode Indicator with Exit Button */}
           {!hasRealData && (
             <div className="p-4 pb-0">
-              <DemoModeIndicator workspace="Lead Workspace" />
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="h-5 w-5 bg-blue-600 rounded-full flex items-center justify-center">
+                        <div className="h-2 w-2 bg-white rounded-full"></div>
+                      </div>
+                      <span className="font-medium text-blue-900">Interactive Demo Mode</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-blue-700">
+                        You're exploring a mock lead profile. All interactions are simulated for demonstration purposes.
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleExitDemo}
+                    className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+                  >
+                    Exit Demo
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
           

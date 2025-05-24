@@ -112,7 +112,8 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
   };
 
   const handleLeadClick = (lead: Lead) => {
-    navigate(`/lead/${lead.id}`);
+    // Fix: Navigate to workspace instead of /lead
+    navigate(`/workspace/${lead.id}`);
     trackEvent({
       feature: 'lead_card_click',
       action: 'navigate_to_workspace',
