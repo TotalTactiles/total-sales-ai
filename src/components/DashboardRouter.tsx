@@ -1,0 +1,46 @@
+
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+
+const DashboardRouter = () => {
+  const { user, profile } = useAuth();
+  
+  // If not authenticated, redirect to auth
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  // Route based on user role or demo mode
+  const userStatus = localStorage.getItem('userStatus');
+  const demoRole = localStorage.getItem('demoRole');
+  
+  // Handle demo mode
+  if (userStatus === 'demo' && demoRole) {
+    switch (demoRole) {
+      case 'sales-rep':
+        return <Navigate to="/sales-rep-dashboard" replace />;
+      case 'manager':
+        return <Navigate to="/manager-dashboard" replace />;
+      case 'admin':
+        return <Navigate to="/admin-dashboard" replace />;
+      default:
+        return <Navigate to="/sales-rep-dashboard" replace />;
+    }
+  }
+  
+  // Handle authenticated users based on profile role
+  const role = profile?.role || 'sales-rep';
+  
+  switch (role) {
+    case 'manager':
+      return <Navigate to="/manager-dashboard" replace />;
+    case 'admin':
+      return <Navigate to="/admin-dashboard" replace />;
+    case 'sales-rep':
+    default:
+      return <Navigate to="/sales-rep-dashboard" replace />;
+  }
+};
+
+export default DashboardRouter;

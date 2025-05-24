@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from 'react-router-dom';
@@ -33,7 +32,7 @@ const Navigation = () => {
   // Update active item based on current location
   useEffect(() => {
     const path = location.pathname;
-    if (path.includes('/dashboard')) setActiveItem('dashboard');
+    if (path === '/' || path.includes('/dashboard')) setActiveItem('dashboard');
     else if (path === '/dialer') setActiveItem('dialer');
     else if (path === '/leads') setActiveItem('leads');
     else if (path === '/analytics') setActiveItem('analytics');
@@ -45,7 +44,7 @@ const Navigation = () => {
   }, [location]);
   
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', href: '/sales-rep-dashboard', icon: <Home className="h-5 w-5" /> },
+    { id: 'dashboard', label: 'Dashboard', href: '/', icon: <Home className="h-5 w-5" /> },
     { id: 'dialer', label: 'Smart Dialer', href: '/dialer', icon: <Headphones className="h-5 w-5" /> }, 
     { id: 'leads', label: 'Lead Management', href: '/leads', icon: <Users className="h-5 w-5" /> },
     { id: 'analytics', label: 'Analytics', href: '/analytics', icon: <BarChart className="h-5 w-5" /> },
@@ -205,7 +204,7 @@ const Navigation = () => {
       
       {/* Mobile Bottom Tab Bar - Visible on small screens */}
       <div className="md:hidden mobile-tab-bar">
-        <Link to="/sales-rep-dashboard" className={`mobile-tab-item ${activeItem === 'dashboard' ? 'active' : ''}`}>
+        <Link to="/" className={`mobile-tab-item ${activeItem === 'dashboard' ? 'active' : ''}`}>
           <Home className="h-5 w-5 mb-1" />
           <span>Home</span>
         </Link>
