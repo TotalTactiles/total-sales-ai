@@ -17,7 +17,11 @@ import {
   Mic,
   MicOff,
   Volume2,
-  Settings
+  Settings,
+  BookOpen,
+  Target,
+  Award,
+  TrendingUp
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Lead } from '@/types/lead';
@@ -43,7 +47,7 @@ interface AIContext {
 
 interface AISuggestion {
   id: string;
-  type: 'tip' | 'script' | 'question' | 'warning' | 'opportunity';
+  type: 'tip' | 'script' | 'question' | 'warning' | 'opportunity' | 'learning' | 'coaching';
   priority: 'low' | 'medium' | 'high' | 'critical';
   title: string;
   message: string;
@@ -89,6 +93,8 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
       case 'email':
       case 'sms':
         return 'bottom-4 right-6';
+      case 'company_brain':
+        return 'bottom-4 right-6';
       default:
         return 'bottom-4 right-4';
     }
@@ -100,9 +106,45 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
       const newSuggestions: AISuggestion[] = [];
       
       switch (context.workspace) {
+        case 'company_brain':
+          if (profile?.role === 'sales_rep') {
+            newSuggestions.push({
+              id: 'learning-streak',
+              type: 'coaching',
+              priority: 'medium',
+              title: 'Keep Your Streak!',
+              message: 'You\'re on a 7-day learning streak! Complete 1 more lesson today to maintain momentum.',
+              context: 'learning-motivation',
+              timestamp: new Date()
+            });
+            
+            newSuggestions.push({
+              id: 'objection-focus',
+              type: 'learning',
+              priority: 'high',
+              title: 'Recommended Learning',
+              message: 'Your objection handling could improve. I\'ve found 3 Alex Hormozi videos that match your style.',
+              action: 'show_objection_content',
+              context: 'skill-improvement',
+              timestamp: new Date()
+            });
+            
+            newSuggestions.push({
+              id: 'trending-content',
+              type: 'tip',
+              priority: 'low',
+              title: 'Trending Content',
+              message: 'New enterprise discovery guide just added - already helping reps close 23% more deals.',
+              context: 'content-discovery',
+              timestamp: new Date(),
+              autoHide: true
+            });
+          }
+          break;
+          
         case 'dialer':
           if (context.isCallActive && context.currentLead) {
-            if (context.callDuration && context.callDuration > 300) { // 5+ minutes
+            if (context.callDuration && context.callDuration > 300) {
               newSuggestions.push({
                 id: 'call-progress',
                 type: 'tip',
@@ -127,7 +169,6 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
               });
             }
             
-            // Suggest relevant product mentions
             newSuggestions.push({
               id: 'product-mention',
               type: 'opportunity',
@@ -155,45 +196,6 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
                 timestamp: new Date()
               });
             }
-            
-            if (context.currentLead.conversionLikelihood && context.currentLead.conversionLikelihood > 80) {
-              newSuggestions.push({
-                id: 'high-probability',
-                type: 'tip',
-                priority: 'high',
-                title: 'High Conversion Probability',
-                message: 'This lead shows strong buying signals. Focus on timeline and next steps.',
-                context: 'conversion-likelihood',
-                timestamp: new Date()
-              });
-            }
-          }
-          break;
-          
-        case 'email':
-          newSuggestions.push({
-            id: 'email-timing',
-            type: 'tip',
-            priority: 'low',
-            title: 'Optimal Send Time',
-            message: 'Tuesday 10-11 AM shows 34% higher open rates for this industry.',
-            context: 'email-timing',
-            timestamp: new Date(),
-            autoHide: true
-          });
-          break;
-          
-        case 'company_brain':
-          if (profile?.role === 'sales_rep') {
-            newSuggestions.push({
-              id: 'learning-tip',
-              type: 'tip',
-              priority: 'low',
-              title: 'Daily Learning',
-              message: 'Review 2 objection scripts to maintain your 73% success rate.',
-              context: 'learning-reminder',
-              timestamp: new Date()
-            });
           }
           break;
       }
@@ -237,6 +239,18 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
   const generateContextualResponse = (input: string): string => {
     const lowerInput = input.toLowerCase();
     
+    if (context.workspace === 'company_brain' && profile?.role === 'sales_rep') {
+      if (lowerInput.includes('recommend') || lowerInput.includes('learn')) {
+        return 'Based on your performance data, I recommend focusing on objection handling next. You\'ve completed 80% of discovery content but only 45% of objection content. The "Alex Hormozi Value Stacking" video would be perfect for your style.';
+      }
+      if (lowerInput.includes('progress') || lowerInput.includes('streak')) {
+        return 'You\'re doing great! 7-day learning streak, 57% overall completion. Your strongest area is cold calling (92% success rate). Focus on price objections next - complete 2 more lessons to reach your weekly goal.';
+      }
+      if (lowerInput.includes('objection') || lowerInput.includes('price')) {
+        return 'I\'ve identified your objection handling pattern. You\'re strong with technical questions but struggle with price objections. Try the "Turning Price Into Value" framework - it matches your consultative style and increases close rates by 34%.';
+      }
+    }
+    
     if (context.workspace === 'dialer' && context.currentLead) {
       if (lowerInput.includes('objection') || lowerInput.includes('price')) {
         return `For ${context.currentLead.name}, try: "I understand budget is a concern. Let me show you the ROI calculation that companies your size typically see - would that be helpful?"`;
@@ -246,14 +260,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
       }
     }
     
-    if (context.workspace === 'lead_details' && context.currentLead) {
-      if (lowerInput.includes('strategy') || lowerInput.includes('approach')) {
-        return `For ${context.currentLead.name}: Lead with value proposition, address their main pain point (integration), and propose a pilot program to reduce risk.`;
-      }
-    }
-    
-    // Default contextual response
-    return `Based on your current ${context.workspace} context, I suggest focusing on the most relevant action for your workflow. What specific help do you need?`;
+    return `I'm here to help with your ${context.workspace.replace('_', ' ')} workflow. What specific assistance do you need?`;
   };
 
   const handleSuggestionAction = (suggestion: AISuggestion) => {
@@ -264,23 +271,10 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
       metadata: { suggestionType: suggestion.type, priority: suggestion.priority }
     });
     
-    // Remove suggestion after action
     setSuggestions(prev => prev.filter(s => s.id !== suggestion.id));
     
-    // Execute the action
     if (suggestion.action) {
       toast.success(`Executing: ${suggestion.action}`);
-    }
-  };
-
-  const handleVoiceToggle = () => {
-    setVoiceEnabled(!voiceEnabled);
-    if (!voiceEnabled) {
-      setIsListening(true);
-      toast.info('Voice mode activated. Say "Hey AI" to start');
-    } else {
-      setIsListening(false);
-      toast.info('Voice mode deactivated');
     }
   };
 
@@ -288,8 +282,20 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
     if (priority === 'critical') return 'border-red-500 bg-red-50';
     if (priority === 'high') return 'border-orange-500 bg-orange-50';
     if (type === 'opportunity') return 'border-green-500 bg-green-50';
-    if (type === 'tip') return 'border-blue-500 bg-blue-50';
+    if (type === 'learning') return 'border-purple-500 bg-purple-50';
+    if (type === 'coaching') return 'border-blue-500 bg-blue-50';
+    if (type === 'tip') return 'border-cyan-500 bg-cyan-50';
     return 'border-slate-300 bg-slate-50';
+  };
+
+  const getSuggestionIcon = (type: string) => {
+    switch (type) {
+      case 'learning': return <BookOpen className="h-4 w-4 text-purple-600" />;
+      case 'coaching': return <Target className="h-4 w-4 text-blue-600" />;
+      case 'opportunity': return <TrendingUp className="h-4 w-4 text-green-600" />;
+      case 'tip': return <Lightbulb className="h-4 w-4 text-orange-600" />;
+      default: return <Lightbulb className="h-4 w-4 text-orange-600" />;
+    }
   };
 
   if (isMinimized) {
@@ -336,7 +342,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
                 <CardContent className="p-3">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <Lightbulb className="h-4 w-4 text-orange-600" />
+                      {getSuggestionIcon(suggestion.type)}
                       <span className="text-sm font-medium">{suggestion.title}</span>
                     </div>
                     <Button 
@@ -383,7 +389,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
                 </div>
                 AI Assistant
                 <Badge className="bg-white/20 text-white text-xs">
-                  {context.workspace.replace('_', ' ')}
+                  {context.workspace === 'company_brain' ? 'Academy' : context.workspace.replace('_', ' ')}
                 </Badge>
               </CardTitle>
               <div className="flex items-center gap-1">
@@ -391,7 +397,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleVoiceToggle}
+                    onClick={() => setVoiceEnabled(!voiceEnabled)}
                     className="text-white p-1 h-auto hover:bg-white/10"
                   >
                     {isListening ? <Volume2 className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
@@ -416,6 +422,12 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
               </div>
             </div>
             
+            {context.workspace === 'company_brain' && profile?.role === 'sales_rep' && (
+              <div className="text-xs text-blue-100 mt-1">
+                Learning: 57% complete • 7-day streak • Focus: Objection handling
+              </div>
+            )}
+            
             {context.currentLead && (
               <div className="text-xs text-blue-100 mt-1">
                 Context: {context.currentLead.name} • {context.currentLead.conversionLikelihood}% likely
@@ -430,7 +442,10 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
               {chatHistory.length === 0 && (
                 <div className="text-center text-gray-500 text-sm mt-8">
                   <Brain className="h-8 w-8 mx-auto mb-2 text-blue-600" />
-                  I'm here to help! Ask me anything about {context.workspace === 'dialer' && context.currentLead ? context.currentLead.name : 'your current workflow'}.
+                  {context.workspace === 'company_brain' 
+                    ? "I'm your learning companion! Ask about content, progress, or get personalized recommendations."
+                    : `I'm here to help! Ask me anything about ${context.workspace === 'dialer' && context.currentLead ? context.currentLead.name : 'your current workflow'}.`
+                  }
                 </div>
               )}
               
@@ -458,14 +473,17 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleChatSubmit()}
-                placeholder={`Ask about ${context.workspace === 'dialer' && context.currentLead ? context.currentLead.name : 'anything'}...`}
+                placeholder={context.workspace === 'company_brain' 
+                  ? "Ask about learning progress, content, or get recommendations..."
+                  : `Ask about ${context.workspace === 'dialer' && context.currentLead ? context.currentLead.name : 'anything'}...`
+                }
                 className="flex-1"
               />
               <Button onClick={handleChatSubmit} size="sm">
                 <Send className="h-4 w-4" />
               </Button>
               <Button
-                onClick={handleVoiceToggle}
+                onClick={() => setVoiceEnabled(!voiceEnabled)}
                 variant={voiceEnabled ? "destructive" : "outline"}
                 size="sm"
               >
