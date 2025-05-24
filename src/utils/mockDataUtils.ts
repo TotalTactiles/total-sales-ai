@@ -17,8 +17,6 @@ export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
     tags: mockLead.tags,
     isSensitive: mockLead.is_sensitive,
     conversionLikelihood: mockLead.conversion_likelihood,
-    speedToLead: mockLead.speed_to_lead,
-    created_at: mockLead.created_at,
-    updated_at: mockLead.updated_at
+    speedToLead: mockLead.speed_to_lead
   };
 };
