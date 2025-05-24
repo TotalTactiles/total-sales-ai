@@ -1,69 +1,35 @@
 
-import React, { useEffect } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
-type ProtectedRouteProps = {
+interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: 'manager' | 'sales_rep' | null; // null means any authenticated user
-};
+  requiredRole?: 'sales_rep' | 'manager' | 'admin';
+}
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole = null }) => {
-  const { user, profile, loading, isDemoMode } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    // Debug logging to help troubleshoot
-    console.log("ProtectedRoute - User:", user?.id);
-    console.log("ProtectedRoute - Profile:", profile?.role);
-    console.log("ProtectedRoute - Demo Mode:", isDemoMode());
-    console.log("ProtectedRoute - Required Role:", requiredRole);
-    console.log("ProtectedRoute - Current Path:", location.pathname);
-  }, [user, profile, isDemoMode, requiredRole, location]);
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requiredRole 
+}) => {
+  const { user, profile, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-salesBlue"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
-  // Check if in demo mode
-  if (isDemoMode()) {
-    console.log("Demo mode is active");
-    // Get role from localStorage in case profile is not set yet
-    const demoRole = localStorage.getItem('demoRole');
-    
-    // If no specific role is required, or the demo role matches the required role, render children
-    if (!requiredRole || demoRole === requiredRole) {
-      console.log("Demo access granted");
-      return <>{children}</>;
-    }
-    
-    // If specific role is required but doesn't match, redirect
-    console.log("Demo access denied - redirecting");
-    const redirectPath = demoRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
-    return <Navigate to={redirectPath} replace />;
-  }
-
-  // Standard auth check
   if (!user) {
-    console.log("No user - redirecting to auth");
-    // Redirect to login if not authenticated
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" replace />;
   }
 
-  // If there's a required role and the user's role doesn't match
-  if (requiredRole && profile && profile.role !== requiredRole) {
-    console.log("Role mismatch - redirecting");
-    // Redirect to appropriate dashboard
-    const redirectPath = profile.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
-    return <Navigate to={redirectPath} replace />;
+  if (requiredRole && profile?.role !== requiredRole) {
+    return <Navigate to="/sales-rep-dashboard" replace />;
   }
 
-  console.log("Access granted");
   return <>{children}</>;
 };
 

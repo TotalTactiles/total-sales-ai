@@ -9,7 +9,7 @@ import { useAIBrainInsights } from '@/hooks/useAIBrainInsights';
 import { useUnusedFeatures } from '@/hooks/useUnusedFeatures';
 
 const AIBrainMonitor = () => {
-  const { insights, isLoading, acceptInsight, dismissInsight } = useAIBrainInsights();
+  const { insights, isAnalyzing, acceptInsight, dismissInsight } = useAIBrainInsights();
   const { unusedFeatures } = useUnusedFeatures();
   
   const pendingInsights = insights.filter(insight => insight.accepted === null);
@@ -94,7 +94,7 @@ const AIBrainMonitor = () => {
               <CardTitle>Pending AI Insights</CardTitle>
             </CardHeader>
             <CardContent>
-              {isLoading ? (
+              {isAnalyzing ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
@@ -103,7 +103,15 @@ const AIBrainMonitor = () => {
                   {pendingInsights.map((insight) => (
                     <AIInsightCard
                       key={insight.id}
-                      insight={insight}
+                      insight={{
+                        id: insight.id,
+                        type: insight.type,
+                        suggestion_text: insight.suggestion_text || insight.description,
+                        triggered_by: insight.triggered_by || 'system',
+                        timestamp: insight.timestamp.toISOString(),
+                        accepted: insight.accepted || false,
+                        context: insight.context || {}
+                      }}
                       onAccept={acceptInsight}
                       onDismiss={dismissInsight}
                     />
@@ -127,7 +135,15 @@ const AIBrainMonitor = () => {
                   {acceptedInsights.slice(0, 5).map((insight) => (
                     <AIInsightCard
                       key={insight.id}
-                      insight={insight}
+                      insight={{
+                        id: insight.id,
+                        type: insight.type,
+                        suggestion_text: insight.suggestion_text || insight.description,
+                        triggered_by: insight.triggered_by || 'system',
+                        timestamp: insight.timestamp.toISOString(),
+                        accepted: insight.accepted || false,
+                        context: insight.context || {}
+                      }}
                       onAccept={acceptInsight}
                       onDismiss={dismissInsight}
                     />
