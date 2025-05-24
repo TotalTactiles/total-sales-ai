@@ -6,47 +6,42 @@ import LeadQueue from '@/components/LeadQueue';
 import PerformanceChart from '@/components/PerformanceChart';
 import GameProgress from '@/components/GameProgress';
 import TaskSuggestions from '@/components/TaskSuggestions';
+import AIGreeting from '@/components/Dashboard/AIGreeting';
+import DashboardHeader from '@/components/Dashboard/DashboardHeader';
+import AISummaryBanner from '@/components/Dashboard/AISummaryBanner';
+import KPICards from '@/components/Dashboard/KPICards';
+import ProfileCard from '@/components/Dashboard/ProfileCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { toast } from 'sonner';
 import { 
-  Headphones, 
   Brain, 
-  Zap, 
   Clock, 
   Mic, 
   Trophy, 
-  Heart, 
-  PhoneCall,
   Award,
   VideoIcon,
   MessageCircle,
-  ArrowUpRight,
   BarChart,
-  Crown,
   Sparkles,
+  Settings,
+  Info,
+  PhoneCall,
   Users,
   Mail,
   Calendar,
-  Settings,
   Activity,
-  Play,
-  Info,
-  Home,
-  Grid,
-  Map,
-  BarChart3,
-  Filter
+  Zap,
+  Heart,
+  Headphones,
+  ArrowUpRight
 } from 'lucide-react';
-import Bell from '@/components/Bell';
 
 type AIPersona = {
   id: string;
@@ -73,7 +68,7 @@ type ConfidenceEntry = {
 };
 
 const SalesRepDashboard = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile } = useAuth();
   const [aiPersona, setAiPersona] = useState<AIPersona | null>(null);
   const [userStats, setUserStats] = useState<UserStats | null>(null);
   const [confidenceCache, setConfidenceCache] = useState<ConfidenceEntry[]>([]);
@@ -304,117 +299,22 @@ const SalesRepDashboard = () => {
     );
   }
 
+  const userName = isFullUser ? 'Sam' : profile?.full_name || 'Sales Rep';
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navigation />
       
       <div className="flex-1 px-4 md:px-6 py-6 pb-20 md:pb-6">
         <div className="max-w-7xl mx-auto">
-          {/* AI Greeting Strip */}
-          <div className="mb-6 bg-gradient-to-r from-primary to-dashBlue p-4 rounded-xl text-primary-foreground animate-fade-in shadow-md">
-            <div className="flex items-center">
-              <span className="text-3xl mr-3 animate-float">👋</span>
-              <div>
-                <h2 className="text-xl font-semibold">
-                  Good morning, {isFullUser ? 'Sam' : profile?.full_name || 'Sales Rep'}!
-                </h2>
-                <p className="text-primary-foreground/90">
-                  {userStats?.current_streak ? 
-                    `You're on a ${userStats.current_streak} day winning streak! 🔥 Your conversion rate is up 15% this week!` : 
-                    'You have 5 high priority leads and 2 missions today. Ready to make some calls?'}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Header with Controls */}
-          <div className="mb-6">
-            <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Sales Dashboard</h1>
-                <p className="text-muted-foreground">Wednesday, May 22, 2025 • You have 5 high priority leads today</p>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Tabs defaultValue="dashboard" className="hidden md:flex">
-                  <TabsList>
-                    <TabsTrigger value="dashboard" className="flex gap-1 items-center">
-                      <Grid className="h-4 w-4" />
-                      Dashboard
-                    </TabsTrigger>
-                    <TabsTrigger value="map" className="flex gap-1 items-center">
-                      <Map className="h-4 w-4" />
-                      Map View
-                    </TabsTrigger>
-                    <TabsTrigger value="statistics" className="flex gap-1 items-center">
-                      <BarChart3 className="h-4 w-4" />
-                      Statistics
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-                
-                <Button variant="outline" size="sm" className="flex items-center gap-1">
-                  <Filter className="h-4 w-4" />
-                  <span>Filter</span>
-                </Button>
-                
-                <button className="bg-card p-2 rounded-lg shadow-sm border border-border flex items-center gap-2 hover:bg-accent/50 transition-colors">
-                  <span className="relative">
-                    <Bell />
-                    <span className="absolute -top-1 -right-1 bg-dashRed rounded-full w-4 h-4 flex items-center justify-center text-[10px] font-bold text-white">
-                      3
-                    </span>
-                  </span>
-                  <span className="hidden md:inline text-sm font-medium">Notifications</span>
-                </button>
-
-                <div className="flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium">AI Summary</span>
-                  <Switch 
-                    checked={aiSummaryEnabled} 
-                    onCheckedChange={setAiSummaryEnabled}
-                  />
-                </div>
-                
-                {!isFullUser && (
-                  <Button 
-                    variant="destructive"
-                    onClick={() => {
-                      localStorage.removeItem('demoMode');
-                      localStorage.removeItem('demoRole');
-                      localStorage.removeItem('userStatus');
-                      localStorage.removeItem('planType');
-                      window.location.href = '/auth';
-                    }}
-                  >
-                    Exit Demo
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* AI Summary Banner */}
-            {aiSummaryEnabled && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <div className="flex items-start gap-3">
-                  <Brain className="h-5 w-5 text-blue-600 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="font-medium text-blue-900 mb-1">AI Summary - Your Performance Today</h3>
-                    <p className="text-sm text-blue-700 mb-2">
-                      You've made {userStats?.call_count || 0} calls with a {userStats?.win_count ? Math.round((userStats.win_count / userStats.call_count) * 100) : 0}% success rate. 
-                      {userStats?.current_streak && userStats.current_streak > 0 && ` Your ${userStats.current_streak}-day streak shows consistent performance.`}
-                    </p>
-                    <p className="text-sm font-medium text-blue-800">
-                      <strong>Next step:</strong> {userStats?.mood_score && userStats.mood_score < 70 ? 'Consider activating Recovery Mode to rebuild momentum' : 'Continue your current approach - it\'s working well!'} 
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <QuickStats />
-          </div>
+          <AIGreeting userName={userName} streak={userStats?.current_streak} />
+          <DashboardHeader 
+            aiSummaryEnabled={aiSummaryEnabled}
+            setAiSummaryEnabled={setAiSummaryEnabled}
+            isFullUser={isFullUser}
+          />
+          <AISummaryBanner userStats={userStats} enabled={aiSummaryEnabled} />
+          <QuickStats />
 
           {/* Main Dashboard Content */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -449,81 +349,17 @@ const SalesRepDashboard = () => {
             </div>
           </div>
 
-          {/* KPI Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            {kpis.map((kpi, index) => {
-              const IconComponent = kpi.icon;
-              return (
-                <Card key={index} className={isFullUser ? "border-2 border-gradient-to-r from-yellow-400 to-orange-500" : ""}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-slate-500 text-sm">{kpi.label}</div>
-                        <div className="text-2xl font-bold mt-1">{kpi.value}</div>
-                        <div className={`text-xs mt-1 flex items-center ${kpi.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                          {kpi.change}
-                        </div>
-                      </div>
-                      <IconComponent className="h-8 w-8 text-salesBlue" />
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <KPICards userStats={userStats} isFullUser={isFullUser} />
 
           {/* Profile & AI Assistant Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            {/* Profile Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-salesBlue text-white">
-                      {isFullUser ? 'SP' : (profile?.full_name?.charAt(0) || 'SR')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-semibold">{isFullUser ? 'Sam' : profile?.full_name || 'Sales Rep'}</div>
-                    <div className="text-sm text-slate-500">Sales Representative</div>
-                    {isFullUser && (
-                      <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs">
-                        <Crown className="h-3 w-3 mr-1" />
-                        Pro User
-                      </Badge>
-                    )}
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3 text-center mb-4">
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-2xl font-bold text-salesBlue">{userStats?.call_count || 0}</p>
-                    <p className="text-xs text-slate-600">Total Calls</p>
-                  </div>
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="text-2xl font-bold text-salesGreen">{userStats?.win_count || 0}</p>
-                    <p className="text-xs text-slate-600">Wins</p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
-                    <PhoneCall className="h-4 w-4 mr-2" />
-                    Start Calling
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className={`w-full justify-start ${
-                      focusMode ? 'bg-salesGreen text-white hover:bg-salesGreen-dark' : 'border-salesGreen text-salesGreen hover:bg-salesGreen-light'
-                    }`}
-                    onClick={toggleFocusMode}
-                  >
-                    <Clock className="h-4 w-4 mr-2" />
-                    {focusMode ? 'Exit Focus Mode' : 'Focus Mode'}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <ProfileCard 
+              userName={userName}
+              userStats={userStats}
+              isFullUser={isFullUser}
+              focusMode={focusMode}
+              onToggleFocusMode={toggleFocusMode}
+            />
 
             {/* AI Assistant Card */}
             <Card className={isFullUser ? "border-2 border-gradient-to-r from-blue-500 to-purple-600" : ""}>
@@ -600,7 +436,6 @@ const SalesRepDashboard = () => {
             </TabsList>
             
             <TabsContent value="overview" className="mt-4">
-              {/* Victory Archive / Recovery Mode */}
               {!recoveryMode ? (
                 <Card>
                   <CardHeader>
