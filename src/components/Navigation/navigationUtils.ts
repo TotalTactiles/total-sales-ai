@@ -1,0 +1,44 @@
+
+import { Role } from '@/contexts/auth/types';
+
+export const getDashboardUrl = (profile: { role: Role } | null) => {
+  const userStatus = localStorage.getItem('userStatus');
+  const demoRole = localStorage.getItem('demoRole');
+  
+  // Handle demo mode
+  if (userStatus === 'demo' && demoRole) {
+    switch (demoRole) {
+      case 'manager':
+        return '/manager-dashboard';
+      case 'admin':
+        return '/admin-dashboard';
+      case 'sales-rep':
+      default:
+        return '/';
+    }
+  }
+  
+  // Handle authenticated users based on profile role
+  const role = profile?.role || 'sales_rep';
+  switch (role) {
+    case 'manager':
+      return '/manager-dashboard';
+    case 'admin':
+      return '/admin-dashboard';
+    case 'sales_rep':
+    default:
+      return '/';
+  }
+};
+
+export const updateActiveItem = (pathname: string, setActiveItem: (item: string) => void) => {
+  if (pathname === '/' || pathname.includes('/dashboard')) setActiveItem('dashboard');
+  else if (pathname === '/dialer') setActiveItem('dialer');
+  else if (pathname === '/leads') setActiveItem('leads');
+  else if (pathname === '/analytics') setActiveItem('analytics');
+  else if (pathname === '/missions' || pathname === '/agent-missions') setActiveItem('missions');
+  else if (pathname === '/company-brain') setActiveItem('brain');
+  else if (pathname === '/tools') setActiveItem('tools');
+  else if (pathname === '/settings') setActiveItem('settings');
+  else if (pathname === '/ai-agent') setActiveItem('ai-agent');
+};
