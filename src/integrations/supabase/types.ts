@@ -909,18 +909,21 @@ export type Database = {
           created_at: string
           document_count: number
           id: string
+          user_id: string | null
         }
         Insert: {
           chunk_count?: number
           created_at?: string
           document_count?: number
           id?: string
+          user_id?: string | null
         }
         Update: {
           chunk_count?: number
           created_at?: string
           document_count?: number
           id?: string
+          user_id?: string | null
         }
         Relationships: []
       }

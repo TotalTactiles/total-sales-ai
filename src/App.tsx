@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import AuthPage from './pages/auth/AuthPage';
 import SalesRepDashboard from './pages/SalesRepDashboard';
 import ManagerDashboard from './pages/ManagerDashboard';
@@ -43,34 +44,36 @@ function App() {
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-            <AuthProvider>
-              <AIContextProvider>
-                <Routes>
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/auth/signup" element={<AuthPage />} />
-                  
-                  {/* Protected Routes */}
-                  <Route path="/" element={<ProtectedRoute><Layout><SalesRepDashboard /></Layout></ProtectedRoute>} />
-                  <Route path="/sales-rep-dashboard" element={<ProtectedRoute><Layout><SalesRepDashboard /></Layout></ProtectedRoute>} />
-                  <Route path="/manager-dashboard" element={<ProtectedRoute><Layout><ManagerDashboard /></Layout></ProtectedRoute>} />
-                  <Route path="/admin-dashboard" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
-                  <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
-                  <Route path="/dialer" element={<ProtectedRoute><Layout><SmartDialer /></Layout></ProtectedRoute>} />
-                  <Route path="/leads" element={<ProtectedRoute><Layout><LeadManagement /></Layout></ProtectedRoute>} />
-                  <Route path="/leads/:id" element={<ProtectedRoute><Layout><LeadWorkspace /></Layout></ProtectedRoute>} />
-                  <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
-                  <Route path="/reports" element={<ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>} />
-                  <Route path="/access" element={<ProtectedRoute><Layout><Access /></Layout></ProtectedRoute>} />
-                  <Route path="/agent-missions" element={<ProtectedRoute><Layout><AgentMissions /></Layout></ProtectedRoute>} />
-                  <Route path="/company-brain" element={<ProtectedRoute><Layout><CompanyBrain /></Layout></ProtectedRoute>} />
-                  <Route path="/tools" element={<ProtectedRoute><Layout><AgentTools /></Layout></ProtectedRoute>} />
-                  <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
-                  <Route path="/ai-agent" element={<ProtectedRoute><Layout><AIAgent /></Layout></ProtectedRoute>} />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </AIContextProvider>
-            </AuthProvider>
+            <TooltipProvider>
+              <AuthProvider>
+                <AIContextProvider>
+                  <Routes>
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/auth/signup" element={<AuthPage />} />
+                    
+                    {/* Protected Routes */}
+                    <Route path="/" element={<ProtectedRoute><Layout><SalesRepDashboard /></Layout></ProtectedRoute>} />
+                    <Route path="/sales-rep-dashboard" element={<ProtectedRoute><Layout><SalesRepDashboard /></Layout></ProtectedRoute>} />
+                    <Route path="/manager-dashboard" element={<ProtectedRoute><Layout><ManagerDashboard /></Layout></ProtectedRoute>} />
+                    <Route path="/admin-dashboard" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
+                    <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
+                    <Route path="/dialer" element={<ProtectedRoute><Layout><SmartDialer /></Layout></ProtectedRoute>} />
+                    <Route path="/leads" element={<ProtectedRoute><Layout><LeadManagement /></Layout></ProtectedRoute>} />
+                    <Route path="/leads/:id" element={<ProtectedRoute><Layout><LeadWorkspace /></Layout></ProtectedRoute>} />
+                    <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
+                    <Route path="/reports" element={<ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>} />
+                    <Route path="/access" element={<ProtectedRoute><Layout><Access /></Layout></ProtectedRoute>} />
+                    <Route path="/agent-missions" element={<ProtectedRoute><Layout><AgentMissions /></Layout></ProtectedRoute>} />
+                    <Route path="/company-brain" element={<ProtectedRoute><Layout><CompanyBrain /></Layout></ProtectedRoute>} />
+                    <Route path="/tools" element={<ProtectedRoute><Layout><AgentTools /></Layout></ProtectedRoute>} />
+                    <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+                    <Route path="/ai-agent" element={<ProtectedRoute><Layout><AIAgent /></Layout></ProtectedRoute>} />
+                    
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </AIContextProvider>
+              </AuthProvider>
+            </TooltipProvider>
           </ThemeProvider>
         </QueryClientProvider>
         <Toaster />
