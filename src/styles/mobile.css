@@ -1,0 +1,153 @@
+
+/* Mobile-specific styles and optimizations */
+
+/* Hide scrollbars on mobile for cleaner look */
+@media (max-width: 768px) {
+  .mobile-tab-bar {
+    @apply fixed bottom-0 left-0 right-0 bg-sidebar border-t border-sidebar-border;
+    @apply flex items-center justify-around px-2 py-2 z-50;
+    height: 70px;
+  }
+  
+  .mobile-tab-item {
+    @apply flex flex-col items-center justify-center text-xs;
+    @apply text-sidebar-foreground/70 hover:text-sidebar-foreground;
+    @apply transition-colors duration-200 rounded-lg p-2 min-w-0;
+    flex: 1;
+  }
+  
+  .mobile-tab-item.active {
+    @apply text-dashBlue bg-sidebar-accent/50;
+  }
+  
+  .mobile-tab-item span {
+    @apply mt-1 truncate w-full text-center;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  /* Add bottom padding to main content to account for mobile tab bar */
+  .main-content {
+    padding-bottom: 80px;
+  }
+  
+  /* Optimize touch targets */
+  button, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve text readability on mobile */
+  body {
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Hide desktop-only elements on mobile */
+  .desktop-only {
+    display: none !important;
+  }
+  
+  /* Optimize form inputs for mobile */
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Responsive containers */
+.responsive-container {
+  @apply px-4 sm:px-6 lg:px-8;
+}
+
+/* Responsive grid */
+.responsive-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+}
+
+/* Mobile-friendly cards */
+.mobile-card {
+  @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+  @apply p-4 sm:p-6;
+}
+
+/* Responsive text */
+.responsive-text-sm {
+  @apply text-xs sm:text-sm;
+}
+
+.responsive-text-base {
+  @apply text-sm sm:text-base;
+}
+
+.responsive-text-lg {
+  @apply text-base sm:text-lg;
+}
+
+.responsive-text-xl {
+  @apply text-lg sm:text-xl;
+}
+
+.responsive-text-2xl {
+  @apply text-xl sm:text-2xl;
+}
+
+/* Touch-friendly interactive elements */
+.touch-target {
+  @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+}
+
+/* Mobile navigation improvements */
+@media (max-width: 768px) {
+  .mobile-nav-item {
+    @apply flex items-center gap-3 px-4 py-3 text-sm font-medium;
+    @apply border-l-4 border-transparent;
+    transition: all 0.2s ease;
+  }
+  
+  .mobile-nav-item.active {
+    @apply border-l-dashBlue bg-sidebar-accent/30 text-sidebar-foreground;
+  }
+  
+  .mobile-nav-item:not(.active) {
+    @apply text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/20;
+  }
+}
+
+/* Responsive modals and dialogs */
+@media (max-width: 768px) {
+  .mobile-modal {
+    @apply max-h-[90vh] max-w-[95vw] rounded-t-lg rounded-b-none;
+    @apply fixed bottom-0 left-0 right-0 top-auto;
+  }
+}
+
+/* Animation optimizations for mobile */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-fade-in,
+  .animate-float {
+    animation: none;
+  }
+}
+
+/* Ensure proper spacing on mobile */
+.mobile-spacing {
+  @apply space-y-4 sm:space-y-6;
+}
+
+/* Responsive buttons */
+.responsive-button {
+  @apply px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base;
+}
+
+/* Optimize for iOS and Android */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Improve scrolling on mobile */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
