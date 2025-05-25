@@ -11,12 +11,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useIsMobile();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="dashboard-layout">
       <Navigation />
-      <main className={`main-content ${isMobile ? 'pb-20' : ''}`}>
-        <div className="responsive-container">
-          {children}
-        </div>
+      <main className={`dashboard-content responsive-container ${isMobile ? 'pb-20' : ''}`}>
+        {children}
       </main>
     </div>
   );

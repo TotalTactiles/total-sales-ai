@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Navigation from '@/components/Navigation';
 import AIAssistant from '@/components/AIAssistant';
 import QuickStats from '@/components/QuickStats';
 import LeadQueue from '@/components/LeadQueue';
@@ -293,8 +292,8 @@ const SalesRepDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-salesBlue"></div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -302,519 +301,505 @@ const SalesRepDashboard = () => {
   const userName = isFullUser ? 'Sam' : profile?.full_name || 'Sales Rep';
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navigation />
-      
-      <div className="flex-1 px-4 md:px-6 py-6 pb-20 md:pb-6">
-        <div className="max-w-7xl mx-auto">
-          <AIGreeting userName={userName} streak={userStats?.current_streak} />
-          <DashboardHeader 
-            aiSummaryEnabled={aiSummaryEnabled}
-            setAiSummaryEnabled={setAiSummaryEnabled}
-            isFullUser={isFullUser}
-          />
-          <AISummaryBanner userStats={userStats} enabled={aiSummaryEnabled} />
-          <QuickStats />
+    <div className="responsive-container space-y-6">
+      <AIGreeting userName={userName} streak={userStats?.current_streak} />
+      <DashboardHeader 
+        aiSummaryEnabled={aiSummaryEnabled}
+        setAiSummaryEnabled={setAiSummaryEnabled}
+        isFullUser={isFullUser}
+      />
+      <AISummaryBanner userStats={userStats} enabled={aiSummaryEnabled} />
+      <QuickStats />
 
-          {/* Main Dashboard Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <div className="lg:col-span-2 grid gap-6">
-              <div className="flex flex-col">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-lg font-semibold">Weekly Performance</h2>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground bg-card py-1 px-2 rounded-full shadow-sm cursor-help">
-                        <Info className="h-3.5 w-3.5" />
-                        <span>Why This Matters</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>This tracks your daily activity and success rate. Higher conversion patterns early in the week correlate with 37% better monthly outcomes.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <Card className="p-4">
-                  <CardContent className="p-0">
-                    <PerformanceChart />
-                  </CardContent>
-                </Card>
+      {/* Main Dashboard Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold">Weekly Performance</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted py-1 px-2 rounded-full cursor-help">
+                      <Info className="h-3.5 w-3.5" />
+                      <span>Why This Matters</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>This tracks your daily activity and success rate. Higher conversion patterns early in the week correlate with 37% better monthly outcomes.</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-              <TaskSuggestions />
+            </CardHeader>
+            <CardContent>
+              <PerformanceChart />
+            </CardContent>
+          </Card>
+          <TaskSuggestions />
+        </div>
+        
+        <div className="space-y-6">
+          <LeadQueue />
+          <GameProgress />
+        </div>
+      </div>
+
+      <KPICards userStats={userStats} isFullUser={isFullUser} />
+
+      {/* Profile & AI Assistant Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <ProfileCard 
+          userName={userName}
+          userStats={userStats}
+          isFullUser={isFullUser}
+          focusMode={focusMode}
+          onToggleFocusMode={toggleFocusMode}
+        />
+
+        {/* AI Assistant Card */}
+        <Card className={isFullUser ? "border-2 border-gradient-to-r from-blue-500 to-purple-600" : ""}>
+          <CardHeader className={`${isFullUser ? 'bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600' : 'bg-gradient-to-r from-blue-600 to-cyan-600'} text-white rounded-t-lg`}>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5" />
+              {isFullUser ? 'AI Sales Assistant Pro' : 'AI Sales Assistant'}
+              {isFullUser && <Sparkles className="h-4 w-4 ml-2" />}
+            </CardTitle>
+            <CardDescription className="text-white/90">
+              {aiPersona?.name || 'AI Assistant'} - Level {aiPersona?.level || 1}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">{aiPersona?.name || 'AI Assistant'}</span>
+                <Badge variant="outline" className={`${isFullUser ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' : 'bg-blue-100 text-blue-800'}`}>
+                  Level {aiPersona?.level || 1}
+                </Badge>
+              </div>
+              <Progress value={(aiPersona?.level || 1) * 20} className="h-2" />
+              <div className="text-xs text-muted-foreground">
+                <span className="capitalize">{aiPersona?.tone || 'Professional'}</span> • <span className="capitalize">{aiPersona?.delivery_style || 'Direct'}</span>
+              </div>
+              <Button className="w-full" variant="outline">
+                <Settings className="h-4 w-4 mr-2" />
+                Configure AI
+              </Button>
             </div>
-            
-            <div className="space-y-6">
-              <LeadQueue />
-              <GameProgress />
-            </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <KPICards userStats={userStats} isFullUser={isFullUser} />
+        {/* Best Performance Time */}
+        <Card className={isFullUser ? "border-2 border-gradient-to-r from-cyan-400 to-blue-500" : ""}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-cyan-600" />
+              {isFullUser ? 'AI-Optimized Call Times' : 'Best Performance Times'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {userStats?.best_time_start && userStats?.best_time_end ? (
+              <div className="text-center space-y-3">
+                <div className={`${isFullUser ? 'bg-gradient-to-r from-cyan-400 to-blue-500' : 'bg-blue-100'} rounded-lg p-4`}>
+                  <p className={`text-lg font-medium ${isFullUser ? 'text-white' : 'text-blue-800'}`}>
+                    {userStats.best_time_start} - {userStats.best_time_end}
+                  </p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {isFullUser ? 
+                    'AI analysis shows 67% higher close rates during this window' :
+                    'You close 42% more deals during this time window'
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground space-y-2">
+                <p>Not enough data to determine your best time yet.</p>
+                <p className="text-sm">Complete more calls to unlock this insight.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Profile & AI Assistant Cards */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-            <ProfileCard 
-              userName={userName}
-              userStats={userStats}
-              isFullUser={isFullUser}
-              focusMode={focusMode}
-              onToggleFocusMode={toggleFocusMode}
-            />
-
-            {/* AI Assistant Card */}
-            <Card className={isFullUser ? "border-2 border-gradient-to-r from-blue-500 to-purple-600" : ""}>
-              <CardHeader className={`${isFullUser ? 'bg-gradient-to-r from-salesBlue via-purple-600 to-salesCyan' : 'bg-gradient-to-r from-salesBlue to-salesCyan'} text-white`}>
+      {/* Analytics Tabs */}
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="performance">Performance</TabsTrigger>
+          <TabsTrigger value="training">AI Training</TabsTrigger>
+          <TabsTrigger value="tools">Tools</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="space-y-4">
+          {!recoveryMode ? (
+            <Card>
+              <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5" />
-                  {isFullUser ? 'AI Sales Assistant Pro' : 'AI Sales Assistant'}
-                  {isFullUser && <Sparkles className="h-4 w-4 ml-2" />}
+                  <Award className="h-5 w-5 text-green-600" />
+                  {isFullUser ? 'Victory Archive' : 'Confidence Cache'}
                 </CardTitle>
-                <CardDescription className="text-white text-opacity-90">
-                  {aiPersona?.name || 'AI Assistant'} - Level {aiPersona?.level || 1}
+                <CardDescription>
+                  {isFullUser ? 'Your most impactful wins and AI-powered strategies' : 'Your recent wins and successful objection handling'}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="p-4">
-                <div className="space-y-3 mb-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">{aiPersona?.name || 'AI Assistant'}</span>
-                    <Badge variant="outline" className={`${isFullUser ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' : 'bg-salesBlue-light text-salesBlue'}`}>
-                      Level {aiPersona?.level || 1}
-                    </Badge>
+              <CardContent className="p-0">
+                <ul className="divide-y divide-border">
+                  {confidenceCache.map((entry) => (
+                    <li key={entry.id} className="p-4 hover:bg-muted/50">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-medium">{entry.win_description}</p>
+                          {entry.objection_handled && (
+                            <Badge variant="outline" className="mt-1 text-xs">
+                              Objection Handled: {entry.objection_handled}
+                            </Badge>
+                          )}
+                        </div>
+                        <Badge className={`${isFullUser ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 'bg-primary'} text-white ml-2`}>
+                          {formatDate(entry.date_achieved)}
+                        </Badge>
+                      </div>
+                    </li>
+                  ))}
+                  
+                  {confidenceCache.length === 0 && (
+                    <li className="p-6 text-center text-muted-foreground">
+                      No confidence entries yet. Your wins will appear here.
+                    </li>
+                  )}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  onClick={activateRecoveryMode}
+                  className="w-full bg-red-600 hover:bg-red-700 text-white"
+                  variant="outline"
+                >
+                  <Heart className="h-4 w-4 mr-2" />
+                  Need Help? Activate Recovery Mode
+                </Button>
+              </CardFooter>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-red-600" />
+                  Recovery Mode
+                </CardTitle>
+                <CardDescription>
+                  Let's rebuild your momentum with these recovery activities
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card className="border-blue-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <VideoIcon className="h-4 w-4 text-blue-600" />
+                        Training Video
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <p className="text-sm text-muted-foreground mb-4">Quick refresher on handling common objections</p>
+                      <Button variant="outline" size="sm" className="w-full">
+                        Watch Now (3 min)
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-cyan-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <MessageCircle className="h-4 w-4 text-cyan-600" />
+                        Warm Emails
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <p className="text-sm text-muted-foreground mb-4">Re-engage 5 warm leads with AI-crafted emails</p>
+                      <Button variant="outline" size="sm" className="w-full">
+                        Start Email Campaign
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-green-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <Zap className="h-4 w-4 text-green-600" />
+                        Mental Reset
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <p className="text-sm text-muted-foreground mb-4">5-minute guided exercise to rebuild confidence</p>
+                      <Button variant="outline" size="sm" className="w-full">
+                        Start Session
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div className="pt-4">
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setRecoveryMode(false)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    Exit Recovery Mode
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="performance" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Performance Trends</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 flex flex-col items-center justify-center text-muted-foreground">
+                  <BarChart className="h-16 w-16 mb-4" />
+                  <p>Performance charts will appear here</p>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Goal Progress</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium">Monthly Calls</span>
+                      <span className="text-sm text-muted-foreground">{userStats?.call_count || 0}/200</span>
+                    </div>
+                    <Progress value={((userStats?.call_count || 0) / 200) * 100} className="h-2" />
                   </div>
-                  <Progress value={(aiPersona?.level || 1) * 20} className="h-2" />
-                  <div className="text-xs text-slate-500">
-                    <span className="capitalize">{aiPersona?.tone || 'Professional'}</span> • <span className="capitalize">{aiPersona?.delivery_style || 'Direct'}</span>
+                  <div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium">Win Target</span>
+                      <span className="text-sm text-muted-foreground">{userStats?.win_count || 0}/50</span>
+                    </div>
+                    <Progress value={((userStats?.win_count || 0) / 50) * 100} className="h-2" />
                   </div>
                 </div>
-                <Button className="w-full" variant="outline">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Configure AI
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="training" className="space-y-4">
+          {showVoiceTraining && (
+            <Card className={`${isFullUser ? 'border-2 border-gradient-to-r from-green-400 to-blue-500' : 'border-green-500'}`}>
+              <CardHeader className={`${isFullUser ? 'bg-gradient-to-r from-green-400 to-blue-500' : 'bg-green-50'} rounded-t-lg`}>
+                <CardTitle className={`flex items-center gap-2 ${isFullUser ? 'text-white' : 'text-green-800'}`}>
+                  <Trophy className="h-5 w-5" />
+                  {isFullUser ? 'AI Voice Mastery Training' : 'Voice Style Training'}
+                </CardTitle>
+                <CardDescription className={isFullUser ? 'text-white/90' : 'text-green-600'}>
+                  {isFullUser ? 
+                    `Your ${userStats?.current_streak || 3}+ win streak unlocked advanced voice analysis!` :
+                    `You're on a ${userStats?.current_streak || 3}+ win streak! Let's analyze what's working.`
+                  }
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 space-y-4">
+                <p className="text-muted-foreground">
+                  Your AI assistant analyzed your most successful calls and found these winning patterns:
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Card>
+                    <CardContent className="p-4">
+                      <h4 className="font-medium mb-2">Tone Pattern</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Confident, measured pace with strategic pauses
+                      </p>
+                      <Button size="sm" variant="ghost" className="mt-2 px-0">
+                        <Headphones className="h-4 w-4 mr-1" /> Hear Example
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4">
+                      <h4 className="font-medium mb-2">Key Phrases</h4>
+                      <p className="text-sm text-muted-foreground">
+                        "What I'm hearing is..." and "Let me show you how..."
+                      </p>
+                      <Button size="sm" variant="ghost" className="mt-2 px-0">
+                        <Mic className="h-4 w-4 mr-1" /> Practice These
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardContent className="p-4">
+                      <h4 className="font-medium mb-2">Closing Style</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Direct ask with clear next steps and timeline
+                      </p>
+                      <Button size="sm" variant="ghost" className="mt-2 px-0">
+                        <ArrowUpRight className="h-4 w-4 mr-1" /> Save This Style
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <Button className="bg-green-600 hover:bg-green-700 text-white">
+                  Start Voice Training Session
                 </Button>
               </CardContent>
             </Card>
+          )}
 
-            {/* Best Performance Time */}
-            <Card className={isFullUser ? "border-2 border-gradient-to-r from-cyan-400 to-blue-500" : ""}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mic className="h-5 w-5 text-blue-600" />
+                Talk It Out
+              </CardTitle>
+              <CardDescription>
+                Voice journal to process your day and learnings
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {showVoiceInput ? (
+                <div className="text-center space-y-4">
+                  {voiceInputActive ? (
+                    <div className="relative mx-auto w-20 h-20 mb-4">
+                      <div className="absolute inset-0 bg-cyan-500 rounded-full opacity-25 animate-ping"></div>
+                      <div className="relative flex items-center justify-center w-20 h-20 bg-cyan-500 rounded-full">
+                        <Mic className="h-10 w-10 text-white" />
+                      </div>
+                    </div>
+                  ) : (
+                    <Button 
+                      onClick={simulateVoiceRecording}
+                      className="bg-cyan-500 hover:bg-cyan-600 w-full"
+                    >
+                      <Mic className="h-4 w-4 mr-2" />
+                      Start Recording
+                    </Button>
+                  )}
+                  
+                  <p className="text-sm text-muted-foreground">
+                    Talk about your day, challenges, or victories. Your AI will learn from this but your recording stays private.
+                  </p>
+                  
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setShowVoiceInput(false)}
+                    className="text-muted-foreground"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-muted-foreground mb-4">
+                    Decompress after a challenging call or celebrate a win. Your voice journal helps you process emotions and trains your AI.
+                  </p>
+                  <Button 
+                    onClick={startVoiceInput}
+                    className="w-full"
+                  >
+                    <Mic className="h-4 w-4 mr-2" />
+                    Record Voice Journal
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="tools" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-salesCyan" />
-                  {isFullUser ? 'AI-Optimized Call Times' : 'Best Performance Times'}
+                  <PhoneCall className="h-5 w-5" />
+                  Dialer
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {userStats?.best_time_start && userStats?.best_time_end ? (
-                  <div className="text-center">
-                    <div className={`${isFullUser ? 'bg-gradient-to-r from-cyan-400 to-blue-500' : 'bg-salesBlue-light'} rounded-lg p-4 mb-3`}>
-                      <p className={`text-lg font-medium ${isFullUser ? 'text-white' : 'text-salesBlue'}`}>
-                        {userStats.best_time_start} - {userStats.best_time_end}
-                      </p>
-                    </div>
-                    <p className="text-sm text-slate-600">
-                      {isFullUser ? 
-                        'AI analysis shows 67% higher close rates during this window' :
-                        'You close 42% more deals during this time window'
-                      }
-                    </p>
-                  </div>
-                ) : (
-                  <div className="text-center text-slate-500">
-                    <p>Not enough data to determine your best time yet.</p>
-                    <p className="text-sm mt-2">Complete more calls to unlock this insight.</p>
-                  </div>
-                )}
+                <p className="text-sm text-muted-foreground mb-4">Start making calls with AI assistance</p>
+                <Button className="w-full">Open Dialer</Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Lead Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">Manage your lead pipeline</p>
+                <Button className="w-full" variant="outline">View Leads</Button>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart className="h-5 w-5" />
+                  Analytics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">View detailed performance analytics</p>
+                <Button className="w-full" variant="outline">View Analytics</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Email Templates
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">AI-powered email templates</p>
+                <Button className="w-full" variant="outline">View Templates</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Meeting Scheduler
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">Schedule meetings with prospects</p>
+                <Button className="w-full" variant="outline">Open Scheduler</Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Activity Tracker
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">Track your daily activities</p>
+                <Button className="w-full" variant="outline">View Activity</Button>
               </CardContent>
             </Card>
           </div>
-
-          {/* Analytics Tabs */}
-          <Tabs defaultValue="overview" className="mb-6">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="performance">Performance</TabsTrigger>
-              <TabsTrigger value="training">AI Training</TabsTrigger>
-              <TabsTrigger value="tools">Tools</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview" className="mt-4">
-              {!recoveryMode ? (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-salesGreen" />
-                      {isFullUser ? 'Victory Archive' : 'Confidence Cache'}
-                    </CardTitle>
-                    <CardDescription>
-                      {isFullUser ? 'Your most impactful wins and AI-powered strategies' : 'Your recent wins and successful objection handling'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <ul className="divide-y divide-slate-100">
-                      {confidenceCache.map((entry) => (
-                        <li key={entry.id} className="p-4 hover:bg-slate-50">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <p className="font-medium">{entry.win_description}</p>
-                              {entry.objection_handled && (
-                                <Badge variant="outline" className="mt-1 text-xs">
-                                  Objection Handled: {entry.objection_handled}
-                                </Badge>
-                              )}
-                            </div>
-                            <Badge className={`${isFullUser ? 'bg-gradient-to-r from-yellow-400 to-orange-500' : 'bg-salesBlue'} text-white ml-2`}>
-                              {formatDate(entry.date_achieved)}
-                            </Badge>
-                          </div>
-                        </li>
-                      ))}
-                      
-                      {confidenceCache.length === 0 && (
-                        <li className="p-6 text-center text-slate-500">
-                          No confidence entries yet. Your wins will appear here.
-                        </li>
-                      )}
-                    </ul>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      onClick={activateRecoveryMode}
-                      className="w-full bg-salesRed hover:bg-salesRed-dark"
-                      variant="outline"
-                    >
-                      <Heart className="h-4 w-4 mr-2" />
-                      Need Help? Activate Recovery Mode
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Heart className="h-5 w-5 text-salesRed" />
-                      Recovery Mode
-                    </CardTitle>
-                    <CardDescription>
-                      Let's rebuild your momentum with these recovery activities
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card className="border border-salesBlue-light">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center gap-2">
-                              <VideoIcon className="h-4 w-4 text-salesBlue" />
-                              Training Video
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="p-4">
-                            <p className="text-sm text-slate-600 mb-4">Quick refresher on handling common objections</p>
-                            <Button variant="outline" size="sm" className="w-full">
-                              Watch Now (3 min)
-                            </Button>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="border border-salesCyan-light">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center gap-2">
-                              <MessageCircle className="h-4 w-4 text-salesCyan" />
-                              Warm Emails
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="p-4">
-                            <p className="text-sm text-slate-600 mb-4">Re-engage 5 warm leads with AI-crafted emails</p>
-                            <Button variant="outline" size="sm" className="w-full">
-                              Start Email Campaign
-                            </Button>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card className="border border-salesGreen-light">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-base flex items-center gap-2">
-                              <Zap className="h-4 w-4 text-salesGreen" />
-                              Mental Reset
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="p-4">
-                            <p className="text-sm text-slate-600 mb-4">5-minute guided exercise to rebuild confidence</p>
-                            <Button variant="outline" size="sm" className="w-full">
-                              Start Session
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </div>
-                      
-                      <div className="pt-4">
-                        <Button 
-                          variant="ghost" 
-                          onClick={() => setRecoveryMode(false)}
-                          className="text-slate-500 hover:text-slate-700"
-                        >
-                          Exit Recovery Mode
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            <TabsContent value="performance" className="mt-4">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Performance Trends</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-64 flex flex-col items-center justify-center text-slate-500">
-                      <BarChart className="h-16 w-16 mb-4" />
-                      <p>Performance charts will appear here</p>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Goal Progress</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm font-medium">Monthly Calls</span>
-                          <span className="text-sm text-slate-500">{userStats?.call_count || 0}/200</span>
-                        </div>
-                        <Progress value={((userStats?.call_count || 0) / 200) * 100} className="h-2" />
-                      </div>
-                      <div>
-                        <div className="flex justify-between mb-2">
-                          <span className="text-sm font-medium">Win Target</span>
-                          <span className="text-sm text-slate-500">{userStats?.win_count || 0}/50</span>
-                        </div>
-                        <Progress value={((userStats?.win_count || 0) / 50) * 100} className="h-2" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="training" className="mt-4">
-              {/* Voice Training Section */}
-              {showVoiceTraining && (
-                <Card className={`mb-6 ${isFullUser ? 'border-2 border-gradient-to-r from-green-400 to-blue-500' : 'border-salesGreen'}`}>
-                  <CardHeader className={`${isFullUser ? 'bg-gradient-to-r from-green-400 to-blue-500' : 'bg-salesGreen bg-opacity-10'}`}>
-                    <CardTitle className={`flex items-center gap-2 ${isFullUser ? 'text-white' : 'text-salesGreen'}`}>
-                      <Trophy className="h-5 w-5" />
-                      {isFullUser ? 'AI Voice Mastery Training' : 'Voice Style Training'}
-                    </CardTitle>
-                    <CardDescription className={isFullUser ? 'text-white text-opacity-90' : ''}>
-                      {isFullUser ? 
-                        `Your ${userStats?.current_streak || 3}+ win streak unlocked advanced voice analysis!` :
-                        `You're on a ${userStats?.current_streak || 3}+ win streak! Let's analyze what's working.`
-                      }
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <div className="space-y-4">
-                      <p className="text-slate-600">
-                        Your AI assistant analyzed your most successful calls and found these winning patterns:
-                      </p>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <Card>
-                          <CardContent className="p-4">
-                            <h4 className="font-medium mb-2">Tone Pattern</h4>
-                            <p className="text-sm text-slate-600">
-                              Confident, measured pace with strategic pauses
-                            </p>
-                            <Button size="sm" variant="ghost" className="mt-2 px-0">
-                              <Headphones className="h-4 w-4 mr-1" /> Hear Example
-                            </Button>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card>
-                          <CardContent className="p-4">
-                            <h4 className="font-medium mb-2">Key Phrases</h4>
-                            <p className="text-sm text-slate-600">
-                              "What I'm hearing is..." and "Let me show you how..."
-                            </p>
-                            <Button size="sm" variant="ghost" className="mt-2 px-0">
-                              <Mic className="h-4 w-4 mr-1" /> Practice These
-                            </Button>
-                          </CardContent>
-                        </Card>
-                        
-                        <Card>
-                          <CardContent className="p-4">
-                            <h4 className="font-medium mb-2">Closing Style</h4>
-                            <p className="text-sm text-slate-600">
-                              Direct ask with clear next steps and timeline
-                            </p>
-                            <Button size="sm" variant="ghost" className="mt-2 px-0">
-                              <ArrowUpRight className="h-4 w-4 mr-1" /> Save This Style
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      </div>
-                      
-                      <div className="pt-3">
-                        <Button className="bg-salesGreen hover:bg-salesGreen-dark">
-                          Start Voice Training Session
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Talk It Out Feature */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mic className="h-5 w-5 text-salesBlue" />
-                    Talk It Out
-                  </CardTitle>
-                  <CardDescription>
-                    Voice journal to process your day and learnings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {showVoiceInput ? (
-                    <div className="text-center space-y-4">
-                      {voiceInputActive ? (
-                        <div className="relative mx-auto w-20 h-20 mb-4">
-                          <div className="absolute inset-0 bg-salesCyan rounded-full opacity-25 animate-ping"></div>
-                          <div className="relative flex items-center justify-center w-20 h-20 bg-salesCyan rounded-full">
-                            <Mic className="h-10 w-10 text-white" />
-                          </div>
-                        </div>
-                      ) : (
-                        <Button 
-                          onClick={simulateVoiceRecording}
-                          className="bg-salesCyan hover:bg-salesCyan-dark w-full"
-                        >
-                          <Mic className="h-4 w-4 mr-2" />
-                          Start Recording
-                        </Button>
-                      )}
-                      
-                      <p className="text-sm text-slate-600">
-                        Talk about your day, challenges, or victories. Your AI will learn from this but your recording stays private.
-                      </p>
-                      
-                      <Button 
-                        variant="ghost" 
-                        onClick={() => setShowVoiceInput(false)}
-                        className="text-slate-500"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-slate-600 mb-4">
-                        Decompress after a challenging call or celebrate a win. Your voice journal helps you process emotions and trains your AI.
-                      </p>
-                      <Button 
-                        onClick={startVoiceInput}
-                        className="w-full"
-                      >
-                        <Mic className="h-4 w-4 mr-2" />
-                        Record Voice Journal
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="tools" className="mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <PhoneCall className="h-5 w-5" />
-                      Dialer
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-slate-600 mb-4">Start making calls with AI assistance</p>
-                    <Button className="w-full">Open Dialer</Button>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      Lead Management
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-slate-600 mb-4">Manage your lead pipeline</p>
-                    <Button className="w-full" variant="outline">View Leads</Button>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart className="h-5 w-5" />
-                      Analytics
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-slate-600 mb-4">View detailed performance analytics</p>
-                    <Button className="w-full" variant="outline">View Analytics</Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Mail className="h-5 w-5" />
-                      Email Templates
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-slate-600 mb-4">AI-powered email templates</p>
-                    <Button className="w-full" variant="outline">View Templates</Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      Meeting Scheduler
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-slate-600 mb-4">Schedule meetings with prospects</p>
-                    <Button className="w-full" variant="outline">Open Scheduler</Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Activity className="h-5 w-5" />
-                      Activity Tracker
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-slate-600 mb-4">Track your daily activities</p>
-                    <Button className="w-full" variant="outline">View Activity</Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
       
       <AIAssistant />
     </div>

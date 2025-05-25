@@ -27,13 +27,13 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
   return (
     <>
       <div className="md:hidden">
-        <div className="px-4 py-2 flex justify-between items-center border-b border-sidebar-border bg-sidebar">
+        <div className="px-4 py-3 flex justify-between items-center border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-sidebar-foreground hover:bg-sidebar-accent"
+              className="text-foreground hover:bg-muted"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -44,23 +44,23 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent rounded-full p-1.5 touch-target"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-2 touch-target"
             >
               <div className="relative">
                 <Bell className="h-4 w-4" />
-                <Badge className="absolute -top-1 -right-1 bg-dashRed rounded-full w-3 h-3 flex items-center justify-center text-[8px] font-bold p-0">
+                <Badge className="absolute -top-1 -right-1 bg-destructive rounded-full w-3 h-3 flex items-center justify-center text-[8px] font-bold p-0">
                   3
                 </Badge>
               </div>
             </Button>
-            <div className="h-6 border-l border-sidebar-border mx-1"></div>
+            <div className="h-6 border-l border-border mx-1"></div>
             <UserProfile name="Sam" role="" />
           </div>
         </div>
         
         {/* Mobile Menu (Slide down) */}
         {mobileMenuOpen && (
-          <div className="bg-sidebar border-b border-sidebar-border animate-slide-up">
+          <div className="bg-background border-b border-border animate-slide-up">
             <div className="max-h-[60vh] overflow-y-auto mobile-scroll">
               {navItems.map((item) => (
                 <Link 
@@ -80,7 +80,7 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
         )}
       </div>
       
-      {/* Mobile Bottom Tab Bar - Visible on small screens */}
+      {/* Mobile Bottom Tab Bar - Clean and minimal */}
       <div className="mobile-tab-bar md:hidden">
         <Link to={getDashboardUrl()} className={`mobile-tab-item ${activeItem === 'dashboard' ? 'active' : ''}`}>
           <Home className="h-5 w-5 flex-shrink-0" />
