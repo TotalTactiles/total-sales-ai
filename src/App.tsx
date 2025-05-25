@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
+
+// Existing page and component imports
 import Dashboard from './pages/Dashboard';
 import SmartDialer from './pages/SmartDialer';
 import LeadManagement from './pages/LeadManagement';
@@ -12,8 +14,9 @@ import Reports from './pages/Reports';
 import Login from './pages/Login';
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-import NotFound from './pages/NotFound';
+import NotFound from './pages/NotFound'; // Assuming you have a NotFound page
 
+// Existing QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -28,11 +31,11 @@ function App() {
       <BrowserRouter>
         <Routes>
 
-          {/* Public Routes (No Layout) */}
+          {/* Public Routes (No Layout, No Nav) */}
           <Route path="/login" element={<Login />} />
           <Route path="*" element={<NotFound />} />
 
-          {/* Protected Routes (With Layout) */}
+          {/* Protected Routes (Single Layout) */}
           <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
