@@ -24,8 +24,8 @@ import DashboardRouter from '@/components/DashboardRouter';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AIContextProvider } from '@/contexts/AIContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import Reports from '@/pages/Reports';
-import Access from '@/pages/Access';
+import Reports from './pages/Reports';
+import Access from './pages/Access';
 
 // Create QueryClient instance
 const queryClient = new QueryClient({
