@@ -82,7 +82,8 @@ export const getSafeAreaInsets = () => {
 
 // Performance optimization for mobile
 export const optimizeScrolling = (element: HTMLElement): void => {
-  element.style.webkitOverflowScrolling = 'touch';
+  // Use type assertion for non-standard CSS properties
+  (element.style as any).webkitOverflowScrolling = 'touch';
   element.style.overscrollBehavior = 'contain';
 };
 

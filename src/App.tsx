@@ -1,38 +1,47 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster"
-import AuthPage from '@/pages/AuthPage';
-import SalesRepDashboard from '@/pages/SalesRepDashboard';
-import ManagerDashboard from '@/pages/ManagerDashboard';
-import AdminDashboard from '@/pages/AdminDashboard';
-import SmartDialer from '@/pages/SmartDialer';
-import LeadManagement from '@/pages/LeadManagement';
-import LeadWorkspace from '@/pages/LeadWorkspace';
-import Analytics from '@/pages/Analytics';
-import AgentMissions from '@/pages/AgentMissions';
-import CompanyBrain from '@/pages/CompanyBrain';
-import AgentTools from '@/pages/AgentTools';
-import Settings from '@/pages/Settings';
-import AIAgent from '@/pages/AIAgent';
-import NotFound from '@/pages/NotFound';
+import AuthPage from './pages/auth/AuthPage';
+import SalesRepDashboard from './pages/SalesRepDashboard';
+import ManagerDashboard from './pages/ManagerDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import SmartDialer from './pages/Dialer';
+import LeadManagement from './pages/LeadManagement';
+import LeadWorkspace from './pages/LeadWorkspace';
+import Analytics from './pages/Analytics';
+import AgentMissions from './pages/AgentMissions';
+import CompanyBrain from './pages/CompanyBrain';
+import AgentTools from './pages/AgentTools';
+import Settings from './pages/Settings';
+import AIAgent from './pages/AIAgent';
+import NotFound from './pages/NotFound';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Layout from '@/components/Layout';
 import DashboardRouter from '@/components/DashboardRouter';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AIContextProvider } from '@/contexts/AIContext';
-import {
-  QueryClient,
-} from '@tanstack/react-query'
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Reports from '@/pages/Reports';
 import Access from '@/pages/Access';
+
+// Create QueryClient instance
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <QueryClient>
+        <QueryClientProvider client={queryClient}>
           <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
             <AuthProvider>
               <AIContextProvider>
@@ -63,7 +72,7 @@ function App() {
               </AIContextProvider>
             </AuthProvider>
           </ThemeProvider>
-        </QueryClient>
+        </QueryClientProvider>
         <Toaster />
       </BrowserRouter>
     </ErrorBoundary>
