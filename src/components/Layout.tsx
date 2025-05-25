@@ -1,13 +1,22 @@
-// src/components/Layout.tsx
-import React from 'react';
-import Header from './Header'; // Adjust path if different
 
-const Layout = ({ children }: { children: React.ReactNode }) => {
+import React from 'react';
+import Navigation from './Navigation';
+import { useIsMobile } from '@/hooks/useIsMobile';
+
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const isMobile = useIsMobile();
+
   return (
-    <>
-      <Header />
-      <main className="pt-16 px-4 md:px-8">{children}</main> {/* Adjust padding as needed */}
-    </>
+    <div className="dashboard-layout">
+      <Navigation />
+      <main className={`dashboard-content responsive-container ${isMobile ? 'pb-20' : ''}`}>
+        {children}
+      </main>
+    </div>
   );
 };
 
