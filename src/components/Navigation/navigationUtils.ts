@@ -32,13 +32,34 @@ export const getDashboardUrl = (profile: { role: Role } | null) => {
 };
 
 export const updateActiveItem = (pathname: string, setActiveItem: (item: string) => void) => {
-  if (pathname === '/' || pathname.includes('/dashboard')) setActiveItem('dashboard');
-  else if (pathname === '/dialer') setActiveItem('dialer');
-  else if (pathname === '/leads') setActiveItem('leads');
-  else if (pathname === '/analytics') setActiveItem('analytics');
-  else if (pathname === '/missions' || pathname === '/agent-missions') setActiveItem('missions');
-  else if (pathname === '/company-brain') setActiveItem('brain');
-  else if (pathname === '/tools') setActiveItem('tools');
-  else if (pathname === '/settings') setActiveItem('settings');
-  else if (pathname === '/ai-agent') setActiveItem('ai-agent');
+  if (pathname === '/' || pathname.includes('sales-rep-dashboard')) {
+    setActiveItem('dashboard');
+  } else if (pathname.includes('manager-dashboard')) {
+    setActiveItem('dashboard');
+  } else if (pathname.includes('admin-dashboard')) {
+    setActiveItem('dashboard');
+  } else if (pathname === '/dialer') {
+    setActiveItem('dialer');
+  } else if (pathname === '/leads' || pathname.startsWith('/leads/')) {
+    setActiveItem('leads');
+  } else if (pathname === '/analytics') {
+    setActiveItem('analytics');
+  } else if (pathname === '/agent-missions') {
+    setActiveItem('agent-missions');
+  } else if (pathname === '/company-brain') {
+    setActiveItem('company-brain');
+  } else if (pathname === '/tools') {
+    setActiveItem('tools');
+  } else if (pathname === '/reports') {
+    setActiveItem('reports');
+  } else if (pathname === '/access') {
+    setActiveItem('access');
+  } else if (pathname === '/settings') {
+    setActiveItem('settings');
+  } else if (pathname === '/ai-agent') {
+    setActiveItem('ai-agent');
+  } else {
+    // Default to dashboard for unknown routes
+    setActiveItem('dashboard');
+  }
 };

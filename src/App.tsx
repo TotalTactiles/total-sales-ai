@@ -48,27 +48,35 @@ function App() {
               <AuthProvider>
                 <AIContextProvider>
                   <Routes>
+                    {/* Public Routes */}
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/auth/signup" element={<AuthPage />} />
                     
-                    {/* Protected Routes */}
+                    {/* Protected Dashboard Routes */}
                     <Route path="/" element={<ProtectedRoute><Layout><SalesRepDashboard /></Layout></ProtectedRoute>} />
+                    <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
                     <Route path="/sales-rep-dashboard" element={<ProtectedRoute><Layout><SalesRepDashboard /></Layout></ProtectedRoute>} />
                     <Route path="/manager-dashboard" element={<ProtectedRoute><Layout><ManagerDashboard /></Layout></ProtectedRoute>} />
                     <Route path="/admin-dashboard" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
-                    <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
+                    
+                    {/* Core Feature Routes */}
                     <Route path="/dialer" element={<ProtectedRoute><Layout><SmartDialer /></Layout></ProtectedRoute>} />
                     <Route path="/leads" element={<ProtectedRoute><Layout><LeadManagement /></Layout></ProtectedRoute>} />
                     <Route path="/leads/:id" element={<ProtectedRoute><Layout><LeadWorkspace /></Layout></ProtectedRoute>} />
                     <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
-                    <Route path="/reports" element={<ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>} />
-                    <Route path="/access" element={<ProtectedRoute><Layout><Access /></Layout></ProtectedRoute>} />
+                    
+                    {/* Management & Tools Routes */}
                     <Route path="/agent-missions" element={<ProtectedRoute><Layout><AgentMissions /></Layout></ProtectedRoute>} />
                     <Route path="/company-brain" element={<ProtectedRoute><Layout><CompanyBrain /></Layout></ProtectedRoute>} />
                     <Route path="/tools" element={<ProtectedRoute><Layout><AgentTools /></Layout></ProtectedRoute>} />
+                    <Route path="/reports" element={<ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>} />
+                    <Route path="/access" element={<ProtectedRoute><Layout><Access /></Layout></ProtectedRoute>} />
                     <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
+                    
+                    {/* AI Features */}
                     <Route path="/ai-agent" element={<ProtectedRoute><Layout><AIAgent /></Layout></ProtectedRoute>} />
                     
+                    {/* 404 Catch-all Route */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </AIContextProvider>
