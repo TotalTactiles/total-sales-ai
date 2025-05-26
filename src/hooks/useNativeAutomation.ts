@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -45,7 +46,7 @@ export const useNativeAutomation = () => {
   }, [user?.id, profile?.company_id]);
 
   const createEmailTemplate = useCallback(async (
-    template: Omit<EmailTemplate, 'id'>
+    template: Omit<EmailTemplate, 'id' | 'companyId'>
   ): Promise<EmailTemplate | null> => {
     if (!user?.id || !profile?.company_id) {
       toast.error('Authentication required');
@@ -54,7 +55,7 @@ export const useNativeAutomation = () => {
 
     setIsLoading(true);
     try {
-      const templateWithCompany = {
+      const templateWithCompany: Omit<EmailTemplate, 'id'> = {
         ...template,
         companyId: profile.company_id
       };

@@ -9,7 +9,7 @@ import {
 } from './types/automationTypes';
 
 export class EmailAutomationService {
-  async createEmailTemplate(template: EmailTemplate): Promise<EmailTemplate> {
+  async createEmailTemplate(template: Omit<EmailTemplate, 'id'>): Promise<EmailTemplate> {
     try {
       const { data, error } = await supabase
         .from('email_sequences')
@@ -97,7 +97,7 @@ export class EmailAutomationService {
         .insert({
           type: 'email_scheduled',
           event_summary: `Email scheduled for ${to}`,
-          payload: emailPayload,
+          payload: emailPayload as any,
           visibility: 'admin_only',
           company_id: metadata.companyId || 'system'
         })
@@ -177,7 +177,7 @@ export class EmailAutomationService {
 
       for (const emailLog of scheduledEmails || []) {
         try {
-          const payload = this.safeExtractEmailPayload(emailLog.payload);
+          const payload = this.extractEmailPayload(emailLog.payload);
           
           // Send email via Gmail
           const { data, error: sendError } = await supabase.functions.invoke('gmail-send', {
@@ -203,14 +203,14 @@ export class EmailAutomationService {
 
           await supabase
             .from('ai_brain_logs')
-            .update({ payload: updatedPayload })
+            .update({ payload: updatedPayload as any })
             .eq('id', emailLog.id);
 
         } catch (error) {
           console.error('Error processing scheduled email:', error);
           
           // Mark as failed
-          const payload = this.safeExtractEmailPayload(emailLog.payload);
+          const payload = this.extractEmailPayload(emailLog.payload);
           const failedPayload = {
             ...payload,
             status: 'failed',
@@ -219,7 +219,7 @@ export class EmailAutomationService {
 
           await supabase
             .from('ai_brain_logs')
-            .update({ payload: failedPayload })
+            .update({ payload: failedPayload as any })
             .eq('id', emailLog.id);
         }
       }
@@ -242,7 +242,7 @@ export class EmailAutomationService {
       if (error) throw error;
 
       for (const flowLog of flows || []) {
-        const flow = this.safeExtractFlow(flowLog.payload);
+        const flow = this.extractFlowData(flowLog.payload);
         
         if (flow && flow.trigger.type === trigger && flow.isActive) {
           const conditionsMatch = this.evaluateConditions(flow.trigger.conditions, eventData);
@@ -262,7 +262,7 @@ export class EmailAutomationService {
     }
   }
 
-  private safeExtractEmailPayload(payload: any): any {
+  private extractEmailPayload(payload: any): any {
     if (!payload || typeof payload !== 'object') {
       return { 
         to: '', 
@@ -283,7 +283,7 @@ export class EmailAutomationService {
     };
   }
 
-  private safeExtractFlow(payload: any): AutomationFlow | null {
+  private extractFlowData(payload: any): any {
     if (!payload || typeof payload !== 'object') {
       return null;
     }

@@ -9,15 +9,40 @@ import {
   AutomationLog
 } from './types/automationTypes';
 
-interface JsonCompatibleAutomationLog {
-  timestamp: string;
-  action: string;
-  status: string;
-  message: string;
-  data?: Record<string, any>;
+// JSON-compatible interfaces for database storage
+interface JsonAutomationFlow {
+  id: string;
+  createdBy: string;
+  createdAt: string;
+  name: string;
+  trigger: {
+    type: string;
+    conditions: Array<{
+      field: string;
+      operator: string;
+      value: string | number | boolean;
+    }>;
+    delay?: number;
+  };
+  actions: Array<{
+    id: string;
+    type: string;
+    content: string;
+    delay?: number;
+    conditions?: Array<{
+      field: string;
+      operator: string;
+      value: string | number | boolean;
+    }>;
+    metadata?: Record<string, string>;
+  }>;
+  isActive: boolean;
+  companyId: string;
+  industry?: string;
+  metadata: Record<string, string>;
 }
 
-interface JsonCompatibleExecution {
+interface JsonAutomationExecution {
   id: string;
   flowId: string;
   leadId?: string;
@@ -28,7 +53,13 @@ interface JsonCompatibleExecution {
   startedAt: string;
   completedAt?: string;
   errorMessage?: string;
-  logs: JsonCompatibleAutomationLog[];
+  logs: Array<{
+    timestamp: string;
+    action: string;
+    status: string;
+    message: string;
+    data?: Record<string, any>;
+  }>;
 }
 
 export class NativeAutomationEngine {
@@ -51,16 +82,35 @@ export class NativeAutomationEngine {
       }
 
       // Create JSON-compatible flow data
-      const flowData = {
+      const flowData: JsonAutomationFlow = {
         id: crypto.randomUUID(),
         createdBy: flow.createdBy,
         createdAt: new Date().toISOString(),
         name: flow.name,
-        trigger: flow.trigger,
-        actions: flow.actions,
+        trigger: {
+          type: flow.trigger.type,
+          conditions: flow.trigger.conditions.map(c => ({
+            field: c.field,
+            operator: c.operator,
+            value: c.value
+          })),
+          delay: flow.trigger.delay
+        },
+        actions: flow.actions.map(a => ({
+          id: a.id,
+          type: a.type,
+          content: a.content,
+          delay: a.delay,
+          conditions: a.conditions?.map(c => ({
+            field: c.field,
+            operator: c.operator,
+            value: c.value
+          })),
+          metadata: a.metadata || {}
+        })),
         isActive: flow.isActive,
         companyId: flow.companyId,
-        industry: flow.industry || null,
+        industry: flow.industry || '',
         metadata: flow.metadata || {}
       };
 
@@ -70,7 +120,7 @@ export class NativeAutomationEngine {
         .insert({
           type: 'automation_flow',
           event_summary: `Created automation flow: ${flow.name}`,
-          payload: flowData,
+          payload: flowData as any,
           company_id: flow.companyId,
           visibility: 'admin_only'
         })
@@ -567,7 +617,7 @@ export class NativeAutomationEngine {
   }
 
   private async createExecution(execution: Omit<AutomationExecution, 'id'>): Promise<string> {
-    const executionData: JsonCompatibleExecution = {
+    const executionData: JsonAutomationExecution = {
       id: crypto.randomUUID(),
       flowId: execution.flowId,
       leadId: execution.leadId,
@@ -590,7 +640,7 @@ export class NativeAutomationEngine {
       .insert({
         type: 'automation_execution',
         event_summary: `Automation execution started`,
-        payload: executionData,
+        payload: executionData as any,
         company_id: execution.companyId,
         visibility: 'admin_only'
       })
@@ -638,7 +688,7 @@ export class NativeAutomationEngine {
     await supabase
       .from('ai_brain_logs')
       .update({
-        payload: updateData
+        payload: updateData as any
       })
       .eq('id', executionId);
   }
