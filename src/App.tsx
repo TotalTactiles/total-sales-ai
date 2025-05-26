@@ -29,8 +29,8 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <AuthProvider>
-          <Router>
+        <Router>
+          <AuthProvider>
             <div className="min-h-screen bg-background text-foreground">
               <Routes>
                 {/* Public routes */}
@@ -121,8 +121,8 @@ function App() {
               
               <Toaster />
             </div>
-          </Router>
-        </AuthProvider>
+          </AuthProvider>
+        </Router>
       </ThemeProvider>
     </QueryClientProvider>
   );
