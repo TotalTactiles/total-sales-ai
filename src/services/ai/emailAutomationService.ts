@@ -5,8 +5,7 @@ import {
   EmailTemplate, 
   AutomationFlow, 
   AutomationAction, 
-  AutomationResult,
-  JsonAutomationFlow
+  AutomationResult
 } from './types/automationTypes';
 
 export class EmailAutomationService {
@@ -96,7 +95,7 @@ export class EmailAutomationService {
         .insert({
           type: 'email_scheduled',
           event_summary: `Email scheduled for ${to}`,
-          payload: emailPayload as any,
+          payload: emailPayload,
           visibility: 'admin_only',
           company_id: metadata.companyId || 'system'
         })
@@ -199,7 +198,7 @@ export class EmailAutomationService {
 
           await supabase
             .from('ai_brain_logs')
-            .update({ payload: updatedPayload as any })
+            .update({ payload: updatedPayload })
             .eq('id', emailLog.id);
 
         } catch (error) {
@@ -214,7 +213,7 @@ export class EmailAutomationService {
 
           await supabase
             .from('ai_brain_logs')
-            .update({ payload: failedPayload as any })
+            .update({ payload: failedPayload })
             .eq('id', emailLog.id);
         }
       }
@@ -277,7 +276,7 @@ export class EmailAutomationService {
     };
   }
 
-  private extractFlowData(payload: any): JsonAutomationFlow | null {
+  private extractFlowData(payload: any): any | null {
     if (!payload || typeof payload !== 'object') {
       return null;
     }

@@ -28,7 +28,7 @@ export class NativeAutomationEngine {
         return validation;
       }
 
-      const flowData: JsonAutomationFlow = {
+      const flowData = {
         id: crypto.randomUUID(),
         createdBy: flow.createdBy,
         createdAt: new Date().toISOString(),
@@ -42,7 +42,7 @@ export class NativeAutomationEngine {
           })),
           delay: flow.trigger.delay
         },
-        actions: this.convertActionsToJson(flow.actions),
+        actions: this.convertActionsToSimpleJson(flow.actions),
         isActive: flow.isActive,
         companyId: flow.companyId,
         industry: flow.industry || '',
@@ -54,7 +54,7 @@ export class NativeAutomationEngine {
         .insert({
           type: 'automation_flow',
           event_summary: `Created automation flow: ${flow.name}`,
-          payload: flowData as any,
+          payload: flowData,
           company_id: flow.companyId,
           visibility: 'admin_only'
         })
@@ -110,7 +110,7 @@ export class NativeAutomationEngine {
 
       const result = await this.executeActions(
         executionId,
-        this.convertJsonActionsToActions(flow.actions),
+        this.convertSimpleJsonToActions(flow.actions),
         triggerData,
         userId,
         companyId
@@ -127,7 +127,7 @@ export class NativeAutomationEngine {
     }
   }
 
-  private convertActionsToJson(actions: AutomationAction[]): any[] {
+  private convertActionsToSimpleJson(actions: AutomationAction[]): any[] {
     return actions.map(action => ({
       id: action.id,
       type: action.type,
@@ -137,7 +137,7 @@ export class NativeAutomationEngine {
         field: c.field,
         operator: c.operator,
         value: c.value
-      })),
+      })) || [],
       metadata: action.metadata || {},
       nextActions: action.nextActions?.map(next => ({
         id: next.id,
@@ -148,7 +148,7 @@ export class NativeAutomationEngine {
           field: c.field,
           operator: c.operator,
           value: c.value
-        })),
+        })) || [],
         metadata: next.metadata || {},
         nextActions: next.nextActions?.map(level2 => ({
           id: level2.id,
@@ -159,37 +159,39 @@ export class NativeAutomationEngine {
             field: c.field,
             operator: c.operator,
             value: c.value
-          })),
+          })) || [],
           metadata: level2.metadata || {}
-        }))
-      }))
+        })) || []
+      })) || []
     }));
   }
 
-  private convertJsonActionsToActions(jsonActions: any[]): AutomationAction[] {
+  private convertSimpleJsonToActions(jsonActions: any[]): AutomationAction[] {
+    if (!Array.isArray(jsonActions)) return [];
+    
     return jsonActions.map(action => ({
-      id: action.id,
-      type: action.type,
-      content: action.content,
+      id: action.id || crypto.randomUUID(),
+      type: action.type || 'email',
+      content: action.content || '',
       delay: action.delay,
-      conditions: action.conditions,
-      metadata: action.metadata,
-      nextActions: action.nextActions?.map((next: any) => ({
-        id: next.id,
-        type: next.type,
-        content: next.content,
+      conditions: Array.isArray(action.conditions) ? action.conditions : [],
+      metadata: action.metadata || {},
+      nextActions: Array.isArray(action.nextActions) ? action.nextActions.map((next: any) => ({
+        id: next.id || crypto.randomUUID(),
+        type: next.type || 'email',
+        content: next.content || '',
         delay: next.delay,
-        conditions: next.conditions,
-        metadata: next.metadata,
-        nextActions: next.nextActions?.map((level2: any) => ({
-          id: level2.id,
-          type: level2.type,
-          content: level2.content,
+        conditions: Array.isArray(next.conditions) ? next.conditions : [],
+        metadata: next.metadata || {},
+        nextActions: Array.isArray(next.nextActions) ? next.nextActions.map((level2: any) => ({
+          id: level2.id || crypto.randomUUID(),
+          type: level2.type || 'email',
+          content: level2.content || '',
           delay: level2.delay,
-          conditions: level2.conditions,
-          metadata: level2.metadata
-        }))
-      }))
+          conditions: Array.isArray(level2.conditions) ? level2.conditions : [],
+          metadata: level2.metadata || {}
+        })) : []
+      })) : []
     }));
   }
 
@@ -593,7 +595,7 @@ export class NativeAutomationEngine {
     }
   }
 
-  private async getFlow(flowId: string): Promise<JsonAutomationFlow | null> {
+  private async getFlow(flowId: string): Promise<any | null> {
     try {
       const { data, error } = await supabase
         .from('ai_brain_logs')
@@ -604,7 +606,13 @@ export class NativeAutomationEngine {
 
       if (error || !data) return null;
 
-      return data.payload as JsonAutomationFlow;
+      // Safe type guard for payload
+      const payload = data.payload;
+      if (payload && typeof payload === 'object' && !Array.isArray(payload)) {
+        return payload;
+      }
+
+      return null;
 
     } catch (error) {
       console.error('Error getting flow:', error);
@@ -613,7 +621,7 @@ export class NativeAutomationEngine {
   }
 
   private async createExecution(execution: Omit<AutomationExecution, 'id'>): Promise<string> {
-    const executionData: JsonAutomationExecution = {
+    const executionData = {
       id: crypto.randomUUID(),
       flowId: execution.flowId,
       leadId: execution.leadId,
@@ -636,7 +644,7 @@ export class NativeAutomationEngine {
       .insert({
         type: 'automation_execution',
         event_summary: `Automation execution started`,
-        payload: executionData as any,
+        payload: executionData,
         company_id: execution.companyId,
         visibility: 'admin_only'
       })
@@ -684,7 +692,7 @@ export class NativeAutomationEngine {
     await supabase
       .from('ai_brain_logs')
       .update({
-        payload: updateData as any
+        payload: updateData
       })
       .eq('id', executionId);
   }
