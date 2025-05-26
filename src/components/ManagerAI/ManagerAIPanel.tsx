@@ -4,25 +4,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Send, 
+  Mic, 
+  MicOff, 
   FileText, 
-  Users, 
-  TrendingUp, 
-  AlertTriangle,
-  Lightbulb,
+  Zap, 
+  BarChart3,
+  Users,
   Calendar,
-  MessageSquare,
-  Mic,
-  BarChart3
+  Settings,
+  Lightbulb
 } from 'lucide-react';
+import { useUnifiedAI } from '@/contexts/UnifiedAIContext';
+import { toast } from 'sonner';
 
 interface ManagerAIPanelProps {
   voiceEnabled: boolean;
   onVoiceToggle: () => void;
   isListening: boolean;
-  onGenerateReport: (type: string) => Promise<void>;
-  onAskJarvis: (question: string) => Promise<void>;
+  onGenerateReport: () => Promise<string | null>;
+  onAskJarvis: (question: string) => Promise<string | null>;
 }
 
 const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
@@ -34,65 +37,107 @@ const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
 }) => {
   const [question, setQuestion] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [responses, setResponses] = useState<Array<{id: string, question: string, answer: string, timestamp: Date}>>([]);
+  const { logAIInteraction } = useUnifiedAI();
 
-  const quickActions = [
-    {
-      icon: FileText,
-      title: 'Generate Weekly Report',
-      description: 'Team performance summary',
-      action: () => handleQuickAction('weekly_report'),
-      color: 'bg-blue-500'
-    },
-    {
-      icon: Users,
-      title: 'Team Health Check',
-      description: 'Burnout risk analysis',
-      action: () => handleQuickAction('team_health'),
-      color: 'bg-green-500'
-    },
-    {
-      icon: TrendingUp,
-      title: 'Revenue Forecast',
-      description: 'Pipeline predictions',
-      action: () => handleQuickAction('revenue_forecast'),
-      color: 'bg-purple-500'
-    },
-    {
-      icon: AlertTriangle,
-      title: 'Risk Assessment',
-      description: 'Identify potential issues',
-      action: () => handleQuickAction('risk_assessment'),
-      color: 'bg-orange-500'
-    }
-  ];
+  const handleAskJarvis = async () => {
+    if (!question.trim() || isProcessing) return;
 
-  const commonQuestions = [
-    "What's our team's close rate this month?",
-    "Which lead sources are performing best?",
-    "Who needs coaching attention?",
-    "What's our pipeline health?",
-    "How can we improve conversion rates?"
-  ];
-
-  const handleQuickAction = async (actionType: string) => {
     setIsProcessing(true);
+    const currentQuestion = question;
+    setQuestion('');
+
     try {
-      await onGenerateReport(actionType);
+      const response = await onAskJarvis(currentQuestion);
+      
+      if (response) {
+        const newResponse = {
+          id: crypto.randomUUID(),
+          question: currentQuestion,
+          answer: response,
+          timestamp: new Date()
+        };
+        
+        setResponses(prev => [newResponse, ...prev]);
+        
+        // Log the interaction
+        await logAIInteraction('jarvis_interaction', {
+          question: currentQuestion,
+          response_length: response.length,
+          success: true
+        });
+        
+        toast.success('Jarvis response generated');
+      }
+    } catch (error) {
+      console.error('Error asking Jarvis:', error);
+      toast.error('Failed to get response from Jarvis');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleAskQuestion = async () => {
-    if (!question.trim()) return;
-    
+  const handleGenerateReport = async () => {
     setIsProcessing(true);
+    
     try {
-      await onAskJarvis(question);
-      setQuestion('');
+      const report = await onGenerateReport();
+      
+      if (report) {
+        const reportResponse = {
+          id: crypto.randomUUID(),
+          question: 'Generate Executive Report',
+          answer: report,
+          timestamp: new Date()
+        };
+        
+        setResponses(prev => [reportResponse, ...prev]);
+        
+        await logAIInteraction('executive_report', {
+          report_length: report.length,
+          success: true
+        });
+        
+        toast.success('Executive report generated');
+      }
+    } catch (error) {
+      console.error('Error generating report:', error);
+      toast.error('Failed to generate report');
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const quickActions = [
+    {
+      id: 'team-performance',
+      label: 'Team Performance',
+      icon: Users,
+      question: 'Analyze current team performance and identify top performers and areas for improvement'
+    },
+    {
+      id: 'lead-optimization',
+      label: 'Lead Optimization',
+      icon: BarChart3,
+      question: 'Review lead distribution and suggest optimization strategies for better conversion'
+    },
+    {
+      id: 'automation-opportunities',
+      label: 'Automation Ideas',
+      icon: Zap,
+      question: 'Identify processes that can be automated to improve efficiency'
+    },
+    {
+      id: 'strategic-insights',
+      label: 'Strategic Insights',
+      icon: Lightbulb,
+      question: 'Provide strategic insights based on current metrics and market trends'
+    }
+  ];
+
+  const handleQuickAction = async (action: typeof quickActions[0]) => {
+    setQuestion(action.question);
+    await handleAskJarvis();
   };
 
   return (
@@ -100,105 +145,126 @@ const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
       {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-yellow-500" />
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Zap className="h-5 w-5 text-blue-600" />
             Quick Actions
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-3">
-            {quickActions.map((action, index) => (
+            {quickActions.map((action) => (
               <Button
-                key={index}
+                key={action.id}
                 variant="outline"
-                className="h-auto p-4 flex flex-col items-start gap-2 hover:shadow-sm"
-                onClick={action.action}
+                className="flex items-center gap-2 h-auto p-3 text-left"
+                onClick={() => handleQuickAction(action)}
                 disabled={isProcessing}
               >
-                <div className="flex items-center gap-2 w-full">
-                  <div className={`p-2 rounded-lg ${action.color}`}>
-                    <action.icon className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <p className="font-medium text-sm">{action.title}</p>
-                    <p className="text-xs text-muted-foreground">{action.description}</p>
-                  </div>
-                </div>
+                <action.icon className="h-4 w-4 text-blue-600" />
+                <span className="text-sm">{action.label}</span>
               </Button>
             ))}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Ask Jarvis */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-blue-500" />
-            Ask Jarvis
-            {voiceEnabled && (
-              <Badge variant="outline" className="ml-auto">
-                <Mic className="h-3 w-3 mr-1" />
-                Voice Active
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ask me anything about your team's performance..."
-              onKeyPress={(e) => e.key === 'Enter' && handleAskQuestion()}
+          
+          <div className="mt-4 pt-4 border-t">
+            <Button
+              onClick={handleGenerateReport}
               disabled={isProcessing}
-            />
-            <Button 
-              onClick={handleAskQuestion} 
-              disabled={!question.trim() || isProcessing}
-              size="icon"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
             >
-              <Send className="h-4 w-4" />
+              <FileText className="h-4 w-4 mr-2" />
+              {isProcessing ? 'Generating...' : 'Generate Executive Report'}
             </Button>
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Common Questions */}
-          <div>
-            <p className="text-sm font-medium mb-2 text-muted-foreground">Common Questions:</p>
-            <div className="space-y-2">
-              {commonQuestions.map((q, index) => (
-                <Button
-                  key={index}
-                  variant="ghost"
-                  size="sm"
-                  className="text-left justify-start h-auto p-2 text-xs"
-                  onClick={() => setQuestion(q)}
-                  disabled={isProcessing}
-                >
-                  "{q}"
-                </Button>
+      {/* Chat Interface */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Mic className="h-5 w-5 text-purple-600" />
+            Ask Jarvis
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Textarea
+                placeholder="Ask Jarvis anything about your business, team, or strategy..."
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAskJarvis();
+                  }
+                }}
+                className="flex-1 min-h-[80px]"
+                disabled={isProcessing}
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleAskJarvis}
+                disabled={!question.trim() || isProcessing}
+                className="flex-1"
+              >
+                <Send className="h-4 w-4 mr-2" />
+                {isProcessing ? 'Processing...' : 'Ask Jarvis'}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={onVoiceToggle}
+                className={`${voiceEnabled ? 'bg-red-50 border-red-200' : ''}`}
+              >
+                {voiceEnabled ? (
+                  <MicOff className="h-4 w-4 text-red-600" />
+                ) : (
+                  <Mic className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            
+            {isListening && (
+              <div className="flex items-center gap-2 text-red-600 text-sm">
+                <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+                Listening...
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Responses */}
+      {responses.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Recent Responses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {responses.map((response) => (
+                <div key={response.id} className="border-l-4 border-blue-500 pl-4 py-2">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="outline" className="text-xs">
+                      {response.timestamp.toLocaleTimeString()}
+                    </Badge>
+                  </div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">
+                    Q: {response.question}
+                  </p>
+                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                    {response.answer}
+                  </p>
+                </div>
               ))}
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* AI Status */}
-      <Card className="border-green-200 bg-green-50 dark:bg-green-900/20">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                Jarvis is online and monitoring
-              </span>
-            </div>
-            <div className="text-xs text-green-600 dark:text-green-300">
-              Last updated: {new Date().toLocaleTimeString()}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
