@@ -1,92 +1,130 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { Toaster } from "@/components/ui/toaster"
-import { TooltipProvider } from "@/components/ui/tooltip"
-import AuthPage from './pages/auth/AuthPage';
-import SalesRepDashboard from './pages/SalesRepDashboard';
-import ManagerDashboard from './pages/ManagerDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import SmartDialer from './pages/Dialer';
-import LeadManagement from './pages/LeadManagement';
-import LeadWorkspace from './pages/LeadWorkspace';
-import Analytics from './pages/Analytics';
-import AgentMissions from './pages/AgentMissions';
-import CompanyBrain from './pages/CompanyBrain';
-import AgentTools from './pages/AgentTools';
-import Settings from './pages/Settings';
-import AIAgent from './pages/AIAgent';
-import NotFound from './pages/NotFound';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import Layout from '@/components/Layout';
-import DashboardRouter from '@/components/DashboardRouter';
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from '@/components/ThemeProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { AIContextProvider } from '@/contexts/AIContext';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import Reports from './pages/Reports';
-import Access from './pages/Access';
 
-// Create QueryClient instance
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+// Import all pages
+import Auth from '@/pages/Auth';
+import SalesRepDashboard from '@/pages/SalesRepDashboard';
+import ManagerDashboard from '@/pages/ManagerDashboard';
+import AdminDashboard from '@/pages/AdminDashboard';
+import Analytics from '@/pages/Analytics';
+import ManagerAnalytics from '@/pages/ManagerAnalytics';
+import LeadManagement from '@/pages/LeadManagement';
+import LeadWorkspace from '@/pages/LeadWorkspace';
+import CompanyBrain from '@/pages/CompanyBrain';
+import Dialer from '@/pages/Dialer';
+import AIAgent from '@/pages/AIAgent';
+import Reports from '@/pages/Reports';
+import Settings from '@/pages/Settings';
+import NotFound from '@/pages/NotFound';
+import ProtectedRoute from '@/components/ProtectedRoute';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-            <TooltipProvider>
-              <AuthProvider>
-                <AIContextProvider>
-                  <Routes>
-                    {/* Public Routes */}
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/auth/signup" element={<AuthPage />} />
-                    
-                    {/* Protected Dashboard Routes */}
-                    <Route path="/" element={<ProtectedRoute><Layout><SalesRepDashboard /></Layout></ProtectedRoute>} />
-                    <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
-                    <Route path="/sales-rep-dashboard" element={<ProtectedRoute><Layout><SalesRepDashboard /></Layout></ProtectedRoute>} />
-                    <Route path="/manager-dashboard" element={<ProtectedRoute><Layout><ManagerDashboard /></Layout></ProtectedRoute>} />
-                    <Route path="/admin-dashboard" element={<ProtectedRoute><Layout><AdminDashboard /></Layout></ProtectedRoute>} />
-                    
-                    {/* Core Feature Routes */}
-                    <Route path="/dialer" element={<ProtectedRoute><Layout><SmartDialer /></Layout></ProtectedRoute>} />
-                    <Route path="/leads" element={<ProtectedRoute><Layout><LeadManagement /></Layout></ProtectedRoute>} />
-                    <Route path="/leads/:id" element={<ProtectedRoute><Layout><LeadWorkspace /></Layout></ProtectedRoute>} />
-                    <Route path="/analytics" element={<ProtectedRoute><Layout><Analytics /></Layout></ProtectedRoute>} />
-                    
-                    {/* Management & Tools Routes */}
-                    <Route path="/agent-missions" element={<ProtectedRoute><Layout><AgentMissions /></Layout></ProtectedRoute>} />
-                    <Route path="/company-brain" element={<ProtectedRoute><Layout><CompanyBrain /></Layout></ProtectedRoute>} />
-                    <Route path="/tools" element={<ProtectedRoute><Layout><AgentTools /></Layout></ProtectedRoute>} />
-                    <Route path="/reports" element={<ProtectedRoute><Layout><Reports /></Layout></ProtectedRoute>} />
-                    <Route path="/access" element={<ProtectedRoute><Layout><Access /></Layout></ProtectedRoute>} />
-                    <Route path="/settings" element={<ProtectedRoute><Layout><Settings /></Layout></ProtectedRoute>} />
-                    
-                    {/* AI Features */}
-                    <Route path="/ai-agent" element={<ProtectedRoute><Layout><AIAgent /></Layout></ProtectedRoute>} />
-                    
-                    {/* 404 Catch-all Route */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </AIContextProvider>
-              </AuthProvider>
-            </TooltipProvider>
-          </ThemeProvider>
-        </QueryClientProvider>
-        <Toaster />
-      </BrowserRouter>
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+        <AuthProvider>
+          <Router>
+            <div className="min-h-screen bg-background text-foreground">
+              <Routes>
+                {/* Public routes */}
+                <Route path="/auth/*" element={<Auth />} />
+                
+                {/* Protected routes */}
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <SalesRepDashboard />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/sales-rep-dashboard" element={
+                  <ProtectedRoute>
+                    <SalesRepDashboard />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/manager-dashboard" element={
+                  <ProtectedRoute>
+                    <ManagerDashboard />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/admin-dashboard" element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/analytics" element={
+                  <ProtectedRoute>
+                    <Analytics />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/manager-analytics" element={
+                  <ProtectedRoute>
+                    <ManagerAnalytics />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/leads" element={
+                  <ProtectedRoute>
+                    <LeadManagement />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/lead-workspace/:id?" element={
+                  <ProtectedRoute>
+                    <LeadWorkspace />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/company-brain" element={
+                  <ProtectedRoute>
+                    <CompanyBrain />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/dialer" element={
+                  <ProtectedRoute>
+                    <Dialer />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/ai-agent" element={
+                  <ProtectedRoute>
+                    <AIAgent />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/reports" element={
+                  <ProtectedRoute>
+                    <Reports />
+                  </ProtectedRoute>
+                } />
+                
+                <Route path="/settings" element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Catch all route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              
+              <Toaster />
+            </div>
+          </Router>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

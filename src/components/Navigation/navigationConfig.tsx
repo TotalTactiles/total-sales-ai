@@ -1,34 +1,80 @@
 
 import React from 'react';
 import { 
-  Home,
-  Headphones,
-  Users,
-  BarChart,
-  Briefcase,
-  BookOpen,
-  ShoppingBag,
+  BarChart3, 
+  Users, 
+  Brain, 
+  Phone, 
+  Settings, 
   FileText,
-  Shield,
-  Settings
-} from "lucide-react";
+  Grid,
+  TrendingUp,
+  Bot,
+  Target
+} from 'lucide-react';
 
-export type NavItem = {
-  id: string;
+export interface NavItem {
+  icon: React.ReactNode;
   label: string;
   href: string;
-  icon: React.ReactNode;
-};
+  badge?: string;
+  description?: string;
+}
 
 export const createNavItems = (getDashboardUrl: () => string): NavItem[] => [
-  { id: 'dashboard', label: 'Dashboard', href: getDashboardUrl(), icon: <Home className="h-5 w-5" /> },
-  { id: 'dialer', label: 'Smart Dialer', href: '/dialer', icon: <Headphones className="h-5 w-5" /> }, 
-  { id: 'leads', label: 'Lead Management', href: '/leads', icon: <Users className="h-5 w-5" /> },
-  { id: 'analytics', label: 'Analytics', href: '/analytics', icon: <BarChart className="h-5 w-5" /> },
-  { id: 'agent-missions', label: 'Agent Missions', href: '/agent-missions', icon: <Briefcase className="h-5 w-5" /> }, 
-  { id: 'company-brain', label: 'Company Brain', href: '/company-brain', icon: <BookOpen className="h-5 w-5" /> }, 
-  { id: 'tools', label: 'Agent Tools', href: '/tools', icon: <ShoppingBag className="h-5 w-5" /> }, 
-  { id: 'reports', label: 'Reports', href: '/reports', icon: <FileText className="h-5 w-5" /> },
-  { id: 'access', label: 'Access Control', href: '/access', icon: <Shield className="h-5 w-5" /> },
-  { id: 'settings', label: 'Settings', href: '/settings', icon: <Settings className="h-5 w-5" /> }
+  {
+    icon: <Grid className="h-5 w-5" />,
+    label: 'Dashboard',
+    href: getDashboardUrl(),
+    description: 'Overview and key metrics'
+  },
+  {
+    icon: <BarChart3 className="h-5 w-5" />,
+    label: 'Analytics',
+    href: '/analytics',
+    description: 'Performance insights and reports'
+  },
+  {
+    icon: <TrendingUp className="h-5 w-5" />,
+    label: 'Manager Analytics',
+    href: '/manager-analytics',
+    description: 'Executive command center'
+  },
+  {
+    icon: <Users className="h-5 w-5" />,
+    label: 'Leads',
+    href: '/leads',
+    badge: '24',
+    description: 'Lead management and tracking'
+  },
+  {
+    icon: <Brain className="h-5 w-5" />,
+    label: 'Company Brain',
+    href: '/company-brain',
+    description: 'Knowledge base and AI insights'
+  },
+  {
+    icon: <Phone className="h-5 w-5" />,
+    label: 'Dialer',
+    href: '/dialer',
+    description: 'Auto-dialer and call management'
+  },
+  {
+    icon: <Bot className="h-5 w-5" />,
+    label: 'AI Agent',
+    href: '/ai-agent',
+    description: 'AI-powered calling assistant'
+  },
+  {
+    icon: <FileText className="h-5 w-5" />,
+    label: 'Reports',
+    href: '/reports',
+    description: 'Detailed reports and analytics'
+  },
+  {
+    icon: <Settings className="h-5 w-5" />,
+    label: 'Settings',
+    href: '/settings',
+    description: 'Account and system settings'
+  }
 ];

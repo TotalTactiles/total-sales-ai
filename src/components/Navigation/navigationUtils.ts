@@ -1,65 +1,48 @@
 
-import { Role } from '@/contexts/auth/types';
+import { Profile } from '@/contexts/auth/types';
 
-export const getDashboardUrl = (profile: { role: Role } | null) => {
-  const userStatus = localStorage.getItem('userStatus');
-  const demoRole = localStorage.getItem('demoRole');
+export const getDashboardUrl = (profile: Profile | null): string => {
+  if (!profile) return '/sales-rep-dashboard';
   
-  // Handle demo mode
-  if (userStatus === 'demo' && demoRole) {
-    switch (demoRole) {
-      case 'manager':
-        return '/manager-dashboard';
-      case 'admin':
-        return '/admin-dashboard';
-      case 'sales-rep':
-      default:
-        return '/';
-    }
-  }
-  
-  // Handle authenticated users based on profile role
-  const role = profile?.role || 'sales_rep';
-  switch (role) {
-    case 'manager':
-      return '/manager-dashboard';
+  switch (profile.role) {
     case 'admin':
       return '/admin-dashboard';
+    case 'manager':
+      return '/manager-dashboard';
     case 'sales_rep':
     default:
-      return '/';
+      return '/sales-rep-dashboard';
   }
 };
 
 export const updateActiveItem = (pathname: string, setActiveItem: (item: string) => void) => {
-  if (pathname === '/' || pathname.includes('sales-rep-dashboard')) {
+  if (pathname === '/' || pathname.includes('dashboard')) {
     setActiveItem('dashboard');
-  } else if (pathname.includes('manager-dashboard')) {
-    setActiveItem('dashboard');
-  } else if (pathname.includes('admin-dashboard')) {
-    setActiveItem('dashboard');
-  } else if (pathname === '/dialer') {
-    setActiveItem('dialer');
-  } else if (pathname === '/leads' || pathname.startsWith('/leads/')) {
-    setActiveItem('leads');
   } else if (pathname === '/analytics') {
     setActiveItem('analytics');
-  } else if (pathname === '/agent-missions') {
-    setActiveItem('agent-missions');
-  } else if (pathname === '/company-brain') {
+  } else if (pathname === '/manager-analytics') {
+    setActiveItem('manager-analytics');
+  } else if (pathname.includes('leads')) {
+    setActiveItem('leads');
+  } else if (pathname.includes('company-brain')) {
     setActiveItem('company-brain');
-  } else if (pathname === '/tools') {
-    setActiveItem('tools');
-  } else if (pathname === '/reports') {
-    setActiveItem('reports');
-  } else if (pathname === '/access') {
-    setActiveItem('access');
-  } else if (pathname === '/settings') {
-    setActiveItem('settings');
-  } else if (pathname === '/ai-agent') {
+  } else if (pathname.includes('dialer')) {
+    setActiveItem('dialer');
+  } else if (pathname.includes('ai-agent')) {
     setActiveItem('ai-agent');
-  } else {
-    // Default to dashboard for unknown routes
-    setActiveItem('dashboard');
+  } else if (pathname.includes('reports')) {
+    setActiveItem('reports');
+  } else if (pathname.includes('settings')) {
+    setActiveItem('settings');
   }
+};
+
+export const shouldShowNavItem = (href: string, profile: Profile | null): boolean => {
+  // Manager Analytics is only for managers and admins
+  if (href === '/manager-analytics') {
+    return profile?.role === 'manager' || profile?.role === 'admin';
+  }
+  
+  // All other items are visible to everyone
+  return true;
 };

@@ -1,12 +1,10 @@
 
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Link } from 'react-router-dom';
-import Logo from '../Logo';
-import UserProfile from '../UserProfile';
-import { ThemeToggle } from '../ThemeProvider';
-import { Bell, Menu, X, Home, Users, Headphones, BarChart, Settings } from "lucide-react";
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+import { shouldShowNavItem } from './navigationUtils';
 import { NavItem } from './navigationConfig';
 
 interface MobileNavigationProps {
@@ -24,86 +22,62 @@ const MobileNavigation: React.FC<MobileNavigationProps> = ({
   setMobileMenuOpen,
   getDashboardUrl 
 }) => {
+  const location = useLocation();
+  const { profile } = useAuth();
+
+  const filteredNavItems = navItems.filter(item => shouldShowNavItem(item.href, profile));
+
   return (
-    <>
-      <div className="md:hidden">
-        <div className="px-4 py-3 flex justify-between items-center border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-foreground hover:bg-muted"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-            <Logo />
-          </div>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-2 touch-target"
-            >
-              <div className="relative">
-                <Bell className="h-4 w-4" />
-                <Badge className="absolute -top-1 -right-1 bg-destructive rounded-full w-3 h-3 flex items-center justify-center text-[8px] font-bold p-0">
-                  3
-                </Badge>
-              </div>
-            </Button>
-            <div className="h-6 border-l border-border mx-1"></div>
-            <UserProfile name="Sam" role="" />
-          </div>
+    <div className="lg:hidden">
+      {/* Mobile menu button */}
+      <div className="flex items-center justify-between px-4 py-3">
+        <Link to={getDashboardUrl()} className="text-xl font-bold text-sidebar-foreground">
+          SalesOS
+        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="text-sidebar-foreground hover:bg-sidebar-accent"
+        >
+          {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="px-4 py-2 space-y-1 bg-sidebar border-t border-sidebar-border">
+          {filteredNavItems.map((item, index) => {
+            const isActive = location.pathname === item.href || 
+                           (item.href.includes('dashboard') && location.pathname === '/') ||
+                           activeItem === item.label.toLowerCase().replace(/\s+/g, '-');
+            
+            return (
+              <Link
+                key={index}
+                to={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                  isActive
+                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'
+                }`}
+              >
+                <div className="flex items-center">
+                  {item.icon}
+                  <span className="ml-3">{item.label}</span>
+                </div>
+                {item.badge && (
+                  <span className="px-2 py-1 text-xs bg-red-500 text-white rounded-full">
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
-        
-        {/* Mobile Menu (Slide down) */}
-        {mobileMenuOpen && (
-          <div className="bg-background border-b border-border animate-slide-up">
-            <div className="max-h-[60vh] overflow-y-auto mobile-scroll">
-              {navItems.map((item) => (
-                <Link 
-                  key={item.id}
-                  to={item.href}
-                  className={`mobile-nav-item ${
-                    activeItem === item.id ? 'active' : ''
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.icon && <span className="flex-shrink-0">{item.icon}</span>}
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      
-      {/* Mobile Bottom Tab Bar - Clean and minimal */}
-      <div className="mobile-tab-bar md:hidden">
-        <Link to={getDashboardUrl()} className={`mobile-tab-item ${activeItem === 'dashboard' ? 'active' : ''}`}>
-          <Home className="h-5 w-5 flex-shrink-0" />
-          <span>Home</span>
-        </Link>
-        <Link to="/leads" className={`mobile-tab-item ${activeItem === 'leads' ? 'active' : ''}`}>
-          <Users className="h-5 w-5 flex-shrink-0" />
-          <span>Leads</span>
-        </Link>
-        <Link to="/dialer" className={`mobile-tab-item ${activeItem === 'dialer' ? 'active' : ''}`}>
-          <Headphones className="h-5 w-5 flex-shrink-0" />
-          <span>Calls</span>
-        </Link>
-        <Link to="/analytics" className={`mobile-tab-item ${activeItem === 'analytics' ? 'active' : ''}`}>
-          <BarChart className="h-5 w-5 flex-shrink-0" />
-          <span>Stats</span>
-        </Link>
-        <Link to="/settings" className={`mobile-tab-item ${activeItem === 'settings' ? 'active' : ''}`}>
-          <Settings className="h-5 w-5 flex-shrink-0" />
-          <span>More</span>
-        </Link>
-      </div>
-    </>
+      )}
+    </div>
   );
 };
 
