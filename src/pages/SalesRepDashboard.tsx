@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import AIAssistant from '@/components/AIAssistant';
+import { useNavigate } from 'react-router-dom';
 import DashboardNavigation from '@/components/Dashboard/DashboardNavigation';
 import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import PerformanceMetricsGrid from '@/components/Dashboard/PerformanceMetricsGrid';
@@ -10,214 +10,131 @@ import VictoryArchive from '@/components/Dashboard/VictoryArchive';
 import AISummaryCard from '@/components/Dashboard/AISummaryCard';
 import AIRecommendedActions from '@/components/Dashboard/AIRecommendedActions';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLeads } from '@/hooks/useLeads';
+import { useMockData } from '@/hooks/useMockData';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
-type AIPersona = {
-  id: string;
-  name: string;
-  level: number;
-  tone: string;
-  delivery_style: string;
-};
-
-type UserStats = {
-  call_count: number;
-  win_count: number;
-  current_streak: number;
-  best_time_start: string | null;
-  best_time_end: string | null;
-  mood_score: number | null;
-};
 
 const SalesRepDashboard = () => {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const [userStats, setUserStats] = useState<UserStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isFullUser, setIsFullUser] = useState(false);
+  const { leads } = useLeads();
+  const { leads: mockLeads } = useMockData();
+  const [userStats, setUserStats] = useState(null);
 
-  // Check if user is full user
   useEffect(() => {
-    const userStatus = localStorage.getItem('userStatus');
-    const planType = localStorage.getItem('planType');
-    setIsFullUser(userStatus === 'full' && planType === 'pro');
-    
-    const isDemoMode = localStorage.getItem('demoMode') === 'true';
-    if (isDemoMode || userStatus === 'full') {
-      initializeFullUserData();
-    } else {
-      fetchData();
-    }
-  }, [user]);
-
-  const initializeFullUserData = () => {
-    setUserStats({
-      call_count: 347,
-      win_count: 89,
-      current_streak: 12,
-      best_time_start: '14:00',
-      best_time_end: '16:00',
-      mood_score: 92
-    });
-    setLoading(false);
-    
-    setTimeout(() => {
-      toast.success("Welcome back! All Pro features are active.", {
-        description: "Your AI assistant is fully trained and ready to help.",
-      });
-    }, 2000);
-  };
-
-  const fetchData = async () => {
-    if (!user) return;
-    
-    try {
-      const { data: statsData, error: statsError } = await supabase
-        .from('user_stats')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-        
-      if (statsError) throw statsError;
+    const fetchUserStats = async () => {
+      if (!user?.id) return;
       
-      setUserStats(statsData as UserStats);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      toast.error('Failed to load dashboard data');
-    } finally {
-      setLoading(false);
-    }
+      try {
+        const { data } = await supabase
+          .from('user_stats')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        setUserStats(data);
+      } catch (error) {
+        console.log('No user stats found, using defaults');
+      }
+    };
+
+    fetchUserStats();
+  }, [user?.id]);
+
+  // Use real leads if available, otherwise use mock data
+  const displayLeads = leads && leads.length > 0 ? leads : mockLeads;
+  const isFullUser = !!user && !!profile;
+
+  const dailySummary = `Good morning! You have 12 high-priority leads requiring immediate attention. Your conversion rate improved by 23% this week. AI suggests focusing on Enterprise prospects between 2-4 PM for optimal engagement. Your pipeline value increased to $847K with 3 deals expected to close this week.`;
+
+  // Transform leads for PipelinePulse component
+  const pipelineLeads = displayLeads.slice(0, 5).map(lead => ({
+    id: lead.id,
+    name: lead.name,
+    status: lead.status as 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed',
+    priority: lead.priority as 'high' | 'medium' | 'low',
+    lastContact: lead.lastContact || 'Never',
+    value: `$${Math.floor(Math.random() * 50000 + 10000).toLocaleString()}`
+  }));
+
+  const handleLeadClick = (leadId: string) => {
+    // Navigate to the correct lead workspace route
+    navigate(`/lead-workspace/${leadId}`);
   };
 
-  // Sample data
-  const dailySummary = isFullUser ? 
-    "Good morning! Your AI assistant has analyzed your pipeline and identified 3 high-priority leads requiring immediate attention. Your performance is trending 23% above last week, with optimal call times between 2-4 PM. Today's focus: follow up with Enterprise Corp (Deal value: $50K) and schedule the demo with TechStart Inc. Your energy levels are optimal for high-stakes conversations." :
-    "Good morning! You have 5 leads in your pipeline requiring follow-up. Your call performance is trending upward. Focus on your top 3 priority leads today for maximum impact.";
-
-  const mockLeads = [
-    { id: '1', name: 'Enterprise Corp', status: 'qualified' as const, priority: 'high' as const, lastContact: 'Yesterday', value: '$50,000' },
-    { id: '2', name: 'TechStart Inc', status: 'contacted' as const, priority: 'high' as const, lastContact: '2 days ago', value: '$25,000' },
-    { id: '3', name: 'Growth Solutions', status: 'new' as const, priority: 'medium' as const, lastContact: 'Today', value: '$15,000' },
-    { id: '4', name: 'Scale Dynamics', status: 'proposal' as const, priority: 'high' as const, lastContact: '3 days ago', value: '$75,000' },
-    { id: '5', name: 'Innovation Labs', status: 'contacted' as const, priority: 'low' as const, lastContact: '1 week ago', value: '$10,000' },
+  const victories = [
+    { client: 'TechCorp Inc.', value: '$125,000', date: '2024-01-15' },
+    { client: 'Global Solutions', value: '$85,000', date: '2024-01-12' },
+    { client: 'StartupXYZ', value: '$45,000', date: '2024-01-08' }
   ];
 
-  const mockVictories = [
-    { id: '1', clientName: 'DataFlow Systems', dealValue: '$85,000', dateClosed: '2024-12-15', type: 'new' as const },
-    { id: '2', clientName: 'CloudTech Solutions', dealValue: '$45,000', dateClosed: '2024-12-10', type: 'upsell' as const },
-    { id: '3', clientName: 'StartupX', dealValue: '$30,000', dateClosed: '2024-12-05', type: 'renewal' as const },
-  ];
-
-  const aiSummaryData = {
-    emailsDrafted: isFullUser ? 24 : 8,
-    callsScheduled: isFullUser ? 15 : 5,
-    proposalsGenerated: isFullUser ? 6 : 2,
-    improvementPercentage: isFullUser ? 67 : 23,
+  const aiActions = {
+    emails_drafted: 23,
+    calls_scheduled: 12,
+    proposals_generated: 5,
+    improvement_percentage: 34
   };
 
   const recommendedActions = [
     {
       id: '1',
-      description: 'Call Enterprise Corp about Q1 budget approval',
-      suggestedTime: 'Today, 2:30 PM',
+      description: 'Call Maria Rodriguez at TechCorp - warm lead ready to close',
+      suggestedTime: '2:30 PM',
       urgency: 'high' as const,
-      type: 'call' as const,
-      impact: 'high' as const,
+      type: 'call' as const
     },
     {
       id: '2',
-      description: 'Send follow-up email to TechStart Inc with demo recording',
-      suggestedTime: 'Today, 11:00 AM',
+      description: 'Send follow-up email to Global Solutions with updated proposal',
+      suggestedTime: '3:15 PM',
       urgency: 'medium' as const,
-      type: 'email' as const,
-      impact: 'medium' as const,
+      type: 'email' as const
     },
     {
       id: '3',
-      description: 'Schedule meeting with Scale Dynamics decision maker',
-      suggestedTime: 'Tomorrow, 10:00 AM',
-      urgency: 'high' as const,
-      type: 'meeting' as const,
-      impact: 'high' as const,
-    },
+      description: 'Schedule demo with StartupXYZ for next week',
+      suggestedTime: '4:00 PM',
+      urgency: 'low' as const,
+      type: 'meeting' as const
+    }
   ];
-
-  const handleLeadClick = (leadId: string) => {
-    console.log('Lead clicked:', leadId);
-    // Navigate to lead details
-  };
-
-  const handleActionClick = (actionId: string) => {
-    console.log('Action clicked:', actionId);
-    toast.success('Action started!');
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background">
       <DashboardNavigation />
       
-      {/* Main Content */}
       <main className="pt-[60px]">
-        <div className="max-w-[1200px] mx-auto p-6 space-y-6">
-          {/* AI Daily Summary */}
-          <AIDailySummary 
-            summary={dailySummary}
-            isFullUser={isFullUser}
-          />
+        <div className="max-w-7xl mx-auto p-6 space-y-6">
+          {/* AI Daily Summary - Full Width */}
+          <section>
+            <AIDailySummary summary={dailySummary} isFullUser={isFullUser} />
+          </section>
 
-          {/* Performance Metrics Grid */}
-          <PerformanceMetricsGrid 
-            userStats={userStats}
-            isFullUser={isFullUser}
-          />
+          {/* Performance Metrics - Grid */}
+          <section>
+            <PerformanceMetricsGrid userStats={userStats} isFullUser={isFullUser} />
+          </section>
 
           {/* Main Dashboard Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - 2/3 width */}
             <div className="lg:col-span-2 space-y-6">
-              <PipelinePulse 
-                leads={mockLeads}
-                onLeadClick={handleLeadClick}
-              />
-              
-              <AIRecommendedActions
-                actions={recommendedActions}
-                onActionClick={handleActionClick}
-                isFullUser={isFullUser}
-              />
+              <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
+              <AIOptimizedTimeBlocks />
             </div>
 
             {/* Right Column - 1/3 width */}
             <div className="space-y-6">
-              <AIOptimizedTimeBlocks isFullUser={isFullUser} />
-              <VictoryArchive victories={mockVictories} isFullUser={isFullUser} />
+              <VictoryArchive victories={victories} />
+              <AISummaryCard actions={aiActions} isFullUser={isFullUser} />
             </div>
           </div>
 
-          {/* AI Summary Card */}
-          <AISummaryCard 
-            data={aiSummaryData}
-            isFullUser={isFullUser}
-          />
+          {/* AI Recommended Actions - Full Width */}
+          <section>
+            <AIRecommendedActions actions={recommendedActions} />
+          </section>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 h-[40px] bg-background border-t border-border flex items-center justify-between px-6 text-sm text-muted-foreground z-40">
-        <span>SalesOS v2.1.0</span>
-        <a href="#" className="hover:text-foreground transition-colors">Support</a>
-      </footer>
-
-      {/* AI Assistant */}
-      <AIAssistant />
     </div>
   );
 };
