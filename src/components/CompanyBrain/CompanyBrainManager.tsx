@@ -478,7 +478,7 @@ const CompanyBrainManager: React.FC = () => {
                             <h4 className="font-medium text-sm truncate mb-2">{file.name}</h4>
                             <div className="text-xs text-slate-500 space-y-1">
                               <p>Size: {(file.size / 1024).toFixed(1)}KB</p>
-                              <p>Uploaded: {file.uploadedAt.toLocaleDateString()}</p>
+                              <p>Uploaded: {file.uploadDate.toLocaleDateString()}</p>
                             </div>
                             <div className="flex gap-1 mt-3">
                               <Button variant="outline" size="sm" className="flex-1">
@@ -536,8 +536,8 @@ const CompanyBrainManager: React.FC = () => {
                                 <p><strong>URL:</strong> {websiteData.url}</p>
                                 <p><strong>Pages Analyzed:</strong> {websiteData.pages}</p>
                                 <p><strong>Last Crawled:</strong> {websiteData.lastCrawled?.toLocaleDateString()}</p>
-                                {websiteData.title && <p><strong>Site Title:</strong> {websiteData.title}</p>}
-                                {websiteData.description && <p><strong>Description:</strong> {websiteData.description}</p>}
+                                {websiteData.content?.title && <p><strong>Site Title:</strong> {websiteData.content.title}</p>}
+                                {websiteData.content?.description && <p><strong>Description:</strong> {websiteData.content.description}</p>}
                               </div>
                             </div>
                             <Button variant="outline" size="sm" onClick={() => crawlWebsite(websiteData.url)}>
