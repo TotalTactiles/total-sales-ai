@@ -1,36 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { masterAIBrain } from '@/services/masterAIBrain';
-
-export interface EmailTemplate {
-  id: string;
-  name: string;
-  subject: string;
-  body: string;
-  type: 'sequence' | 'one_off' | 'follow_up';
-  variables: string[];
-  companyId: string;
-}
-
-export interface EmailSequence {
-  id: string;
-  name: string;
-  emails: EmailTemplate[];
-  delays: number[]; // hours between emails
-  isActive: boolean;
-  companyId: string;
-}
-
-export interface EmailAutomationRule {
-  id: string;
-  trigger: 'lead_created' | 'lead_updated' | 'call_completed' | 'email_opened' | 'custom';
-  conditions: Record<string, any>;
-  action: 'send_email' | 'start_sequence' | 'schedule_follow_up';
-  emailTemplateId?: string;
-  sequenceId?: string;
-  delay?: number;
-  companyId: string;
-}
+import { nativeAutomationEngine } from './automationEngine';
+import { 
+  EmailTemplate, 
+  AutomationFlow, 
+  AutomationAction, 
+  AutomationResult 
+} from './types/automationTypes';
 
 export class EmailAutomationService {
   async createEmailTemplate(template: Omit<EmailTemplate, 'id'>, companyId: string): Promise<EmailTemplate> {
@@ -55,8 +32,8 @@ export class EmailAutomationService {
         name: data.name,
         subject: data.subject_template,
         body: data.body_template,
-        type: template.type,
         variables: template.variables,
+        industry: template.industry,
         companyId: data.company_id
       };
     } catch (error) {
@@ -68,7 +45,7 @@ export class EmailAutomationService {
   async generateEmailFromTemplate(
     templateId: string, 
     variables: Record<string, string>,
-    leadContext?: any
+    leadContext?: Record<string, any>
   ): Promise<{ subject: string; body: string }> {
     try {
       // Get template
@@ -82,7 +59,7 @@ export class EmailAutomationService {
         throw new Error('Template not found');
       }
 
-      // Use AI to enhance the email with context
+      // Log to AI brain for learning
       await masterAIBrain.ingestEvent({
         user_id: variables.userId || 'system',
         company_id: variables.companyId || 'system',
@@ -91,7 +68,7 @@ export class EmailAutomationService {
         data: {
           action: 'generate_email',
           templateId,
-          leadContext,
+          leadContext: leadContext || {},
           variables
         }
       });
@@ -166,6 +143,54 @@ export class EmailAutomationService {
     }
   }
 
+  async createEmailAutomationFlow(
+    name: string,
+    trigger: string,
+    conditions: Record<string, any>,
+    templateId: string,
+    delay: number = 0,
+    companyId: string,
+    userId: string
+  ): Promise<AutomationResult> {
+    try {
+      const emailAction: AutomationAction = {
+        id: crypto.randomUUID(),
+        type: 'email',
+        content: `Email from template ${templateId}`,
+        delay,
+        metadata: {
+          templateId,
+          body: 'Email content will be generated from template'
+        }
+      };
+
+      const flow: Omit<AutomationFlow, 'id'> = {
+        name,
+        trigger: {
+          type: trigger as any,
+          conditions: Object.entries(conditions).map(([field, value]) => ({
+            field,
+            operator: 'equals' as const,
+            value
+          }))
+        },
+        actions: [emailAction],
+        isActive: true,
+        companyId,
+        createdBy: userId
+      };
+
+      return await nativeAutomationEngine.createAutomationFlow(flow, userId);
+
+    } catch (error) {
+      console.error('Error creating email automation flow:', error);
+      return {
+        success: false,
+        message: 'Failed to create email automation flow'
+      };
+    }
+  }
+
   async processScheduledEmails(): Promise<void> {
     try {
       const now = new Date();
@@ -182,7 +207,7 @@ export class EmailAutomationService {
 
       for (const emailLog of scheduledEmails || []) {
         try {
-          const payload = this.extractEmailPayload(emailLog.payload);
+          const payload = this.safeExtractEmailPayload(emailLog.payload);
           
           // Send email via Gmail
           const { data, error: sendError } = await supabase.functions.invoke('gmail-send', {
@@ -230,7 +255,7 @@ export class EmailAutomationService {
           console.error('Error processing scheduled email:', error);
           
           // Mark as failed
-          const payload = this.extractEmailPayload(emailLog.payload);
+          const payload = this.safeExtractEmailPayload(emailLog.payload);
           const failedPayload = {
             ...payload,
             status: 'failed',
@@ -248,53 +273,33 @@ export class EmailAutomationService {
     }
   }
 
-  async createAutomationRule(rule: Omit<EmailAutomationRule, 'id'>, companyId: string): Promise<EmailAutomationRule> {
-    try {
-      const rulePayload = { ...rule, companyId };
-
-      const { data, error } = await supabase
-        .from('ai_brain_logs')
-        .insert({
-          type: 'automation_rule',
-          event_summary: `Email automation rule: ${rule.trigger}`,
-          payload: rulePayload,
-          visibility: 'admin_only',
-          company_id: companyId
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return {
-        id: data.id,
-        ...rule,
-        companyId
-      };
-    } catch (error) {
-      console.error('Error creating automation rule:', error);
-      throw error;
-    }
-  }
-
   async evaluateAutomationTriggers(
-    trigger: EmailAutomationRule['trigger'],
+    trigger: string,
     eventData: Record<string, any>
   ): Promise<void> {
     try {
-      // Get active automation rules for this trigger
-      const { data: rules, error } = await supabase
+      // Get active automation flows for this trigger
+      const { data: flows, error } = await supabase
         .from('ai_brain_logs')
         .select('*')
-        .eq('type', 'automation_rule');
+        .eq('type', 'automation_flow');
 
       if (error) throw error;
 
-      for (const ruleLog of rules || []) {
-        const rule = this.extractAutomationRule(ruleLog.payload);
+      for (const flowLog of flows || []) {
+        const flow = this.safeExtractFlow(flowLog.payload);
         
-        if (rule && rule.trigger === trigger && this.evaluateConditions(rule.conditions, eventData)) {
-          await this.executeAutomationAction(rule, eventData);
+        if (flow && flow.trigger.type === trigger && flow.isActive) {
+          const conditionsMatch = this.evaluateConditions(flow.trigger.conditions, eventData);
+          
+          if (conditionsMatch) {
+            await nativeAutomationEngine.executeFlow(
+              flowLog.id,
+              eventData,
+              eventData.userId || 'system',
+              eventData.companyId || 'system'
+            );
+          }
         }
       }
     } catch (error) {
@@ -302,10 +307,15 @@ export class EmailAutomationService {
     }
   }
 
-  private extractEmailPayload(payload: any): any {
-    // Simple extraction without complex type checking
+  private safeExtractEmailPayload(payload: any): any {
     if (!payload || typeof payload !== 'object') {
-      return { to: '', subject: '', body: '', metadata: {} };
+      return { 
+        to: '', 
+        subject: '', 
+        body: '', 
+        metadata: {}, 
+        status: 'pending' 
+      };
     }
     
     return {
@@ -318,98 +328,53 @@ export class EmailAutomationService {
     };
   }
 
-  private extractAutomationRule(payload: any): EmailAutomationRule | null {
-    // Simple extraction without complex type checking
+  private safeExtractFlow(payload: any): AutomationFlow | null {
     if (!payload || typeof payload !== 'object') {
       return null;
     }
 
-    // Check for required fields
-    if (!payload.trigger || !payload.conditions || !payload.action) {
+    try {
+      return {
+        id: String(payload.id || ''),
+        name: String(payload.name || ''),
+        trigger: payload.trigger || { type: 'custom', conditions: [] },
+        actions: Array.isArray(payload.actions) ? payload.actions : [],
+        isActive: Boolean(payload.isActive),
+        companyId: String(payload.companyId || ''),
+        createdBy: String(payload.createdBy || ''),
+        industry: payload.industry ? String(payload.industry) : undefined,
+        metadata: payload.metadata || {}
+      };
+    } catch (error) {
+      console.error('Error extracting flow data:', error);
       return null;
     }
-
-    return {
-      id: String(payload.id || ''),
-      trigger: payload.trigger,
-      conditions: payload.conditions || {},
-      action: payload.action,
-      emailTemplateId: payload.emailTemplateId ? String(payload.emailTemplateId) : undefined,
-      sequenceId: payload.sequenceId ? String(payload.sequenceId) : undefined,
-      delay: payload.delay ? Number(payload.delay) : undefined,
-      companyId: String(payload.companyId || '')
-    };
   }
 
-  private evaluateConditions(conditions: Record<string, any>, eventData: Record<string, any>): boolean {
-    // Simple condition evaluation - can be enhanced
-    return Object.entries(conditions).every(([key, expectedValue]) => {
-      return eventData[key] === expectedValue;
-    });
-  }
+  private evaluateConditions(conditions: any[], eventData: Record<string, any>): boolean {
+    if (!Array.isArray(conditions)) return true;
+    
+    return conditions.every(condition => {
+      if (!condition || typeof condition !== 'object') return false;
+      
+      const { field, operator, value } = condition;
+      const eventValue = eventData[field];
 
-  private async executeAutomationAction(
-    rule: EmailAutomationRule,
-    eventData: Record<string, any>
-  ): Promise<void> {
-    try {
-      switch (rule.action) {
-        case 'send_email':
-          if (rule.emailTemplateId) {
-            const email = await this.generateEmailFromTemplate(
-              rule.emailTemplateId,
-              eventData,
-              eventData.leadContext
-            );
-            
-            const sendAt = rule.delay 
-              ? new Date(Date.now() + rule.delay * 60 * 60 * 1000)
-              : new Date();
-            
-            await this.scheduleEmail(
-              eventData.email,
-              email.subject,
-              email.body,
-              sendAt,
-              { 
-                automationRuleId: rule.id,
-                companyId: rule.companyId,
-                ...eventData 
-              }
-            );
-          }
-          break;
-          
-        case 'start_sequence':
-          if (rule.sequenceId) {
-            // Implementation for email sequences
-            console.log('Starting email sequence:', rule.sequenceId);
-          }
-          break;
-          
-        case 'schedule_follow_up':
-          // Implementation for follow-up scheduling
-          console.log('Scheduling follow-up');
-          break;
+      switch (operator) {
+        case 'equals':
+          return eventValue === value;
+        case 'contains':
+          return String(eventValue).includes(String(value));
+        case 'greater_than':
+          return Number(eventValue) > Number(value);
+        case 'less_than':
+          return Number(eventValue) < Number(value);
+        case 'exists':
+          return eventValue !== undefined && eventValue !== null;
+        default:
+          return false;
       }
-
-      // Log automation execution
-      await masterAIBrain.ingestEvent({
-        user_id: eventData.userId || 'system',
-        company_id: eventData.companyId || rule.companyId || 'system',
-        event_type: 'ai_output',
-        source: 'email_automation',
-        data: {
-          action: 'automation_executed',
-          ruleId: rule.id,
-          trigger: rule.trigger,
-          eventData
-        }
-      });
-
-    } catch (error) {
-      console.error('Error executing automation action:', error);
-    }
+    });
   }
 }
 

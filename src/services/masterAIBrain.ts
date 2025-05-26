@@ -7,6 +7,7 @@ import { AutomationEngine } from './ai/automationEngine';
 import { RecommendationService } from './ai/recommendationService';
 import { LearningEngine } from './ai/learningEngine';
 import { emailAutomationService } from './ai/emailAutomationService';
+import { nativeAutomationEngine } from './ai/automationEngine';
 
 // Re-export types for backward compatibility
 export type { AIIngestionEvent, AIRecommendation } from './ai/types';
@@ -19,7 +20,6 @@ class MasterAIBrain {
   private automationEngine = new AutomationEngine();
   private recommendationService = new RecommendationService();
   private learningEngine = new LearningEngine();
-  private emailAutomationService = emailAutomationService;
 
   static getInstance(): MasterAIBrain {
     if (!MasterAIBrain.instance) {
@@ -103,11 +103,8 @@ class MasterAIBrain {
         // Update learning models
         await this.learningEngine.updateLearningModels(event);
         
-        // Check for automation triggers
-        await this.automationEngine.checkAutomationTriggers(event);
-        
-        // Check for email automation triggers
-        await this.checkEmailAutomationTriggers(event);
+        // Check for automation triggers using new native engine
+        await this.checkNativeAutomationTriggers(event);
         
       } catch (error) {
         console.error('Error processing event:', event, error);
@@ -115,10 +112,10 @@ class MasterAIBrain {
     }
   }
 
-  private async checkEmailAutomationTriggers(event: AIIngestionEvent): Promise<void> {
+  private async checkNativeAutomationTriggers(event: AIIngestionEvent): Promise<void> {
     try {
-      // Map AI events to email automation triggers
-      let trigger: any = null;
+      // Map AI events to automation triggers
+      let triggerType: string | null = null;
       const eventData = {
         ...event.data,
         userId: event.user_id,
@@ -129,23 +126,23 @@ class MasterAIBrain {
       switch (event.event_type) {
         case 'user_action':
           if (event.data.action === 'lead_created') {
-            trigger = 'lead_created';
+            triggerType = 'lead_created';
           } else if (event.data.action === 'call_completed') {
-            trigger = 'call_completed';
+            triggerType = 'call_completed';
           }
           break;
         case 'email_interaction':
           if (event.data.action === 'opened') {
-            trigger = 'email_opened';
+            triggerType = 'email_opened';
           }
           break;
       }
 
-      if (trigger) {
-        await this.emailAutomationService.evaluateAutomationTriggers(trigger, eventData);
+      if (triggerType) {
+        await emailAutomationService.evaluateAutomationTriggers(triggerType, eventData);
       }
     } catch (error) {
-      console.error('Error checking email automation triggers:', error);
+      console.error('Error checking native automation triggers:', error);
     }
   }
 
@@ -165,63 +162,53 @@ class MasterAIBrain {
     });
   }
 
-  // Email automation methods
-  async sendAutomatedEmail(
-    to: string,
-    templateId: string,
-    variables: Record<string, string>,
-    delay?: number
+  // Simplified automation methods using native engine
+  async triggerAutomation(
+    trigger: string,
+    eventData: Record<string, any>,
+    userId: string,
+    companyId: string
   ): Promise<void> {
     try {
-      const email = await this.emailAutomationService.generateEmailFromTemplate(
-        templateId,
-        variables
-      );
+      const enrichedData = {
+        ...eventData,
+        userId,
+        companyId,
+        timestamp: new Date().toISOString()
+      };
 
-      const sendAt = delay 
-        ? new Date(Date.now() + delay * 60 * 60 * 1000)
-        : new Date();
+      await emailAutomationService.evaluateAutomationTriggers(trigger, enrichedData);
 
-      await this.emailAutomationService.scheduleEmail(
-        to,
-        email.subject,
-        email.body,
-        sendAt,
-        { templateId, variables }
-      );
-
-      // Log the automation
+      // Log the automation trigger
       await this.ingestEvent({
-        user_id: variables.userId || 'system',
-        company_id: variables.companyId || 'system',
+        user_id: userId,
+        company_id: companyId,
         event_type: 'ai_output',
-        source: 'email_automation',
+        source: 'automation_trigger',
         data: {
-          action: 'automated_email_scheduled',
-          to,
-          templateId,
-          sendAt: sendAt.toISOString()
+          trigger,
+          eventData: enrichedData
         }
       });
 
     } catch (error) {
-      console.error('Error sending automated email:', error);
+      console.error('Error triggering automation:', error);
       throw error;
     }
   }
 
-  // Initialize email automation processing
-  async initializeEmailAutomation(): Promise<void> {
+  // Initialize automation processing
+  async initializeAutomation(): Promise<void> {
     // Process scheduled emails every minute
     setInterval(() => {
-      this.emailAutomationService.processScheduledEmails();
+      emailAutomationService.processScheduledEmails();
     }, 60000);
 
-    console.log('Email automation system initialized');
+    console.log('Native automation system initialized with limits enforced');
   }
 }
 
 export const masterAIBrain = MasterAIBrain.getInstance();
 
-// Initialize email automation when the module loads
-masterAIBrain.initializeEmailAutomation();
+// Initialize automation when the module loads
+masterAIBrain.initializeAutomation();
