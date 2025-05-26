@@ -38,16 +38,35 @@ import {
   Folder,
   Image,
   Video,
-  FileImage
+  FileImage,
+  Play,
+  BookOpen,
+  HelpCircle,
+  ExternalLink,
+  Trash2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompanyBrain } from '@/hooks/useCompanyBrain';
 
+interface DataSourceCard {
+  id: string;
+  title: string;
+  icon: React.ComponentType<any>;
+  status: 'connected' | 'disconnected' | 'error';
+  itemCount: number;
+  lastUpdated: Date | null;
+  description: string;
+  actionButton: {
+    text: string;
+    action: () => void;
+  };
+}
+
 const CompanyBrainManager: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('overview');
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [activeCardTab, setActiveCardTab] = useState<Record<string, string>>({});
   
   const {
     isLoading,
@@ -70,57 +89,163 @@ const CompanyBrainManager: React.FC = () => {
       toast.error('Please enter a website URL');
       return;
     }
-
     await crawlWebsite(websiteUrl);
     setWebsiteUrl('');
   };
 
   const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
-    
     const fileArray = Array.from(files);
-    await uploadFiles(fileArray, selectedCategory !== 'all' ? selectedCategory : 'general');
+    await uploadFiles(fileArray, 'general');
   };
 
-  const handleInsightAction = async (insight: any, action: 'email' | 'brief') => {
-    if (action === 'email') {
-      await sendInsightEmail(insight);
-    } else if (action === 'brief') {
-      const brief = await createCampaignBrief(insight);
-      console.log('Campaign brief created:', brief);
+  const handleBulkUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+    
+    toast.info(`Uploading ${files.length} files...`);
+    await handleFileUpload(files);
+  };
+
+  const setCardTab = (cardId: string, tab: string) => {
+    setActiveCardTab(prev => ({ ...prev, [cardId]: tab }));
+  };
+
+  const getCardTab = (cardId: string) => {
+    return activeCardTab[cardId] || 'overview';
+  };
+
+  const dataSourceCards: DataSourceCard[] = [
+    {
+      id: 'social-media',
+      title: 'Social Media Feeds',
+      icon: Users,
+      status: dataStatus.social.connected > 0 ? 'connected' : 'disconnected',
+      itemCount: dataStatus.social.connected,
+      lastUpdated: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
+      description: 'Instagram, LinkedIn, TikTok, Facebook integrations',
+      actionButton: {
+        text: 'Connect Accounts',
+        action: () => setCardTab('social-media', 'data-sources')
+      }
+    },
+    {
+      id: 'website',
+      title: 'Website Ingestion',
+      icon: Globe,
+      status: websiteData ? 'connected' : 'disconnected',
+      itemCount: websiteData?.pages || 0,
+      lastUpdated: websiteData?.lastCrawled || null,
+      description: 'Automated website content scraping and analysis',
+      actionButton: {
+        text: websiteData ? 'Resync' : 'Ingest Data',
+        action: () => setCardTab('website', 'data-sources')
+      }
+    },
+    {
+      id: 'file-uploads',
+      title: 'File Uploads',
+      icon: Upload,
+      status: uploadedFiles.length > 0 ? 'connected' : 'disconnected',
+      itemCount: uploadedFiles.length,
+      lastUpdated: uploadedFiles.length > 0 ? uploadedFiles[0].uploadDate : null,
+      description: 'PDFs, Word Docs, CSVs, Images, Videos',
+      actionButton: {
+        text: 'Upload Files',
+        action: () => document.getElementById('bulk-upload')?.click()
+      }
+    },
+    {
+      id: 'video-library',
+      title: 'Video Library',
+      icon: Video,
+      status: 'disconnected',
+      itemCount: 0,
+      lastUpdated: null,
+      description: 'Training videos, product demos, webinars',
+      actionButton: {
+        text: 'Upload Videos',
+        action: () => toast.info('Video upload coming soon')
+      }
+    },
+    {
+      id: 'sops-cases',
+      title: 'SOPs & Case Studies',
+      icon: BookOpen,
+      status: 'connected',
+      itemCount: 12,
+      lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      description: 'Standard Operating Procedures and success stories',
+      actionButton: {
+        text: 'Add Content',
+        action: () => toast.info('SOP management coming soon')
+      }
+    },
+    {
+      id: 'ai-insights',
+      title: 'AI Insights Engine',
+      icon: Zap,
+      status: insights.length > 0 ? 'connected' : 'disconnected',
+      itemCount: insights.length,
+      lastUpdated: insights.length > 0 ? new Date() : null,
+      description: 'Automated analysis and recommendations',
+      actionButton: {
+        text: 'Generate Insights',
+        action: refreshInsights
+      }
     }
+  ];
+
+  const StatusBadge = ({ status }: { status: 'connected' | 'disconnected' | 'error' }) => {
+    const statusConfig = {
+      connected: { color: 'bg-green-500', text: 'Connected' },
+      disconnected: { color: 'bg-gray-400', text: 'Disconnected' },
+      error: { color: 'bg-red-500', text: 'Error' }
+    };
+    
+    const config = statusConfig[status];
+    return (
+      <div className="flex items-center gap-2">
+        <div className={`w-2 h-2 rounded-full ${config.color}`} />
+        <span className="text-xs text-slate-600">{config.text}</span>
+      </div>
+    );
   };
 
-  const filteredFiles = uploadedFiles.filter(file => {
-    const matchesSearch = file.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || file.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
-
-  const fileCategories = ['all', 'SOPs', 'Case Studies', 'Product Sheets', 'Training Materials', 'Marketing Assets'];
+  const CardTabs = ({ cardId, children }: { cardId: string; children: React.ReactNode }) => (
+    <Tabs value={getCardTab(cardId)} onValueChange={(value) => setCardTab(cardId, value)}>
+      <TabsList className="grid w-full grid-cols-4 mb-4">
+        <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
+        <TabsTrigger value="data-sources" className="text-xs">Data Sources</TabsTrigger>
+        <TabsTrigger value="ai-suggestions" className="text-xs">AI Suggestions</TabsTrigger>
+        <TabsTrigger value="logs" className="text-xs">Logs</TabsTrigger>
+      </TabsList>
+      {children}
+    </Tabs>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Header Section */}
-      <div className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 md:px-6 py-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
+      {/* Header */}
+      <div className="bg-white/80 backdrop-blur-sm border-b border-blue-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg">
-                <Brain className="h-8 w-8 text-white" />
+              <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg">
+                <Brain className="h-10 w-10 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">Company Brain</h1>
-                <p className="text-slate-600 mt-1">Centralized Knowledge Management & AI Insights</p>
+                <h1 className="text-4xl font-bold text-slate-900">Manager Company Brain</h1>
+                <p className="text-slate-600 mt-1 text-lg">Centralized Knowledge Management & AI Intelligence</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Badge className="bg-green-100 text-green-700 border-green-200">
-                <Activity className="w-3 h-3 mr-1" />
+            <div className="flex items-center gap-4">
+              <Badge className="bg-green-100 text-green-700 border-green-200 px-4 py-2 text-sm">
+                <Activity className="w-4 h-4 mr-2" />
                 AI Learning Active
               </Badge>
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
+              <Button variant="outline" size="lg" className="gap-2">
+                <Settings className="h-5 w-5" />
                 Configure
               </Button>
             </div>
@@ -128,599 +253,289 @@ const CompanyBrainManager: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 py-8">
-        {/* Knowledge Graph Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
-          <Card className="bg-white shadow-sm border-slate-200 hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide">Documents</p>
-                  <p className="text-2xl font-bold text-slate-900">{dataStatus.documents.count}</p>
-                </div>
-                <FileText className="h-8 w-8 text-blue-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm border-slate-200 hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide">Website</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    {dataStatus.website.status === 'connected' ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <AlertCircle className="h-4 w-4 text-red-600" />
-                    )}
-                    <p className="text-sm font-semibold capitalize">{dataStatus.website.status}</p>
-                  </div>
-                </div>
-                <Globe className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm border-slate-200 hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide">Social</p>
-                  <p className="text-2xl font-bold text-slate-900">{dataStatus.social.connected}/{dataStatus.social.total}</p>
-                </div>
-                <Users className="h-8 w-8 text-purple-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm border-slate-200 hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide">AI Insights</p>
-                  <p className="text-2xl font-bold text-slate-900">{insights.length}</p>
-                </div>
-                <Zap className="h-8 w-8 text-yellow-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm border-slate-200 hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide">Last Sync</p>
-                  <p className="text-xs font-semibold text-slate-700">
-                    {dataStatus.documents.lastUpload 
-                      ? dataStatus.documents.lastUpload.toLocaleDateString()
-                      : 'Never'
-                    }
-                  </p>
-                </div>
-                <Clock className="h-8 w-8 text-indigo-600" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-sm border-slate-200 hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide">Data Health</p>
-                  <p className="text-sm font-semibold text-green-700">Excellent</p>
-                </div>
-                <Database className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Global Actions */}
+        <div className="mb-8 flex gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+            <Input
+              placeholder="Search all data sources..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-12 text-lg"
+            />
+          </div>
+          <Button variant="outline" size="lg" className="gap-2">
+            <Filter className="h-5 w-5" />
+            Filter
+          </Button>
+          <Button size="lg" className="gap-2 bg-blue-600 hover:bg-blue-700">
+            <Database className="h-5 w-5" />
+            View Data Library
+          </Button>
         </div>
 
         {/* Error Alerts */}
         {dataStatus.errors.length > 0 && (
-          <div className="mb-6">
+          <div className="mb-8 space-y-3">
             {dataStatus.errors.map((error, index) => (
-              <div key={index} className="bg-red-50 border border-red-200 rounded-lg p-4 mb-2">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-5 w-5 text-red-600" />
-                  <span className="text-red-800 text-sm">{error}</span>
+              <div key={index} className="bg-red-50 border border-red-200 rounded-xl p-4">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-6 w-6 text-red-600" />
+                  <span className="text-red-800 font-medium">{error}</span>
+                  <Button variant="outline" size="sm" className="ml-auto">
+                    Resolve
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Main Navigation */}
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Left Navigation Panel */}
-          <div className="lg:w-64 space-y-2">
-            <Button
-              variant={activeTab === 'overview' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('overview')}
-              className="w-full justify-start"
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Overview
-            </Button>
-            <Button
-              variant={activeTab === 'social' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('social')}
-              className="w-full justify-start"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Social Media
-            </Button>
-            <Button
-              variant={activeTab === 'documents' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('documents')}
-              className="w-full justify-start"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Documents
-            </Button>
-            <Button
-              variant={activeTab === 'website' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('website')}
-              className="w-full justify-start"
-            >
-              <Globe className="h-4 w-4 mr-2" />
-              Website
-            </Button>
-            <Button
-              variant={activeTab === 'insights' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('insights')}
-              className="w-full justify-start"
-            >
-              <Target className="h-4 w-4 mr-2" />
-              AI Insights
-            </Button>
-            <Button
-              variant={activeTab === 'access' ? 'default' : 'ghost'}
-              onClick={() => setActiveTab('access')}
-              className="w-full justify-start"
-            >
-              <Shield className="h-4 w-4 mr-2" />
-              Access Control
-            </Button>
-          </div>
+        {/* Data Source Cards Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+          {dataSourceCards.map((card) => (
+            <Card key={card.id} className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl border-0 overflow-hidden">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-blue-50 rounded-xl">
+                      <card.icon className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl font-bold text-slate-900">{card.title}</CardTitle>
+                      <StatusBadge status={card.status} />
+                    </div>
+                  </div>
+                  <HelpCircle className="h-5 w-5 text-slate-400 cursor-help" />
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <span className="font-semibold text-slate-700">Items Ingested</span>
+                    <Badge variant="outline" className="font-bold">
+                      {card.itemCount} {card.itemCount === 1 ? 'item' : 'items'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
+                    <span className="font-semibold text-slate-700">Last Updated</span>
+                    <span className="text-sm text-slate-600">
+                      {card.lastUpdated ? card.lastUpdated.toLocaleDateString() : 'Never'}
+                    </span>
+                  </div>
+                </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1">
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                <Card className="bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Database className="h-5 w-5" />
-                      Knowledge Distribution
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <h4 className="font-semibold text-slate-700">Data Sources</h4>
-                        <div className="space-y-3">
-                          <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                            <span className="text-sm font-medium">Website Content</span>
-                            <Badge variant="outline">
-                              {websiteData ? `${websiteData.pages} pages` : 'Not connected'}
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                            <span className="text-sm font-medium">Social Media</span>
-                            <Badge variant="outline">
-                              {dataStatus.social.connected} connected
-                            </Badge>
-                          </div>
-                          <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                            <span className="text-sm font-medium">Documents</span>
-                            <Badge variant="outline">
-                              {dataStatus.documents.count} files
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="space-y-4">
-                        <h4 className="font-semibold text-slate-700">Recent Activity</h4>
-                        <div className="space-y-2">
-                          {insights.slice(0, 3).map((insight) => (
-                            <div key={insight.id} className="p-3 border border-slate-200 rounded-lg">
-                              <p className="text-sm font-medium">{insight.title}</p>
-                              <p className="text-xs text-slate-500 mt-1">{insight.summary}</p>
+                <Button 
+                  className="w-full mt-4 bg-blue-600 hover:bg-blue-700" 
+                  onClick={card.actionButton.action}
+                  disabled={isLoading}
+                >
+                  {card.actionButton.text}
+                </Button>
+              </CardHeader>
+
+              <CardContent>
+                <CardTabs cardId={card.id}>
+                  <TabsContent value="overview" className="mt-0">
+                    <div className="space-y-4">
+                      <p className="text-slate-600">{card.description}</p>
+                      {card.id === 'social-media' && (
+                        <div className="grid grid-cols-2 gap-2">
+                          {[
+                            { name: 'Instagram', connected: false },
+                            { name: 'LinkedIn', connected: false },
+                            { name: 'TikTok', connected: false },
+                            { name: 'Facebook', connected: false }
+                          ].map((platform) => (
+                            <div key={platform.name} className="flex items-center justify-between p-2 border rounded-lg">
+                              <span className="text-sm">{platform.name}</span>
+                              <div className={`w-2 h-2 rounded-full ${platform.connected ? 'bg-green-500' : 'bg-gray-300'}`} />
                             </div>
                           ))}
-                          {insights.length === 0 && (
-                            <p className="text-sm text-slate-500 text-center py-4">
-                              No recent insights. Connect data sources to generate insights.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === 'social' && (
-              <div className="space-y-6">
-                <Card className="bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle>Social Media Integrations</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      {[
-                        { platform: 'linkedin', icon: Linkedin, color: 'blue', name: 'LinkedIn' },
-                        { platform: 'instagram', icon: Instagram, color: 'pink', name: 'Instagram' },
-                        { platform: 'facebook', icon: Facebook, color: 'blue', name: 'Facebook' },
-                        { platform: 'tiktok', icon: Users, color: 'black', name: 'TikTok' }
-                      ].map(({ platform, icon: Icon, color, name }) => {
-                        const connection = socialConnections.find(c => c.platform === platform);
-                        return (
-                          <Card key={platform} className="border-2 hover:border-blue-200 transition-colors">
-                            <CardContent className="p-6 text-center">
-                              <Icon className={`h-12 w-12 mx-auto mb-4 text-${color}-600`} />
-                              <h3 className="font-semibold mb-2">{name}</h3>
-                              <p className="text-sm text-slate-600 mb-4">
-                                {connection?.connected ? 'Connected & Active' : 'Connect your business account'}
-                              </p>
-                              <div className="space-y-2">
-                                <Button 
-                                  className="w-full" 
-                                  variant={connection?.connected ? "outline" : "default"}
-                                  onClick={() => connectSocialMedia(platform)}
-                                >
-                                  {connection?.connected ? 'Reconnect' : 'Connect'}
-                                </Button>
-                                {connection?.connected && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="w-full"
-                                    onClick={() => syncSocialMedia(platform)}
-                                  >
-                                    <RefreshCw className="h-4 w-4 mr-2" />
-                                    Sync Data
-                                  </Button>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === 'documents' && (
-              <div className="space-y-6">
-                <Card className="bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>Document Library</span>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          placeholder="Search documents..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          className="w-64"
-                        />
-                        <Button variant="outline" size="sm">
-                          <Filter className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Upload Area */}
-                    <div className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center bg-slate-50 hover:bg-slate-100 transition-colors">
-                      <Upload className="h-12 w-12 mx-auto text-slate-400 mb-4" />
-                      <h3 className="text-lg font-semibold text-slate-700 mb-2">Upload Documents</h3>
-                      <p className="text-sm text-slate-600 mb-4">
-                        Drop PDFs, Word docs, CSVs, images, videos, or ZIP files here
-                      </p>
-                      <input
-                        type="file"
-                        multiple
-                        accept=".pdf,.doc,.docx,.txt,.csv,.jpg,.jpeg,.png,.zip,.mp4,.mov"
-                        onChange={(e) => handleFileUpload(e.target.files)}
-                        className="hidden"
-                        id="document-upload"
-                      />
-                      <label htmlFor="document-upload">
-                        <Button className="cursor-pointer">
-                          <Plus className="h-4 w-4 mr-2" />
-                          Choose Files
-                        </Button>
-                      </label>
-                    </div>
-
-                    {/* Category Filter */}
-                    <div className="flex flex-wrap gap-2">
-                      {fileCategories.map((category) => (
-                        <Button
-                          key={category}
-                          variant={selectedCategory === category ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedCategory(category)}
-                        >
-                          <Tag className="h-3 w-3 mr-1" />
-                          {category === 'all' ? 'All Files' : category}
-                        </Button>
-                      ))}
-                    </div>
-
-                    {/* File Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {filteredFiles.map((file) => (
-                        <Card key={file.id} className="border hover:shadow-md transition-shadow">
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                {file.type?.includes('image') ? (
-                                  <FileImage className="h-5 w-5 text-blue-600" />
-                                ) : file.type?.includes('video') ? (
-                                  <Video className="h-5 w-5 text-purple-600" />
-                                ) : (
-                                  <FileText className="h-5 w-5 text-slate-600" />
-                                )}
-                                <Badge variant="outline" className="text-xs">
-                                  {file.category || 'General'}
-                                </Badge>
-                              </div>
-                              <Button variant="ghost" size="sm">
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <h4 className="font-medium text-sm truncate mb-2">{file.name}</h4>
-                            <div className="text-xs text-slate-500 space-y-1">
-                              <p>Size: {(file.size / 1024).toFixed(1)}KB</p>
-                              <p>Uploaded: {file.uploadDate.toLocaleDateString()}</p>
-                            </div>
-                            <div className="flex gap-1 mt-3">
-                              <Button variant="outline" size="sm" className="flex-1">
-                                <Eye className="h-3 w-3 mr-1" />
-                                View
-                              </Button>
-                              <Button variant="outline" size="sm">
-                                <Target className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                      {filteredFiles.length === 0 && (
-                        <div className="col-span-full text-center py-8 text-slate-500">
-                          <FileText className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                          <p>No documents found. Upload some files to get started.</p>
                         </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                  </TabsContent>
 
-            {activeTab === 'website' && (
-              <div className="space-y-6">
-                <Card className="bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="h-5 w-5" />
-                      Website Content Ingestion
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="flex gap-3">
-                      <Input
-                        placeholder="Enter your company website URL (e.g., https://company.com)"
-                        value={websiteUrl}
-                        onChange={(e) => setWebsiteUrl(e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button onClick={handleWebsiteIngest} disabled={isLoading}>
-                        {isLoading ? 'Crawling...' : 'Crawl Website'}
-                      </Button>
-                    </div>
-                    
-                    {websiteData && (
-                      <Card className="bg-green-50 border-green-200">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <h4 className="font-semibold text-green-800 mb-2">Website Successfully Crawled</h4>
-                              <div className="text-sm text-green-700 space-y-1">
-                                <p><strong>URL:</strong> {websiteData.url}</p>
-                                <p><strong>Pages Analyzed:</strong> {websiteData.pages}</p>
-                                <p><strong>Last Crawled:</strong> {websiteData.lastCrawled?.toLocaleDateString()}</p>
-                                {websiteData.content?.title && <p><strong>Site Title:</strong> {websiteData.content.title}</p>}
-                                {websiteData.content?.description && <p><strong>Description:</strong> {websiteData.content.description}</p>}
+                  <TabsContent value="data-sources" className="mt-0">
+                    {card.id === 'social-media' && (
+                      <div className="space-y-4">
+                        {[
+                          { platform: 'instagram', icon: Instagram, name: 'Instagram', color: 'text-pink-600' },
+                          { platform: 'linkedin', icon: Linkedin, name: 'LinkedIn', color: 'text-blue-600' },
+                          { platform: 'facebook', icon: Facebook, name: 'Facebook', color: 'text-blue-600' }
+                        ].map(({ platform, icon: Icon, name, color }) => (
+                          <div key={platform} className="border rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <Icon className={`h-6 w-6 ${color}`} />
+                                <span className="font-semibold">{name}</span>
                               </div>
+                              <Button size="sm" onClick={() => connectSocialMedia(platform)}>
+                                Connect
+                              </Button>
                             </div>
-                            <Button variant="outline" size="sm" onClick={() => crawlWebsite(websiteData.url)}>
-                              <RefreshCw className="h-4 w-4 mr-2" />
-                              Re-crawl
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {card.id === 'website' && (
+                      <div className="space-y-4">
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Enter website URL..."
+                            value={websiteUrl}
+                            onChange={(e) => setWebsiteUrl(e.target.value)}
+                            className="flex-1"
+                          />
+                          <Button onClick={handleWebsiteIngest} disabled={isLoading}>
+                            {isLoading ? 'Crawling...' : 'Crawl'}
+                          </Button>
+                        </div>
+                        {websiteData && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h4 className="font-semibold text-green-800 mb-2">Website Connected</h4>
+                            <div className="text-sm text-green-700 space-y-1">
+                              <p><strong>URL:</strong> {websiteData.url}</p>
+                              <p><strong>Pages:</strong> {websiteData.pages}</p>
+                              <p><strong>Last Crawled:</strong> {websiteData.lastCrawled?.toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {card.id === 'file-uploads' && (
+                      <div className="space-y-4">
+                        <div className="border-2 border-dashed border-blue-300 rounded-lg p-6 text-center bg-blue-50">
+                          <Upload className="h-12 w-12 mx-auto text-blue-500 mb-3" />
+                          <p className="text-blue-700 font-semibold mb-2">Drag & Drop Files Here</p>
+                          <p className="text-sm text-blue-600 mb-4">Support: PDFs, Docs, CSVs, Images, Videos, ZIPs</p>
+                          <input
+                            type="file"
+                            multiple
+                            accept=".pdf,.doc,.docx,.csv,.jpg,.jpeg,.png,.mp4,.zip"
+                            onChange={handleBulkUpload}
+                            className="hidden"
+                            id="bulk-upload"
+                          />
+                          <Button size="sm" onClick={() => document.getElementById('bulk-upload')?.click()}>
+                            Select Files
+                          </Button>
+                        </div>
+                        
+                        {uploadedFiles.length > 0 && (
+                          <div className="space-y-2 max-h-32 overflow-y-auto">
+                            {uploadedFiles.slice(0, 3).map((file) => (
+                              <div key={file.id} className="flex items-center justify-between p-2 border rounded">
+                                <span className="text-sm truncate">{file.name}</span>
+                                <span className="text-xs text-slate-500">{(file.size / 1024).toFixed(1)}KB</span>
+                              </div>
+                            ))}
+                            {uploadedFiles.length > 3 && (
+                              <p className="text-xs text-slate-500 text-center">+{uploadedFiles.length - 3} more files</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="ai-suggestions" className="mt-0">
+                    <div className="space-y-3">
+                      {insights.filter(insight => 
+                        card.id === 'social-media' && insight.type === 'social' ||
+                        card.id === 'website' && insight.type === 'content' ||
+                        card.id === 'ai-insights'
+                      ).slice(0, 2).map((insight) => (
+                        <div key={insight.id} className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-blue-200">
+                          <h5 className="font-semibold text-blue-800 text-sm mb-1">{insight.title}</h5>
+                          <p className="text-blue-700 text-xs">{insight.summary}</p>
+                          <div className="flex gap-2 mt-2">
+                            <Button size="sm" variant="outline" onClick={() => sendInsightEmail(insight)}>
+                              <Mail className="h-3 w-3 mr-1" />
+                              Email
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => createCampaignBrief(insight)}>
+                              <FileDown className="h-3 w-3 mr-1" />
+                              Brief
                             </Button>
                           </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                    
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-800 mb-2">How Website Crawling Works</h4>
-                      <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• AI analyzes all public pages and content</li>
-                        <li>• Extracts text, images, and metadata automatically</li>
-                        <li>• Creates searchable knowledge base for your team</li>
-                        <li>• Auto-refreshes every 30 days or on manual request</li>
-                        <li>• Respects robots.txt and site policies</li>
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeTab === 'insights' && (
-              <div className="space-y-6">
-                <Card className="bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span className="flex items-center gap-2">
-                        <Target className="h-5 w-5" />
-                        AI-Generated Insights
-                      </span>
-                      <Button onClick={refreshInsights} disabled={isLoading}>
-                        <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                        Refresh Insights
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {insights.map((insight) => (
-                        <Card key={insight.id} className="border-l-4 border-l-blue-500">
-                          <CardContent className="p-6">
-                            <div className="flex items-start justify-between mb-4">
-                              <div>
-                                <h3 className="font-semibold text-lg text-slate-900">{insight.title}</h3>
-                                <Badge variant="secondary" className="mt-1">
-                                  {insight.type}
-                                </Badge>
-                              </div>
-                              <Badge variant="outline">
-                                {Math.round(insight.confidence * 100)}% confidence
-                              </Badge>
-                            </div>
-                            
-                            <p className="text-slate-600 mb-4">{insight.summary}</p>
-                            
-                            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-blue-200 mb-4">
-                              <p className="font-medium text-blue-800 mb-2">💡 AI Suggestion</p>
-                              <p className="text-blue-700">{insight.suggestion}</p>
-                            </div>
-                            
-                            <div className="flex gap-3">
-                              <Button
-                                variant="outline"
-                                onClick={() => handleInsightAction(insight, 'email')}
-                                className="flex-1"
-                              >
-                                <Mail className="h-4 w-4 mr-2" />
-                                Send Data in Email
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => handleInsightAction(insight, 'brief')}
-                                className="flex-1"
-                              >
-                                <FileDown className="h-4 w-4 mr-2" />
-                                Create Campaign Brief
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        </div>
                       ))}
                       
                       {insights.length === 0 && (
-                        <Card className="border-dashed border-2 border-slate-300">
-                          <CardContent className="p-12 text-center">
-                            <Zap className="h-16 w-16 text-slate-400 mx-auto mb-4" />
-                            <h3 className="font-semibold text-slate-900 mb-2">No AI Insights Yet</h3>
-                            <p className="text-slate-600 mb-6">
-                              Connect your data sources and upload content to generate powerful AI insights.
-                            </p>
-                            <div className="flex gap-3 justify-center">
-                              <Button onClick={() => setActiveTab('social')}>
-                                Connect Social Media
-                              </Button>
-                              <Button variant="outline" onClick={() => setActiveTab('documents')}>
-                                Upload Documents
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
+                        <div className="text-center py-6 text-slate-500">
+                          <Zap className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No AI suggestions yet. Connect data sources to generate insights.</p>
+                        </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                  </TabsContent>
 
-            {activeTab === 'access' && (
-              <div className="space-y-6">
-                <Card className="bg-white shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Shield className="h-5 w-5" />
-                      Sales Rep Access Control
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div>
-                        <h4 className="font-semibold text-green-700 mb-4">✅ Approved Content for Sales Reps</h4>
-                        <div className="space-y-3">
-                          {[
-                            'Product information & specifications',
-                            'Objection handling scripts',
-                            'Approved call recordings',
-                            'Best practices & playbooks',
-                            'Customer case studies',
-                            'Sales training materials',
-                            'Pricing guidelines',
-                            'Competition analysis'
-                          ].map((item, index) => (
-                            <label key={index} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                              <input type="checkbox" defaultChecked className="rounded text-green-600" />
-                              <span className="text-sm text-green-800">{item}</span>
-                            </label>
-                          ))}
-                        </div>
+                  <TabsContent value="logs" className="mt-0">
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      <div className="flex items-center gap-2 p-2 text-xs">
+                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                        <span className="text-slate-600">Data source initialized</span>
+                        <span className="text-slate-400 ml-auto">5 min ago</span>
                       </div>
-                      
-                      <div>
-                        <h4 className="font-semibold text-red-700 mb-4">🚫 Restricted Content</h4>
-                        <div className="space-y-3">
-                          {[
-                            'Financial data & revenue reports',
-                            'Strategic business plans',
-                            'HR information & personnel files',
-                            'Internal communications',
-                            'Sensitive customer data',
-                            'Confidential legal documents',
-                            'Executive meeting notes',
-                            'Competitive intelligence'
-                          ].map((item, index) => (
-                            <label key={index} className="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-                              <input type="checkbox" className="rounded text-red-600" />
-                              <span className="text-sm text-red-800">{item}</span>
-                            </label>
-                          ))}
-                        </div>
+                      <div className="flex items-center gap-2 p-2 text-xs">
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                        <span className="text-slate-600">AI analysis completed</span>
+                        <span className="text-slate-400 ml-auto">1 hour ago</span>
+                      </div>
+                      <div className="flex items-center gap-2 p-2 text-xs">
+                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                        <span className="text-slate-600">Sync scheduled</span>
+                        <span className="text-slate-400 ml-auto">2 hours ago</span>
                       </div>
                     </div>
-                    
-                    <div className="mt-8 pt-6 border-t border-slate-200">
-                      <div className="flex gap-3">
-                        <Button className="bg-blue-600 hover:bg-blue-700">
-                          Save Access Settings
-                        </Button>
-                        <Button variant="outline">
-                          Preview Sales Rep View
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </div>
+                  </TabsContent>
+                </CardTabs>
+              </CardContent>
+            </Card>
+          ))}
         </div>
+
+        {/* Data Library Preview */}
+        <Card className="mt-8 bg-white/90 backdrop-blur-sm shadow-lg rounded-2xl border-0">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-2xl font-bold flex items-center gap-3">
+                <Database className="h-7 w-7 text-blue-600" />
+                Central Data Library
+              </CardTitle>
+              <Button variant="outline" className="gap-2">
+                <ExternalLink className="h-4 w-4" />
+                View Full Library
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {['Social Posts', 'Website Pages', 'Documents', 'Videos'].map((category, index) => (
+                <div key={category} className="p-4 border rounded-lg text-center hover:bg-slate-50 transition-colors">
+                  <div className="text-2xl font-bold text-blue-600 mb-1">{[24, 156, 89, 12][index]}</div>
+                  <div className="text-sm text-slate-600">{category}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Hidden bulk upload input */}
+      <input
+        type="file"
+        multiple
+        accept=".pdf,.doc,.docx,.csv,.jpg,.jpeg,.png,.mp4,.zip"
+        onChange={handleBulkUpload}
+        className="hidden"
+        id="bulk-upload"
+      />
     </div>
   );
 };
