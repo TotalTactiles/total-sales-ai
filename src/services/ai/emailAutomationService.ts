@@ -32,6 +32,11 @@ export interface EmailAutomationRule {
   companyId: string;
 }
 
+// Simple payload interface to avoid type recursion
+interface PayloadData {
+  [key: string]: any;
+}
+
 export class EmailAutomationService {
   async createEmailTemplate(template: Omit<EmailTemplate, 'id'>, companyId: string): Promise<EmailTemplate> {
     try {
@@ -121,19 +126,21 @@ export class EmailAutomationService {
     metadata: Record<string, any> = {}
   ): Promise<string> {
     try {
+      const payload: PayloadData = {
+        to,
+        subject,
+        body,
+        sendAt: sendAt.toISOString(),
+        metadata,
+        status: 'scheduled'
+      };
+
       const { data, error } = await supabase
         .from('ai_brain_logs')
         .insert({
           type: 'email_scheduled',
           event_summary: `Email scheduled for ${to}`,
-          payload: {
-            to,
-            subject,
-            body,
-            sendAt: sendAt.toISOString(),
-            metadata,
-            status: 'scheduled'
-          },
+          payload,
           visibility: 'admin_only',
           company_id: metadata.companyId || 'system'
         })
@@ -196,17 +203,17 @@ export class EmailAutomationService {
           if (sendError) throw sendError;
 
           // Update status
+          const updatedPayload: PayloadData = {
+            ...payload,
+            status: data.success ? 'sent' : 'failed',
+            sentAt: new Date().toISOString(),
+            messageId: data.messageId,
+            error: data.error
+          };
+
           await supabase
             .from('ai_brain_logs')
-            .update({
-              payload: {
-                ...payload,
-                status: data.success ? 'sent' : 'failed',
-                sentAt: new Date().toISOString(),
-                messageId: data.messageId,
-                error: data.error
-              }
-            })
+            .update({ payload: updatedPayload })
             .eq('id', emailLog.id);
 
           // Log result to AI brain
@@ -229,15 +236,15 @@ export class EmailAutomationService {
           
           // Mark as failed
           const payload = this.safeParsePayload(emailLog.payload);
+          const failedPayload: PayloadData = {
+            ...payload,
+            status: 'failed',
+            error: error instanceof Error ? error.message : 'Unknown error'
+          };
+
           await supabase
             .from('ai_brain_logs')
-            .update({
-              payload: {
-                ...payload,
-                status: 'failed',
-                error: error instanceof Error ? error.message : 'Unknown error'
-              }
-            })
+            .update({ payload: failedPayload })
             .eq('id', emailLog.id);
         }
       }
@@ -248,12 +255,14 @@ export class EmailAutomationService {
 
   async createAutomationRule(rule: Omit<EmailAutomationRule, 'id'>, companyId: string): Promise<EmailAutomationRule> {
     try {
+      const payload: PayloadData = { ...rule, companyId };
+
       const { data, error } = await supabase
         .from('ai_brain_logs')
         .insert({
           type: 'automation_rule',
           event_summary: `Email automation rule: ${rule.trigger}`,
-          payload: { ...rule, companyId },
+          payload,
           visibility: 'admin_only',
           company_id: companyId
         })
@@ -282,15 +291,14 @@ export class EmailAutomationService {
       const { data: rules, error } = await supabase
         .from('ai_brain_logs')
         .select('*')
-        .eq('type', 'automation_rule')
-        .eq('payload->trigger', trigger);
+        .eq('type', 'automation_rule');
 
       if (error) throw error;
 
       for (const ruleLog of rules || []) {
         const rule = this.parseAutomationRule(ruleLog.payload);
         
-        if (rule && this.evaluateConditions(rule.conditions, eventData)) {
+        if (rule && rule.trigger === trigger && this.evaluateConditions(rule.conditions, eventData)) {
           await this.executeAutomationAction(rule, eventData);
         }
       }
@@ -299,11 +307,11 @@ export class EmailAutomationService {
     }
   }
 
-  private safeParsePayload(payload: any): any {
+  private safeParsePayload(payload: any): PayloadData {
     if (!payload || typeof payload !== 'object') {
       return {};
     }
-    return payload;
+    return payload as PayloadData;
   }
 
   private parseAutomationRule(payload: any): EmailAutomationRule | null {
@@ -312,20 +320,22 @@ export class EmailAutomationService {
         return null;
       }
 
+      const data = payload as PayloadData;
+
       // Validate required fields
-      if (!payload.trigger || !payload.conditions || !payload.action) {
+      if (!data.trigger || !data.conditions || !data.action) {
         return null;
       }
 
       return {
-        id: payload.id || '',
-        trigger: payload.trigger,
-        conditions: payload.conditions || {},
-        action: payload.action,
-        emailTemplateId: payload.emailTemplateId,
-        sequenceId: payload.sequenceId,
-        delay: payload.delay,
-        companyId: payload.companyId || ''
+        id: String(data.id || ''),
+        trigger: data.trigger as EmailAutomationRule['trigger'],
+        conditions: data.conditions as Record<string, any>,
+        action: data.action as EmailAutomationRule['action'],
+        emailTemplateId: data.emailTemplateId ? String(data.emailTemplateId) : undefined,
+        sequenceId: data.sequenceId ? String(data.sequenceId) : undefined,
+        delay: data.delay ? Number(data.delay) : undefined,
+        companyId: String(data.companyId || '')
       };
     } catch (error) {
       console.error('Error parsing automation rule:', error);
