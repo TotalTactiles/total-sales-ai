@@ -12,7 +12,8 @@ import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 
 const queryClient = new QueryClient();
 
-function App() {
+// Separate component to use useAuth after AuthProvider is available
+function AppContent() {
   const { user, profile } = useAuth();
 
   useEffect(() => {
@@ -23,6 +24,24 @@ function App() {
   }, []);
 
   return (
+    <div className="min-h-screen bg-background">
+      {user && profile ? (
+        profile.role === 'manager' ? (
+          <ManagerLayout />
+        ) : (
+          <SalesLayout />
+        )
+      ) : (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function App() {
+  return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
@@ -30,19 +49,7 @@ function App() {
           <AuthProvider>
             <UnifiedAIProvider>
               <AIContextProvider>
-                <div className="min-h-screen bg-background">
-                  {user && profile ? (
-                    profile.role === 'manager' ? (
-                      <ManagerLayout />
-                    ) : (
-                      <SalesLayout />
-                    )
-                  ) : (
-                    <div className="flex items-center justify-center min-h-screen">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-                    </div>
-                  )}
-                </div>
+                <AppContent />
               </AIContextProvider>
             </UnifiedAIProvider>
           </AuthProvider>
