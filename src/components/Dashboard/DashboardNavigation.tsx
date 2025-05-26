@@ -5,9 +5,11 @@ import { Grid, Users, BarChart3, GraduationCap, Wrench } from 'lucide-react';
 import Logo from '@/components/Logo';
 import UserProfile from '@/components/UserProfile';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { useAuth } from '@/contexts/AuthContext';
 
 const DashboardNavigation = () => {
   const location = useLocation();
+  const { profile } = useAuth();
 
   const navItems = [
     { label: 'Dashboard', href: '/sales-rep-dashboard', icon: Grid },
@@ -52,7 +54,10 @@ const DashboardNavigation = () => {
         {/* Right side controls */}
         <div className="flex items-center space-x-4">
           <ThemeToggle />
-          <UserProfile />
+          <UserProfile 
+            name={profile?.full_name || "Sam Smith"}
+            role={profile?.role === 'sales_rep' ? "Sales Representative" : "Manager"}
+          />
         </div>
       </div>
     </header>
