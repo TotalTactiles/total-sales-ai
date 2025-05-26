@@ -32,11 +32,6 @@ export interface EmailAutomationRule {
   companyId: string;
 }
 
-// Simple payload interface to avoid type recursion
-interface PayloadData {
-  [key: string]: any;
-}
-
 export class EmailAutomationService {
   async createEmailTemplate(template: Omit<EmailTemplate, 'id'>, companyId: string): Promise<EmailTemplate> {
     try {
@@ -126,7 +121,7 @@ export class EmailAutomationService {
     metadata: Record<string, any> = {}
   ): Promise<string> {
     try {
-      const payload: PayloadData = {
+      const emailPayload = {
         to,
         subject,
         body,
@@ -140,7 +135,7 @@ export class EmailAutomationService {
         .insert({
           type: 'email_scheduled',
           event_summary: `Email scheduled for ${to}`,
-          payload,
+          payload: emailPayload,
           visibility: 'admin_only',
           company_id: metadata.companyId || 'system'
         })
@@ -187,7 +182,7 @@ export class EmailAutomationService {
 
       for (const emailLog of scheduledEmails || []) {
         try {
-          const payload = this.safeParsePayload(emailLog.payload);
+          const payload = this.extractEmailPayload(emailLog.payload);
           
           // Send email via Gmail
           const { data, error: sendError } = await supabase.functions.invoke('gmail-send', {
@@ -203,7 +198,7 @@ export class EmailAutomationService {
           if (sendError) throw sendError;
 
           // Update status
-          const updatedPayload: PayloadData = {
+          const updatedPayload = {
             ...payload,
             status: data.success ? 'sent' : 'failed',
             sentAt: new Date().toISOString(),
@@ -235,8 +230,8 @@ export class EmailAutomationService {
           console.error('Error processing scheduled email:', error);
           
           // Mark as failed
-          const payload = this.safeParsePayload(emailLog.payload);
-          const failedPayload: PayloadData = {
+          const payload = this.extractEmailPayload(emailLog.payload);
+          const failedPayload = {
             ...payload,
             status: 'failed',
             error: error instanceof Error ? error.message : 'Unknown error'
@@ -255,14 +250,14 @@ export class EmailAutomationService {
 
   async createAutomationRule(rule: Omit<EmailAutomationRule, 'id'>, companyId: string): Promise<EmailAutomationRule> {
     try {
-      const payload: PayloadData = { ...rule, companyId };
+      const rulePayload = { ...rule, companyId };
 
       const { data, error } = await supabase
         .from('ai_brain_logs')
         .insert({
           type: 'automation_rule',
           event_summary: `Email automation rule: ${rule.trigger}`,
-          payload,
+          payload: rulePayload,
           visibility: 'admin_only',
           company_id: companyId
         })
@@ -296,7 +291,7 @@ export class EmailAutomationService {
       if (error) throw error;
 
       for (const ruleLog of rules || []) {
-        const rule = this.parseAutomationRule(ruleLog.payload);
+        const rule = this.extractAutomationRule(ruleLog.payload);
         
         if (rule && rule.trigger === trigger && this.evaluateConditions(rule.conditions, eventData)) {
           await this.executeAutomationAction(rule, eventData);
@@ -307,40 +302,43 @@ export class EmailAutomationService {
     }
   }
 
-  private safeParsePayload(payload: any): PayloadData {
+  private extractEmailPayload(payload: any): any {
+    // Simple extraction without complex type checking
     if (!payload || typeof payload !== 'object') {
-      return {};
+      return { to: '', subject: '', body: '', metadata: {} };
     }
-    return payload as PayloadData;
+    
+    return {
+      to: String(payload.to || ''),
+      subject: String(payload.subject || ''),
+      body: String(payload.body || ''),
+      sendAt: payload.sendAt,
+      metadata: payload.metadata || {},
+      status: payload.status || 'pending'
+    };
   }
 
-  private parseAutomationRule(payload: any): EmailAutomationRule | null {
-    try {
-      if (!payload || typeof payload !== 'object') {
-        return null;
-      }
-
-      const data = payload as PayloadData;
-
-      // Validate required fields
-      if (!data.trigger || !data.conditions || !data.action) {
-        return null;
-      }
-
-      return {
-        id: String(data.id || ''),
-        trigger: data.trigger as EmailAutomationRule['trigger'],
-        conditions: data.conditions as Record<string, any>,
-        action: data.action as EmailAutomationRule['action'],
-        emailTemplateId: data.emailTemplateId ? String(data.emailTemplateId) : undefined,
-        sequenceId: data.sequenceId ? String(data.sequenceId) : undefined,
-        delay: data.delay ? Number(data.delay) : undefined,
-        companyId: String(data.companyId || '')
-      };
-    } catch (error) {
-      console.error('Error parsing automation rule:', error);
+  private extractAutomationRule(payload: any): EmailAutomationRule | null {
+    // Simple extraction without complex type checking
+    if (!payload || typeof payload !== 'object') {
       return null;
     }
+
+    // Check for required fields
+    if (!payload.trigger || !payload.conditions || !payload.action) {
+      return null;
+    }
+
+    return {
+      id: String(payload.id || ''),
+      trigger: payload.trigger,
+      conditions: payload.conditions || {},
+      action: payload.action,
+      emailTemplateId: payload.emailTemplateId ? String(payload.emailTemplateId) : undefined,
+      sequenceId: payload.sequenceId ? String(payload.sequenceId) : undefined,
+      delay: payload.delay ? Number(payload.delay) : undefined,
+      companyId: String(payload.companyId || '')
+    };
   }
 
   private evaluateConditions(conditions: Record<string, any>, eventData: Record<string, any>): boolean {
