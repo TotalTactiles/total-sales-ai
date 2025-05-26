@@ -1,6 +1,4 @@
-
 import React, { useState, useEffect } from 'react';
-import Navigation from '@/components/Navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -12,6 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from 'sonner';
+import ManagerAIAssistant from '@/components/ManagerAI/ManagerAIAssistant';
 import { 
   Users, 
   Brain, 
@@ -334,8 +333,6 @@ const ManagerDashboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      <Navigation />
-      
       <div className="flex-1 px-4 md:px-6 py-6">
         <div className="max-w-7xl mx-auto">
           {/* Header section */}
@@ -810,6 +807,9 @@ const ManagerDashboard = () => {
           </div>
         </div>
       </div>
+      
+      {/* Manager AI Assistant - Fixed Position */}
+      <ManagerAIAssistant />
       
       {/* 1-on-1 Booking Modal */}
       {showSessionModal && (
