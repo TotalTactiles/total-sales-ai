@@ -235,10 +235,11 @@ export class EmailAutomationService {
       if (error) throw error;
 
       for (const flowLog of flows || []) {
-        const flow = this.extractFlowData(flowLog.payload);
+        // Simplified flow data extraction to avoid deep recursion
+        const flowData = this.safeExtractFlowData(flowLog.payload);
         
-        if (flow && flow.trigger.type === trigger && flow.isActive) {
-          const conditionsMatch = this.evaluateConditions(flow.trigger.conditions, eventData);
+        if (flowData && flowData.trigger.type === trigger && flowData.isActive) {
+          const conditionsMatch = this.evaluateConditions(flowData.trigger.conditions, eventData);
           
           if (conditionsMatch) {
             await nativeAutomationEngine.executeFlow(
@@ -276,28 +277,27 @@ export class EmailAutomationService {
     };
   }
 
-  private extractFlowData(payload: any): any | null {
+  // Simplified flow data extraction to prevent deep recursion
+  private safeExtractFlowData(payload: any): any {
     if (!payload || typeof payload !== 'object') {
       return null;
     }
 
-    try {
-      return {
-        id: String(payload.id || ''),
-        name: String(payload.name || ''),
-        trigger: payload.trigger || { type: 'custom', conditions: [] },
-        actions: Array.isArray(payload.actions) ? payload.actions : [],
-        isActive: Boolean(payload.isActive),
-        companyId: String(payload.companyId || ''),
-        createdBy: String(payload.createdBy || ''),
-        industry: payload.industry ? String(payload.industry) : undefined,
-        metadata: payload.metadata || {},
-        createdAt: payload.createdAt || new Date().toISOString()
-      };
-    } catch (error) {
-      console.error('Error extracting flow data:', error);
-      return null;
-    }
+    // Simple object creation without complex type inference
+    const result = {
+      id: payload.id ? String(payload.id) : '',
+      name: payload.name ? String(payload.name) : '',
+      trigger: {
+        type: payload.trigger?.type || 'custom',
+        conditions: Array.isArray(payload.trigger?.conditions) ? payload.trigger.conditions : []
+      },
+      actions: Array.isArray(payload.actions) ? payload.actions : [],
+      isActive: Boolean(payload.isActive),
+      companyId: payload.companyId ? String(payload.companyId) : '',
+      createdBy: payload.createdBy ? String(payload.createdBy) : ''
+    };
+
+    return result;
   }
 
   private evaluateConditions(conditions: any[], eventData: Record<string, any>): boolean {
