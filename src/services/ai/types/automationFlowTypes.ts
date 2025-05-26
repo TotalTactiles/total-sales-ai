@@ -31,7 +31,9 @@ export interface SimpleAutomationFlow {
   createdBy: string;
 }
 
+// Json-compatible execution context with index signature
 export interface FlowExecutionContext {
+  [key: string]: string; // Index signature for Json compatibility
   leadId?: string;
   email?: string;
   phone?: string;

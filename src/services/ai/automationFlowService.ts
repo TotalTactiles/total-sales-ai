@@ -66,7 +66,7 @@ export class AutomationFlowService {
       if (!condition || typeof condition !== 'object') return false;
       
       const { field, operator, value } = condition;
-      const eventValue = (eventData as any)[field];
+      const eventValue = eventData[field];
 
       switch (operator) {
         case 'equals':
@@ -87,6 +87,12 @@ export class AutomationFlowService {
 
   private async logFlowExecution(flowId: string, eventData: FlowExecutionContext): Promise<void> {
     try {
+      // Convert eventData to simple Json-compatible object
+      const jsonEventData: Record<string, string> = {};
+      Object.keys(eventData).forEach(key => {
+        jsonEventData[key] = String(eventData[key] || '');
+      });
+
       await supabase
         .from('ai_brain_logs')
         .insert({
@@ -94,7 +100,7 @@ export class AutomationFlowService {
           event_summary: `Flow ${flowId} triggered`,
           payload: {
             flowId,
-            eventData,
+            eventData: jsonEventData,
             timestamp: new Date().toISOString()
           },
           company_id: eventData.companyId,

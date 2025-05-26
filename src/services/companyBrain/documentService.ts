@@ -60,16 +60,20 @@ export class DocumentService {
 
       if (error) throw error;
 
-      return (data || []).map(log => ({
-        id: log.id,
-        name: log.payload?.fileName || 'Unknown',
-        type: log.payload?.fileType || 'unknown',
-        size: log.payload?.fileSize || 0,
-        uploadDate: new Date(log.timestamp),
-        category: log.payload?.category || 'general',
-        tags: log.payload?.tags || [],
-        url: `#file-${log.payload?.fileName}`
-      }));
+      return (data || []).map(log => {
+        const payload = this.safeGetPayload(log.payload);
+        
+        return {
+          id: log.id,
+          name: this.safeGetString(payload.fileName, 'Unknown'),
+          type: this.safeGetString(payload.fileType, 'unknown'),
+          size: this.safeGetNumber(payload.fileSize, 0),
+          uploadDate: new Date(log.timestamp),
+          category: this.safeGetString(payload.category, 'general'),
+          tags: Array.isArray(payload.tags) ? payload.tags : [],
+          url: `#file-${this.safeGetString(payload.fileName, 'unknown')}`
+        };
+      });
     } catch (error) {
       console.error('Error getting uploaded files:', error);
       return [];
@@ -94,6 +98,28 @@ export class DocumentService {
     } catch (error) {
       console.error('Error categorizing file:', error);
     }
+  }
+
+  private safeGetPayload(payload: any): Record<string, any> {
+    if (payload && typeof payload === 'object') {
+      return payload as Record<string, any>;
+    }
+    return {};
+  }
+
+  private safeGetString(value: any, defaultValue: string): string {
+    if (typeof value === 'string') return value;
+    if (value !== null && value !== undefined) return String(value);
+    return defaultValue;
+  }
+
+  private safeGetNumber(value: any, defaultValue: number): number {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = parseInt(value, 10);
+      return isNaN(parsed) ? defaultValue : parsed;
+    }
+    return defaultValue;
   }
 }
 

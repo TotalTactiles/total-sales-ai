@@ -63,21 +63,45 @@ export class WebsiteService {
 
       if (error || !data) return null;
 
+      const payload = this.safeGetPayload(data.payload);
+
       return {
-        url: data.payload?.url || '',
+        url: this.safeGetString(payload.url, ''),
         lastCrawled: new Date(data.timestamp),
-        pages: data.payload?.pages || 0,
+        pages: this.safeGetNumber(payload.pages, 0),
         content: {
-          title: data.payload?.title || '',
-          description: data.payload?.description || '',
-          keywords: data.payload?.keywords || [],
-          contentSummary: data.payload?.summary || ''
+          title: this.safeGetString(payload.title, ''),
+          description: this.safeGetString(payload.description, ''),
+          keywords: Array.isArray(payload.keywords) ? payload.keywords : [],
+          contentSummary: this.safeGetString(payload.summary, '')
         }
       };
     } catch (error) {
       console.error('Error getting website data:', error);
       return null;
     }
+  }
+
+  private safeGetPayload(payload: any): Record<string, any> {
+    if (payload && typeof payload === 'object') {
+      return payload as Record<string, any>;
+    }
+    return {};
+  }
+
+  private safeGetString(value: any, defaultValue: string): string {
+    if (typeof value === 'string') return value;
+    if (value !== null && value !== undefined) return String(value);
+    return defaultValue;
+  }
+
+  private safeGetNumber(value: any, defaultValue: number): number {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = parseInt(value, 10);
+      return isNaN(parsed) ? defaultValue : parsed;
+    }
+    return defaultValue;
   }
 }
 

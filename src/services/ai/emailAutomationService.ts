@@ -1,10 +1,25 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { automationFlowService } from './automationFlowService';
-import { 
-  EmailTemplate, 
-  AutomationResult
-} from './types/automationTypes';
+
+// Simple email template interface
+export interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  variables: string[];
+  industry?: string;
+  companyId: string;
+}
+
+// Simple automation result interface
+export interface AutomationResult {
+  success: boolean;
+  message: string;
+  data?: any;
+  warnings?: string[];
+}
 
 export class EmailAutomationService {
   async createEmailTemplate(template: Omit<EmailTemplate, 'id'>): Promise<EmailTemplate> {
@@ -83,7 +98,7 @@ export class EmailAutomationService {
         subject,
         body,
         sendAt: sendAt.toISOString(),
-        metadata,
+        metadata: this.sanitizeMetadata(metadata),
         status: 'scheduled'
       };
 
@@ -116,15 +131,16 @@ export class EmailAutomationService {
         .from('ai_brain_logs')
         .select('*')
         .eq('type', 'email_scheduled')
-        .lte('payload->sendAt', now.toISOString())
-        .eq('payload->status', 'scheduled');
+        .lte('payload->sendAt', now.toISOString());
 
       if (error) throw error;
 
       for (const emailLog of scheduledEmails || []) {
         try {
-          const payload = this.extractEmailPayload(emailLog.payload);
+          const payload = this.safeExtractEmailPayload(emailLog.payload);
           
+          if (payload.status !== 'scheduled') continue;
+
           const { data, error: sendError } = await supabase.functions.invoke('gmail-send', {
             body: {
               to: payload.to,
@@ -153,7 +169,7 @@ export class EmailAutomationService {
         } catch (error) {
           console.error('Error processing scheduled email:', error);
           
-          const payload = this.extractEmailPayload(emailLog.payload);
+          const payload = this.safeExtractEmailPayload(emailLog.payload);
           const failedPayload = {
             ...payload,
             status: 'failed',
@@ -176,18 +192,24 @@ export class EmailAutomationService {
     eventData: Record<string, any>
   ): Promise<void> {
     try {
-      await automationFlowService.evaluateFlowTriggers(trigger, {
-        userId: eventData.userId || 'system',
-        companyId: eventData.companyId || 'system',
+      // Convert to FlowExecutionContext format
+      const flowContext = {
+        userId: String(eventData.userId || 'system'),
+        companyId: String(eventData.companyId || 'system'),
         timestamp: new Date().toISOString(),
-        ...eventData
-      });
+        leadId: String(eventData.leadId || ''),
+        email: String(eventData.email || ''),
+        phone: String(eventData.phone || ''),
+        name: String(eventData.name || '')
+      };
+
+      await automationFlowService.evaluateFlowTriggers(trigger, flowContext);
     } catch (error) {
       console.error('Error evaluating automation triggers:', error);
     }
   }
 
-  private extractEmailPayload(payload: any): any {
+  private safeExtractEmailPayload(payload: any): any {
     if (!payload || typeof payload !== 'object') {
       return { 
         to: '', 
@@ -206,6 +228,14 @@ export class EmailAutomationService {
       metadata: payload.metadata || {},
       status: payload.status || 'pending'
     };
+  }
+
+  private sanitizeMetadata(metadata: Record<string, any>): Record<string, string> {
+    const sanitized: Record<string, string> = {};
+    Object.keys(metadata).forEach(key => {
+      sanitized[key] = String(metadata[key] || '');
+    });
+    return sanitized;
   }
 }
 

@@ -37,11 +37,14 @@ export class AIInsightsService {
       const websiteData = data?.filter(d => d.type === 'website_crawl') || [];
       if (websiteData.length > 0) {
         const latestCrawl = websiteData[0];
+        const payload = this.safeGetPayload(latestCrawl.payload);
+        const pages = this.safeGetNumber(payload.pages, 0);
+        
         insights.push({
           id: crypto.randomUUID(),
           type: 'website',
           title: 'Website Content Analysis',
-          summary: `${latestCrawl.payload?.pages || 0} pages analyzed`,
+          summary: `${pages} pages analyzed`,
           suggestion: 'Update product pages with latest features',
           confidence: 0.9,
           data: latestCrawl,
@@ -155,6 +158,22 @@ Data Source: ${insight.type}
       console.error('Error creating campaign brief:', error);
       throw error;
     }
+  }
+
+  private safeGetPayload(payload: any): Record<string, any> {
+    if (payload && typeof payload === 'object') {
+      return payload as Record<string, any>;
+    }
+    return {};
+  }
+
+  private safeGetNumber(value: any, defaultValue: number): number {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = parseInt(value, 10);
+      return isNaN(parsed) ? defaultValue : parsed;
+    }
+    return defaultValue;
   }
 }
 
