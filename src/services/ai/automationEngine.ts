@@ -6,61 +6,10 @@ import {
   AutomationResult,
   AutomationLimits,
   DEFAULT_AUTOMATION_LIMITS,
-  AutomationLog
+  AutomationLog,
+  JsonAutomationFlow,
+  JsonAutomationExecution
 } from './types/automationTypes';
-
-// JSON-compatible interfaces for database storage
-interface JsonAutomationFlow {
-  id: string;
-  createdBy: string;
-  createdAt: string;
-  name: string;
-  trigger: {
-    type: string;
-    conditions: Array<{
-      field: string;
-      operator: string;
-      value: string | number | boolean;
-    }>;
-    delay?: number;
-  };
-  actions: Array<{
-    id: string;
-    type: string;
-    content: string;
-    delay?: number;
-    conditions?: Array<{
-      field: string;
-      operator: string;
-      value: string | number | boolean;
-    }>;
-    metadata?: Record<string, string>;
-  }>;
-  isActive: boolean;
-  companyId: string;
-  industry?: string;
-  metadata: Record<string, string>;
-}
-
-interface JsonAutomationExecution {
-  id: string;
-  flowId: string;
-  leadId?: string;
-  userId: string;
-  companyId: string;
-  status: string;
-  currentActionIndex: number;
-  startedAt: string;
-  completedAt?: string;
-  errorMessage?: string;
-  logs: Array<{
-    timestamp: string;
-    action: string;
-    status: string;
-    message: string;
-    data?: Record<string, any>;
-  }>;
-}
 
 export class NativeAutomationEngine {
   private limits: AutomationLimits = DEFAULT_AUTOMATION_LIMITS;
@@ -69,19 +18,16 @@ export class NativeAutomationEngine {
     flow: Omit<AutomationFlow, 'id'>
   ): Promise<AutomationResult> {
     try {
-      // Check user limits
       const canCreate = await this.checkUserLimits(flow.createdBy, flow.companyId);
       if (!canCreate.success) {
         return canCreate;
       }
 
-      // Validate flow structure
       const validation = this.validateFlow(flow);
       if (!validation.success) {
         return validation;
       }
 
-      // Create JSON-compatible flow data
       const flowData: JsonAutomationFlow = {
         id: crypto.randomUUID(),
         createdBy: flow.createdBy,
@@ -96,25 +42,13 @@ export class NativeAutomationEngine {
           })),
           delay: flow.trigger.delay
         },
-        actions: flow.actions.map(a => ({
-          id: a.id,
-          type: a.type,
-          content: a.content,
-          delay: a.delay,
-          conditions: a.conditions?.map(c => ({
-            field: c.field,
-            operator: c.operator,
-            value: c.value
-          })),
-          metadata: a.metadata || {}
-        })),
+        actions: this.convertActionsToJson(flow.actions),
         isActive: flow.isActive,
         companyId: flow.companyId,
         industry: flow.industry || '',
         metadata: flow.metadata || {}
       };
 
-      // Store in database
       const { data, error } = await supabase
         .from('ai_brain_logs')
         .insert({
@@ -151,19 +85,16 @@ export class NativeAutomationEngine {
     companyId: string
   ): Promise<AutomationResult> {
     try {
-      // Get flow configuration
       const flow = await this.getFlow(flowId);
       if (!flow) {
         return { success: false, message: 'Flow not found' };
       }
 
-      // Check execution limits
       const canExecute = await this.checkExecutionLimits(userId, companyId);
       if (!canExecute.success) {
         return canExecute;
       }
 
-      // Create execution record
       const execution: Omit<AutomationExecution, 'id'> = {
         flowId,
         leadId: triggerData.leadId,
@@ -177,10 +108,9 @@ export class NativeAutomationEngine {
 
       const executionId = await this.createExecution(execution);
 
-      // Execute actions sequentially
       const result = await this.executeActions(
         executionId,
-        flow.actions,
+        this.convertJsonActionsToActions(flow.actions),
         triggerData,
         userId,
         companyId
@@ -195,6 +125,72 @@ export class NativeAutomationEngine {
         message: 'Flow execution failed'
       };
     }
+  }
+
+  private convertActionsToJson(actions: AutomationAction[]): any[] {
+    return actions.map(action => ({
+      id: action.id,
+      type: action.type,
+      content: action.content,
+      delay: action.delay,
+      conditions: action.conditions?.map(c => ({
+        field: c.field,
+        operator: c.operator,
+        value: c.value
+      })),
+      metadata: action.metadata || {},
+      nextActions: action.nextActions?.map(next => ({
+        id: next.id,
+        type: next.type,
+        content: next.content,
+        delay: next.delay,
+        conditions: next.conditions?.map(c => ({
+          field: c.field,
+          operator: c.operator,
+          value: c.value
+        })),
+        metadata: next.metadata || {},
+        nextActions: next.nextActions?.map(level2 => ({
+          id: level2.id,
+          type: level2.type,
+          content: level2.content,
+          delay: level2.delay,
+          conditions: level2.conditions?.map(c => ({
+            field: c.field,
+            operator: c.operator,
+            value: c.value
+          })),
+          metadata: level2.metadata || {}
+        }))
+      }))
+    }));
+  }
+
+  private convertJsonActionsToActions(jsonActions: any[]): AutomationAction[] {
+    return jsonActions.map(action => ({
+      id: action.id,
+      type: action.type,
+      content: action.content,
+      delay: action.delay,
+      conditions: action.conditions,
+      metadata: action.metadata,
+      nextActions: action.nextActions?.map((next: any) => ({
+        id: next.id,
+        type: next.type,
+        content: next.content,
+        delay: next.delay,
+        conditions: next.conditions,
+        metadata: next.metadata,
+        nextActions: next.nextActions?.map((level2: any) => ({
+          id: level2.id,
+          type: level2.type,
+          content: level2.content,
+          delay: level2.delay,
+          conditions: level2.conditions,
+          metadata: level2.metadata
+        }))
+      }))
+    }));
   }
 
   private async executeActions(
@@ -597,7 +593,7 @@ export class NativeAutomationEngine {
     }
   }
 
-  private async getFlow(flowId: string): Promise<AutomationFlow | null> {
+  private async getFlow(flowId: string): Promise<JsonAutomationFlow | null> {
     try {
       const { data, error } = await supabase
         .from('ai_brain_logs')
@@ -608,7 +604,7 @@ export class NativeAutomationEngine {
 
       if (error || !data) return null;
 
-      return data.payload as unknown as AutomationFlow;
+      return data.payload as JsonAutomationFlow;
 
     } catch (error) {
       console.error('Error getting flow:', error);

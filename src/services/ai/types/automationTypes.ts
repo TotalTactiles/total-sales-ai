@@ -1,6 +1,13 @@
 
-// Core automation type definitions with strict limits
-export interface AutomationAction {
+// Core automation type definitions with strict depth limits
+export interface AutomationCondition {
+  field: string;
+  operator: 'equals' | 'contains' | 'greater_than' | 'less_than' | 'exists';
+  value: string | number | boolean;
+}
+
+// Base action without recursion
+export interface BaseAutomationAction {
   id: string;
   type: 'email' | 'sms' | 'task' | 'note' | 'call' | 'calendar';
   content: string;
@@ -9,10 +16,25 @@ export interface AutomationAction {
   metadata?: Record<string, string>;
 }
 
-export interface AutomationCondition {
-  field: string;
-  operator: 'equals' | 'contains' | 'greater_than' | 'less_than' | 'exists';
-  value: string | number | boolean;
+// Level 2 actions (deepest level)
+export interface AutomationActionLevel2 extends BaseAutomationAction {
+  // No next actions - this is the deepest level
+}
+
+// Level 1 actions (can reference level 2)
+export interface AutomationActionLevel1 extends BaseAutomationAction {
+  nextActions?: AutomationActionLevel2[];
+}
+
+// Top level actions (can reference level 1)
+export interface AutomationAction extends BaseAutomationAction {
+  nextActions?: AutomationActionLevel1[];
+}
+
+export interface AutomationTrigger {
+  type: 'lead_created' | 'lead_updated' | 'call_completed' | 'email_opened' | 'custom' | 'time_based';
+  conditions: AutomationCondition[];
+  delay?: number; // hours
 }
 
 export interface AutomationFlow {
@@ -27,12 +49,7 @@ export interface AutomationFlow {
   metadata?: Record<string, string>;
 }
 
-export interface AutomationTrigger {
-  type: 'lead_created' | 'lead_updated' | 'call_completed' | 'email_opened' | 'custom' | 'time_based';
-  conditions: AutomationCondition[];
-  delay?: number; // hours
-}
-
+// Simplified execution types
 export interface AutomationExecution {
   id: string;
   flowId: string;
@@ -84,4 +101,60 @@ export interface AutomationResult {
   message: string;
   data?: any;
   warnings?: string[];
+}
+
+// JSON-compatible types for database storage
+export interface JsonAutomationAction {
+  id: string;
+  type: string;
+  content: string;
+  delay?: number;
+  conditions?: Array<{
+    field: string;
+    operator: string;
+    value: string | number | boolean;
+  }>;
+  metadata?: Record<string, string>;
+  nextActions?: JsonAutomationAction[];
+}
+
+export interface JsonAutomationFlow {
+  id: string;
+  createdBy: string;
+  createdAt: string;
+  name: string;
+  trigger: {
+    type: string;
+    conditions: Array<{
+      field: string;
+      operator: string;
+      value: string | number | boolean;
+    }>;
+    delay?: number;
+  };
+  actions: JsonAutomationAction[];
+  isActive: boolean;
+  companyId: string;
+  industry?: string;
+  metadata: Record<string, string>;
+}
+
+export interface JsonAutomationExecution {
+  id: string;
+  flowId: string;
+  leadId?: string;
+  userId: string;
+  companyId: string;
+  status: string;
+  currentActionIndex: number;
+  startedAt: string;
+  completedAt?: string;
+  errorMessage?: string;
+  logs: Array<{
+    timestamp: string;
+    action: string;
+    status: string;
+    message: string;
+    data?: Record<string, any>;
+  }>;
 }

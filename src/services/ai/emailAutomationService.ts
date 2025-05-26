@@ -5,7 +5,8 @@ import {
   EmailTemplate, 
   AutomationFlow, 
   AutomationAction, 
-  AutomationResult 
+  AutomationResult,
+  JsonAutomationFlow
 } from './types/automationTypes';
 
 export class EmailAutomationService {
@@ -47,7 +48,6 @@ export class EmailAutomationService {
     leadContext?: Record<string, any>
   ): Promise<{ subject: string; body: string }> {
     try {
-      // Get template
       const { data: template, error } = await supabase
         .from('email_sequences')
         .select('*')
@@ -58,7 +58,6 @@ export class EmailAutomationService {
         throw new Error('Template not found');
       }
 
-      // Replace variables in template
       let subject = template.subject_template;
       let body = template.body_template;
 
@@ -165,7 +164,6 @@ export class EmailAutomationService {
     try {
       const now = new Date();
       
-      // Get scheduled emails that are ready to send
       const { data: scheduledEmails, error } = await supabase
         .from('ai_brain_logs')
         .select('*')
@@ -179,7 +177,6 @@ export class EmailAutomationService {
         try {
           const payload = this.extractEmailPayload(emailLog.payload);
           
-          // Send email via Gmail
           const { data, error: sendError } = await supabase.functions.invoke('gmail-send', {
             body: {
               to: payload.to,
@@ -192,7 +189,6 @@ export class EmailAutomationService {
 
           if (sendError) throw sendError;
 
-          // Update status
           const updatedPayload = {
             ...payload,
             status: data.success ? 'sent' : 'failed',
@@ -209,7 +205,6 @@ export class EmailAutomationService {
         } catch (error) {
           console.error('Error processing scheduled email:', error);
           
-          // Mark as failed
           const payload = this.extractEmailPayload(emailLog.payload);
           const failedPayload = {
             ...payload,
@@ -233,7 +228,6 @@ export class EmailAutomationService {
     eventData: Record<string, any>
   ): Promise<void> {
     try {
-      // Get active automation flows for this trigger
       const { data: flows, error } = await supabase
         .from('ai_brain_logs')
         .select('*')
@@ -283,7 +277,7 @@ export class EmailAutomationService {
     };
   }
 
-  private extractFlowData(payload: any): any {
+  private extractFlowData(payload: any): JsonAutomationFlow | null {
     if (!payload || typeof payload !== 'object') {
       return null;
     }
@@ -298,7 +292,8 @@ export class EmailAutomationService {
         companyId: String(payload.companyId || ''),
         createdBy: String(payload.createdBy || ''),
         industry: payload.industry ? String(payload.industry) : undefined,
-        metadata: payload.metadata || {}
+        metadata: payload.metadata || {},
+        createdAt: payload.createdAt || new Date().toISOString()
       };
     } catch (error) {
       console.error('Error extracting flow data:', error);
