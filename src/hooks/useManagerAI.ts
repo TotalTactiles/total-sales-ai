@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { masterAIBrain, AIRecommendation } from '@/services/masterAIBrain';
@@ -267,14 +266,14 @@ export const useManagerAI = () => {
         }
       };
 
-      // Store automation sequence
+      // Store automation sequence - properly serialize as JSON
       const { error } = await supabase
         .from('ai_brain_logs')
         .insert({
           company_id: profile.company_id,
           type: 'automation_sequence',
           event_summary: `Created automation: ${newSequence.name}`,
-          payload: newSequence,
+          payload: newSequence as any, // Cast to any for JSON compatibility
           visibility: 'company'
         });
 

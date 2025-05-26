@@ -1,6 +1,7 @@
+
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient } from 'react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/toaster"
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
@@ -8,6 +9,8 @@ import SalesLayout from '@/layouts/SalesLayout';
 import ManagerLayout from '@/layouts/ManagerLayout';
 import { AIContextProvider } from '@/contexts/AIContext';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
+
+const queryClient = new QueryClient();
 
 function App() {
   const { user, profile } = useAuth();
@@ -20,7 +23,7 @@ function App() {
   }, []);
 
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <BrowserRouter>
@@ -45,7 +48,7 @@ function App() {
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 

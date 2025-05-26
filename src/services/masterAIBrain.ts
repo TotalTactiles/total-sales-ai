@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -44,6 +43,11 @@ export interface AIRecommendation {
   executed?: boolean;
   timestamp: Date;
 }
+
+// Type guard to check if context is a valid object
+const isValidContext = (context: any): context is Record<string, any> => {
+  return context && typeof context === 'object' && !Array.isArray(context);
+};
 
 class MasterAIBrain {
   private static instance: MasterAIBrain;
@@ -327,16 +331,18 @@ class MasterAIBrain {
 
       // Convert insights to actionable recommendations
       for (const insight of insights || []) {
-        if (insight.context?.actionable) {
+        const insightContext = isValidContext(insight.context) ? insight.context : {};
+        
+        if (insightContext.actionable) {
           recommendations.push({
             id: crypto.randomUUID(),
             type: this.mapInsightToRecommendationType(insight.type),
-            priority: this.mapImpactToPriority(insight.context.impact),
-            title: insight.context.title,
-            description: insight.context.description,
+            priority: this.mapImpactToPriority(insightContext.impact),
+            title: insightContext.title || 'AI Recommendation',
+            description: insightContext.description || 'AI-generated recommendation',
             suggested_action: this.generateSuggestedAction(insight),
-            context: insight.context,
-            confidence: insight.context.confidence,
+            context: insightContext,
+            confidence: insightContext.confidence || 0.5,
             user_id: userId,
             company_id: companyId,
             timestamp: new Date()
@@ -373,16 +379,18 @@ class MasterAIBrain {
   }
 
   private generateSuggestedAction(insight: any): string {
+    const insightContext = isValidContext(insight.context) ? insight.context : {};
+    
     // Generate contextual action suggestions based on insight type and metadata
     switch (insight.type) {
       case 'recommendation':
-        return `Take action based on: ${insight.context.description}`;
+        return `Take action based on: ${insightContext.description || 'AI recommendation'}`;
       case 'optimization':
-        return `Optimize workflow: ${insight.context.title}`;
+        return `Optimize workflow: ${insightContext.title || 'Process optimization'}`;
       case 'alert':
-        return `Address alert: ${insight.context.description}`;
+        return `Address alert: ${insightContext.description || 'System alert'}`;
       default:
-        return `Review and consider: ${insight.context.title}`;
+        return `Review and consider: ${insightContext.title || 'AI insight'}`;
     }
   }
 
