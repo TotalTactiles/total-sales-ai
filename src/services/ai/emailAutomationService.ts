@@ -9,6 +9,7 @@ export interface EmailTemplate {
   body: string;
   type: 'sequence' | 'one_off' | 'follow_up';
   variables: string[];
+  companyId: string;
 }
 
 export interface EmailSequence {
@@ -17,6 +18,7 @@ export interface EmailSequence {
   emails: EmailTemplate[];
   delays: number[]; // hours between emails
   isActive: boolean;
+  companyId: string;
 }
 
 export interface EmailAutomationRule {
@@ -27,10 +29,11 @@ export interface EmailAutomationRule {
   emailTemplateId?: string;
   sequenceId?: string;
   delay?: number;
+  companyId: string;
 }
 
 export class EmailAutomationService {
-  async createEmailTemplate(template: Omit<EmailTemplate, 'id'>): Promise<EmailTemplate> {
+  async createEmailTemplate(template: Omit<EmailTemplate, 'id'>, companyId: string): Promise<EmailTemplate> {
     try {
       const { data, error } = await supabase
         .from('email_sequences')
@@ -39,7 +42,8 @@ export class EmailAutomationService {
           subject_template: template.subject,
           body_template: template.body,
           delay_hours: 0,
-          is_active: true
+          is_active: true,
+          company_id: companyId
         })
         .select()
         .single();
@@ -52,7 +56,8 @@ export class EmailAutomationService {
         subject: data.subject_template,
         body: data.body_template,
         type: template.type,
-        variables: template.variables
+        variables: template.variables,
+        companyId: data.company_id
       };
     } catch (error) {
       console.error('Error creating email template:', error);
@@ -113,7 +118,7 @@ export class EmailAutomationService {
     subject: string,
     body: string,
     sendAt: Date,
-    metadata?: Record<string, any>
+    metadata: Record<string, any> = {}
   ): Promise<string> {
     try {
       const { data, error } = await supabase
@@ -129,7 +134,8 @@ export class EmailAutomationService {
             metadata,
             status: 'scheduled'
           },
-          visibility: 'admin_only'
+          visibility: 'admin_only',
+          company_id: metadata.companyId || 'system'
         })
         .select()
         .single();
@@ -138,8 +144,8 @@ export class EmailAutomationService {
 
       // Log to AI brain for learning
       await masterAIBrain.ingestEvent({
-        user_id: metadata?.userId || 'system',
-        company_id: metadata?.companyId || 'system',
+        user_id: metadata.userId || 'system',
+        company_id: metadata.companyId || 'system',
         event_type: 'email_interaction',
         source: 'automation_scheduler',
         data: {
@@ -174,7 +180,7 @@ export class EmailAutomationService {
 
       for (const emailLog of scheduledEmails || []) {
         try {
-          const payload = emailLog.payload as any;
+          const payload = this.safeParsePayload(emailLog.payload);
           
           // Send email via Gmail
           const { data, error: sendError } = await supabase.functions.invoke('gmail-send', {
@@ -222,13 +228,14 @@ export class EmailAutomationService {
           console.error('Error processing scheduled email:', error);
           
           // Mark as failed
+          const payload = this.safeParsePayload(emailLog.payload);
           await supabase
             .from('ai_brain_logs')
             .update({
               payload: {
-                ...emailLog.payload,
+                ...payload,
                 status: 'failed',
-                error: error.message
+                error: error instanceof Error ? error.message : 'Unknown error'
               }
             })
             .eq('id', emailLog.id);
@@ -239,15 +246,16 @@ export class EmailAutomationService {
     }
   }
 
-  async createAutomationRule(rule: Omit<EmailAutomationRule, 'id'>): Promise<EmailAutomationRule> {
+  async createAutomationRule(rule: Omit<EmailAutomationRule, 'id'>, companyId: string): Promise<EmailAutomationRule> {
     try {
       const { data, error } = await supabase
         .from('ai_brain_logs')
         .insert({
           type: 'automation_rule',
           event_summary: `Email automation rule: ${rule.trigger}`,
-          payload: rule,
-          visibility: 'admin_only'
+          payload: { ...rule, companyId },
+          visibility: 'admin_only',
+          company_id: companyId
         })
         .select()
         .single();
@@ -256,7 +264,8 @@ export class EmailAutomationService {
 
       return {
         id: data.id,
-        ...rule
+        ...rule,
+        companyId
       };
     } catch (error) {
       console.error('Error creating automation rule:', error);
@@ -279,15 +288,48 @@ export class EmailAutomationService {
       if (error) throw error;
 
       for (const ruleLog of rules || []) {
-        const rule = ruleLog.payload as EmailAutomationRule;
+        const rule = this.parseAutomationRule(ruleLog.payload);
         
-        // Check if conditions are met
-        if (this.evaluateConditions(rule.conditions, eventData)) {
+        if (rule && this.evaluateConditions(rule.conditions, eventData)) {
           await this.executeAutomationAction(rule, eventData);
         }
       }
     } catch (error) {
       console.error('Error evaluating automation triggers:', error);
+    }
+  }
+
+  private safeParsePayload(payload: any): any {
+    if (!payload || typeof payload !== 'object') {
+      return {};
+    }
+    return payload;
+  }
+
+  private parseAutomationRule(payload: any): EmailAutomationRule | null {
+    try {
+      if (!payload || typeof payload !== 'object') {
+        return null;
+      }
+
+      // Validate required fields
+      if (!payload.trigger || !payload.conditions || !payload.action) {
+        return null;
+      }
+
+      return {
+        id: payload.id || '',
+        trigger: payload.trigger,
+        conditions: payload.conditions || {},
+        action: payload.action,
+        emailTemplateId: payload.emailTemplateId,
+        sequenceId: payload.sequenceId,
+        delay: payload.delay,
+        companyId: payload.companyId || ''
+      };
+    } catch (error) {
+      console.error('Error parsing automation rule:', error);
+      return null;
     }
   }
 
@@ -323,6 +365,7 @@ export class EmailAutomationService {
               sendAt,
               { 
                 automationRuleId: rule.id,
+                companyId: rule.companyId,
                 ...eventData 
               }
             );
@@ -345,7 +388,7 @@ export class EmailAutomationService {
       // Log automation execution
       await masterAIBrain.ingestEvent({
         user_id: eventData.userId || 'system',
-        company_id: eventData.companyId || 'system',
+        company_id: eventData.companyId || rule.companyId || 'system',
         event_type: 'ai_output',
         source: 'email_automation',
         data: {
