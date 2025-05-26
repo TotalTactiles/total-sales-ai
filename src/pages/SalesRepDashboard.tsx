@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardNavigation from '@/components/Dashboard/DashboardNavigation';
 import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import PerformanceMetricsGrid from '@/components/Dashboard/PerformanceMetricsGrid';
 import PipelinePulse from '@/components/Dashboard/PipelinePulse';
@@ -40,13 +39,11 @@ const SalesRepDashboard = () => {
     fetchUserStats();
   }, [user?.id]);
 
-  // Use real leads if available, otherwise use mock data
   const displayLeads = leads && leads.length > 0 ? leads : mockLeads;
   const isFullUser = !!user && !!profile;
 
   const dailySummary = `Good morning! You have 12 high-priority leads requiring immediate attention. Your conversion rate improved by 23% this week. AI suggests focusing on Enterprise prospects between 2-4 PM for optimal engagement. Your pipeline value increased to $847K with 3 deals expected to close this week.`;
 
-  // Transform leads for PipelinePulse component
   const pipelineLeads = displayLeads.slice(0, 5).map(lead => ({
     id: lead.id,
     name: lead.name,
@@ -57,7 +54,6 @@ const SalesRepDashboard = () => {
   }));
 
   const handleLeadClick = (leadId: string) => {
-    // Navigate to the correct lead workspace route
     navigate(`/lead-workspace/${leadId}`);
   };
 
@@ -121,50 +117,37 @@ const SalesRepDashboard = () => {
 
   const handleActionClick = (actionId: string) => {
     console.log('Action clicked:', actionId);
-    // Handle action click logic here
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardNavigation />
-      
-      <main className="pt-[60px]">
-        <div className="max-w-7xl mx-auto p-6 space-y-6">
-          {/* AI Daily Summary - Full Width */}
-          <section>
-            <AIDailySummary summary={dailySummary} isFullUser={isFullUser} />
-          </section>
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <section>
+        <AIDailySummary summary={dailySummary} isFullUser={isFullUser} />
+      </section>
 
-          {/* Performance Metrics - Grid */}
-          <section>
-            <PerformanceMetricsGrid userStats={userStats} isFullUser={isFullUser} />
-          </section>
+      <section>
+        <PerformanceMetricsGrid userStats={userStats} isFullUser={isFullUser} />
+      </section>
 
-          {/* Main Dashboard Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - 2/3 width */}
-            <div className="lg:col-span-2 space-y-6">
-              <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
-              <AIOptimizedTimeBlocks isFullUser={isFullUser} />
-            </div>
-
-            {/* Right Column - 1/3 width */}
-            <div className="space-y-6">
-              <VictoryArchive victories={victories} isFullUser={isFullUser} />
-              <AISummaryCard data={aiSummaryData} isFullUser={isFullUser} />
-            </div>
-          </div>
-
-          {/* AI Recommended Actions - Full Width */}
-          <section>
-            <AIRecommendedActions 
-              actions={recommendedActions} 
-              onActionClick={handleActionClick}
-              isFullUser={isFullUser}
-            />
-          </section>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
+          <AIOptimizedTimeBlocks isFullUser={isFullUser} />
         </div>
-      </main>
+
+        <div className="space-y-6">
+          <VictoryArchive victories={victories} isFullUser={isFullUser} />
+          <AISummaryCard data={aiSummaryData} isFullUser={isFullUser} />
+        </div>
+      </div>
+
+      <section>
+        <AIRecommendedActions 
+          actions={recommendedActions} 
+          onActionClick={handleActionClick}
+          isFullUser={isFullUser}
+        />
+      </section>
     </div>
   );
 };
