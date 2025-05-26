@@ -49,6 +49,15 @@ const isValidContext = (context: any): context is Record<string, any> => {
   return context && typeof context === 'object' && !Array.isArray(context);
 };
 
+// Enhanced type guard to safely cast Json to Record<string, any>
+const safeJsonToObject = (json: any): Record<string, any> => {
+  if (!json) return {};
+  if (typeof json === 'object' && !Array.isArray(json)) {
+    return json as Record<string, any>;
+  }
+  return {};
+};
+
 class MasterAIBrain {
   private static instance: MasterAIBrain;
   private ingestionQueue: AIIngestionEvent[] = [];
@@ -289,7 +298,8 @@ class MasterAIBrain {
 
   private eventMatchesTrigger(event: AIIngestionEvent, trigger: any): boolean {
     // Simple trigger matching logic - can be enhanced
-    return trigger.payload?.event_type === event.event_type;
+    const triggerPayload = safeJsonToObject(trigger.payload);
+    return triggerPayload?.event_type === event.event_type;
   }
 
   private async executeAutomation(trigger: any, event: AIIngestionEvent): Promise<void> {
@@ -331,7 +341,7 @@ class MasterAIBrain {
 
       // Convert insights to actionable recommendations
       for (const insight of insights || []) {
-        const insightContext = isValidContext(insight.context) ? insight.context : {};
+        const insightContext = safeJsonToObject(insight.context);
         
         if (insightContext.actionable) {
           recommendations.push({
@@ -379,7 +389,7 @@ class MasterAIBrain {
   }
 
   private generateSuggestedAction(insight: any): string {
-    const insightContext = isValidContext(insight.context) ? insight.context : {};
+    const insightContext = safeJsonToObject(insight.context);
     
     // Generate contextual action suggestions based on insight type and metadata
     switch (insight.type) {
