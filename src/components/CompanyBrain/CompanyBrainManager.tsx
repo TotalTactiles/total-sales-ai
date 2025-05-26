@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -447,7 +446,7 @@ const CompanyBrainManager: React.FC = () => {
                     <div className="space-y-3">
                       {insights.filter(insight => 
                         card.id === 'social-media' && insight.type === 'social' ||
-                        card.id === 'website' && insight.type === 'content' ||
+                        card.id === 'website' && insight.type === 'website' ||
                         card.id === 'ai-insights'
                       ).slice(0, 2).map((insight) => (
                         <div key={insight.id} className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 rounded-lg border border-blue-200">
