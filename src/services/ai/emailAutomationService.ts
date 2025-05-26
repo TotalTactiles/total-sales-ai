@@ -1,10 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { nativeAutomationEngine } from './automationEngine';
+import { automationFlowService } from './automationFlowService';
 import { 
   EmailTemplate, 
-  AutomationFlow, 
-  AutomationAction, 
   AutomationResult
 } from './types/automationTypes';
 
@@ -43,8 +41,7 @@ export class EmailAutomationService {
 
   async generateEmailFromTemplate(
     templateId: string, 
-    variables: Record<string, string>,
-    leadContext?: Record<string, any>
+    variables: Record<string, string>
   ): Promise<{ subject: string; body: string }> {
     try {
       const { data: template, error } = await supabase
@@ -108,54 +105,6 @@ export class EmailAutomationService {
     } catch (error) {
       console.error('Error scheduling email:', error);
       throw error;
-    }
-  }
-
-  async createEmailAutomationFlow(
-    name: string,
-    trigger: string,
-    conditions: Record<string, any>,
-    templateId: string,
-    delay: number = 0,
-    companyId: string,
-    userId: string
-  ): Promise<AutomationResult> {
-    try {
-      const emailAction: AutomationAction = {
-        id: crypto.randomUUID(),
-        type: 'email',
-        content: `Email from template ${templateId}`,
-        delay,
-        metadata: {
-          templateId,
-          body: 'Email content will be generated from template'
-        }
-      };
-
-      const flow: Omit<AutomationFlow, 'id'> = {
-        name,
-        trigger: {
-          type: trigger as any,
-          conditions: Object.entries(conditions).map(([field, value]) => ({
-            field,
-            operator: 'equals' as const,
-            value
-          }))
-        },
-        actions: [emailAction],
-        isActive: true,
-        companyId,
-        createdBy: userId
-      };
-
-      return await nativeAutomationEngine.createAutomationFlow(flow);
-
-    } catch (error) {
-      console.error('Error creating email automation flow:', error);
-      return {
-        success: false,
-        message: 'Failed to create email automation flow'
-      };
     }
   }
 
@@ -227,30 +176,12 @@ export class EmailAutomationService {
     eventData: Record<string, any>
   ): Promise<void> {
     try {
-      const { data: flows, error } = await supabase
-        .from('ai_brain_logs')
-        .select('*')
-        .eq('type', 'automation_flow');
-
-      if (error) throw error;
-
-      for (const flowLog of flows || []) {
-        // Simplified flow data extraction to avoid deep recursion
-        const flowData = this.safeExtractFlowData(flowLog.payload);
-        
-        if (flowData && flowData.trigger.type === trigger && flowData.isActive) {
-          const conditionsMatch = this.evaluateConditions(flowData.trigger.conditions, eventData);
-          
-          if (conditionsMatch) {
-            await nativeAutomationEngine.executeFlow(
-              flowLog.id,
-              eventData,
-              eventData.userId || 'system',
-              eventData.companyId || 'system'
-            );
-          }
-        }
-      }
+      await automationFlowService.evaluateFlowTriggers(trigger, {
+        userId: eventData.userId || 'system',
+        companyId: eventData.companyId || 'system',
+        timestamp: new Date().toISOString(),
+        ...eventData
+      });
     } catch (error) {
       console.error('Error evaluating automation triggers:', error);
     }
@@ -275,55 +206,6 @@ export class EmailAutomationService {
       metadata: payload.metadata || {},
       status: payload.status || 'pending'
     };
-  }
-
-  // Simplified flow data extraction to prevent deep recursion
-  private safeExtractFlowData(payload: any): any {
-    if (!payload || typeof payload !== 'object') {
-      return null;
-    }
-
-    // Simple object creation without complex type inference
-    const result = {
-      id: payload.id ? String(payload.id) : '',
-      name: payload.name ? String(payload.name) : '',
-      trigger: {
-        type: payload.trigger?.type || 'custom',
-        conditions: Array.isArray(payload.trigger?.conditions) ? payload.trigger.conditions : []
-      },
-      actions: Array.isArray(payload.actions) ? payload.actions : [],
-      isActive: Boolean(payload.isActive),
-      companyId: payload.companyId ? String(payload.companyId) : '',
-      createdBy: payload.createdBy ? String(payload.createdBy) : ''
-    };
-
-    return result;
-  }
-
-  private evaluateConditions(conditions: any[], eventData: Record<string, any>): boolean {
-    if (!Array.isArray(conditions)) return true;
-    
-    return conditions.every(condition => {
-      if (!condition || typeof condition !== 'object') return false;
-      
-      const { field, operator, value } = condition;
-      const eventValue = eventData[field];
-
-      switch (operator) {
-        case 'equals':
-          return eventValue === value;
-        case 'contains':
-          return String(eventValue).includes(String(value));
-        case 'greater_than':
-          return Number(eventValue) > Number(value);
-        case 'less_than':
-          return Number(eventValue) < Number(value);
-        case 'exists':
-          return eventValue !== undefined && eventValue !== null;
-        default:
-          return false;
-      }
-    });
   }
 }
 
