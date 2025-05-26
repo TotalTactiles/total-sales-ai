@@ -15,19 +15,21 @@ import {
   Settings,
   Search,
   Filter,
-  Database,
-  AlertCircle
+  AlertCircle,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompanyBrain } from '@/hooks/useCompanyBrain';
 import { DataSourceCard } from './types';
 import { DataSourceCardComponent } from './components/DataSourceCardComponent';
-import { DataLibraryPreview } from './components/DataLibraryPreview';
+import { EnhancedDataLibrary } from './components/EnhancedDataLibrary';
+import { SummaryHeader } from './components/SummaryHeader';
 
 const CompanyBrainManager: React.FC = () => {
   const [websiteUrl, setWebsiteUrl] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCardTab, setActiveCardTab] = useState<Record<string, string>>({});
+  const [dismissedErrors, setDismissedErrors] = useState<string[]>([]);
   
   const {
     isLoading,
@@ -42,7 +44,8 @@ const CompanyBrainManager: React.FC = () => {
     crawlWebsite,
     refreshInsights,
     createCampaignBrief,
-    sendInsightEmail
+    sendInsightEmail,
+    refreshData
   } = useCompanyBrain();
 
   const handleWebsiteIngest = async () => {
@@ -72,6 +75,18 @@ const CompanyBrainManager: React.FC = () => {
     setActiveCardTab(prev => ({ ...prev, [cardId]: tab }));
   };
 
+  const handleDismissError = (error: string) => {
+    setDismissedErrors(prev => [...prev, error]);
+  };
+
+  const handleRefreshAll = async () => {
+    toast.info('Refreshing all data sources...');
+    await refreshData();
+    toast.success('All data sources refreshed');
+  };
+
+  const visibleErrors = dataStatus.errors.filter(error => !dismissedErrors.includes(error));
+
   const dataSourceCards: DataSourceCard[] = [
     {
       id: 'social-media',
@@ -79,8 +94,8 @@ const CompanyBrainManager: React.FC = () => {
       icon: Users,
       status: dataStatus.social.connected > 0 ? 'connected' : 'disconnected',
       itemCount: dataStatus.social.connected,
-      lastUpdated: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-      description: 'Instagram, LinkedIn, TikTok, Facebook integrations',
+      lastUpdated: new Date(Date.now() - 5 * 60 * 60 * 1000),
+      description: 'Instagram, LinkedIn, TikTok, Facebook integrations for posts, analytics, and audience insights',
       actionButton: {
         text: 'Connect Accounts',
         action: () => setCardTab('social-media', 'data-sources')
@@ -93,20 +108,20 @@ const CompanyBrainManager: React.FC = () => {
       status: websiteData ? 'connected' : 'disconnected',
       itemCount: websiteData?.pages || 0,
       lastUpdated: websiteData?.lastCrawled || null,
-      description: 'Automated website content scraping and analysis',
+      description: 'Automated website content scraping, SEO analysis, and competitive intelligence',
       actionButton: {
-        text: websiteData ? 'Resync' : 'Ingest Data',
+        text: websiteData ? 'Resync Website' : 'Ingest Website',
         action: () => setCardTab('website', 'data-sources')
       }
     },
     {
       id: 'file-uploads',
-      title: 'File Uploads',
+      title: 'Document Library',
       icon: Upload,
       status: uploadedFiles.length > 0 ? 'connected' : 'disconnected',
       itemCount: uploadedFiles.length,
       lastUpdated: uploadedFiles.length > 0 ? uploadedFiles[0].uploadDate : null,
-      description: 'PDFs, Word Docs, CSVs, Images, Videos',
+      description: 'PDFs, Word Docs, CSVs, Images, Videos, and training materials repository',
       actionButton: {
         text: 'Upload Files',
         action: () => document.getElementById('bulk-upload')?.click()
@@ -119,10 +134,10 @@ const CompanyBrainManager: React.FC = () => {
       status: 'disconnected',
       itemCount: 0,
       lastUpdated: null,
-      description: 'Training videos, product demos, webinars',
+      description: 'Training videos, product demos, webinars, and multimedia content management',
       actionButton: {
         text: 'Upload Videos',
-        action: () => toast.info('Video upload coming soon')
+        action: () => toast.info('Video upload coming soon - stay tuned!')
       }
     },
     {
@@ -131,11 +146,11 @@ const CompanyBrainManager: React.FC = () => {
       icon: BookOpen,
       status: 'connected',
       itemCount: 12,
-      lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      description: 'Standard Operating Procedures and success stories',
+      lastUpdated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      description: 'Standard Operating Procedures, success stories, and best practice documentation',
       actionButton: {
         text: 'Add Content',
-        action: () => toast.info('SOP management coming soon')
+        action: () => toast.info('SOP management interface coming soon')
       }
     },
     {
@@ -145,13 +160,16 @@ const CompanyBrainManager: React.FC = () => {
       status: insights.length > 0 ? 'connected' : 'disconnected',
       itemCount: insights.length,
       lastUpdated: insights.length > 0 ? new Date() : null,
-      description: 'Automated analysis and recommendations',
+      description: 'Automated analysis, trend detection, and intelligent recommendations engine',
       actionButton: {
         text: 'Generate Insights',
         action: refreshInsights
       }
     }
   ];
+
+  const totalActiveConnections = dataSourceCards.filter(card => card.status === 'connected').length;
+  const totalFiles = uploadedFiles.length + (websiteData?.pages || 0) + dataStatus.social.connected * 50; // Estimated files
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
@@ -183,38 +201,54 @@ const CompanyBrainManager: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Global Actions */}
+        {/* Summary Header */}
+        <SummaryHeader
+          totalSources={6}
+          totalFiles={totalFiles}
+          lastSyncTime={new Date()}
+          activeConnections={totalActiveConnections}
+          errorCount={visibleErrors.length}
+          onRefresh={handleRefreshAll}
+        />
+
+        {/* Global Search */}
         <div className="mb-8 flex gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
             <Input
-              placeholder="Search all data sources..."
+              placeholder="Search all data sources, files, and insights..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 text-lg"
+              className="pl-10 h-12 text-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
-          <Button variant="outline" size="lg" className="gap-2">
+          <Button variant="outline" size="lg" className="gap-2 border-slate-300 hover:bg-slate-50">
             <Filter className="h-5 w-5" />
-            Filter
-          </Button>
-          <Button size="lg" className="gap-2 bg-blue-600 hover:bg-blue-700">
-            <Database className="h-5 w-5" />
-            View Data Library
+            Advanced Filters
           </Button>
         </div>
 
         {/* Error Alerts */}
-        {dataStatus.errors.length > 0 && (
+        {visibleErrors.length > 0 && (
           <div className="mb-8 space-y-3">
-            {dataStatus.errors.map((error, index) => (
-              <div key={index} className="bg-red-50 border border-red-200 rounded-xl p-4">
+            {visibleErrors.map((error, index) => (
+              <div key={index} className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <AlertCircle className="h-6 w-6 text-red-600" />
-                  <span className="text-red-800 font-medium">{error}</span>
-                  <Button variant="outline" size="sm" className="ml-auto">
-                    Resolve
-                  </Button>
+                  <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                  <span className="text-red-800 font-medium flex-1">{error}</span>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50">
+                      Resolve
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDismissError(error)}
+                      className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -222,7 +256,7 @@ const CompanyBrainManager: React.FC = () => {
         )}
 
         {/* Data Source Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-12">
           {dataSourceCards.map((card) => (
             <DataSourceCardComponent
               key={card.id}
@@ -244,8 +278,8 @@ const CompanyBrainManager: React.FC = () => {
           ))}
         </div>
 
-        {/* Data Library Preview */}
-        <DataLibraryPreview />
+        {/* Enhanced Data Library */}
+        <EnhancedDataLibrary />
       </div>
 
       {/* Hidden bulk upload input */}

@@ -21,11 +21,31 @@ export const CardTabs: React.FC<CardTabsProps> = ({
 
   return (
     <Tabs value={getCardTab(cardId)} onValueChange={(value) => setCardTab(cardId, value)}>
-      <TabsList className="grid w-full grid-cols-4 mb-4">
-        <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
-        <TabsTrigger value="data-sources" className="text-xs">Data Sources</TabsTrigger>
-        <TabsTrigger value="ai-suggestions" className="text-xs">AI Suggestions</TabsTrigger>
-        <TabsTrigger value="logs" className="text-xs">Logs</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-4 mb-6 bg-slate-100/80 p-1 rounded-xl">
+        <TabsTrigger 
+          value="overview" 
+          className="text-xs font-medium rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all"
+        >
+          Overview
+        </TabsTrigger>
+        <TabsTrigger 
+          value="data-sources" 
+          className="text-xs font-medium rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all"
+        >
+          Data Sources
+        </TabsTrigger>
+        <TabsTrigger 
+          value="ai-suggestions" 
+          className="text-xs font-medium rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all"
+        >
+          AI Suggestions
+        </TabsTrigger>
+        <TabsTrigger 
+          value="logs" 
+          className="text-xs font-medium rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all"
+        >
+          Logs
+        </TabsTrigger>
       </TabsList>
       {children}
     </Tabs>
