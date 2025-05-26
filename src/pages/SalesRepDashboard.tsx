@@ -62,16 +62,34 @@ const SalesRepDashboard = () => {
   };
 
   const victories = [
-    { client: 'TechCorp Inc.', value: '$125,000', date: '2024-01-15' },
-    { client: 'Global Solutions', value: '$85,000', date: '2024-01-12' },
-    { client: 'StartupXYZ', value: '$45,000', date: '2024-01-08' }
+    { 
+      id: '1',
+      clientName: 'TechCorp Inc.',
+      dealValue: '$125,000',
+      dateClosed: '2024-01-15',
+      type: 'new' as const
+    },
+    { 
+      id: '2',
+      clientName: 'Global Solutions',
+      dealValue: '$85,000',
+      dateClosed: '2024-01-12',
+      type: 'upsell' as const
+    },
+    { 
+      id: '3',
+      clientName: 'StartupXYZ',
+      dealValue: '$45,000',
+      dateClosed: '2024-01-08',
+      type: 'renewal' as const
+    }
   ];
 
-  const aiActions = {
-    emails_drafted: 23,
-    calls_scheduled: 12,
-    proposals_generated: 5,
-    improvement_percentage: 34
+  const aiSummaryData = {
+    emailsDrafted: 23,
+    callsScheduled: 12,
+    proposalsGenerated: 5,
+    improvementPercentage: 34
   };
 
   const recommendedActions = [
@@ -80,23 +98,31 @@ const SalesRepDashboard = () => {
       description: 'Call Maria Rodriguez at TechCorp - warm lead ready to close',
       suggestedTime: '2:30 PM',
       urgency: 'high' as const,
-      type: 'call' as const
+      type: 'call' as const,
+      impact: 'high' as const
     },
     {
       id: '2',
       description: 'Send follow-up email to Global Solutions with updated proposal',
       suggestedTime: '3:15 PM',
       urgency: 'medium' as const,
-      type: 'email' as const
+      type: 'email' as const,
+      impact: 'medium' as const
     },
     {
       id: '3',
       description: 'Schedule demo with StartupXYZ for next week',
       suggestedTime: '4:00 PM',
       urgency: 'low' as const,
-      type: 'meeting' as const
+      type: 'meeting' as const,
+      impact: 'low' as const
     }
   ];
+
+  const handleActionClick = (actionId: string) => {
+    console.log('Action clicked:', actionId);
+    // Handle action click logic here
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -119,19 +145,23 @@ const SalesRepDashboard = () => {
             {/* Left Column - 2/3 width */}
             <div className="lg:col-span-2 space-y-6">
               <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
-              <AIOptimizedTimeBlocks />
+              <AIOptimizedTimeBlocks isFullUser={isFullUser} />
             </div>
 
             {/* Right Column - 1/3 width */}
             <div className="space-y-6">
-              <VictoryArchive victories={victories} />
-              <AISummaryCard actions={aiActions} isFullUser={isFullUser} />
+              <VictoryArchive victories={victories} isFullUser={isFullUser} />
+              <AISummaryCard data={aiSummaryData} isFullUser={isFullUser} />
             </div>
           </div>
 
           {/* AI Recommended Actions - Full Width */}
           <section>
-            <AIRecommendedActions actions={recommendedActions} />
+            <AIRecommendedActions 
+              actions={recommendedActions} 
+              onActionClick={handleActionClick}
+              isFullUser={isFullUser}
+            />
           </section>
         </div>
       </main>
