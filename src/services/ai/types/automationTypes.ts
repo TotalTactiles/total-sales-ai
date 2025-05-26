@@ -1,4 +1,3 @@
-
 // Core automation type definitions with strict depth limits
 export interface AutomationCondition {
   field: string;
@@ -86,6 +85,7 @@ export const DEFAULT_AUTOMATION_LIMITS: AutomationLimits = {
   maxChainDepth: 3
 };
 
+// Re-export EmailTemplate and AutomationResult for backward compatibility
 export interface EmailTemplate {
   id: string;
   name: string;
