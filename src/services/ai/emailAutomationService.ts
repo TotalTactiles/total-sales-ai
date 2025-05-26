@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { masterAIBrain } from '@/services/masterAIBrain';
 import { nativeAutomationEngine } from './automationEngine';
 import { 
   EmailTemplate, 
@@ -10,7 +9,7 @@ import {
 } from './types/automationTypes';
 
 export class EmailAutomationService {
-  async createEmailTemplate(template: Omit<EmailTemplate, 'id'>, companyId: string): Promise<EmailTemplate> {
+  async createEmailTemplate(template: EmailTemplate): Promise<EmailTemplate> {
     try {
       const { data, error } = await supabase
         .from('email_sequences')
@@ -20,7 +19,7 @@ export class EmailAutomationService {
           body_template: template.body,
           delay_hours: 0,
           is_active: true,
-          company_id: companyId
+          company_id: template.companyId
         })
         .select()
         .single();
@@ -58,20 +57,6 @@ export class EmailAutomationService {
       if (error || !template) {
         throw new Error('Template not found');
       }
-
-      // Log to AI brain for learning
-      await masterAIBrain.ingestEvent({
-        user_id: variables.userId || 'system',
-        company_id: variables.companyId || 'system',
-        event_type: 'ai_output',
-        source: 'email_automation',
-        data: {
-          action: 'generate_email',
-          templateId,
-          leadContext: leadContext || {},
-          variables
-        }
-      });
 
       // Replace variables in template
       let subject = template.subject_template;
@@ -121,21 +106,6 @@ export class EmailAutomationService {
 
       if (error) throw error;
 
-      // Log to AI brain for learning
-      await masterAIBrain.ingestEvent({
-        user_id: metadata.userId || 'system',
-        company_id: metadata.companyId || 'system',
-        event_type: 'email_interaction',
-        source: 'automation_scheduler',
-        data: {
-          action: 'scheduled',
-          to,
-          subject,
-          sendAt: sendAt.toISOString(),
-          metadata
-        }
-      });
-
       return data.id;
     } catch (error) {
       console.error('Error scheduling email:', error);
@@ -180,7 +150,7 @@ export class EmailAutomationService {
         createdBy: userId
       };
 
-      return await nativeAutomationEngine.createAutomationFlow(flow, userId);
+      return await nativeAutomationEngine.createAutomationFlow(flow);
 
     } catch (error) {
       console.error('Error creating email automation flow:', error);
@@ -235,21 +205,6 @@ export class EmailAutomationService {
             .from('ai_brain_logs')
             .update({ payload: updatedPayload })
             .eq('id', emailLog.id);
-
-          // Log result to AI brain
-          await masterAIBrain.ingestEvent({
-            user_id: payload.metadata?.userId || 'system',
-            company_id: payload.metadata?.companyId || 'system',
-            event_type: 'email_interaction',
-            source: 'automation_processor',
-            data: {
-              action: data.success ? 'sent' : 'failed',
-              to: payload.to,
-              subject: payload.subject,
-              messageId: data.messageId,
-              error: data.error
-            }
-          });
 
         } catch (error) {
           console.error('Error processing scheduled email:', error);

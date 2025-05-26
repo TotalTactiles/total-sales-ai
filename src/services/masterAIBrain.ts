@@ -1,13 +1,11 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AIIngestionEvent, AIRecommendation } from './ai/types';
 import { InsightGenerator } from './ai/insightGenerator';
-import { AutomationEngine } from './ai/automationEngine';
+import { nativeAutomationEngine } from './ai/automationEngine';
 import { RecommendationService } from './ai/recommendationService';
 import { LearningEngine } from './ai/learningEngine';
 import { emailAutomationService } from './ai/emailAutomationService';
-import { nativeAutomationEngine } from './ai/automationEngine';
 
 // Re-export types for backward compatibility
 export type { AIIngestionEvent, AIRecommendation } from './ai/types';
@@ -17,7 +15,6 @@ class MasterAIBrain {
   private ingestionQueue: AIIngestionEvent[] = [];
   private isProcessing = false;
   private insightGenerator = new InsightGenerator();
-  private automationEngine = new AutomationEngine();
   private recommendationService = new RecommendationService();
   private learningEngine = new LearningEngine();
 

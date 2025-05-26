@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -23,10 +22,11 @@ export const useNativeAutomation = () => {
 
     setIsLoading(true);
     try {
-      const result = await nativeAutomationEngine.createAutomationFlow(
-        { ...flow, companyId: profile.company_id },
-        user.id
-      );
+      const result = await nativeAutomationEngine.createAutomationFlow({
+        ...flow,
+        companyId: profile.company_id,
+        createdBy: user.id
+      });
 
       if (result.success) {
         toast.success('Automation flow created successfully');
@@ -45,7 +45,7 @@ export const useNativeAutomation = () => {
   }, [user?.id, profile?.company_id]);
 
   const createEmailTemplate = useCallback(async (
-    template: Omit<EmailTemplate, 'id' | 'companyId'>
+    template: Omit<EmailTemplate, 'id'>
   ): Promise<EmailTemplate | null> => {
     if (!user?.id || !profile?.company_id) {
       toast.error('Authentication required');
@@ -54,10 +54,12 @@ export const useNativeAutomation = () => {
 
     setIsLoading(true);
     try {
-      const result = await emailAutomationService.createEmailTemplate(
-        template,
-        profile.company_id
-      );
+      const templateWithCompany = {
+        ...template,
+        companyId: profile.company_id
+      };
+
+      const result = await emailAutomationService.createEmailTemplate(templateWithCompany);
 
       toast.success('Email template created successfully');
       return result;

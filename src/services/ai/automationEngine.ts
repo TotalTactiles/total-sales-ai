@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   AutomationFlow, 
@@ -9,18 +8,38 @@ import {
   DEFAULT_AUTOMATION_LIMITS,
   AutomationLog
 } from './types/automationTypes';
-import { masterAIBrain } from '../masterAIBrain';
+
+interface JsonCompatibleAutomationLog {
+  timestamp: string;
+  action: string;
+  status: string;
+  message: string;
+  data?: Record<string, any>;
+}
+
+interface JsonCompatibleExecution {
+  id: string;
+  flowId: string;
+  leadId?: string;
+  userId: string;
+  companyId: string;
+  status: string;
+  currentActionIndex: number;
+  startedAt: string;
+  completedAt?: string;
+  errorMessage?: string;
+  logs: JsonCompatibleAutomationLog[];
+}
 
 export class NativeAutomationEngine {
   private limits: AutomationLimits = DEFAULT_AUTOMATION_LIMITS;
 
   async createAutomationFlow(
-    flow: Omit<AutomationFlow, 'id'>,
-    userId: string
+    flow: Omit<AutomationFlow, 'id'>
   ): Promise<AutomationResult> {
     try {
       // Check user limits
-      const canCreate = await this.checkUserLimits(userId, flow.companyId);
+      const canCreate = await this.checkUserLimits(flow.createdBy, flow.companyId);
       if (!canCreate.success) {
         return canCreate;
       }
@@ -31,18 +50,27 @@ export class NativeAutomationEngine {
         return validation;
       }
 
+      // Create JSON-compatible flow data
+      const flowData = {
+        id: crypto.randomUUID(),
+        createdBy: flow.createdBy,
+        createdAt: new Date().toISOString(),
+        name: flow.name,
+        trigger: flow.trigger,
+        actions: flow.actions,
+        isActive: flow.isActive,
+        companyId: flow.companyId,
+        industry: flow.industry || null,
+        metadata: flow.metadata || {}
+      };
+
       // Store in database
       const { data, error } = await supabase
         .from('ai_brain_logs')
         .insert({
           type: 'automation_flow',
           event_summary: `Created automation flow: ${flow.name}`,
-          payload: {
-            ...flow,
-            id: crypto.randomUUID(),
-            createdBy: userId,
-            createdAt: new Date().toISOString()
-          },
+          payload: flowData,
           company_id: flow.companyId,
           visibility: 'admin_only'
         })
@@ -50,19 +78,6 @@ export class NativeAutomationEngine {
         .single();
 
       if (error) throw error;
-
-      // Log to AI brain
-      await masterAIBrain.ingestEvent({
-        user_id: userId,
-        company_id: flow.companyId,
-        event_type: 'ai_output',
-        source: 'automation_engine',
-        data: {
-          action: 'flow_created',
-          flowName: flow.name,
-          actionCount: flow.actions.length
-        }
-      });
 
       return {
         success: true,
@@ -339,18 +354,25 @@ export class NativeAutomationEngine {
     companyId: string
   ): Promise<AutomationResult> {
     try {
-      // Log note to AI brain
-      await masterAIBrain.ingestEvent({
-        user_id: userId,
-        company_id: companyId,
-        event_type: 'ai_output',
-        source: 'automation_note',
-        data: {
-          leadId: context.leadId,
-          note: this.replaceVariables(action.content, context),
-          automationAction: action.id
-        }
-      });
+      // Create JSON-compatible log data
+      const logData = {
+        leadId: context.leadId,
+        note: this.replaceVariables(action.content, context),
+        automationAction: action.id
+      };
+
+      // Store note in ai_brain_logs
+      const { error } = await supabase
+        .from('ai_brain_logs')
+        .insert({
+          type: 'automation_note',
+          event_summary: `Automation note: ${action.content.substring(0, 50)}...`,
+          payload: logData,
+          company_id: companyId,
+          visibility: 'admin_only'
+        });
+
+      if (error) throw error;
 
       return {
         success: true,
@@ -536,7 +558,7 @@ export class NativeAutomationEngine {
 
       if (error || !data) return null;
 
-      return data.payload as AutomationFlow;
+      return data.payload as unknown as AutomationFlow;
 
     } catch (error) {
       console.error('Error getting flow:', error);
@@ -545,15 +567,30 @@ export class NativeAutomationEngine {
   }
 
   private async createExecution(execution: Omit<AutomationExecution, 'id'>): Promise<string> {
+    const executionData: JsonCompatibleExecution = {
+      id: crypto.randomUUID(),
+      flowId: execution.flowId,
+      leadId: execution.leadId,
+      userId: execution.userId,
+      companyId: execution.companyId,
+      status: execution.status,
+      currentActionIndex: execution.currentActionIndex,
+      startedAt: execution.startedAt.toISOString(),
+      logs: execution.logs.map(log => ({
+        timestamp: log.timestamp.toISOString(),
+        action: log.action,
+        status: log.status,
+        message: log.message,
+        data: log.data
+      }))
+    };
+
     const { data, error } = await supabase
       .from('ai_brain_logs')
       .insert({
         type: 'automation_execution',
         event_summary: `Automation execution started`,
-        payload: {
-          ...execution,
-          id: crypto.randomUUID()
-        },
+        payload: executionData,
         company_id: execution.companyId,
         visibility: 'admin_only'
       })
@@ -565,14 +602,16 @@ export class NativeAutomationEngine {
   }
 
   private async updateExecutionProgress(executionId: string, actionIndex: number, status: string): Promise<void> {
+    const updateData = {
+      currentActionIndex: actionIndex,
+      status,
+      updatedAt: new Date().toISOString()
+    };
+
     await supabase
       .from('ai_brain_logs')
       .update({
-        payload: {
-          currentActionIndex: actionIndex,
-          status,
-          updatedAt: new Date().toISOString()
-        }
+        payload: updateData
       })
       .eq('id', executionId);
   }
@@ -583,15 +622,23 @@ export class NativeAutomationEngine {
     message: string,
     logs: AutomationLog[]
   ): Promise<void> {
+    const updateData = {
+      status,
+      completedAt: new Date().toISOString(),
+      errorMessage: status === 'failed' ? message : undefined,
+      logs: logs.map(log => ({
+        timestamp: log.timestamp.toISOString(),
+        action: log.action,
+        status: log.status,
+        message: log.message,
+        data: log.data
+      }))
+    };
+
     await supabase
       .from('ai_brain_logs')
       .update({
-        payload: {
-          status,
-          completedAt: new Date().toISOString(),
-          errorMessage: status === 'failed' ? message : undefined,
-          logs
-        }
+        payload: updateData
       })
       .eq('id', executionId);
   }
