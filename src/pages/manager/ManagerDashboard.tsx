@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -210,7 +211,7 @@ const ManagerDashboard = () => {
               </div>
               
               <div className="space-y-6">
-                <ManagerAIAssistant recommendations={recommendations} teamMembers={teamMembers} />
+                <ManagerAIAssistant />
                 <ManagerBookingSystem demoMode={demoMode} />
                 <ManagerEscalationCenter demoMode={demoMode} />
               </div>
