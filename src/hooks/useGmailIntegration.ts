@@ -1,22 +1,40 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface GmailConnectionStatus {
   connected: boolean;
   email?: string;
   message: string;
+  lastChecked?: Date;
+}
+
+export interface EmailData {
+  to: string;
+  subject: string;
+  body: string;
+  leadId?: string;
+  leadName?: string;
+  isHtml?: boolean;
 }
 
 export const useGmailIntegration = () => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<GmailConnectionStatus>({
     connected: false,
     message: 'Not connected'
   });
 
-  const checkGmailConnection = async (): Promise<GmailConnectionStatus> => {
+  const checkGmailConnection = useCallback(async (): Promise<GmailConnectionStatus> => {
+    if (!user?.id) {
+      const status = { connected: false, message: 'User not authenticated' };
+      setConnectionStatus(status);
+      return status;
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke('gmail-oauth', {
         body: { action: 'checkStatus' }
@@ -27,7 +45,8 @@ export const useGmailIntegration = () => {
       const status = {
         connected: data.connected || false,
         email: data.email,
-        message: data.message || 'Unknown status'
+        message: data.message || 'Unknown status',
+        lastChecked: new Date()
       };
 
       setConnectionStatus(status);
@@ -36,14 +55,20 @@ export const useGmailIntegration = () => {
       console.error('Failed to check Gmail connection:', error);
       const status = {
         connected: false,
-        message: 'Failed to check connection status'
+        message: 'Failed to check connection status',
+        lastChecked: new Date()
       };
       setConnectionStatus(status);
       return status;
     }
-  };
+  }, [user?.id]);
 
-  const connectGmail = async (): Promise<{ success: boolean; authUrl?: string }> => {
+  const connectGmail = useCallback(async (): Promise<{ success: boolean; authUrl?: string }> => {
+    if (!user?.id) {
+      toast.error('User authentication required');
+      return { success: false };
+    }
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('gmail-oauth', {
@@ -66,15 +91,17 @@ export const useGmailIntegration = () => {
             if (authWindow?.closed) {
               clearInterval(checkClosed);
               // Check connection status after window closes
-              checkGmailConnection().then((status) => {
-                if (status.connected) {
-                  toast.success(`Gmail connected successfully! ${status.email}`);
-                  resolve({ success: true });
-                } else {
-                  toast.error('Gmail connection was not completed');
-                  resolve({ success: false });
-                }
-              });
+              setTimeout(() => {
+                checkGmailConnection().then((status) => {
+                  if (status.connected) {
+                    toast.success(`Gmail connected successfully! ${status.email}`);
+                    resolve({ success: true });
+                  } else {
+                    toast.error('Gmail connection was not completed');
+                    resolve({ success: false });
+                  }
+                });
+              }, 1000);
             }
           }, 1000);
 
@@ -98,20 +125,36 @@ export const useGmailIntegration = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id, checkGmailConnection]);
 
-  const sendEmail = async (to: string, subject: string, body: string, leadId?: string, leadName?: string) => {
+  const sendEmail = useCallback(async (emailData: EmailData) => {
+    if (!user?.id) {
+      toast.error('User authentication required');
+      return { success: false, error: 'User not authenticated' };
+    }
+
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('gmail-send', {
-        body: { to, subject, body, leadId, leadName }
+        body: {
+          to: emailData.to,
+          subject: emailData.subject,
+          body: emailData.body,
+          leadId: emailData.leadId,
+          leadName: emailData.leadName,
+          isHtml: emailData.isHtml || false
+        }
       });
 
       if (error) throw error;
 
       if (data.success) {
-        toast.success(data.message);
-        return { success: true, messageId: data.messageId, threadId: data.threadId };
+        toast.success('Email sent successfully');
+        return { 
+          success: true, 
+          messageId: data.messageId, 
+          threadId: data.threadId 
+        };
       }
 
       throw new Error(data.error || 'Failed to send email');
@@ -122,13 +165,53 @@ export const useGmailIntegration = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.id]);
+
+  const disconnectGmail = useCallback(async () => {
+    if (!user?.id) {
+      toast.error('User authentication required');
+      return { success: false };
+    }
+
+    try {
+      // Delete tokens from database
+      await supabase
+        .from('email_tokens')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('provider', 'gmail');
+
+      // Update profile
+      await supabase
+        .from('profiles')
+        .update({
+          email_connected: false,
+          email_provider: null,
+          email_account: null
+        })
+        .eq('id', user.id);
+
+      setConnectionStatus({
+        connected: false,
+        message: 'Disconnected',
+        lastChecked: new Date()
+      });
+
+      toast.success('Gmail disconnected successfully');
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to disconnect Gmail:', error);
+      toast.error('Failed to disconnect Gmail');
+      return { success: false };
+    }
+  }, [user?.id]);
 
   return {
     isLoading,
     connectionStatus,
     checkGmailConnection,
     connectGmail,
-    sendEmail
+    sendEmail,
+    disconnectGmail
   };
 };

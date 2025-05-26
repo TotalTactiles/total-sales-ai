@@ -6,6 +6,7 @@ import { InsightGenerator } from './ai/insightGenerator';
 import { AutomationEngine } from './ai/automationEngine';
 import { RecommendationService } from './ai/recommendationService';
 import { LearningEngine } from './ai/learningEngine';
+import { emailAutomationService } from './ai/emailAutomationService';
 
 // Re-export types for backward compatibility
 export type { AIIngestionEvent, AIRecommendation } from './ai/types';
@@ -18,6 +19,7 @@ class MasterAIBrain {
   private automationEngine = new AutomationEngine();
   private recommendationService = new RecommendationService();
   private learningEngine = new LearningEngine();
+  private emailAutomationService = emailAutomationService;
 
   static getInstance(): MasterAIBrain {
     if (!MasterAIBrain.instance) {
@@ -104,9 +106,46 @@ class MasterAIBrain {
         // Check for automation triggers
         await this.automationEngine.checkAutomationTriggers(event);
         
+        // Check for email automation triggers
+        await this.checkEmailAutomationTriggers(event);
+        
       } catch (error) {
         console.error('Error processing event:', event, error);
       }
+    }
+  }
+
+  private async checkEmailAutomationTriggers(event: AIIngestionEvent): Promise<void> {
+    try {
+      // Map AI events to email automation triggers
+      let trigger: any = null;
+      const eventData = {
+        ...event.data,
+        userId: event.user_id,
+        companyId: event.company_id,
+        timestamp: event.timestamp.toISOString()
+      };
+
+      switch (event.event_type) {
+        case 'user_action':
+          if (event.data.action === 'lead_created') {
+            trigger = 'lead_created';
+          } else if (event.data.action === 'call_completed') {
+            trigger = 'call_completed';
+          }
+          break;
+        case 'email_interaction':
+          if (event.data.action === 'opened') {
+            trigger = 'email_opened';
+          }
+          break;
+      }
+
+      if (trigger) {
+        await this.emailAutomationService.evaluateAutomationTriggers(trigger, eventData);
+      }
+    } catch (error) {
+      console.error('Error checking email automation triggers:', error);
     }
   }
 
@@ -125,6 +164,64 @@ class MasterAIBrain {
       context: { type: 'feedback_loop' }
     });
   }
+
+  // Email automation methods
+  async sendAutomatedEmail(
+    to: string,
+    templateId: string,
+    variables: Record<string, string>,
+    delay?: number
+  ): Promise<void> {
+    try {
+      const email = await this.emailAutomationService.generateEmailFromTemplate(
+        templateId,
+        variables
+      );
+
+      const sendAt = delay 
+        ? new Date(Date.now() + delay * 60 * 60 * 1000)
+        : new Date();
+
+      await this.emailAutomationService.scheduleEmail(
+        to,
+        email.subject,
+        email.body,
+        sendAt,
+        { templateId, variables }
+      );
+
+      // Log the automation
+      await this.ingestEvent({
+        user_id: variables.userId || 'system',
+        company_id: variables.companyId || 'system',
+        event_type: 'ai_output',
+        source: 'email_automation',
+        data: {
+          action: 'automated_email_scheduled',
+          to,
+          templateId,
+          sendAt: sendAt.toISOString()
+        }
+      });
+
+    } catch (error) {
+      console.error('Error sending automated email:', error);
+      throw error;
+    }
+  }
+
+  // Initialize email automation processing
+  async initializeEmailAutomation(): Promise<void> {
+    // Process scheduled emails every minute
+    setInterval(() => {
+      this.emailAutomationService.processScheduledEmails();
+    }, 60000);
+
+    console.log('Email automation system initialized');
+  }
 }
 
 export const masterAIBrain = MasterAIBrain.getInstance();
+
+// Initialize email automation when the module loads
+masterAIBrain.initializeEmailAutomation();
