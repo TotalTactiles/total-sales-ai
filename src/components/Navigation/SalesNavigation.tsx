@@ -13,13 +13,13 @@ const SalesNavigation = () => {
   const { profile } = useAuth();
 
   const navItems = [
-    { label: 'Dashboard', href: '/sales/dashboard', icon: Grid },
-    { label: 'Leads', href: '/sales/leads', icon: Users },
-    { label: 'Analytics', href: '/sales/analytics', icon: BarChart3 },
-    { label: 'Rep Dev', href: '/sales/company-brain', icon: GraduationCap },
-    { label: 'Dialer', href: '/sales/dialer', icon: Phone },
-    { label: 'AI Agent', href: '/sales/ai-agent', icon: Bot },
-    { label: 'Tools', href: '/sales/tools', icon: Wrench },
+    { label: 'Dashboard', href: '/dashboard', icon: Grid },
+    { label: 'Lead Management', href: '/lead-management', icon: Users },
+    { label: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { label: 'Academy', href: '/academy', icon: GraduationCap },
+    { label: 'Dialer', href: '/dialer', icon: Phone },
+    { label: 'AI Agent', href: '/ai', icon: Bot },
+    { label: 'Settings', href: '/settings', icon: Wrench },
   ];
 
   return (

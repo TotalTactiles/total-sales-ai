@@ -19,11 +19,11 @@ const RoleToggle = () => {
       localStorage.setItem('demoMode', 'true');
       localStorage.setItem('demoRole', newRole);
       
-      // Navigate to appropriate dashboard
+      // Navigate to appropriate dashboard with new routing structure
       if (newRole === 'manager') {
-        navigate('/manager/dashboard');
+        navigate('/dashboard');
       } else {
-        navigate('/sales/dashboard');
+        navigate('/dashboard');
       }
       
       // Reload to reinitialize with new role
