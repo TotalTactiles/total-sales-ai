@@ -9,10 +9,13 @@ import VictoryArchive from '@/components/Dashboard/VictoryArchive';
 import AISummaryCard from '@/components/Dashboard/AISummaryCard';
 import AIRecommendedActions from '@/components/Dashboard/AIRecommendedActions';
 import SalesRepAIAssistant from '@/components/SalesAI/SalesRepAIAssistant';
+import { SafeErrorBoundary } from '@/components/ErrorBoundary/SafeErrorBoundary';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLeads } from '@/hooks/useLeads';
 import { useMockData } from '@/hooks/useMockData';
 import { supabase } from '@/integrations/supabase/client';
+import { validateStringParam } from '@/types/actions';
+import { runtimeValidator } from '@/utils/runtimeValidator';
 
 const SalesRepDashboard = () => {
   const navigate = useNavigate();
@@ -38,24 +41,32 @@ const SalesRepDashboard = () => {
     };
 
     fetchUserStats();
+
+    // Perform system integrity check
+    const integrityCheck = runtimeValidator.checkSystemIntegrity();
+    console.log('System integrity check:', integrityCheck);
   }, [user?.id]);
 
   const displayLeads = leads && leads.length > 0 ? leads : mockLeads;
   const isFullUser = !!user && !!profile;
 
-  const dailySummary = `Good morning! You have 12 high-priority leads requiring immediate attention. Your conversion rate improved by 23% this week. AI suggests focusing on Enterprise prospects between 2-4 PM for optimal engagement. Your pipeline value increased to $847K with 3 deals expected to close this week.`;
+  const dailySummary = validateStringParam(
+    `Good morning! You have 12 high-priority leads requiring immediate attention. Your conversion rate improved by 23% this week. AI suggests focusing on Enterprise prospects between 2-4 PM for optimal engagement. Your pipeline value increased to $847K with 3 deals expected to close this week.`,
+    'Welcome to your sales dashboard! Check your pipeline and take action on your leads today.'
+  );
 
   const pipelineLeads = displayLeads.slice(0, 5).map(lead => ({
-    id: lead.id,
-    name: lead.name,
+    id: validateStringParam(lead.id, crypto.randomUUID()),
+    name: validateStringParam(lead.name, 'Unknown Lead'),
     status: lead.status as 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed',
     priority: lead.priority as 'high' | 'medium' | 'low',
-    lastContact: lead.lastContact || 'Never',
+    lastContact: validateStringParam(lead.lastContact, 'Never'),
     value: `$${Math.floor(Math.random() * 50000 + 10000).toLocaleString()}`
   }));
 
-  const handleLeadClick = (leadId: string) => {
-    navigate(`/lead-workspace/${leadId}`);
+  const handleLeadClick = (leadId: any) => {
+    const validLeadId = validateStringParam(leadId, 'default-lead');
+    navigate(`/lead-workspace/${validLeadId}`);
   };
 
   const victories = [
@@ -116,47 +127,66 @@ const SalesRepDashboard = () => {
     }
   ];
 
-  const handleActionClick = (actionId: string) => {
-    console.log('Action clicked:', actionId);
+  const handleActionClick = (actionId: any) => {
+    const validActionId = validateStringParam(actionId, 'default-action');
+    console.log('Action clicked:', validActionId);
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="pt-16">
-        <div className="max-w-7xl mx-auto p-6 space-y-6">
-          <section>
-            <AIDailySummary summary={dailySummary} isFullUser={isFullUser} />
-          </section>
+    <SafeErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <main className="pt-16">
+          <div className="max-w-7xl mx-auto p-6 space-y-6">
+            <SafeErrorBoundary>
+              <section>
+                <AIDailySummary summary={dailySummary} isFullUser={isFullUser} />
+              </section>
+            </SafeErrorBoundary>
 
-          <section>
-            <PerformanceMetricsGrid userStats={userStats} isFullUser={isFullUser} />
-          </section>
+            <SafeErrorBoundary>
+              <section>
+                <PerformanceMetricsGrid userStats={userStats} isFullUser={isFullUser} />
+              </section>
+            </SafeErrorBoundary>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
-              <AIOptimizedTimeBlocks isFullUser={isFullUser} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <SafeErrorBoundary>
+                  <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
+                </SafeErrorBoundary>
+                <SafeErrorBoundary>
+                  <AIOptimizedTimeBlocks isFullUser={isFullUser} />
+                </SafeErrorBoundary>
+              </div>
+
+              <div className="space-y-6">
+                <SafeErrorBoundary>
+                  <VictoryArchive victories={victories} isFullUser={isFullUser} />
+                </SafeErrorBoundary>
+                <SafeErrorBoundary>
+                  <AISummaryCard data={aiSummaryData} isFullUser={isFullUser} />
+                </SafeErrorBoundary>
+              </div>
             </div>
 
-            <div className="space-y-6">
-              <VictoryArchive victories={victories} isFullUser={isFullUser} />
-              <AISummaryCard data={aiSummaryData} isFullUser={isFullUser} />
-            </div>
+            <SafeErrorBoundary>
+              <section>
+                <AIRecommendedActions 
+                  actions={recommendedActions} 
+                  onActionClick={handleActionClick}
+                  isFullUser={isFullUser}
+                />
+              </section>
+            </SafeErrorBoundary>
           </div>
-
-          <section>
-            <AIRecommendedActions 
-              actions={recommendedActions} 
-              onActionClick={handleActionClick}
-              isFullUser={isFullUser}
-            />
-          </section>
-        </div>
-      </main>
-      
-      {/* AI Assistant - Fixed positioning */}
-      <SalesRepAIAssistant />
-    </div>
+        </main>
+        
+        {/* AI Assistant - Fixed positioning with error boundary */}
+        <SafeErrorBoundary>
+          <SalesRepAIAssistant />
+        </SafeErrorBoundary>
+      </div>
+    </SafeErrorBoundary>
   );
 };
 

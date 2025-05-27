@@ -1,7 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { unifiedAIService } from './unifiedAIService';
+import { validateStringParam } from '@/types/actions';
 
 export class VoiceService {
   private static instance: VoiceService;
@@ -155,8 +155,9 @@ export class VoiceService {
     });
   }
 
-  async processAudioCommand(audioBlob: Blob, userId: string): Promise<string> {
+  async processAudioCommand(audioBlob: Blob, userId: any): Promise<string> {
     try {
+      const validUserId = validateStringParam(userId, 'default-user');
       console.log('Processing audio command, blob size:', audioBlob.size);
       
       if (audioBlob.size === 0) {
@@ -172,7 +173,11 @@ export class VoiceService {
       let transcriptionData;
       try {
         const { data, error } = await supabase.functions.invoke('voice-to-text', {
-          body: { audio: base64Audio, provider: 'openai' }
+          body: { 
+            audio: base64Audio, 
+            provider: validateStringParam('openai', 'openai'),
+            userId: validUserId
+          }
         });
 
         if (error) {
@@ -196,7 +201,11 @@ export class VoiceService {
           try {
             // Use Claude for audio transcription (if available via edge function)
             const { data, error } = await supabase.functions.invoke('voice-to-text', {
-              body: { audio: base64Audio, provider: 'anthropic' }
+              body: { 
+                audio: base64Audio, 
+                provider: validateStringParam('anthropic', 'anthropic'),
+                userId: validUserId
+              }
             });
 
             if (error) throw error;
@@ -210,7 +219,7 @@ export class VoiceService {
           // Retry with OpenAI
           this.retryCount++;
           await new Promise(resolve => setTimeout(resolve, 1000 * this.retryCount)); // Exponential backoff
-          return this.processAudioCommand(audioBlob, userId);
+          return this.processAudioCommand(audioBlob, validUserId);
         }
       }
 
@@ -218,8 +227,9 @@ export class VoiceService {
         throw new Error('No transcription received from audio');
       }
 
-      console.log('Transcription successful:', transcriptionData.text);
-      return transcriptionData.text;
+      const validTranscription = validateStringParam(transcriptionData.text, 'Could not understand audio');
+      console.log('Transcription successful:', validTranscription);
+      return validTranscription;
       
     } catch (error) {
       console.error('Error processing audio command:', error);
@@ -237,22 +247,24 @@ export class VoiceService {
     }
   }
 
-  async generateVoiceResponse(text: string): Promise<void> {
+  async generateVoiceResponse(text: any): Promise<void> {
     try {
-      // Validate input
-      if (!text || typeof text !== 'string') {
+      // Validate and sanitize input
+      const validText = validateStringParam(text, 'AI response generated');
+      
+      if (!validText || validText.trim().length === 0) {
         console.error('Invalid text provided to generateVoiceResponse:', text);
         throw new Error('Invalid text provided for speech generation');
       }
 
-      console.log('Generating voice response for text:', text.substring(0, 50) + '...');
+      console.log('Generating voice response for text:', validText.substring(0, 50) + '...');
       
       // First try ElevenLabs via edge function
       try {
         const { data, error } = await supabase.functions.invoke('ai-voice', {
           body: { 
-            text: text,
-            voiceId: '9BWtsMINqrJLrRacOk9x' // Aria voice
+            text: validText,
+            voiceId: validateStringParam('9BWtsMINqrJLrRacOk9x', '9BWtsMINqrJLrRacOk9x') // Aria voice
           }
         });
 
@@ -288,18 +300,18 @@ export class VoiceService {
         this.speechSynthesis.cancel();
         
         // Optimize text for voice if it's too long
-        let optimizedText = text;
-        if (text.length > 200) {
+        let optimizedText = validText;
+        if (validText.length > 200) {
           try {
             const aiResponse = await unifiedAIService.generateResponse(
-              `Make this response concise and natural for voice output while keeping key information: "${text}"`,
-              'You are a voice optimization expert. Make responses sound natural when spoken aloud.',
+              `Make this response concise and natural for voice output while keeping key information: "${validText}"`,
+              validateStringParam('You are a voice optimization expert. Make responses sound natural when spoken aloud.', 'You are a helpful assistant.'),
               undefined,
               'claude'
             );
             
-            if (aiResponse.response && aiResponse.response.length < text.length) {
-              optimizedText = aiResponse.response;
+            if (aiResponse.response && typeof aiResponse.response === 'string' && aiResponse.response.length < validText.length) {
+              optimizedText = validateStringParam(aiResponse.response, validText);
             }
           } catch (aiError) {
             console.warn('AI optimization failed, using original text:', aiError);
@@ -350,7 +362,7 @@ export class VoiceService {
     } catch (error) {
       console.error('Error generating voice response:', error);
       // Final fallback: show text response as toast
-      const safeText = typeof text === 'string' ? text : 'AI response generated';
+      const safeText = validateStringParam(text, 'AI response generated');
       toast.info(safeText.substring(0, 100) + (safeText.length > 100 ? '...' : ''));
       throw error;
     }

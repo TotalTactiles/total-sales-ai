@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Play, ChevronDown, ChevronUp, Volume2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { voiceService } from '@/services/ai/voiceService';
+import { validateStringParam } from '@/types/actions';
 
 interface AIDailySummaryProps {
-  summary: string;
+  summary: any;
   isFullUser: boolean;
 }
 
@@ -24,24 +25,28 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({ summary, isFullUser }) 
       toast.info('Generating voice summary...');
       
       // Validate summary before playing
-      if (!summary || typeof summary !== 'string') {
-        throw new Error('Invalid summary text');
+      const validSummary = validateStringParam(summary, 'No summary available');
+      
+      if (!validSummary || validSummary.trim().length === 0) {
+        throw new Error('Invalid summary text provided');
       }
       
       // Use the voice service to generate and play the summary
-      await voiceService.generateVoiceResponse(summary);
+      await voiceService.generateVoiceResponse(validSummary);
       
       toast.success('Summary played successfully');
     } catch (error) {
       console.error('Error playing audio summary:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to play audio summary';
-      toast.error(errorMessage);
+      const safeErrorMessage = validateStringParam(errorMessage, 'Audio playback failed');
+      toast.error(safeErrorMessage);
     } finally {
       setIsPlaying(false);
     }
   };
 
-  const truncatedSummary = summary.length > 150 ? summary.substring(0, 150) + '...' : summary;
+  const validSummary = validateStringParam(summary, 'No summary available');
+  const truncatedSummary = validSummary.length > 150 ? validSummary.substring(0, 150) + '...' : validSummary;
 
   return (
     <Card className={`w-full ${isFullUser ? 'border-2 border-gradient-to-r from-blue-500 to-purple-600' : ''}`}>
@@ -66,9 +71,9 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({ summary, isFullUser }) 
       <CardContent className="p-6">
         <div className="space-y-3">
           <p className="text-sm text-muted-foreground leading-relaxed">
-            {isExpanded ? summary : truncatedSummary}
+            {isExpanded ? validSummary : truncatedSummary}
           </p>
-          {summary.length > 150 && (
+          {validSummary.length > 150 && (
             <Button
               variant="ghost"
               size="sm"

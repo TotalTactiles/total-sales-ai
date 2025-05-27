@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +20,8 @@ import {
 import { toast } from 'sonner';
 import { useVoiceCommands } from '@/hooks/useVoiceCommands';
 import { unifiedAIService } from '@/services/ai/unifiedAIService';
+import { safeActionHandler } from '@/utils/actionHandler';
+import { ActionTypes, validateStringParam } from '@/types/actions';
 
 const SalesRepAIAssistant: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -38,17 +39,24 @@ const SalesRepAIAssistant: React.FC = () => {
     speakResponse
   } = useVoiceCommands({
     onCommand: (command) => {
-      setInputMessage(command);
-      handleAICommand(command);
+      const validCommand = validateStringParam(command, 'help');
+      setInputMessage(validCommand);
+      handleAICommand(validCommand);
     },
     onError: (error) => {
-      toast.error(error);
+      const errorMessage = validateStringParam(error, 'Voice command failed');
+      toast.error(errorMessage);
     },
     context: 'sales_assistant'
   });
 
-  const handleAICommand = async (command: string) => {
-    if (!command.trim()) return;
+  const handleAICommand = async (command: any) => {
+    const validCommand = validateStringParam(command, 'help');
+    
+    if (!validCommand.trim()) {
+      toast.warning('Please enter a command');
+      return;
+    }
 
     try {
       setIsProcessing(true);
@@ -57,38 +65,52 @@ const SalesRepAIAssistant: React.FC = () => {
       const userMessage = {
         id: crypto.randomUUID(),
         type: 'user' as const,
-        message: command,
+        message: validCommand,
         timestamp: new Date()
       };
       setConversation(prev => [...prev, userMessage]);
 
-      console.log('Processing AI command:', command);
+      console.log('Processing AI command:', validCommand);
+
+      // Execute action through safe handler
+      const actionResult = await safeActionHandler.executeAction(
+        ActionTypes.AI_COMMAND,
+        { command: validCommand },
+        'sales_assistant'
+      );
 
       // Generate AI response
-      const response = await unifiedAIService.generateResponse(
-        command,
+      const systemPrompt = validateStringParam(
         'You are a helpful sales AI assistant. Provide practical, actionable advice for sales representatives. Keep responses concise and professional.',
+        'You are a helpful assistant.'
+      );
+
+      const response = await unifiedAIService.generateResponse(
+        validCommand,
+        systemPrompt,
         'sales_assistant'
       );
 
       console.log('AI response received:', response);
 
-      if (!response.response) {
-        throw new Error('No response received from AI service');
+      if (!response.response || typeof response.response !== 'string') {
+        throw new Error('Invalid response received from AI service');
       }
+
+      const safeResponse = validateStringParam(response.response, 'I apologize, but I could not generate a response. Please try again.');
 
       // Add AI response to conversation
       const aiMessage = {
         id: crypto.randomUUID(),
         type: 'ai' as const,
-        message: response.response,
+        message: safeResponse,
         timestamp: new Date()
       };
       setConversation(prev => [...prev, aiMessage]);
 
-      // Speak the response (with proper error handling)
+      // Speak the response with error handling
       try {
-        await speakResponse(response.response);
+        await speakResponse(safeResponse);
       } catch (voiceError) {
         console.warn('Voice response failed:', voiceError);
         // Continue without voice - response is still shown in chat
@@ -98,13 +120,15 @@ const SalesRepAIAssistant: React.FC = () => {
     } catch (error) {
       console.error('Error processing AI command:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to process AI command';
-      toast.error(errorMessage);
+      const safeErrorMessage = validateStringParam(errorMessage, 'An error occurred while processing your request');
+      
+      toast.error(safeErrorMessage);
       
       // Add error message to conversation
       const errorAiMessage = {
         id: crypto.randomUUID(),
         type: 'ai' as const,
-        message: `I apologize, but I encountered an error: ${errorMessage}. Please try again.`,
+        message: `I apologize, but I encountered an error: ${safeErrorMessage}. Please try again.`,
         timestamp: new Date()
       };
       setConversation(prev => [...prev, errorAiMessage]);
@@ -114,9 +138,11 @@ const SalesRepAIAssistant: React.FC = () => {
     }
   };
 
-  const handleQuickAction = (action: string) => {
+  const handleQuickAction = (action: any) => {
+    const validAction = validateStringParam(action, 'help');
     let command = '';
-    switch (action) {
+    
+    switch (validAction) {
       case 'draft_email':
         command = 'Help me draft a follow-up email for my current lead';
         break;
@@ -127,7 +153,7 @@ const SalesRepAIAssistant: React.FC = () => {
         command = 'What should be my next best action to close more deals today?';
         break;
       default:
-        return;
+        command = 'How can I help you today?';
     }
     
     setInputMessage(command);
@@ -227,8 +253,8 @@ const SalesRepAIAssistant: React.FC = () => {
             <div className="max-h-32 overflow-y-auto space-y-2 border rounded p-2">
               {conversation.slice(-3).map((msg) => (
                 <div key={msg.id} className={`text-xs ${msg.type === 'user' ? 'text-blue-600 font-medium' : 'text-gray-700'}`}>
-                  <strong>{msg.type === 'user' ? 'You:' : 'AI:'}</strong> {msg.message.substring(0, 80)}
-                  {msg.message.length > 80 ? '...' : ''}
+                  <strong>{msg.type === 'user' ? 'You:' : 'AI:'}</strong> {validateStringParam(msg.message, 'No message').substring(0, 80)}
+                  {validateStringParam(msg.message, '').length > 80 ? '...' : ''}
                 </div>
               ))}
             </div>
@@ -239,7 +265,7 @@ const SalesRepAIAssistant: React.FC = () => {
             <div className="flex gap-2">
               <Textarea
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
+                onChange={(e) => setInputMessage(validateStringParam(e.target.value, ''))}
                 placeholder="Ask anything... (e.g., 'Draft follow-up email', 'Suggest objection handling')"
                 className="text-sm resize-none"
                 rows={2}
@@ -293,7 +319,7 @@ const SalesRepAIAssistant: React.FC = () => {
                 {lastTranscription && !isListening && !isVoiceProcessing && (
                   <>
                     <Volume2 className="w-3 h-3" />
-                    Last: {lastTranscription.substring(0, 30)}...
+                    Last: {validateStringParam(lastTranscription, 'No transcription').substring(0, 30)}...
                   </>
                 )}
               </div>
