@@ -24,6 +24,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, requiredRole }) => 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
+  // Check if user has required role or is admin (admin can access everything)
   if (requiredRole && profile?.role !== requiredRole && profile?.role !== 'admin') {
     // Redirect to appropriate dashboard based on role
     switch (profile?.role) {
