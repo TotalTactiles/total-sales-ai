@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -110,7 +109,7 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
       
       setState(prev => ({ 
         ...prev, 
-        microphoneSupported: speechSupported && micSupported,
+        microphoneSupported: !!(speechSupported && micSupported),
         error: !speechSupported ? 'Speech recognition not supported in this browser' : 
                !micSupported ? 'Microphone access not supported' : null
       }));
