@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AIDailySummary from '@/components/Dashboard/AIDailySummary';
@@ -41,6 +40,12 @@ const SalesRepDashboard = () => {
     };
 
     fetchUserStats();
+
+    // Show test mode notification
+    const isTestMode = true; // Will be configurable later
+    if (isTestMode) {
+      console.log('🧪 SalesOS running in TEST MODE - AI responses are dummy data for demonstration');
+    }
 
     // Perform system integrity check
     const integrityCheck = runtimeValidator.checkSystemIntegrity();

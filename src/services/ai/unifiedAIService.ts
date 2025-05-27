@@ -1,18 +1,18 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { dummyResponseService } from './dummyResponseService';
+import { validateStringParam } from '@/types/actions';
 
-export interface AIServiceResponse {
+export interface AIResponse {
   response: string;
-  model: 'gpt-4o' | 'claude-3-opus' | 'claude-3-sonnet';
-  provider: 'openai' | 'anthropic';
-  usage?: {
-    tokens: number;
-    cost: number;
-  };
+  confidence: number;
+  suggestedActions?: string[];
+  reasoning?: string;
+  source: 'dummy' | 'openai' | 'claude';
 }
 
 export class UnifiedAIService {
   private static instance: UnifiedAIService;
+  private useDummyResponses = true; // Set to true for testing
 
   static getInstance(): UnifiedAIService {
     if (!UnifiedAIService.instance) {
@@ -21,138 +21,76 @@ export class UnifiedAIService {
     return UnifiedAIService.instance;
   }
 
-  // Determine which AI model is best suited for the task
-  private determineOptimalModel(prompt: string, context?: string): 'openai' | 'claude' {
-    const promptLower = prompt.toLowerCase();
-    const contextLower = context?.toLowerCase() || '';
-    
-    // Tasks better suited for Claude
-    const claudeKeywords = [
-      'analyze', 'explain', 'write', 'draft', 'create', 'strategy',
-      'training', 'sop', 'documentation', 'policy', 'script',
-      'complex reasoning', 'detailed analysis', 'long form',
-      'nuanced', 'sophisticated', 'elaborate', 'comprehensive'
-    ];
-
-    // Tasks better suited for GPT
-    const openaiKeywords = [
-      'quick', 'simple', 'fast', 'brief', 'short',
-      'json', 'format', 'structure', 'data',
-      'calculation', 'math', 'number'
-    ];
-
-    const claudeScore = claudeKeywords.reduce((score, keyword) => 
-      score + (promptLower.includes(keyword) ? 1 : 0) + (contextLower.includes(keyword) ? 0.5 : 0), 0
-    );
-
-    const openaiScore = openaiKeywords.reduce((score, keyword) => 
-      score + (promptLower.includes(keyword) ? 1 : 0) + (contextLower.includes(keyword) ? 0.5 : 0), 0
-    );
-
-    // If prompt is very long (>500 chars) or complex, prefer Claude
-    if (prompt.length > 500 || claudeScore > openaiScore) {
-      return 'claude';
-    }
-
-    return 'openai';
+  setDummyMode(enabled: boolean) {
+    this.useDummyResponses = enabled;
+    console.log(`AI Service: Dummy mode ${enabled ? 'enabled' : 'disabled'}`);
   }
 
-  async generateResponse(
-    prompt: string, 
-    systemPrompt?: string,
-    context?: string,
-    preferredModel?: 'openai' | 'claude'
-  ): Promise<AIServiceResponse> {
-    const selectedModel = preferredModel || this.determineOptimalModel(prompt, context);
+  async generateResponse(prompt: string, systemPrompt?: string, context?: string): Promise<AIResponse> {
+    const validPrompt = validateStringParam(prompt, 'help');
+    const validContext = validateStringParam(context, 'general');
     
     try {
-      if (selectedModel === 'claude') {
-        return await this.callClaude(prompt, systemPrompt, context);
-      } else {
-        return await this.callOpenAI(prompt, systemPrompt, context);
+      if (this.useDummyResponses) {
+        console.log('Using dummy AI response for testing');
+        const dummyResponse = dummyResponseService.generateResponse(validPrompt, validContext);
+        
+        // Simulate processing delay for realism
+        await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
+        
+        return {
+          ...dummyResponse,
+          source: 'dummy'
+        };
       }
+
+      // In production, this would call real AI services
+      // For now, fallback to dummy responses
+      console.log('Real AI services not configured, using dummy responses');
+      const dummyResponse = dummyResponseService.generateResponse(validPrompt, validContext);
+      
+      return {
+        ...dummyResponse,
+        source: 'dummy'
+      };
+      
     } catch (error) {
-      console.error(`Error with ${selectedModel}, attempting fallback:`, error);
+      console.error('AI Service error:', error);
       
-      // Fallback to the other model
-      const fallbackModel = selectedModel === 'claude' ? 'openai' : 'claude';
-      
-      try {
-        if (fallbackModel === 'claude') {
-          return await this.callClaude(prompt, systemPrompt, context);
-        } else {
-          return await this.callOpenAI(prompt, systemPrompt, context);
-        }
-      } catch (fallbackError) {
-        console.error('Both AI services failed:', fallbackError);
-        throw new Error('AI services are temporarily unavailable. Please try again later.');
-      }
+      // Fallback to dummy response on error
+      const fallbackResponse = dummyResponseService.generateResponse('error occurred', validContext);
+      return {
+        ...fallbackResponse,
+        response: "I encountered an issue processing your request, but I'm still here to help! " + fallbackResponse.response,
+        source: 'dummy'
+      };
     }
   }
 
-  private async callOpenAI(prompt: string, systemPrompt?: string, context?: string): Promise<AIServiceResponse> {
-    const { data, error } = await supabase.functions.invoke('ai-agent', {
-      body: {
-        prompt: `${context ? `Context: ${context}\n\n` : ''}${prompt}`,
-        systemPrompt,
-        model: 'gpt-4o',
-        provider: 'openai'
-      }
-    });
-
-    if (error) {
-      throw new Error(`OpenAI error: ${error.message}`);
+  async generateVoiceResponse(text: string): Promise<string> {
+    const validText = validateStringParam(text, 'Hello!');
+    
+    if (this.useDummyResponses) {
+      console.log('Generating dummy voice response');
+      return dummyResponseService.generateVoiceResponse(validText);
     }
-
-    return {
-      response: data.response || data.text || 'No response generated',
-      model: 'gpt-4o',
-      provider: 'openai',
-      usage: data.usage
-    };
+    
+    // Fallback to dummy for testing
+    return dummyResponseService.generateVoiceResponse(validText);
   }
 
-  private async callClaude(prompt: string, systemPrompt?: string, context?: string): Promise<AIServiceResponse> {
-    const { data, error } = await supabase.functions.invoke('ai-agent', {
-      body: {
-        prompt: `${context ? `Context: ${context}\n\n` : ''}${prompt}`,
-        systemPrompt,
-        model: 'claude-3-opus',
-        provider: 'anthropic'
-      }
-    });
-
-    if (error) {
-      throw new Error(`Claude error: ${error.message}`);
-    }
-
-    return {
-      response: data.response || data.text || 'No response generated',
-      model: 'claude-3-opus',
-      provider: 'anthropic',
-      usage: data.usage
-    };
+  async generateStrategyResponse(prompt: string): Promise<string> {
+    const validPrompt = validateStringParam(prompt, 'provide strategy help');
+    
+    const response = await this.generateResponse(validPrompt, 'You are a sales strategy expert', 'strategy');
+    return response.response;
   }
 
-  // Specialized methods for different use cases
-  async generateLongFormContent(prompt: string, context?: string): Promise<AIServiceResponse> {
-    return this.generateResponse(prompt, undefined, context, 'claude');
-  }
-
-  async performQuickAnalysis(prompt: string, context?: string): Promise<AIServiceResponse> {
-    return this.generateResponse(prompt, undefined, context, 'openai');
-  }
-
-  async generateStrategy(prompt: string, context?: string): Promise<AIServiceResponse> {
-    return this.generateResponse(prompt, 
-      'You are a strategic business advisor with deep expertise in sales and business operations.', 
-      context, 'claude');
-  }
-
-  async draftCommunication(prompt: string, context?: string): Promise<AIServiceResponse> {
-    return this.generateResponse(prompt,
-      'You are a professional communication expert specializing in business correspondence.',
-      context, 'claude');
+  async generateCommunication(prompt: string): Promise<string> {
+    const validPrompt = validateStringParam(prompt, 'help with communication');
+    
+    const response = await this.generateResponse(validPrompt, 'You are a communication expert', 'communication');
+    return response.response;
   }
 }
 

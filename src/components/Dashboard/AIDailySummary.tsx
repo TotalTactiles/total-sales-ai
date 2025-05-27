@@ -22,7 +22,7 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({ summary, isFullUser }) 
     try {
       setIsPlaying(true);
       console.log('Starting audio playback for summary');
-      toast.info('Generating voice summary...');
+      toast.info('Generating voice summary... (Test Mode)');
       
       // Validate summary before playing
       const validSummary = validateStringParam(summary, 'No summary available');
@@ -31,10 +31,13 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({ summary, isFullUser }) 
         throw new Error('Invalid summary text provided');
       }
       
-      // Use the voice service to generate and play the summary
-      await voiceService.generateVoiceResponse(validSummary);
+      // Use the unified AI service to generate voice response
+      const voiceText = await unifiedAIService.generateVoiceResponse(validSummary);
       
-      toast.success('Summary played successfully');
+      // Use the voice service to play the response
+      await voiceService.generateVoiceResponse(voiceText);
+      
+      toast.success('Summary played successfully (Test Mode)');
     } catch (error) {
       console.error('Error playing audio summary:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to play audio summary';

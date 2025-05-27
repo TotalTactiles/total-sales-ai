@@ -72,51 +72,49 @@ const SalesRepAIAssistant: React.FC = () => {
 
       console.log('Processing AI command:', validCommand);
 
-      // Execute action through safe handler
+      // Execute action through safe handler first
       const actionResult = await safeActionHandler.executeAction(
         ActionTypes.AI_COMMAND,
         { command: validCommand },
         'sales_assistant'
       );
 
-      // Generate AI response
-      const systemPrompt = validateStringParam(
-        'You are a helpful sales AI assistant. Provide practical, actionable advice for sales representatives. Keep responses concise and professional.',
-        'You are a helpful assistant.'
-      );
-
-      const response = await unifiedAIService.generateResponse(
+      // Generate AI response using unified service
+      const aiResponse = await unifiedAIService.generateResponse(
         validCommand,
-        systemPrompt,
+        'You are a helpful sales AI assistant. Provide practical, actionable advice for sales representatives. Keep responses professional and helpful.',
         'sales_assistant'
       );
 
-      console.log('AI response received:', response);
+      console.log('AI response received:', aiResponse);
 
-      if (!response.response || typeof response.response !== 'string') {
+      if (!aiResponse.response || typeof aiResponse.response !== 'string') {
         throw new Error('Invalid response received from AI service');
       }
 
-      const safeResponse = validateStringParam(response.response, 'I apologize, but I could not generate a response. Please try again.');
+      const safeResponse = validateStringParam(aiResponse.response, 'I apologize, but I could not generate a response. Please try again.');
 
-      // Add AI response to conversation
+      // Add AI response to conversation with dummy indicator
       const aiMessage = {
         id: crypto.randomUUID(),
         type: 'ai' as const,
-        message: safeResponse,
-        timestamp: new Date()
+        message: `${safeResponse}\n\n${aiResponse.source === 'dummy' ? '🧪 *This is a dummy response for testing purposes*' : ''}`,
+        timestamp: new Date(),
+        confidence: aiResponse.confidence,
+        suggestedActions: aiResponse.suggestedActions
       };
       setConversation(prev => [...prev, aiMessage]);
 
-      // Speak the response with error handling
+      // Generate voice response
       try {
-        await speakResponse(safeResponse);
+        const voiceText = await unifiedAIService.generateVoiceResponse(safeResponse);
+        await speakResponse(voiceText);
       } catch (voiceError) {
         console.warn('Voice response failed:', voiceError);
         // Continue without voice - response is still shown in chat
       }
 
-      toast.success('AI response generated successfully');
+      toast.success(`AI response generated successfully ${aiResponse.source === 'dummy' ? '(Test Mode)' : ''}`);
     } catch (error) {
       console.error('Error processing AI command:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to process AI command';
@@ -128,7 +126,7 @@ const SalesRepAIAssistant: React.FC = () => {
       const errorAiMessage = {
         id: crypto.randomUUID(),
         type: 'ai' as const,
-        message: `I apologize, but I encountered an error: ${safeErrorMessage}. Please try again.`,
+        message: `I apologize, but I encountered an error: ${safeErrorMessage}. Please try again.\n\n🧪 *Test mode active - using dummy responses*`,
         timestamp: new Date()
       };
       setConversation(prev => [...prev, errorAiMessage]);
