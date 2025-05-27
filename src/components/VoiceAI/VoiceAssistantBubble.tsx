@@ -107,7 +107,7 @@ const VoiceAssistantBubble: React.FC<VoiceAssistantBubbleProps> = ({
   };
 
   return (
-    <div className={cn(`fixed ${getPositionClass()} z-50`, className)}>
+    <div className={cn(`fixed ${getPositionClasses()} z-50`, className)}>
       {/* Main Voice Bubble */}
       <div className="relative">
         <Button

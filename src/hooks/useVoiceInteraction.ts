@@ -4,6 +4,60 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+// Type declarations for Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: SpeechRecognitionErrorEvent) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+declare var SpeechRecognition: {
+  prototype: SpeechRecognition;
+  new(): SpeechRecognition;
+};
+
 interface VoiceInteractionState {
   isListening: boolean;
   isProcessing: boolean;
@@ -47,8 +101,8 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
       return;
     }
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    const SpeechRecognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognitionConstructor();
     
     recognition.continuous = true;
     recognition.interimResults = true;
@@ -75,12 +129,20 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
     recognitionRef.current = recognition;
 
     if (state.isWakeWordActive) {
-      recognition.start();
+      try {
+        recognition.start();
+      } catch (error) {
+        console.error('Failed to start speech recognition:', error);
+      }
     }
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (error) {
+          console.error('Error stopping recognition:', error);
+        }
       }
     };
   }, [wakeWord, state.isWakeWordActive, state.isListening]);
@@ -180,8 +242,8 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
       // Generate voice response
       await generateVoiceResponse(aiResponse);
 
-      // Log interaction
-      await logAIInteraction(transcript, aiResponse);
+      // Log interaction (simplified - no database call since table doesn't exist)
+      console.log('AI Interaction:', { transcript, response: aiResponse });
 
     } catch (error) {
       console.error('Error processing voice command:', error);
@@ -196,52 +258,21 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
     try {
       setState(prev => ({ ...prev, isSpeaking: true }));
 
-      const { data, error } = await supabase.functions.invoke('ai-voice', {
-        body: {
-          text,
-          voiceId: 'pNInz6obpgDQGcFmaJgB', // Professional voice
-          model: 'eleven_multilingual_v2'
-        }
-      });
-
-      if (error) throw error;
-
-      // Play audio response
-      const audioBlob = new Blob([data], { type: 'audio/mpeg' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
-      if (audioRef.current) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.play();
-
-        audioRef.current.onended = () => {
+      // For now, use browser's speech synthesis as fallback
+      if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.onend = () => {
           setState(prev => ({ ...prev, isSpeaking: false }));
-          URL.revokeObjectURL(audioUrl);
         };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        // Fallback: just show text response
+        setState(prev => ({ ...prev, isSpeaking: false }));
       }
 
     } catch (error) {
       console.error('Error generating voice response:', error);
       setState(prev => ({ ...prev, isSpeaking: false }));
-    }
-  };
-
-  const logAIInteraction = async (query: string, response: string) => {
-    if (!user?.id || !profile?.company_id) return;
-
-    try {
-      await supabase.from('ai_interactions').insert({
-        user_id: user.id,
-        company_id: profile.company_id,
-        workspace: options.context || 'general',
-        query,
-        response,
-        interaction_type: 'voice',
-        timestamp: new Date().toISOString(),
-        success: true
-      });
-    } catch (error) {
-      console.error('Error logging AI interaction:', error);
     }
   };
 

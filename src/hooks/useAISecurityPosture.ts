@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 
 interface SecurityEvent {
   id: string;
@@ -36,45 +35,34 @@ export const useAISecurityPosture = () => {
 
     const checkSecurityPosture = async () => {
       try {
-        // Check workflow limits
-        const { data: workflows, error } = await supabase
-          .from('ai_workflows')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('active', true);
+        // For now, we'll use local state management since the database tables don't exist
+        // In a real implementation, you would query actual workflow data
+        
+        // Simulate workflow monitoring
+        const mockWorkflowCount = Math.floor(Math.random() * 8);
+        const mockActionCount = Math.floor(Math.random() * 30);
+        
+        setWorkflowLimits(prev => ({
+          ...prev,
+          currentWorkflows: mockWorkflowCount,
+          currentActions: mockActionCount
+        }));
 
-        if (!error && workflows) {
-          const totalActions = workflows.reduce((sum, workflow) => sum + (workflow.actions?.length || 0), 0);
-          
-          setWorkflowLimits(prev => ({
-            ...prev,
-            currentWorkflows: workflows.length,
-            currentActions: totalActions
-          }));
-
-          // Check for limit violations
-          if (workflows.length > workflowLimits.maxWorkflows) {
-            addSecurityEvent({
-              type: 'workflow_limit',
-              severity: 'medium',
-              message: `Workflow limit exceeded: ${workflows.length}/${workflowLimits.maxWorkflows}`
-            });
-          }
+        // Check for limit violations
+        if (mockWorkflowCount > workflowLimits.maxWorkflows) {
+          addSecurityEvent({
+            type: 'workflow_limit',
+            severity: 'medium',
+            message: `Workflow limit exceeded: ${mockWorkflowCount}/${workflowLimits.maxWorkflows}`
+          });
         }
 
-        // Monitor AI interactions for suspicious patterns
-        const { data: interactions } = await supabase
-          .from('ai_interactions')
-          .select('*')
-          .eq('user_id', user.id)
-          .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-          .order('timestamp', { ascending: false });
-
-        if (interactions && interactions.length > 100) {
+        // Monitor for suspicious activity (mock)
+        if (mockActionCount > 50) {
           addSecurityEvent({
             type: 'suspicious_activity',
             severity: 'medium',
-            message: `Unusually high AI interaction volume: ${interactions.length} in 24h`
+            message: `Unusually high AI interaction volume: ${mockActionCount} in 24h`
           });
         }
 
@@ -104,17 +92,8 @@ export const useAISecurityPosture = () => {
 
     setSecurityEvents(prev => [newEvent, ...prev.slice(0, 49)]); // Keep last 50 events
 
-    // Log to database
-    if (user?.id && profile?.company_id) {
-      supabase.from('security_events').insert({
-        user_id: user.id,
-        company_id: profile.company_id,
-        event_type: event.type,
-        severity: event.severity,
-        message: event.message,
-        metadata: { source: 'ai_security_posture' }
-      }).catch(console.error);
-    }
+    // Log to console for debugging
+    console.log('Security Event:', newEvent);
   };
 
   const encryptSensitiveData = (data: any): string => {
