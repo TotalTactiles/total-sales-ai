@@ -2,12 +2,16 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
+import { retellAIService } from '@/services/ai/retellAIService';
+import { elevenLabsService } from '@/services/ai/elevenLabsService';
 
 interface SystemHealthMetrics {
   apiHealth: 'healthy' | 'degraded' | 'down';
   databaseHealth: 'healthy' | 'degraded' | 'down';
   voiceSystemHealth: 'healthy' | 'degraded' | 'down';
   aiSystemHealth: 'healthy' | 'degraded' | 'down';
+  retellAIHealth: 'healthy' | 'degraded' | 'down';
+  elevenLabsHealth: 'healthy' | 'degraded' | 'down';
   lastChecked: Date;
   uptime: number;
   errorRate: number;
@@ -20,6 +24,8 @@ export const useSystemHealth = () => {
     databaseHealth: 'healthy',
     voiceSystemHealth: 'healthy',
     aiSystemHealth: 'healthy',
+    retellAIHealth: 'down',
+    elevenLabsHealth: 'down',
     lastChecked: new Date(),
     uptime: 0,
     errorRate: 0,
@@ -49,6 +55,12 @@ export const useSystemHealth = () => {
       const voiceSupported = ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
       const micSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 
+      // Check Retell AI health
+      const retellHealthy = retellAIService.isServiceReady();
+
+      // Check ElevenLabs health
+      const elevenLabsHealthy = elevenLabsService.isServiceReady();
+
       const totalTime = performance.now() - startTime;
 
       setMetrics({
@@ -56,6 +68,8 @@ export const useSystemHealth = () => {
         databaseHealth: dbError ? 'down' : dbTime > 1000 ? 'degraded' : 'healthy',
         voiceSystemHealth: (!voiceSupported || !micSupported) ? 'down' : 'healthy',
         aiSystemHealth: aiError ? 'degraded' : aiTime > 5000 ? 'degraded' : 'healthy',
+        retellAIHealth: retellHealthy ? 'healthy' : 'down',
+        elevenLabsHealth: elevenLabsHealthy ? 'healthy' : 'down',
         lastChecked: new Date(),
         uptime: Date.now() - performance.timeOrigin,
         errorRate: 0, // Would calculate from recent error logs
@@ -67,7 +81,9 @@ export const useSystemHealth = () => {
         aiTime,
         totalTime,
         voiceSupported,
-        micSupported
+        micSupported,
+        retellHealthy,
+        elevenLabsHealthy
       }, 'system_health');
 
     } catch (error) {
@@ -95,13 +111,13 @@ export const useSystemHealth = () => {
   }, []);
 
   const getOverallHealth = (): 'healthy' | 'degraded' | 'down' => {
-    const { apiHealth, databaseHealth, voiceSystemHealth, aiSystemHealth } = metrics;
+    const { apiHealth, databaseHealth, aiSystemHealth } = metrics;
     
     if ([apiHealth, databaseHealth].includes('down')) {
       return 'down';
     }
     
-    if ([apiHealth, databaseHealth, voiceSystemHealth, aiSystemHealth].includes('degraded')) {
+    if ([apiHealth, databaseHealth, aiSystemHealth].includes('degraded')) {
       return 'degraded';
     }
     
