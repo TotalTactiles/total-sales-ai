@@ -16,6 +16,13 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
 
   const startListening = useCallback(async () => {
     try {
+      // Request microphone permission first
+      const hasPermission = await voiceService.requestMicrophonePermission();
+      if (!hasPermission) {
+        options.onError?.('Microphone permission denied');
+        return false;
+      }
+
       setIsListening(true);
       const started = await voiceService.startRecording();
       
@@ -26,6 +33,7 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
         return false;
       }
 
+      console.log('Voice recording started successfully');
       return true;
     } catch (error) {
       console.error('Error starting voice commands:', error);
@@ -41,6 +49,7 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
       setIsListening(false);
       setIsProcessing(true);
 
+      console.log('Stopping voice recording...');
       const audioBlob = await voiceService.stopRecording();
       
       if (!audioBlob || audioBlob.size === 0) {
@@ -50,11 +59,14 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
         return null;
       }
 
+      console.log('Processing voice command...');
       const transcription = await voiceService.processAudioCommand(audioBlob, 'current-user');
       
       if (transcription && transcription.trim()) {
+        console.log('Voice command transcribed:', transcription);
         setLastTranscription(transcription);
         options.onCommand?.(transcription);
+        toast.success('Voice command processed successfully');
         return transcription;
       } else {
         const error = 'Could not understand the voice command';
@@ -82,11 +94,13 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
 
   const speakResponse = useCallback(async (text: string) => {
     try {
+      console.log('Speaking response:', text.substring(0, 50) + '...');
       await voiceService.generateVoiceResponse(text);
     } catch (error) {
       console.error('Error speaking response:', error);
-      // Fallback to toast
-      toast.info(text);
+      // Fallback to toast notification
+      toast.info(text.substring(0, 100) + (text.length > 100 ? '...' : ''));
+      throw error;
     }
   }, []);
 

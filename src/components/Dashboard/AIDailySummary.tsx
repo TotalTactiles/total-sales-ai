@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, ChevronDown, ChevronUp } from 'lucide-react';
+import { Play, ChevronDown, ChevronUp, Volume2, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { voiceService } from '@/services/ai/voiceService';
 
 interface AIDailySummaryProps {
   summary: string;
@@ -13,10 +15,23 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({ summary, isFullUser }) 
   const [isExpanded, setIsExpanded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  const playAudio = () => {
-    setIsPlaying(true);
-    // Simulate audio playback
-    setTimeout(() => setIsPlaying(false), 3000);
+  const playAudio = async () => {
+    if (isPlaying) return;
+    
+    try {
+      setIsPlaying(true);
+      toast.info('Generating voice summary...');
+      
+      // Use the voice service to generate and play the summary
+      await voiceService.generateVoiceResponse(summary);
+      
+      toast.success('Summary played successfully');
+    } catch (error) {
+      console.error('Error playing audio summary:', error);
+      toast.error('Failed to play audio summary');
+    } finally {
+      setIsPlaying(false);
+    }
   };
 
   const truncatedSummary = summary.length > 150 ? summary.substring(0, 150) + '...' : summary;
@@ -33,7 +48,11 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({ summary, isFullUser }) 
             disabled={isPlaying}
             className="text-white hover:bg-white/10"
           >
-            <Play className={`h-4 w-4 ${isPlaying ? 'animate-pulse' : ''}`} />
+            {isPlaying ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Play className="h-4 w-4" />
+            )}
           </Button>
         </CardTitle>
       </CardHeader>
@@ -59,6 +78,14 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({ summary, isFullUser }) 
                 </>
               )}
             </Button>
+          )}
+          
+          {/* Voice Control Indicator */}
+          {isPlaying && (
+            <div className="flex items-center gap-2 text-sm text-blue-600">
+              <Volume2 className="h-4 w-4 animate-pulse" />
+              <span>Playing audio summary...</span>
+            </div>
           )}
         </div>
       </CardContent>

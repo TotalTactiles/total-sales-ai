@@ -11,12 +11,20 @@ export class VoiceService {
   private isRecording = false;
   private retryCount = 0;
   private maxRetries = 3;
+  private speechSynthesis: SpeechSynthesis | null = null;
 
   static getInstance(): VoiceService {
     if (!VoiceService.instance) {
       VoiceService.instance = new VoiceService();
     }
     return VoiceService.instance;
+  }
+
+  constructor() {
+    // Initialize speech synthesis if available
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      this.speechSynthesis = window.speechSynthesis;
+    }
   }
 
   async initializeAudioContext(): Promise<AudioContext> {
@@ -233,35 +241,72 @@ export class VoiceService {
     try {
       console.log('Generating voice response for text:', text.substring(0, 50) + '...');
       
-      // Use unified AI service to optimize response for voice
-      if (text.length > 200) {
-        try {
-          const aiResponse = await unifiedAIService.generateResponse(
-            `Make this response concise and natural for voice output while keeping key information: "${text}"`,
-            'You are a voice optimization expert. Make responses sound natural when spoken aloud.',
-            undefined,
-            'claude' // Claude is better for text optimization
-          );
-          
-          if (aiResponse.response && aiResponse.response.length < text.length) {
-            text = aiResponse.response;
+      // First try ElevenLabs via edge function
+      try {
+        const { data, error } = await supabase.functions.invoke('ai-voice', {
+          body: { 
+            text: text,
+            voiceId: '9BWtsMINqrJLrRacOk9x' // Aria voice
           }
-        } catch (aiError) {
-          console.warn('AI optimization failed, using original text:', aiError);
+        });
+
+        if (!error && data) {
+          // Play the audio from ElevenLabs
+          const audioBlob = new Blob([data], { type: 'audio/mpeg' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          const audio = new Audio(audioUrl);
+          
+          return new Promise((resolve, reject) => {
+            audio.onended = () => {
+              URL.revokeObjectURL(audioUrl);
+              console.log('ElevenLabs voice response completed');
+              resolve();
+            };
+            
+            audio.onerror = (error) => {
+              console.error('Audio playback error:', error);
+              URL.revokeObjectURL(audioUrl);
+              reject(error);
+            };
+            
+            audio.play().catch(reject);
+          });
         }
+      } catch (elevenLabsError) {
+        console.warn('ElevenLabs TTS failed, falling back to browser synthesis:', elevenLabsError);
       }
       
-      // Use browser's speech synthesis with enhanced error handling
-      if ('speechSynthesis' in window) {
-        speechSynthesis.cancel();
+      // Fallback to browser's speech synthesis
+      if (this.speechSynthesis) {
+        // Cancel any ongoing speech
+        this.speechSynthesis.cancel();
         
-        const utterance = new SpeechSynthesisUtterance(text);
+        // Optimize text for voice if it's too long
+        let optimizedText = text;
+        if (text.length > 200) {
+          try {
+            const aiResponse = await unifiedAIService.generateResponse(
+              `Make this response concise and natural for voice output while keeping key information: "${text}"`,
+              'You are a voice optimization expert. Make responses sound natural when spoken aloud.',
+              undefined,
+              'claude'
+            );
+            
+            if (aiResponse.response && aiResponse.response.length < text.length) {
+              optimizedText = aiResponse.response;
+            }
+          } catch (aiError) {
+            console.warn('AI optimization failed, using original text:', aiError);
+          }
+        }
+        
+        const utterance = new SpeechSynthesisUtterance(optimizedText);
         utterance.rate = 0.9;
         utterance.pitch = 1.0;
         utterance.volume = 0.8;
         
         // Try to use a more natural voice
-        const voices = speechSynthesis.getVoices();
+        const voices = this.speechSynthesis.getVoices();
         const preferredVoice = voices.find(voice => 
           voice.name.includes('Natural') || 
           voice.name.includes('Neural') ||
@@ -275,13 +320,13 @@ export class VoiceService {
 
         return new Promise((resolve, reject) => {
           const timeout = setTimeout(() => {
-            speechSynthesis.cancel();
+            this.speechSynthesis?.cancel();
             reject(new Error('Speech synthesis timeout'));
           }, 30000); // 30 second timeout
 
           utterance.onend = () => {
             clearTimeout(timeout);
-            console.log('Voice response completed');
+            console.log('Browser voice response completed');
             resolve();
           };
           
@@ -291,15 +336,16 @@ export class VoiceService {
             reject(new Error('Speech synthesis failed'));
           };
           
-          speechSynthesis.speak(utterance);
+          this.speechSynthesis!.speak(utterance);
         });
       } else {
         throw new Error('Speech synthesis not supported');
       }
     } catch (error) {
       console.error('Error generating voice response:', error);
-      // Fallback: show text response as toast
+      // Final fallback: show text response as toast
       toast.info(text.substring(0, 100) + (text.length > 100 ? '...' : ''));
+      throw error;
     }
   }
 
@@ -318,8 +364,8 @@ export class VoiceService {
       this.audioContext.close();
     }
     
-    if ('speechSynthesis' in window) {
-      speechSynthesis.cancel();
+    if (this.speechSynthesis) {
+      this.speechSynthesis.cancel();
     }
     
     this.mediaRecorder = null;
