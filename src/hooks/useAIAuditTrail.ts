@@ -73,11 +73,11 @@ export const useAIAuditTrail = () => {
         .insert({
           type: 'ai_audit_trail',
           event_summary: `${action} on ${resource}`,
-          payload: {
+          payload: JSON.parse(JSON.stringify({
             auditEntry: auditEntryForStorage,
             riskLevel,
             outcome
-          } as AuditPayload,
+          })),
           company_id: profile.company_id,
           visibility: riskLevel === 'critical' || riskLevel === 'high' ? 'admin_manager' : 'admin_only'
         });
@@ -140,7 +140,7 @@ export const useAIAuditTrail = () => {
       const decryptedEntries = await Promise.all(
         (data || []).map(async (entry) => {
           try {
-            const payload = entry.payload as AuditPayload;
+            const payload = entry.payload as unknown as AuditPayload;
             const decryptedDetails = await encryptionService.decryptSensitiveData(
               payload.auditEntry.details
             );
