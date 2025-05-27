@@ -33,6 +33,7 @@ class MasterAIBrain {
   async ingestEvent(event: Omit<AIIngestionEvent, 'id' | 'timestamp' | 'processed'>): Promise<void> {
     const enrichedEvent: AIIngestionEvent = {
       ...event,
+      id: crypto.randomUUID(),
       timestamp: new Date(),
       processed: false
     };
@@ -72,7 +73,7 @@ class MasterAIBrain {
         dataType: this.mapEventTypeToLearningType(event.event_type),
         content: segmentedData,
         source: event.source,
-        confidence: this.calculateEventConfidence(event)
+        confidence: this.calculateEventConfidence(enrichedEvent)
       });
 
       // Add to processing queue
@@ -93,8 +94,12 @@ class MasterAIBrain {
     switch (eventType) {
       case 'user_action': return 'user_interaction';
       case 'ai_output': return 'ai_output';
-      case 'system_event': return 'system_metric';
-      case 'market_data': return 'market_signal';
+      case 'crm_sync': 
+      case 'call_activity': 
+      case 'email_interaction': return 'system_metric';
+      case 'social_media':
+      case 'website_data':
+      case 'external_data': return 'market_signal';
       default: return 'user_interaction';
     }
   }
@@ -168,7 +173,7 @@ class MasterAIBrain {
         type: 'pattern_analysis' as const,
         input: {
           userInteractions: events.filter(e => e.event_type === 'user_action'),
-          systemMetrics: events.filter(e => e.event_type === 'system_event')
+          systemMetrics: events.filter(e => e.event_type === 'crm_sync' || e.event_type === 'call_activity')
         },
         context: `Batch analysis for company ${companyId}`,
         priority: 'medium' as const,
@@ -286,7 +291,7 @@ class MasterAIBrain {
       await this.ingestEvent({
         user_id: userId,
         company_id: companyId,
-        event_type: 'market_data',
+        event_type: 'external_data',
         source: 'external_apis',
         data: marketData,
         context: { type: 'market_intelligence' }
@@ -302,7 +307,7 @@ class MasterAIBrain {
     aiServices: string;
     learningStatus: string;
     automationFlows: number;
-    lastHealthCheck: Date;
+    lastHealthCheck: string;
   }> {
     try {
       // Check various system components
@@ -310,7 +315,7 @@ class MasterAIBrain {
         aiServices: 'healthy',
         learningStatus: 'active',
         automationFlows: await this.getActiveAutomationCount(),
-        lastHealthCheck: new Date()
+        lastHealthCheck: new Date().toISOString()
       };
 
       return health;
@@ -320,7 +325,7 @@ class MasterAIBrain {
         aiServices: 'degraded',
         learningStatus: 'error',
         automationFlows: 0,
-        lastHealthCheck: new Date()
+        lastHealthCheck: new Date().toISOString()
       };
     }
   }
