@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { unifiedAIService } from './unifiedAIService';
@@ -8,6 +9,8 @@ export class VoiceService {
   private mediaRecorder: MediaRecorder | null = null;
   private audioChunks: Blob[] = [];
   private isRecording = false;
+  private retryCount = 0;
+  private maxRetries = 3;
 
   static getInstance(): VoiceService {
     if (!VoiceService.instance) {
@@ -42,7 +45,6 @@ export class VoiceService {
         }
       });
       
-      // Stop the stream immediately, we just wanted to check permissions
       stream.getTracks().forEach(track => track.stop());
       return true;
     } catch (error) {
@@ -69,22 +71,11 @@ export class VoiceService {
         }
       });
 
-      // Check if MediaRecorder is supported
-      if (!MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
-        console.warn('audio/webm;codecs=opus not supported, trying audio/webm');
-        if (!MediaRecorder.isTypeSupported('audio/webm')) {
-          throw new Error('WebM audio recording not supported');
-        }
-      }
-
       const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
         ? 'audio/webm;codecs=opus' 
         : 'audio/webm';
 
-      this.mediaRecorder = new MediaRecorder(stream, {
-        mimeType: mimeType
-      });
-
+      this.mediaRecorder = new MediaRecorder(stream, { mimeType });
       this.audioChunks = [];
       this.isRecording = true;
 
@@ -100,8 +91,9 @@ export class VoiceService {
         toast.error('Recording error occurred');
       };
 
-      this.mediaRecorder.start(250); // Collect data every 250ms
+      this.mediaRecorder.start(250);
       console.log('Voice recording started');
+      this.retryCount = 0; // Reset retry count on successful start
       return true;
 
     } catch (error) {
@@ -144,7 +136,6 @@ export class VoiceService {
         const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
         console.log('Voice recording stopped, blob size:', audioBlob.size);
         
-        // Stop all tracks
         if (this.mediaRecorder?.stream) {
           this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
         }
@@ -164,34 +155,55 @@ export class VoiceService {
         throw new Error('No audio data to process');
       }
 
-      // Convert audio to base64
       const arrayBuffer = await audioBlob.arrayBuffer();
       const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
       console.log('Sending audio to voice-to-text function...');
 
-      // First try OpenAI Whisper for transcription
+      // Try OpenAI Whisper first with retry logic
       let transcriptionData;
       try {
         const { data, error } = await supabase.functions.invoke('voice-to-text', {
           body: { audio: base64Audio, provider: 'openai' }
         });
 
-        if (error) throw error;
-        transcriptionData = data;
-      } catch (openaiError) {
-        console.warn('OpenAI transcription failed, trying Claude fallback:', openaiError);
-        
-        // Fallback to alternative transcription if available
-        const { data, error } = await supabase.functions.invoke('voice-to-text', {
-          body: { audio: base64Audio, provider: 'fallback' }
-        });
-
         if (error) {
-          throw new Error('Voice transcription services are temporarily unavailable. Please try typing your message instead.');
+          // Check if it's a quota error
+          if (error.message?.includes('quota') || error.message?.includes('limit')) {
+            throw new Error('QUOTA_EXCEEDED');
+          }
+          throw error;
         }
         
         transcriptionData = data;
+        this.retryCount = 0; // Reset on success
+        
+      } catch (openaiError) {
+        console.warn('OpenAI transcription failed:', openaiError);
+        
+        // If quota exceeded or after retries, try Claude fallback
+        if (openaiError.message === 'QUOTA_EXCEEDED' || this.retryCount >= this.maxRetries) {
+          console.log('Attempting Claude fallback for transcription...');
+          
+          try {
+            // Use Claude for audio transcription (if available via edge function)
+            const { data, error } = await supabase.functions.invoke('voice-to-text', {
+              body: { audio: base64Audio, provider: 'anthropic' }
+            });
+
+            if (error) throw error;
+            transcriptionData = data;
+            
+          } catch (claudeError) {
+            console.error('Claude transcription also failed:', claudeError);
+            throw new Error('All voice transcription services are temporarily unavailable. Please try typing your message instead.');
+          }
+        } else {
+          // Retry with OpenAI
+          this.retryCount++;
+          await new Promise(resolve => setTimeout(resolve, 1000 * this.retryCount)); // Exponential backoff
+          return this.processAudioCommand(audioBlob, userId);
+        }
       }
 
       if (!transcriptionData?.text) {
@@ -221,14 +233,14 @@ export class VoiceService {
     try {
       console.log('Generating voice response for text:', text.substring(0, 50) + '...');
       
-      // Use unified AI service to potentially improve the response before speaking
+      // Use unified AI service to optimize response for voice
       if (text.length > 200) {
         try {
           const aiResponse = await unifiedAIService.generateResponse(
-            `Make this response more concise and natural for voice output while keeping the key information: "${text}"`,
+            `Make this response concise and natural for voice output while keeping key information: "${text}"`,
             'You are a voice optimization expert. Make responses sound natural when spoken aloud.',
             undefined,
-            'claude'
+            'claude' // Claude is better for text optimization
           );
           
           if (aiResponse.response && aiResponse.response.length < text.length) {
@@ -239,9 +251,8 @@ export class VoiceService {
         }
       }
       
-      // Use browser's speech synthesis as primary method
+      // Use browser's speech synthesis with enhanced error handling
       if ('speechSynthesis' in window) {
-        // Cancel any ongoing speech
         speechSynthesis.cancel();
         
         const utterance = new SpeechSynthesisUtterance(text);
@@ -249,13 +260,13 @@ export class VoiceService {
         utterance.pitch = 1.0;
         utterance.volume = 0.8;
         
-        // Try to use a more natural voice if available
+        // Try to use a more natural voice
         const voices = speechSynthesis.getVoices();
         const preferredVoice = voices.find(voice => 
           voice.name.includes('Natural') || 
           voice.name.includes('Neural') ||
           voice.name.includes('Premium') ||
-          voice.lang.startsWith('en')
+          (voice.lang.startsWith('en') && voice.localService)
         );
         
         if (preferredVoice) {
@@ -263,11 +274,19 @@ export class VoiceService {
         }
 
         return new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            speechSynthesis.cancel();
+            reject(new Error('Speech synthesis timeout'));
+          }, 30000); // 30 second timeout
+
           utterance.onend = () => {
+            clearTimeout(timeout);
             console.log('Voice response completed');
             resolve();
           };
+          
           utterance.onerror = (event) => {
+            clearTimeout(timeout);
             console.error('Speech synthesis error:', event);
             reject(new Error('Speech synthesis failed'));
           };
@@ -279,8 +298,8 @@ export class VoiceService {
       }
     } catch (error) {
       console.error('Error generating voice response:', error);
-      // Fallback: just show text response
-      toast.info(text);
+      // Fallback: show text response as toast
+      toast.info(text.substring(0, 100) + (text.length > 100 ? '...' : ''));
     }
   }
 
@@ -299,7 +318,6 @@ export class VoiceService {
       this.audioContext.close();
     }
     
-    // Cancel any ongoing speech
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
@@ -308,6 +326,7 @@ export class VoiceService {
     this.audioContext = null;
     this.audioChunks = [];
     this.isRecording = false;
+    this.retryCount = 0;
   }
 }
 

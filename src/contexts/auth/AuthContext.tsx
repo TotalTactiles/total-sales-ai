@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { AuthContextType, Profile, Role } from './types';
 import { initializeDemoUser, isDemoMode as checkDemoMode, setDemoMode, clearDemoMode } from './demoMode';
@@ -16,6 +16,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Check if demo mode is active on initial load
@@ -23,7 +24,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const demoRole = localStorage.getItem('demoRole') as Role | null;
 
     if (demoMode === 'true' && demoRole) {
-      // Initialize demo mode user
       console.log("Initializing demo mode from stored values");
       const { demoUser, demoProfile } = initializeDemoUser(demoRole);
       setUser(demoUser);
@@ -40,8 +40,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(currentSession?.user ?? null);
         
         if (currentSession?.user) {
-          // We're using setTimeout(0) to avoid Supabase deadlocks
-          // This defers the profile fetch until after the auth state update completes
           setTimeout(async () => {
             await fetchUserProfile(currentSession.user.id);
           }, 0);
@@ -74,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, role')
+        .select('id, full_name, role, company_id')
         .eq('id', userId)
         .maybeSingle();
 
@@ -92,11 +90,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('profiles')
           .update({ last_login: new Date().toISOString() })
           .eq('id', userId);
+
+        // Handle post-authentication routing
+        handlePostAuthRouting(data as Profile);
       } else {
         console.warn("No profile found for user:", userId);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  const handlePostAuthRouting = (userProfile: Profile) => {
+    // Don't redirect if we're already on auth page or in onboarding
+    if (location.pathname === '/auth' || location.pathname.includes('onboarding')) {
+      return;
+    }
+
+    // Check if onboarding is complete
+    const onboardingComplete = localStorage.getItem(`onboarding_complete_${userProfile.id}`);
+    
+    if (!onboardingComplete) {
+      // Onboarding will handle routing
+      return;
+    }
+
+    // Redirect to appropriate dashboard based on role
+    const targetPath = userProfile.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+    
+    // Only redirect if we're not already on the correct path
+    if (!location.pathname.startsWith(targetPath.split('/')[1])) {
+      navigate(targetPath);
     }
   };
 
@@ -116,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       console.log("Sign up successful:", data);
-      toast.success('Account created successfully! Please log in.');
+      toast.success('Account created successfully! Please complete onboarding.');
     } catch (error: any) {
       console.error("Sign up error:", error);
       toast.error(error.message || 'Error signing up');
@@ -136,19 +160,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log("Sign in successful:", data);
       toast.success('Logged in successfully!');
       
-      // Redirect based on user role - using correct existing routes
-      if (data.session?.user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.session.user.id)
-          .maybeSingle();
-          
-        if (profileData) {
-          const redirectPath = profileData.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
-          navigate(redirectPath);
-        }
-      }
     } catch (error: any) {
       console.error("Sign in error:", error);
       toast.error(error.message || 'Error signing in');
@@ -179,6 +190,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { demoUser, demoProfile } = initializeDemoUser(role);
     setUser(demoUser);
     setProfile(demoProfile);
+    
+    // Navigate to appropriate dashboard
+    const targetPath = role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+    navigate(targetPath);
   };
 
   const isDemoMode = () => {
