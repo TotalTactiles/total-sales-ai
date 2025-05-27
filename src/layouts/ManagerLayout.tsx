@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
@@ -11,9 +10,11 @@ import ManagerCompanyBrain from '@/pages/manager/CompanyBrain';
 import ManagerAI from '@/pages/manager/AI';
 import ManagerSettings from '@/pages/manager/Settings';
 
+import ContextAwareVoiceAssistant from '@/components/VoiceAI/ContextAwareVoiceAssistant';
+
 const ManagerLayout = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       <ManagerNavigation />
       
       <main className="pt-[60px]">
@@ -28,6 +29,9 @@ const ManagerLayout = () => {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
+      
+      {/* Add Voice Assistant */}
+      <ContextAwareVoiceAssistant />
     </div>
   );
 };

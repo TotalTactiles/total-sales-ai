@@ -12,10 +12,14 @@ import SalesSettings from '@/pages/sales/Settings';
 import SalesDialer from '@/pages/sales/Dialer';
 
 import SalesRepAIAssistant from '@/components/SalesAI/SalesRepAIAssistant';
+import ContextAwareVoiceAssistant from '@/components/VoiceAI/ContextAwareVoiceAssistant';
+import { useAIContext } from '@/contexts/AIContext';
 
 const SalesLayout = () => {
+  const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
+  
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-slate-50">
       <SalesNavigation />
       
       <main className="pt-[60px]">
@@ -34,6 +38,14 @@ const SalesLayout = () => {
       
       {/* AI Assistant */}
       <SalesRepAIAssistant />
+      
+      {/* Add Voice Assistant */}
+      <ContextAwareVoiceAssistant
+        currentLead={currentLead}
+        isCallActive={isCallActive}
+        emailContext={emailContext}
+        smsContext={smsContext}
+      />
     </div>
   );
 };

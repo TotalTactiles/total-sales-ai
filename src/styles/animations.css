@@ -1,0 +1,71 @@
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.animation-delay-75 {
+  animation-delay: 75ms;
+}
+
+.animation-delay-150 {
+  animation-delay: 150ms;
+}
+
+/* Voice assistant specific animations */
+.voice-listening {
+  animation: glow 1.5s ease-in-out infinite;
+}
+
+.voice-speaking {
+  animation: pulse-soft 1s ease-in-out infinite;
+}
+
+.waveform-bar {
+  animation: waveform 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes waveform {
+  from {
+    height: 4px;
+  }
+  to {
+    height: 20px;
+  }
+}
