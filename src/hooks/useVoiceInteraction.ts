@@ -66,6 +66,8 @@ interface VoiceInteractionState {
   transcript: string;
   response: string;
   error: string | null;
+  permissionState: 'granted' | 'denied' | 'prompt' | 'unknown';
+  microphoneSupported: boolean;
 }
 
 interface VoiceInteractionOptions {
@@ -80,10 +82,12 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
     isListening: false,
     isProcessing: false,
     isSpeaking: false,
-    isWakeWordActive: true,
+    isWakeWordActive: false,
     transcript: '',
     response: '',
-    error: null
+    error: null,
+    permissionState: 'unknown',
+    microphoneSupported: false
   });
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -91,22 +95,119 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const wakeWord = options.wakeWord || 'Hey Jarvis';
 
-  // Initialize wake word detection
+  // Check microphone and speech recognition support
   useEffect(() => {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      setState(prev => ({ ...prev, error: 'Speech recognition not supported' }));
+    const checkSupport = async () => {
+      // Check speech recognition support
+      const speechSupported = ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
+      
+      // Check microphone support
+      const micSupported = navigator.mediaDevices && navigator.mediaDevices.getUserMedia;
+      
+      setState(prev => ({ 
+        ...prev, 
+        microphoneSupported: speechSupported && micSupported,
+        error: !speechSupported ? 'Speech recognition not supported in this browser' : 
+               !micSupported ? 'Microphone access not supported' : null
+      }));
+
+      if (speechSupported && micSupported) {
+        await checkMicrophonePermission();
+      }
+    };
+
+    checkSupport();
+  }, []);
+
+  const checkMicrophonePermission = async () => {
+    try {
+      // Check current permission state
+      if ('permissions' in navigator) {
+        const permission = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+        setState(prev => ({ ...prev, permissionState: permission.state }));
+        
+        // Listen for permission changes
+        permission.onchange = () => {
+          setState(prev => ({ ...prev, permissionState: permission.state }));
+        };
+      }
+    } catch (error) {
+      console.warn('Could not check microphone permission:', error);
+      setState(prev => ({ ...prev, permissionState: 'unknown' }));
+    }
+  };
+
+  const requestMicrophonePermission = async (): Promise<boolean> => {
+    try {
+      setState(prev => ({ ...prev, error: null }));
+      
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Store stream reference
+      streamRef.current = stream;
+      
+      setState(prev => ({ ...prev, permissionState: 'granted' }));
+      
+      // Stop the stream immediately as we just needed permission
+      stream.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+      
+      toast.success('Microphone access granted! Voice features are now available.');
+      return true;
+      
+    } catch (error: any) {
+      console.error('Microphone permission denied:', error);
+      
+      let errorMessage = 'Microphone access denied. ';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMessage += 'Please allow microphone access in your browser settings and reload the page.';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage += 'No microphone found. Please connect a microphone.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage += 'Microphone is being used by another application.';
+      } else {
+        errorMessage += 'Please check your microphone settings.';
+      }
+      
+      setState(prev => ({ 
+        ...prev, 
+        permissionState: 'denied',
+        error: errorMessage,
+        isWakeWordActive: false
+      }));
+      
+      toast.error(errorMessage);
+      return false;
+    }
+  };
+
+  // Initialize speech recognition only after permission is granted
+  useEffect(() => {
+    if (!state.microphoneSupported || state.permissionState !== 'granted') {
       return;
     }
 
     const SpeechRecognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognitionConstructor) {
+      setState(prev => ({ ...prev, error: 'Speech recognition not supported' }));
+      return;
+    }
+
     const recognition = new SpeechRecognitionConstructor();
     
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      console.log('Speech recognition started');
+    };
 
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results)
@@ -123,7 +224,40 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
 
     recognition.onerror = (event) => {
       console.error('Speech recognition error:', event.error);
-      setState(prev => ({ ...prev, error: `Recognition error: ${event.error}` }));
+      
+      let errorMessage = 'Speech recognition error: ';
+      
+      switch (event.error) {
+        case 'not-allowed':
+          errorMessage = 'Microphone access denied. Please allow microphone access and try again.';
+          setState(prev => ({ ...prev, permissionState: 'denied' }));
+          break;
+        case 'no-speech':
+          errorMessage = 'No speech detected. Please try speaking closer to your microphone.';
+          break;
+        case 'audio-capture':
+          errorMessage = 'Audio capture failed. Please check your microphone connection.';
+          break;
+        case 'network':
+          errorMessage = 'Network error occurred. Please check your internet connection.';
+          break;
+        default:
+          errorMessage += event.error;
+      }
+      
+      setState(prev => ({ ...prev, error: errorMessage }));
+    };
+
+    recognition.onend = () => {
+      console.log('Speech recognition ended');
+      // Restart recognition if wake word is still active and permission is granted
+      if (state.isWakeWordActive && state.permissionState === 'granted') {
+        try {
+          recognition.start();
+        } catch (error) {
+          console.warn('Could not restart speech recognition:', error);
+        }
+      }
     };
 
     recognitionRef.current = recognition;
@@ -133,6 +267,7 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
         recognition.start();
       } catch (error) {
         console.error('Failed to start speech recognition:', error);
+        setState(prev => ({ ...prev, error: 'Failed to start voice recognition' }));
       }
     }
 
@@ -145,7 +280,7 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
         }
       }
     };
-  }, [wakeWord, state.isWakeWordActive, state.isListening]);
+  }, [wakeWord, state.isWakeWordActive, state.isListening, state.microphoneSupported, state.permissionState]);
 
   const handleWakeWordDetected = useCallback(() => {
     setState(prev => ({ ...prev, isListening: true, transcript: '', error: null }));
@@ -158,8 +293,15 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
   }, []);
 
   const startListening = useCallback(async () => {
+    // Check permissions first
+    if (state.permissionState !== 'granted') {
+      const granted = await requestMicrophonePermission();
+      if (!granted) return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
@@ -172,7 +314,10 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
       mediaRecorder.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         await processAudioCommand(audioBlob);
-        stream.getTracks().forEach(track => track.stop());
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach(track => track.stop());
+          streamRef.current = null;
+        }
       };
 
       setState(prev => ({ ...prev, isListening: true, error: null }));
@@ -183,11 +328,16 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
         stopListening();
       }, 10000);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting voice recording:', error);
-      setState(prev => ({ ...prev, error: 'Failed to access microphone' }));
+      
+      if (error.name === 'NotAllowedError') {
+        await requestMicrophonePermission();
+      } else {
+        setState(prev => ({ ...prev, error: 'Failed to access microphone. Please check your settings.' }));
+      }
     }
-  }, []);
+  }, [state.permissionState]);
 
   const stopListening = useCallback(() => {
     if (timeoutRef.current) {
@@ -196,6 +346,11 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
 
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
+    }
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
     }
 
     setState(prev => ({ ...prev, isListening: false }));
@@ -242,7 +397,7 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
       // Generate voice response
       await generateVoiceResponse(aiResponse);
 
-      // Log interaction (simplified - no database call since table doesn't exist)
+      // Log interaction
       console.log('AI Interaction:', { transcript, response: aiResponse });
 
     } catch (error) {
@@ -258,10 +413,13 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
     try {
       setState(prev => ({ ...prev, isSpeaking: true }));
 
-      // For now, use browser's speech synthesis as fallback
+      // Use browser's speech synthesis
       if ('speechSynthesis' in window) {
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.onend = () => {
+          setState(prev => ({ ...prev, isSpeaking: false }));
+        };
+        utterance.onerror = () => {
           setState(prev => ({ ...prev, isSpeaking: false }));
         };
         window.speechSynthesis.speak(utterance);
@@ -276,9 +434,19 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
     }
   };
 
-  const toggleWakeWord = useCallback(() => {
-    setState(prev => ({ ...prev, isWakeWordActive: !prev.isWakeWordActive }));
-  }, []);
+  const toggleWakeWord = useCallback(async () => {
+    if (!state.isWakeWordActive) {
+      // Enable wake word - check permissions first
+      if (state.permissionState !== 'granted') {
+        const granted = await requestMicrophonePermission();
+        if (!granted) return;
+      }
+      setState(prev => ({ ...prev, isWakeWordActive: true, error: null }));
+    } else {
+      // Disable wake word
+      setState(prev => ({ ...prev, isWakeWordActive: false }));
+    }
+  }, [state.permissionState, state.isWakeWordActive]);
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
@@ -292,6 +460,10 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
         audioRef.current.pause();
         audioRef.current = null;
       }
+      // Clean up any active streams
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
 
@@ -301,6 +473,7 @@ export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
     stopListening,
     toggleWakeWord,
     clearError,
+    requestMicrophonePermission,
     wakeWord
   };
 };
