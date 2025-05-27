@@ -24,33 +24,20 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, requiredRole }) => 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // For demo/testing purposes, allow temporary access to developer mode
-  // In production, this should be stricter
-  if (requiredRole === 'developer') {
-    // Allow admin and developer roles, and temporarily allow other roles for testing
-    if (profile?.role === 'admin' || profile?.role === 'developer') {
-      return <>{children}</>;
-    }
-    // For testing purposes, allow manager/sales_rep to access developer mode
-    // Remove this in production
-    if (profile?.role === 'manager' || profile?.role === 'sales_rep') {
-      console.warn('Allowing non-developer access for testing purposes');
-      return <>{children}</>;
-    }
-    // Redirect to appropriate dashboard based on actual role
-    switch (profile?.role) {
-      case 'manager':
-        return <Navigate to="/manager" replace />;
-      case 'sales_rep':
-        return <Navigate to="/sales" replace />;
-      default:
-        return <Navigate to="/auth" replace />;
-    }
+  // Allow admin access to everything
+  if (profile?.role === 'admin') {
+    return <>{children}</>;
   }
 
-  // Check if user has required role or is admin (admin can access everything)
-  if (requiredRole && profile?.role !== requiredRole && profile?.role !== 'admin') {
-    // Redirect to appropriate dashboard based on role
+  // For testing purposes, allow cross-role access during development
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Dev mode: Allowing ${profile?.role} to access ${requiredRole} content`);
+    return <>{children}</>;
+  }
+
+  // Check if user has required role
+  if (requiredRole && profile?.role !== requiredRole) {
+    // Redirect to appropriate dashboard based on actual role
     switch (profile?.role) {
       case 'developer':
         return <Navigate to="/developer" replace />;
