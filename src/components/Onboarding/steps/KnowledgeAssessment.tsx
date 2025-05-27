@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useOnboarding } from '@/pages/onboarding/OnboardingContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Brain, CheckCircle } from 'lucide-react';
 
 const KnowledgeAssessment: React.FC = () => {
-  const { onboardingData, updateOnboardingData } = useOnboarding();
+  const { settings, updateSettings } = useOnboarding();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
 
@@ -43,43 +44,23 @@ const KnowledgeAssessment: React.FC = () => {
     setAnswers(newAnswers);
 
     if (currentQuestion === 0) {
-      updateOnboardingData({ knowledgeLevel: answer as 'beginner' | 'intermediate' | 'advanced' });
+      // Store sales experience level in original_goal field for now
+      updateSettings({ original_goal: `Experience: ${answer}` });
     }
 
     if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Assessment complete - determine recommended features
-      const recommendedFeatures = generateRecommendations(newAnswers);
-      updateOnboardingData({ preferredFeatures: recommendedFeatures });
+      // Assessment complete - store the full assessment results
+      const assessmentData = questions.map((q, index) => ({
+        question: q.question,
+        answer: newAnswers[index] || ''
+      }));
+      
+      updateSettings({ 
+        original_goal: `Assessment completed - Experience: ${newAnswers[0]}, Focus: ${newAnswers[1]}, Method: ${newAnswers[2]}` 
+      });
     }
-  };
-
-  const generateRecommendations = (userAnswers: Record<number, string>) => {
-    const features = [];
-    
-    // Based on experience level
-    if (userAnswers[0] === 'beginner') {
-      features.push('ai-coaching', 'guided-scripts', 'academy');
-    } else if (userAnswers[0] === 'advanced') {
-      features.push('advanced-analytics', 'automation', 'ai-insights');
-    }
-
-    // Based on improvement area
-    if (userAnswers[1] === 'prospecting') {
-      features.push('lead-scoring', 'prospecting-tools');
-    } else if (userAnswers[1] === 'closing') {
-      features.push('closing-playbooks', 'deal-coaching');
-    }
-
-    // Based on sales method
-    if (userAnswers[2] === 'phone') {
-      features.push('call-analytics', 'voice-ai');
-    } else if (userAnswers[2] === 'email') {
-      features.push('email-templates', 'sequence-automation');
-    }
-
-    return features;
   };
 
   const isComplete = currentQuestion >= questions.length;
@@ -138,10 +119,7 @@ const KnowledgeAssessment: React.FC = () => {
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
           <h4 className="text-lg font-semibold">Assessment Complete!</h4>
           <p className="text-gray-600">
-            Based on your answers, we've personalized SalesOS for your experience level: 
-            <span className="font-semibold text-indigo-600 ml-1">
-              {onboardingData.knowledgeLevel?.charAt(0).toUpperCase() + onboardingData.knowledgeLevel?.slice(1)}
-            </span>
+            Based on your answers, we've personalized SalesOS for your experience level.
           </p>
           <div className="p-4 bg-indigo-50 rounded-lg">
             <p className="text-sm text-indigo-700">

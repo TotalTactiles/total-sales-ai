@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useOnboarding } from '@/pages/onboarding/OnboardingContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,115 +10,86 @@ import {
 } from 'lucide-react';
 
 const FeatureSelection: React.FC = () => {
-  const { onboardingData, updateOnboardingData, userRole } = useOnboarding();
+  const { settings, updateSettings } = useOnboarding();
 
   const allFeatures = [
     {
-      id: 'ai-coaching',
-      name: 'AI Coaching',
-      description: 'Real-time coaching and feedback',
+      id: 'dialer',
+      name: 'Auto Dialer',
+      description: 'Automated calling system',
+      icon: Phone,
+      recommended: true,
+      category: 'Communication'
+    },
+    {
+      id: 'brain',
+      name: 'AI Brain',
+      description: 'Intelligent sales insights',
       icon: Brain,
       recommended: true,
       category: 'AI'
     },
     {
-      id: 'voice-ai',
-      name: 'Voice AI Assistant',
-      description: 'Voice commands and responses',
-      icon: MessageSquare,
-      recommended: true,
-      category: 'AI'
-    },
-    {
-      id: 'call-analytics',
-      name: 'Call Analytics',
-      description: 'Track and analyze call performance',
-      icon: Phone,
-      recommended: userRole === 'sales_rep',
-      category: 'Analytics'
-    },
-    {
-      id: 'email-automation',
-      name: 'Email Automation',
-      description: 'Automated email sequences',
-      icon: Mail,
-      recommended: true,
-      category: 'Automation'
-    },
-    {
-      id: 'lead-scoring',
-      name: 'Lead Scoring',
-      description: 'AI-powered lead prioritization',
+      id: 'leads',
+      name: 'Lead Management',
+      description: 'Track and manage leads',
       icon: Target,
       recommended: true,
       category: 'Leads'
     },
     {
-      id: 'team-management',
-      name: 'Team Management',
-      description: 'Manage and monitor team performance',
-      icon: Users,
-      recommended: userRole === 'manager',
-      category: 'Management',
-      managerOnly: true
-    },
-    {
-      id: 'advanced-analytics',
-      name: 'Advanced Analytics',
-      description: 'Detailed performance insights',
+      id: 'analytics',
+      name: 'Analytics',
+      description: 'Performance tracking and insights',
       icon: BarChart,
-      recommended: userRole === 'manager',
+      recommended: true,
       category: 'Analytics'
     },
     {
-      id: 'automation-workflows',
-      name: 'Workflow Automation',
-      description: 'Custom automation workflows',
-      icon: Zap,
+      id: 'missions',
+      name: 'Sales Missions',
+      description: 'Gamified sales goals',
+      icon: Target,
       recommended: false,
-      category: 'Automation'
+      category: 'Gamification'
     },
     {
-      id: 'calendar-integration',
-      name: 'Calendar Integration',
-      description: 'Sync with your calendar',
-      icon: Calendar,
-      recommended: true,
-      category: 'Integration'
-    },
-    {
-      id: 'custom-fields',
-      name: 'Custom Fields',
-      description: 'Customize data fields',
+      id: 'tools',
+      name: 'Sales Tools',
+      description: 'Additional sales utilities',
       icon: Settings,
       recommended: false,
-      category: 'Customization'
+      category: 'Tools'
+    },
+    {
+      id: 'aiAgent',
+      name: 'AI Agent',
+      description: 'Virtual sales assistant',
+      icon: MessageSquare,
+      recommended: true,
+      category: 'AI'
     }
   ];
 
-  const availableFeatures = allFeatures.filter(feature => 
-    !feature.managerOnly || userRole === 'manager'
-  );
-
-  const selectedFeatures = onboardingData.preferredFeatures || 
-    availableFeatures.filter(f => f.recommended).map(f => f.id);
+  const selectedModules = settings.enabled_modules;
 
   const toggleFeature = (featureId: string) => {
-    const updated = selectedFeatures.includes(featureId)
-      ? selectedFeatures.filter(id => id !== featureId)
-      : [...selectedFeatures, featureId];
+    const updatedModules = {
+      ...selectedModules,
+      [featureId]: !selectedModules[featureId as keyof typeof selectedModules]
+    };
     
-    updateOnboardingData({ preferredFeatures: updated });
+    updateSettings({ enabled_modules: updatedModules });
   };
 
-  const groupedFeatures = availableFeatures.reduce((groups, feature) => {
+  const groupedFeatures = allFeatures.reduce((groups, feature) => {
     const category = feature.category;
     if (!groups[category]) {
       groups[category] = [];
     }
     groups[category].push(feature);
     return groups;
-  }, {} as Record<string, typeof availableFeatures>);
+  }, {} as Record<string, typeof allFeatures>);
 
   return (
     <div className="space-y-6">
@@ -138,7 +110,7 @@ const FeatureSelection: React.FC = () => {
             <div className="grid gap-3">
               {features.map((feature) => {
                 const IconComponent = feature.icon;
-                const isSelected = selectedFeatures.includes(feature.id);
+                const isSelected = selectedModules[feature.id as keyof typeof selectedModules];
                 
                 return (
                   <Card
@@ -180,7 +152,7 @@ const FeatureSelection: React.FC = () => {
 
       <div className="text-center p-4 bg-orange-50 rounded-lg">
         <p className="text-sm text-orange-700">
-          You've selected {selectedFeatures.length} features. 
+          You've selected {Object.values(selectedModules).filter(Boolean).length} features. 
           These will be activated in your SalesOS dashboard.
         </p>
       </div>
