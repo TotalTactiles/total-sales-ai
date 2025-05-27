@@ -4,7 +4,7 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, ChevronRight, Skip, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, SkipForward, Check } from 'lucide-react';
 import RoleSelection from './steps/RoleSelection';
 import CompanySetup from './steps/CompanySetup';
 import PersonalSetup from './steps/PersonalSetup';
@@ -96,7 +96,7 @@ const OnboardingFlow: React.FC = () => {
                 onClick={skipOnboarding}
                 className="flex items-center gap-2 text-gray-500"
               >
-                <Skip className="h-4 w-4" />
+                <SkipForward className="h-4 w-4" />
                 Skip Setup
               </Button>
             </div>

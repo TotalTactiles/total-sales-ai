@@ -20,6 +20,7 @@ import ManagerLayout from "./layouts/ManagerLayout";
 
 // Standalone Pages
 import LandingPage from "./pages/LandingPage";
+import OnboardingTest from "./pages/OnboardingTest";
 
 // Health monitoring for production readiness
 import HealthMonitor from "./components/SystemHealth/HealthMonitor";
@@ -51,6 +52,9 @@ function App() {
                       {/* Public Routes */}
                       <Route path="/landing" element={<LandingPage />} />
                       <Route path="/auth" element={<AuthPage />} />
+                      
+                      {/* Onboarding Test Route */}
+                      <Route path="/onboarding-test" element={<OnboardingTest />} />
                       
                       {/* Protected Sales Rep Routes */}
                       <Route path="/sales-rep-dashboard/*" element={<SalesLayout />} />
