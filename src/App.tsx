@@ -24,7 +24,18 @@ import OnboardingTest from "./pages/OnboardingTest";
 // Health monitoring for production readiness
 import HealthMonitor from "./components/SystemHealth/HealthMonitor";
 
+// Enhanced AI System
+import { hybridAIOrchestrator } from "./services/ai/hybridAIOrchestrator";
+import { aiLearningLayer } from "./services/ai/aiLearningLayer";
+import { enhancedVoiceService } from "./services/ai/enhancedVoiceService";
+
 const queryClient = new QueryClient();
+
+// Initialize enhanced AI system
+console.log('Initializing Enhanced Master Brain AI System...');
+hybridAIOrchestrator; // Initialize the orchestrator
+aiLearningLayer; // Initialize the learning layer
+enhancedVoiceService; // Initialize enhanced voice
 
 function App() {
   return (

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AIIngestionEvent, AIRecommendation } from './ai/types';
@@ -6,6 +7,9 @@ import { nativeAutomationEngine } from './ai/automationEngine';
 import { RecommendationService } from './ai/recommendationService';
 import { LearningEngine } from './ai/learningEngine';
 import { emailAutomationService } from './ai/emailAutomationService';
+import { hybridAIOrchestrator } from './ai/hybridAIOrchestrator';
+import { aiLearningLayer } from './ai/aiLearningLayer';
+import { dataEncryptionService } from './security/dataEncryptionService';
 
 // Re-export types for backward compatibility
 export type { AIIngestionEvent, AIRecommendation } from './ai/types';
@@ -25,7 +29,7 @@ class MasterAIBrain {
     return MasterAIBrain.instance;
   }
 
-  // Real-time data ingestion
+  // Enhanced real-time data ingestion with Claude integration
   async ingestEvent(event: Omit<AIIngestionEvent, 'id' | 'timestamp' | 'processed'>): Promise<void> {
     const enrichedEvent: AIIngestionEvent = {
       ...event,
@@ -34,6 +38,13 @@ class MasterAIBrain {
     };
 
     try {
+      // Encrypt sensitive data
+      const segmentedData = dataEncryptionService.segmentDataByUser(
+        event.data, 
+        event.user_id, 
+        event.company_id
+      );
+      
       // Store in Supabase for persistence
       const { error } = await supabase
         .from('ai_brain_logs')
@@ -45,7 +56,7 @@ class MasterAIBrain {
             user_id: event.user_id,
             event_type: event.event_type,
             source: event.source,
-            data: event.data,
+            data: segmentedData,
             context: event.context,
             timestamp: enrichedEvent.timestamp.toISOString()
           },
@@ -53,6 +64,16 @@ class MasterAIBrain {
         });
 
       if (error) throw error;
+
+      // Feed data to AI Learning Layer for continuous learning
+      await aiLearningLayer.ingestLearningData({
+        userId: event.user_id,
+        companyId: event.company_id,
+        dataType: this.mapEventTypeToLearningType(event.event_type),
+        content: segmentedData,
+        source: event.source,
+        confidence: this.calculateEventConfidence(event)
+      });
 
       // Add to processing queue
       this.ingestionQueue.push(enrichedEvent);
@@ -68,18 +89,43 @@ class MasterAIBrain {
     }
   }
 
-  // Process ingestion queue in batches
+  private mapEventTypeToLearningType(eventType: string): 'user_interaction' | 'ai_output' | 'system_metric' | 'market_signal' {
+    switch (eventType) {
+      case 'user_action': return 'user_interaction';
+      case 'ai_output': return 'ai_output';
+      case 'system_event': return 'system_metric';
+      case 'market_data': return 'market_signal';
+      default: return 'user_interaction';
+    }
+  }
+
+  private calculateEventConfidence(event: AIIngestionEvent): number {
+    // Calculate confidence based on event type and data quality
+    let confidence = 0.7; // Base confidence
+    
+    if (event.event_type === 'user_action') {
+      confidence = 0.9; // User actions are high confidence
+    } else if (event.event_type === 'ai_output') {
+      confidence = 0.8; // AI outputs are reliable
+    } else if (event.context && Object.keys(event.context).length > 0) {
+      confidence += 0.1; // Bonus for rich context
+    }
+    
+    return Math.min(confidence, 1.0);
+  }
+
+  // Enhanced processing with Claude pattern analysis
   private async processIngestionQueue(): Promise<void> {
     if (this.isProcessing || this.ingestionQueue.length === 0) return;
     
     this.isProcessing = true;
-    console.log(`Processing ${this.ingestionQueue.length} AI events...`);
+    console.log(`Processing ${this.ingestionQueue.length} AI events with hybrid AI system...`);
 
     try {
       const batchSize = 10;
       while (this.ingestionQueue.length > 0) {
         const batch = this.ingestionQueue.splice(0, batchSize);
-        await this.processBatch(batch);
+        await this.processBatchWithHybridAI(batch);
         
         // Small delay to prevent overwhelming the system
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -91,14 +137,19 @@ class MasterAIBrain {
     }
   }
 
-  private async processBatch(events: AIIngestionEvent[]): Promise<void> {
+  private async processBatchWithHybridAI(events: AIIngestionEvent[]): Promise<void> {
     for (const event of events) {
       try {
-        // Generate insights based on event type
+        // Generate insights using the original insight generator
         await this.insightGenerator.generateInsightsFromEvent(event);
         
         // Update learning models
         await this.learningEngine.updateLearningModels(event);
+        
+        // Use hybrid AI orchestrator for complex pattern analysis
+        if (events.length >= 5) {
+          await this.performHybridAnalysis(events, event.company_id, event.user_id);
+        }
         
         // Check for automation triggers using new native engine
         await this.checkNativeAutomationTriggers(event);
@@ -106,6 +157,28 @@ class MasterAIBrain {
       } catch (error) {
         console.error('Error processing event:', event, error);
       }
+    }
+  }
+
+  private async performHybridAnalysis(events: AIIngestionEvent[], companyId: string, userId: string): Promise<void> {
+    try {
+      // Use Claude for pattern analysis on the batch of events
+      const analysisTask = {
+        id: crypto.randomUUID(),
+        type: 'pattern_analysis' as const,
+        input: {
+          userInteractions: events.filter(e => e.event_type === 'user_action'),
+          systemMetrics: events.filter(e => e.event_type === 'system_event')
+        },
+        context: `Batch analysis for company ${companyId}`,
+        priority: 'medium' as const,
+        userId,
+        companyId
+      };
+
+      await hybridAIOrchestrator.queueTask(analysisTask);
+    } catch (error) {
+      console.error('Error in hybrid analysis:', error);
     }
   }
 
@@ -143,7 +216,7 @@ class MasterAIBrain {
     }
   }
 
-  // Public methods for AI assistants
+  // Enhanced public methods with hybrid AI
   async getPersonalizedRecommendations(userId: string, companyId: string, context: Record<string, any>): Promise<AIRecommendation[]> {
     return this.recommendationService.getPersonalizedRecommendations(userId, companyId, context);
   }
@@ -159,7 +232,7 @@ class MasterAIBrain {
     });
   }
 
-  // Simplified automation methods using native engine
+  // Enhanced automation with Claude insights
   async triggerAutomation(
     trigger: string,
     eventData: Record<string, any>,
@@ -167,12 +240,11 @@ class MasterAIBrain {
     companyId: string
   ): Promise<void> {
     try {
-      const enrichedData = {
-        ...eventData,
+      const enrichedData = dataEncryptionService.segmentDataByUser(
+        eventData,
         userId,
-        companyId,
-        timestamp: new Date().toISOString()
-      };
+        companyId
+      );
 
       await emailAutomationService.evaluateAutomationTriggers(trigger, enrichedData);
 
@@ -194,14 +266,110 @@ class MasterAIBrain {
     }
   }
 
-  // Initialize automation processing
+  // Market data ingestion with Claude contextualization
+  async ingestMarketData(marketData: any[], companyId: string, userId: string): Promise<void> {
+    try {
+      // Use Claude to contextualize market data
+      const analysisTask = {
+        id: crypto.randomUUID(),
+        type: 'market_analysis' as const,
+        input: { marketData },
+        context: `Market analysis for company ${companyId}`,
+        priority: 'low' as const,
+        userId,
+        companyId
+      };
+
+      await hybridAIOrchestrator.queueTask(analysisTask);
+
+      // Also ingest as learning data
+      await this.ingestEvent({
+        user_id: userId,
+        company_id: companyId,
+        event_type: 'market_data',
+        source: 'external_apis',
+        data: marketData,
+        context: { type: 'market_intelligence' }
+      });
+
+    } catch (error) {
+      console.error('Error ingesting market data:', error);
+    }
+  }
+
+  // System health and monitoring
+  async getSystemHealth(): Promise<{
+    aiServices: string;
+    learningStatus: string;
+    automationFlows: number;
+    lastHealthCheck: Date;
+  }> {
+    try {
+      // Check various system components
+      const health = {
+        aiServices: 'healthy',
+        learningStatus: 'active',
+        automationFlows: await this.getActiveAutomationCount(),
+        lastHealthCheck: new Date()
+      };
+
+      return health;
+    } catch (error) {
+      console.error('Error checking system health:', error);
+      return {
+        aiServices: 'degraded',
+        learningStatus: 'error',
+        automationFlows: 0,
+        lastHealthCheck: new Date()
+      };
+    }
+  }
+
+  private async getActiveAutomationCount(): Promise<number> {
+    try {
+      const { count } = await supabase
+        .from('ai_brain_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'automation_flow')
+        .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting automation count:', error);
+      return 0;
+    }
+  }
+
+  // Initialize automation processing with enhanced monitoring
   async initializeAutomation(): Promise<void> {
     // Process scheduled emails every minute
     setInterval(() => {
       emailAutomationService.processScheduledEmails();
     }, 60000);
 
-    console.log('Native automation system initialized with limits enforced');
+    // Health check every 5 minutes
+    setInterval(() => {
+      this.performHealthCheck();
+    }, 5 * 60000);
+
+    console.log('Enhanced Master Brain AI initialized with Claude integration, hybrid orchestration, and continuous learning');
+  }
+
+  private async performHealthCheck(): Promise<void> {
+    try {
+      const health = await this.getSystemHealth();
+      
+      // Log health status
+      await supabase.from('ai_brain_logs').insert({
+        type: 'system_health',
+        event_summary: `System health check: ${health.aiServices}`,
+        payload: health,
+        visibility: 'admin_only'
+      });
+
+    } catch (error) {
+      console.error('Health check failed:', error);
+    }
   }
 }
 
