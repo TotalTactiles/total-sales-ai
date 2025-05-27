@@ -1,16 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  CheckCircle, AlertCircle, XCircle, RefreshCw, 
-  Database, Wifi, Mic, Speaker, Brain 
-} from 'lucide-react';
+import { CheckCircle, AlertCircle, XCircle, RefreshCw, Database, Wifi, Mic, Speaker, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { voiceService } from '@/services/ai/voiceService';
 import { unifiedAIService } from '@/services/ai/unifiedAIService';
-
 interface HealthCheck {
   name: string;
   status: 'healthy' | 'warning' | 'error';
@@ -18,47 +13,39 @@ interface HealthCheck {
   icon: React.ComponentType<any>;
   lastChecked: Date;
 }
-
 const HealthMonitor: React.FC = () => {
   const [healthChecks, setHealthChecks] = useState<HealthCheck[]>([]);
   const [isChecking, setIsChecking] = useState(false);
-
   useEffect(() => {
     runHealthChecks();
-    
+
     // Run health checks every 5 minutes
     const interval = setInterval(runHealthChecks, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
-
   const runHealthChecks = async () => {
     setIsChecking(true);
-    
-    const checks: HealthCheck[] = [
-      await checkDatabase(),
-      await checkAIServices(),
-      await checkVoiceCapabilities(),
-      await checkNetworkConnectivity(),
-      await checkBrowserFeatures()
-    ];
-
+    const checks: HealthCheck[] = [await checkDatabase(), await checkAIServices(), await checkVoiceCapabilities(), await checkNetworkConnectivity(), await checkBrowserFeatures()];
     setHealthChecks(checks);
     setIsChecking(false);
 
     // Log health status
     const hasErrors = checks.some(check => check.status === 'error');
     const hasWarnings = checks.some(check => check.status === 'warning');
-    
     console.log('System Health Check:', {
       overall: hasErrors ? 'error' : hasWarnings ? 'warning' : 'healthy',
-      checks: checks.map(c => ({ name: c.name, status: c.status, message: c.message }))
+      checks: checks.map(c => ({
+        name: c.name,
+        status: c.status,
+        message: c.message
+      }))
     });
   };
-
   const checkDatabase = async (): Promise<HealthCheck> => {
     try {
-      const { error } = await supabase.from('profiles').select('id').limit(1);
-      
+      const {
+        error
+      } = await supabase.from('profiles').select('id').limit(1);
       return {
         name: 'Database Connection',
         status: error ? 'error' : 'healthy',
@@ -76,16 +63,9 @@ const HealthMonitor: React.FC = () => {
       };
     }
   };
-
   const checkAIServices = async (): Promise<HealthCheck> => {
     try {
-      const response = await unifiedAIService.generateResponse(
-        'Health check test',
-        'Reply with just "OK" for health check',
-        undefined,
-        'openai'
-      );
-      
+      const response = await unifiedAIService.generateResponse('Health check test', 'Reply with just "OK" for health check', undefined, 'openai');
       return {
         name: 'AI Services',
         status: response.response ? 'healthy' : 'warning',
@@ -103,7 +83,6 @@ const HealthMonitor: React.FC = () => {
       };
     }
   };
-
   const checkVoiceCapabilities = async (): Promise<HealthCheck> => {
     try {
       // Check if browser supports required features
@@ -111,7 +90,6 @@ const HealthMonitor: React.FC = () => {
       const hasGetUserMedia = hasMediaDevices && 'getUserMedia' in navigator.mediaDevices;
       const hasSpeechSynthesis = 'speechSynthesis' in window;
       const hasMediaRecorder = 'MediaRecorder' in window;
-
       if (!hasGetUserMedia || !hasSpeechSynthesis || !hasMediaRecorder) {
         return {
           name: 'Voice Capabilities',
@@ -124,9 +102,10 @@ const HealthMonitor: React.FC = () => {
 
       // Check microphone permission
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
         stream.getTracks().forEach(track => track.stop());
-        
         return {
           name: 'Voice Capabilities',
           status: 'healthy',
@@ -153,11 +132,9 @@ const HealthMonitor: React.FC = () => {
       };
     }
   };
-
   const checkNetworkConnectivity = async (): Promise<HealthCheck> => {
     try {
       const online = navigator.onLine;
-      
       if (!online) {
         return {
           name: 'Network Connectivity',
@@ -169,11 +146,10 @@ const HealthMonitor: React.FC = () => {
       }
 
       // Test actual connectivity with a quick fetch
-      const response = await fetch('https://api.github.com/zen', { 
+      const response = await fetch('https://api.github.com/zen', {
         method: 'GET',
         signal: AbortSignal.timeout(5000)
       });
-      
       return {
         name: 'Network Connectivity',
         status: response.ok ? 'healthy' : 'warning',
@@ -191,7 +167,6 @@ const HealthMonitor: React.FC = () => {
       };
     }
   };
-
   const checkBrowserFeatures = async (): Promise<HealthCheck> => {
     const features = {
       localStorage: typeof Storage !== 'undefined',
@@ -203,88 +178,44 @@ const HealthMonitor: React.FC = () => {
       notifications: 'Notification' in window,
       clipboard: 'clipboard' in navigator
     };
-
-    const missingFeatures = Object.entries(features)
-      .filter(([_, supported]) => !supported)
-      .map(([feature]) => feature);
-
+    const missingFeatures = Object.entries(features).filter(([_, supported]) => !supported).map(([feature]) => feature);
     return {
       name: 'Browser Features',
       status: missingFeatures.length === 0 ? 'healthy' : 'warning',
-      message: missingFeatures.length === 0 
-        ? 'All browser features supported'
-        : `Missing: ${missingFeatures.join(', ')}`,
+      message: missingFeatures.length === 0 ? 'All browser features supported' : `Missing: ${missingFeatures.join(', ')}`,
       icon: Speaker,
       lastChecked: new Date()
     };
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-600';
-      case 'warning': return 'text-yellow-600';
-      case 'error': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'healthy':
+        return 'text-green-600';
+      case 'warning':
+        return 'text-yellow-600';
+      case 'error':
+        return 'text-red-600';
+      default:
+        return 'text-gray-600';
     }
   };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'healthy': return CheckCircle;
-      case 'warning': return AlertCircle;
-      case 'error': return XCircle;
-      default: return AlertCircle;
+      case 'healthy':
+        return CheckCircle;
+      case 'warning':
+        return AlertCircle;
+      case 'error':
+        return XCircle;
+      default:
+        return AlertCircle;
     }
   };
-
-  const overallStatus = healthChecks.some(c => c.status === 'error') ? 'error' :
-                      healthChecks.some(c => c.status === 'warning') ? 'warning' : 'healthy';
-
-  return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">System Health</CardTitle>
-          <div className="flex items-center gap-2">
-            <Badge variant={overallStatus === 'healthy' ? 'default' : 'destructive'}>
-              {overallStatus}
-            </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={runHealthChecks}
-              disabled={isChecking}
-            >
-              <RefreshCw className={`h-4 w-4 ${isChecking ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
+  const overallStatus = healthChecks.some(c => c.status === 'error') ? 'error' : healthChecks.some(c => c.status === 'warning') ? 'warning' : 'healthy';
+  return <Card className="w-full max-w-md">
       
-      <CardContent className="space-y-3">
-        {healthChecks.map((check, index) => {
-          const StatusIcon = getStatusIcon(check.status);
-          
-          return (
-            <div key={index} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
-              <check.icon className="h-4 w-4 text-gray-400" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{check.name}</span>
-                  <StatusIcon className={`h-3 w-3 ${getStatusColor(check.status)}`} />
-                </div>
-                <p className="text-xs text-gray-600 truncate">{check.message}</p>
-              </div>
-            </div>
-          );
-        })}
-        
-        <div className="text-xs text-gray-500 text-center pt-2 border-t">
-          Last checked: {healthChecks[0]?.lastChecked.toLocaleTimeString() || 'Never'}
-        </div>
-      </CardContent>
-    </Card>
-  );
+      
+      
+    </Card>;
 };
-
 export default HealthMonitor;
