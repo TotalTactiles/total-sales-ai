@@ -6,27 +6,50 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { AIContextProvider } from "./contexts/AIContext";
+import { UnifiedAIProvider } from "./contexts/UnifiedAIContext";
 
-// Guards and Layout Components
-import OnboardingGuard from "./components/OnboardingGuard";
-import DeveloperModeToggle from "./components/DeveloperMode/DeveloperModeToggle";
+// Auth and Guards
+import RequireAuth from "./components/RequireAuth";
 
 // Auth Pages
 import AuthPage from "./pages/Auth";
 
-// Dashboard Components
-import SalesLayout from "./layouts/SalesLayout";
-import ManagerLayout from "./layouts/ManagerLayout";
+// OS Layouts
+import DeveloperLayout from "./layouts/DeveloperLayout";
+import ManagerOS from "./layouts/ManagerOS";
+import SalesRepOS from "./layouts/SalesRepOS";
 
-// Standalone Pages
-import LandingPage from "./pages/LandingPage";
-import OnboardingTest from "./pages/OnboardingTest";
-import DeveloperDashboard from "./pages/DeveloperDashboard";
+// Developer Pages
+import DeveloperDashboard from "./pages/developer/DeveloperDashboard";
+import DeveloperSystemMonitor from "./pages/developer/SystemMonitor";
+import DeveloperAILogs from "./pages/developer/AILogs";
+import DeveloperAPILogs from "./pages/developer/APILogs";
+import DeveloperErrorLogs from "./pages/developer/ErrorLogs";
+import DeveloperQAChecklist from "./pages/developer/QAChecklist";
+import DeveloperTestingSandbox from "./pages/developer/TestingSandbox";
+import DeveloperVersionControl from "./pages/developer/VersionControl";
+import DeveloperSettings from "./pages/developer/Settings";
 
-// Health monitoring for production readiness
+// Manager Pages
+import ManagerDashboard from "./pages/manager/Dashboard";
+import ManagerAnalytics from "./pages/manager/Analytics";
+import ManagerLeads from "./pages/manager/Leads";
+import ManagerCompanyBrain from "./pages/manager/CompanyBrain";
+import ManagerAI from "./pages/manager/AI";
+import ManagerSettings from "./pages/manager/Settings";
+
+// Sales Rep Pages
+import SalesRepDashboard from "./pages/sales/SalesRepDashboard";
+import SalesRepAnalytics from "./pages/sales/Analytics";
+import SalesRepLeads from "./pages/sales/Leads";
+import SalesRepAcademy from "./pages/sales/Academy";
+import SalesRepAI from "./pages/sales/AI";
+import SalesRepSettings from "./pages/sales/Settings";
+
+// System Health
 import HealthMonitor from "./components/SystemHealth/HealthMonitor";
 
-// Enhanced AI System
+// Initialize AI services
 import { hybridAIOrchestrator } from "./services/ai/hybridAIOrchestrator";
 import { aiLearningLayer } from "./services/ai/aiLearningLayer";
 import { enhancedVoiceService } from "./services/ai/enhancedVoiceService";
@@ -34,30 +57,12 @@ import { enhancedVoiceService } from "./services/ai/enhancedVoiceService";
 const queryClient = new QueryClient();
 
 // Initialize enhanced AI system
-console.log('Initializing Enhanced Master Brain AI System...');
-hybridAIOrchestrator; // Initialize the orchestrator
-aiLearningLayer; // Initialize the learning layer
-enhancedVoiceService; // Initialize enhanced voice
+console.log('🧠 Initializing Production AI System...');
+hybridAIOrchestrator;
+aiLearningLayer;
+enhancedVoiceService;
 
 function App() {
-  const [currentMode, setCurrentMode] = React.useState<'sales_rep' | 'manager' | 'developer'>('sales_rep');
-
-  const handleModeChange = (mode: 'sales_rep' | 'manager' | 'developer') => {
-    setCurrentMode(mode);
-  };
-
-  const renderContent = () => {
-    switch (currentMode) {
-      case 'developer':
-        return <DeveloperDashboard />;
-      case 'manager':
-        return <ManagerLayout />;
-      case 'sales_rep':
-      default:
-        return <SalesLayout />;
-    }
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -65,12 +70,9 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <AIContextProvider>
-              <OnboardingGuard>
+              <UnifiedAIProvider>
                 <div className="relative">
-                  {/* Developer Mode Toggle */}
-                  <DeveloperModeToggle onModeChange={handleModeChange} />
-                  
-                  {/* Health Monitor (only in dev) */}
+                  {/* Health Monitor (development only) */}
                   {process.env.NODE_ENV === 'development' && (
                     <div className="fixed bottom-4 left-4 z-40">
                       <HealthMonitor />
@@ -79,20 +81,70 @@ function App() {
                   
                   <Routes>
                     {/* Public Routes */}
-                    <Route path="/landing" element={<LandingPage />} />
                     <Route path="/auth" element={<AuthPage />} />
                     
-                    {/* Onboarding Test Route */}
-                    <Route path="/onboarding-test" element={<OnboardingTest />} />
-                    
-                    {/* Main Application Routes - handled by mode switching */}
-                    <Route path="/*" element={renderContent()} />
+                    {/* Developer OS Routes */}
+                    <Route
+                      path="/developer/*"
+                      element={
+                        <RequireAuth requiredRole="developer">
+                          <DeveloperLayout />
+                        </RequireAuth>
+                      }
+                    >
+                      <Route index element={<DeveloperDashboard />} />
+                      <Route path="system-monitor" element={<DeveloperSystemMonitor />} />
+                      <Route path="ai-brain-logs" element={<DeveloperAILogs />} />
+                      <Route path="api-logs" element={<DeveloperAPILogs />} />
+                      <Route path="error-logs" element={<DeveloperErrorLogs />} />
+                      <Route path="qa-checklist" element={<DeveloperQAChecklist />} />
+                      <Route path="testing-sandbox" element={<DeveloperTestingSandbox />} />
+                      <Route path="version-control" element={<DeveloperVersionControl />} />
+                      <Route path="settings" element={<DeveloperSettings />} />
+                    </Route>
+
+                    {/* Manager OS Routes */}
+                    <Route
+                      path="/manager/*"
+                      element={
+                        <RequireAuth requiredRole="manager">
+                          <ManagerOS />
+                        </RequireAuth>
+                      }
+                    >
+                      <Route index element={<ManagerDashboard />} />
+                      <Route path="analytics" element={<ManagerAnalytics />} />
+                      <Route path="leads" element={<ManagerLeads />} />
+                      <Route path="company-brain" element={<ManagerCompanyBrain />} />
+                      <Route path="ai" element={<ManagerAI />} />
+                      <Route path="settings" element={<ManagerSettings />} />
+                    </Route>
+
+                    {/* Sales Rep OS Routes */}
+                    <Route
+                      path="/sales/*"
+                      element={
+                        <RequireAuth requiredRole="sales_rep">
+                          <SalesRepOS />
+                        </RequireAuth>
+                      }
+                    >
+                      <Route index element={<SalesRepDashboard />} />
+                      <Route path="analytics" element={<SalesRepAnalytics />} />
+                      <Route path="leads" element={<SalesRepLeads />} />
+                      <Route path="academy" element={<SalesRepAcademy />} />
+                      <Route path="ai" element={<SalesRepAI />} />
+                      <Route path="settings" element={<SalesRepSettings />} />
+                    </Route>
+
+                    {/* Root redirect based on role */}
+                    <Route path="/" element={<RoleBasedRedirect />} />
                     
                     {/* Fallback */}
                     <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </div>
-              </OnboardingGuard>
+              </UnifiedAIProvider>
             </AIContextProvider>
           </AuthProvider>
         </BrowserRouter>
@@ -100,5 +152,35 @@ function App() {
     </QueryClientProvider>
   );
 }
+
+// Component to handle role-based redirects
+const RoleBasedRedirect: React.FC = () => {
+  const { user, profile, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Redirect based on user role
+  switch (profile?.role) {
+    case 'admin':
+    case 'developer':
+      return <Navigate to="/developer" replace />;
+    case 'manager':
+      return <Navigate to="/manager" replace />;
+    case 'sales_rep':
+      return <Navigate to="/sales" replace />;
+    default:
+      return <Navigate to="/auth" replace />;
+  }
+};
 
 export default App;
