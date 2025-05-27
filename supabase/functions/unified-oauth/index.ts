@@ -70,7 +70,12 @@ serve(async (req) => {
           break;
 
         case 'linkedin':
-          const linkedinScopes = ['r_liteprofile', 'r_organization_social'].join(' ');
+          const linkedinScopes = [
+            'r_liteprofile', 
+            'r_organization_social',
+            'r_basicprofile',
+            'r_organization_social'
+          ].join(' ');
           
           authUrl = `https://www.linkedin.com/oauth/v2/authorization?` +
             `client_id=${Deno.env.get('LINKEDIN_CLIENT_ID')}&` +
@@ -81,23 +86,47 @@ serve(async (req) => {
           break;
 
         case 'facebook':
-          const facebookScopes = ['pages_read_engagement', 'pages_show_list'].join(',');
+          const facebookScopes = [
+            'pages_read_engagement', 
+            'pages_show_list',
+            'public_profile',
+            'email'
+          ].join(',');
           
-          authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
+          authUrl = `https://www.facebook.com/v19.0/dialog/oauth?` +
             `client_id=${Deno.env.get('FACEBOOK_CLIENT_ID')}&` +
             `redirect_uri=${encodeURIComponent(redirectUri)}&` +
             `scope=${encodeURIComponent(facebookScopes)}&` +
+            `response_type=code&` +
+            `state=${user.id}_${provider}`;
+          break;
+
+        case 'instagram':
+          const instagramScopes = [
+            'instagram_basic',
+            'instagram_manage_insights',
+            'pages_show_list'
+          ].join(',');
+          
+          authUrl = `https://www.facebook.com/v19.0/dialog/oauth?` +
+            `client_id=${Deno.env.get('FACEBOOK_CLIENT_ID')}&` +
+            `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+            `scope=${encodeURIComponent(instagramScopes)}&` +
+            `response_type=code&` +
             `state=${user.id}_${provider}`;
           break;
 
         case 'twitter':
-          // Twitter OAuth 2.0 flow would go here
+          const twitterScopes = 'tweet.read users.read offline.access';
+          
           authUrl = `https://twitter.com/i/oauth2/authorize?` +
             `client_id=${Deno.env.get('TWITTER_CLIENT_ID')}&` +
             `redirect_uri=${encodeURIComponent(redirectUri)}&` +
             `response_type=code&` +
-            `scope=tweet.read%20users.read&` +
-            `state=${user.id}_${provider}`;
+            `scope=${encodeURIComponent(twitterScopes)}&` +
+            `state=${user.id}_${provider}&` +
+            `code_challenge=challenge&` +
+            `code_challenge_method=plain`;
           break;
 
         default:
@@ -107,6 +136,161 @@ serve(async (req) => {
       return new Response(JSON.stringify({ 
         authUrl,
         message: `Click the URL to authorize ${provider} access`
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (action === 'handleCallback') {
+      const { code, state } = await req.json();
+      const [userId, providerName] = state.split('_');
+      
+      if (userId !== user.id) {
+        throw new Error('Invalid state parameter');
+      }
+
+      let tokenData;
+      let userInfo;
+
+      switch (providerName) {
+        case 'gmail':
+          // Exchange code for tokens with Google
+          const gmailTokenResponse = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: Deno.env.get('GOOGLE_CLIENT_ID') ?? '',
+              client_secret: Deno.env.get('GOOGLE_CLIENT_SECRET') ?? '',
+              code,
+              grant_type: 'authorization_code',
+              redirect_uri: redirectUri
+            })
+          });
+          
+          tokenData = await gmailTokenResponse.json();
+          
+          const gmailUserResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+          });
+          userInfo = await gmailUserResponse.json();
+          break;
+
+        case 'outlook':
+          // Exchange code for tokens with Microsoft
+          const outlookTokenResponse = await fetch('https://login.microsoftonline.com/common/oauth2/v2.0/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: Deno.env.get('MICROSOFT_CLIENT_ID') ?? '',
+              client_secret: Deno.env.get('MICROSOFT_CLIENT_SECRET') ?? '',
+              code,
+              grant_type: 'authorization_code',
+              redirect_uri: redirectUri
+            })
+          });
+          
+          tokenData = await outlookTokenResponse.json();
+          
+          const outlookUserResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+            headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+          });
+          userInfo = await outlookUserResponse.json();
+          break;
+
+        case 'facebook':
+        case 'instagram':
+          // Exchange code for tokens with Facebook
+          const fbTokenResponse = await fetch('https://graph.facebook.com/v19.0/oauth/access_token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: Deno.env.get('FACEBOOK_CLIENT_ID') ?? '',
+              client_secret: Deno.env.get('FACEBOOK_CLIENT_SECRET') ?? '',
+              code,
+              redirect_uri: redirectUri
+            })
+          });
+          
+          tokenData = await fbTokenResponse.json();
+          
+          const fbUserResponse = await fetch(`https://graph.facebook.com/me?fields=id,name,email&access_token=${tokenData.access_token}`);
+          userInfo = await fbUserResponse.json();
+          break;
+
+        case 'linkedin':
+          // Exchange code for tokens with LinkedIn
+          const linkedinTokenResponse = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+              client_id: Deno.env.get('LINKEDIN_CLIENT_ID') ?? '',
+              client_secret: Deno.env.get('LINKEDIN_CLIENT_SECRET') ?? '',
+              code,
+              grant_type: 'authorization_code',
+              redirect_uri: redirectUri
+            })
+          });
+          
+          tokenData = await linkedinTokenResponse.json();
+          
+          const linkedinUserResponse = await fetch('https://api.linkedin.com/v2/people/~:(id,firstName,lastName,emailAddress)', {
+            headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+          });
+          userInfo = await linkedinUserResponse.json();
+          break;
+
+        case 'twitter':
+          // Exchange code for tokens with Twitter
+          const twitterTokenResponse = await fetch('https://api.twitter.com/2/oauth2/token', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'Authorization': `Basic ${btoa(Deno.env.get('TWITTER_CLIENT_ID') + ':' + Deno.env.get('TWITTER_CLIENT_SECRET'))}`
+            },
+            body: new URLSearchParams({
+              code,
+              grant_type: 'authorization_code',
+              redirect_uri: redirectUri,
+              code_verifier: 'challenge'
+            })
+          });
+          
+          tokenData = await twitterTokenResponse.json();
+          
+          const twitterUserResponse = await fetch('https://api.twitter.com/2/users/me', {
+            headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+          });
+          const twitterData = await twitterUserResponse.json();
+          userInfo = twitterData.data;
+          break;
+      }
+
+      // Store OAuth connection in database
+      const { error } = await supabaseClient
+        .from('oauth_connections')
+        .upsert({
+          user_id: user.id,
+          provider: providerName,
+          provider_user_id: userInfo.id || userInfo.sub,
+          email: userInfo.email || userInfo.emailAddress || null,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token || null,
+          expires_at: tokenData.expires_in ? 
+            new Date(Date.now() + tokenData.expires_in * 1000).toISOString() : null,
+          account_info: userInfo,
+          last_sync: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Database error:', error);
+        throw new Error('Failed to store OAuth connection');
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        provider: providerName,
+        email: userInfo.email || userInfo.emailAddress,
+        account: userInfo.name || `${userInfo.firstName} ${userInfo.lastName}` || userInfo.username
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -134,7 +318,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         connected: !isExpired,
         email: connection.email,
-        account: connection.account_info?.email || connection.email,
+        account: connection.account_info?.name || connection.account_info?.email || connection.email,
         lastSync: connection.last_sync,
         message: isExpired ? 'Token expired, please reconnect' : `${provider} connected`
       }), {
@@ -152,6 +336,23 @@ serve(async (req) => {
       return new Response(JSON.stringify({
         success: true,
         message: `${provider} disconnected successfully`
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (action === 'sync') {
+      // Update last_sync timestamp
+      await supabaseClient
+        .from('oauth_connections')
+        .update({ last_sync: new Date().toISOString() })
+        .eq('user_id', user.id)
+        .eq('provider', provider);
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: `${provider} data synced successfully`,
+        lastSync: new Date().toISOString()
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

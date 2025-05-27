@@ -786,6 +786,54 @@ export type Database = {
         }
         Relationships: []
       }
+      oauth_connections: {
+        Row: {
+          access_token: string | null
+          account_info: Json | null
+          created_at: string
+          email: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          last_sync: string | null
+          provider: string
+          provider_user_id: string | null
+          refresh_token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          account_info?: Json | null
+          created_at?: string
+          email?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          provider: string
+          provider_user_id?: string | null
+          refresh_token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          account_info?: Json | null
+          created_at?: string
+          email?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_sync?: string | null
+          provider?: string
+          provider_user_id?: string | null
+          refresh_token?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company_id: string | null
