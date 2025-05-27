@@ -19,6 +19,23 @@ interface AuditEntry {
   riskLevel: 'low' | 'medium' | 'high' | 'critical';
 }
 
+interface AuditPayload {
+  auditEntry: {
+    timestamp: string;
+    userId: string;
+    userRole: string;
+    action: string;
+    resource: string;
+    details: any;
+    ipAddress?: string;
+    userAgent?: string;
+    outcome: 'success' | 'failure' | 'unauthorized';
+    riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  };
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  outcome: 'success' | 'failure' | 'unauthorized';
+}
+
 export const useAIAuditTrail = () => {
   const { user, profile } = useAuth();
   const [auditEntries, setAuditEntries] = useState<AuditEntry[]>([]);
@@ -37,8 +54,8 @@ export const useAIAuditTrail = () => {
       // Encrypt sensitive details
       const encryptedDetails = await encryptionService.encryptSensitiveData(details);
       
-      const auditEntry: Omit<AuditEntry, 'id'> = {
-        timestamp: new Date(),
+      const auditEntryForStorage = {
+        timestamp: new Date().toISOString(),
         userId: user.id,
         userRole: profile.role,
         action,
@@ -57,10 +74,10 @@ export const useAIAuditTrail = () => {
           type: 'ai_audit_trail',
           event_summary: `${action} on ${resource}`,
           payload: {
-            auditEntry,
+            auditEntry: auditEntryForStorage,
             riskLevel,
             outcome
-          },
+          } as AuditPayload,
           company_id: profile.company_id,
           visibility: riskLevel === 'critical' || riskLevel === 'high' ? 'admin_manager' : 'admin_only'
         });
@@ -123,22 +140,23 @@ export const useAIAuditTrail = () => {
       const decryptedEntries = await Promise.all(
         (data || []).map(async (entry) => {
           try {
+            const payload = entry.payload as AuditPayload;
             const decryptedDetails = await encryptionService.decryptSensitiveData(
-              entry.payload.auditEntry.details
+              payload.auditEntry.details
             );
             
             return {
               id: entry.id,
-              timestamp: new Date(entry.timestamp),
-              userId: entry.payload.auditEntry.userId,
-              userRole: entry.payload.auditEntry.userRole,
-              action: entry.payload.auditEntry.action,
-              resource: entry.payload.auditEntry.resource,
+              timestamp: new Date(payload.auditEntry.timestamp),
+              userId: payload.auditEntry.userId,
+              userRole: payload.auditEntry.userRole,
+              action: payload.auditEntry.action,
+              resource: payload.auditEntry.resource,
               details: decryptedDetails,
-              outcome: entry.payload.auditEntry.outcome,
-              riskLevel: entry.payload.auditEntry.riskLevel,
-              ipAddress: entry.payload.auditEntry.ipAddress,
-              userAgent: entry.payload.auditEntry.userAgent
+              outcome: payload.auditEntry.outcome,
+              riskLevel: payload.auditEntry.riskLevel,
+              ipAddress: payload.auditEntry.ipAddress,
+              userAgent: payload.auditEntry.userAgent
             } as AuditEntry;
           } catch (decryptError) {
             console.error('Failed to decrypt audit entry:', decryptError);
