@@ -12,7 +12,7 @@ import { Search, Filter, Download, RefreshCw } from 'lucide-react';
 
 interface LogEntry {
   id: string;
-  created_at: string;
+  timestamp: string;
   type: string;
   event_summary: string;
   payload: any;
@@ -45,7 +45,7 @@ const DeveloperLogs: React.FC = () => {
         .from('ai_brain_logs')
         .select('*')
         .eq('type', 'system_log')
-        .order('created_at', { ascending: false })
+        .order('timestamp', { ascending: false })
         .limit(500);
 
       if (error) throw error;
@@ -186,7 +186,7 @@ const DeveloperLogs: React.FC = () => {
                       </Badge>
                     )}
                     <span className="text-xs text-gray-500">
-                      {new Date(log.created_at).toLocaleString()}
+                      {new Date(log.timestamp).toLocaleString()}
                     </span>
                   </div>
                 </div>
