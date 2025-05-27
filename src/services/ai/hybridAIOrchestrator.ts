@@ -1,9 +1,8 @@
-
 import { unifiedAIService } from './unifiedAIService';
 import { claudeAIService } from './claudeAIService';
 import { masterAIBrain } from '../masterAIBrain';
 import { dataEncryptionService } from '../security/dataEncryptionService';
-import { auditLoggingService } from '../audit/auditLoggingService';
+import { AuditLoggingService } from '../audit/auditLoggingService';
 
 interface AITask {
   id: string;
@@ -41,7 +40,7 @@ export class HybridAIOrchestrator {
     
     try {
       // Log task initiation using static method
-      await auditLoggingService.logAuditEvent(
+      await AuditLoggingService.logAuditEvent(
         task.userId,
         'user',
         task.companyId,
@@ -152,7 +151,7 @@ export class HybridAIOrchestrator {
       const executionTime = performance.now() - startTime;
       
       // Log failure using static method
-      await auditLoggingService.logAuditEvent(
+      await AuditLoggingService.logAuditEvent(
         task.userId,
         'user',
         task.companyId,
