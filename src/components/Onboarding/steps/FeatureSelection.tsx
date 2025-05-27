@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useOnboarding } from '@/pages/onboarding/OnboardingContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';

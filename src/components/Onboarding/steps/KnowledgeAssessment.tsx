@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useOnboarding } from '@/pages/onboarding/OnboardingContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, CheckCircle } from 'lucide-react';
