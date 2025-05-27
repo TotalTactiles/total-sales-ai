@@ -5,18 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowRight, User, Crown, TestTube } from 'lucide-react';
 import Logo from '@/components/Logo';
-import OnboardingFlow from '@/components/Onboarding/OnboardingFlow';
-import { OnboardingProvider } from '@/contexts/OnboardingContext';
+import OnboardingPage from '@/pages/onboarding/OnboardingPage';
+import { OnboardingProvider } from '@/pages/onboarding/OnboardingContext';
 
 const OnboardingTest: React.FC = () => {
   const navigate = useNavigate();
   const [showOnboarding, setShowOnboarding] = React.useState(false);
-  const [testRole, setTestRole] = React.useState<'manager' | 'sales_rep' | null>(null);
 
   if (showOnboarding) {
     return (
-      <OnboardingProvider>
-        <OnboardingFlow />
+      <OnboardingProvider
+        initialCompanyId="test-company-id"
+        completeOnboardingFn={async (settings) => {
+          console.log('Test onboarding completed:', settings);
+          alert('Test onboarding completed! Check console for details.');
+          setShowOnboarding(false);
+        }}
+        isSubmitting={false}
+      >
+        <OnboardingPage />
       </OnboardingProvider>
     );
   }
@@ -46,67 +53,37 @@ const OnboardingTest: React.FC = () => {
             Onboarding Flow Test
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Test the complete onboarding experience for both Manager and Sales Rep roles.
+            Test the complete onboarding experience with the unified comprehensive flow.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-12">
-          {/* Manager Flow Test */}
+        <div className="grid grid-cols-1 max-w-2xl mx-auto mb-12">
+          {/* Unified Flow Test */}
           <Card className="border-2 border-blue-200 hover:border-blue-400 transition-colors">
             <CardHeader className="text-center">
               <Crown className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-              <CardTitle className="text-xl">Test Manager Flow</CardTitle>
+              <CardTitle className="text-xl">Test Unified Onboarding Flow</CardTitle>
               <p className="text-gray-600">
-                Experience the complete onboarding process as a Manager
+                Experience the complete comprehensive onboarding process
               </p>
             </CardHeader>
             <CardContent className="text-center">
               <div className="space-y-3 mb-6 text-sm text-gray-600">
-                <div>✓ Role Selection</div>
-                <div>✓ Company Setup</div>
-                <div>✓ Social Media Integration</div>
-                <div>✓ Personal Information</div>
-                <div>✓ Company Goals</div>
-                <div>✓ Feature Selection</div>
+                <div>✓ Industry Selection</div>
+                <div>✓ Sales Model Configuration</div>
+                <div>✓ Team Roles Setup</div>
+                <div>✓ AI Tone Customization</div>
+                <div>✓ Pain Points & Objections</div>
+                <div>✓ AI Agent Naming</div>
+                <div>✓ Module Selection</div>
+                <div>✓ Goal Setting</div>
+                <div>✓ Dashboard Reveal</div>
               </div>
               <Button
-                onClick={() => {
-                  setTestRole('manager');
-                  setShowOnboarding(true);
-                }}
+                onClick={() => setShowOnboarding(true)}
                 className="w-full bg-blue-600 hover:bg-blue-700"
               >
-                Start Manager Onboarding
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Sales Rep Flow Test */}
-          <Card className="border-2 border-green-200 hover:border-green-400 transition-colors">
-            <CardHeader className="text-center">
-              <User className="h-12 w-12 text-green-600 mx-auto mb-4" />
-              <CardTitle className="text-xl">Test Sales Rep Flow</CardTitle>
-              <p className="text-gray-600">
-                Experience the complete onboarding process as a Sales Rep
-              </p>
-            </CardHeader>
-            <CardContent className="text-center">
-              <div className="space-y-3 mb-6 text-sm text-gray-600">
-                <div>✓ Role Selection</div>
-                <div>✓ Personal Information</div>
-                <div>✓ Knowledge Assessment</div>
-                <div>✓ Goal Setting</div>
-                <div>✓ Feature Selection</div>
-              </div>
-              <Button
-                onClick={() => {
-                  setTestRole('sales_rep');
-                  setShowOnboarding(true);
-                }}
-                className="w-full bg-green-600 hover:bg-green-700"
-              >
-                Start Sales Rep Onboarding
+                Start Comprehensive Onboarding
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </CardContent>
@@ -120,16 +97,16 @@ const OnboardingTest: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-4 text-gray-600">
             <div>
-              <strong>1. Role-Based Flows:</strong> Each role has a different onboarding sequence with role-specific steps and content.
+              <strong>1. Comprehensive Flow:</strong> This unified onboarding includes all advanced features like industry-specific customization, AI tone settings, and module selection.
             </div>
             <div>
-              <strong>2. Navigation:</strong> You can go back and forth between steps, or skip the entire onboarding process.
+              <strong>2. Real-time Testing:</strong> All changes are logged to the console and can be monitored during the flow.
             </div>
             <div>
-              <strong>3. Completion:</strong> After completing onboarding, you'll be redirected to the appropriate dashboard.
+              <strong>3. Integration Ready:</strong> Once satisfied with the flow, it can be easily integrated into the main authentication process.
             </div>
             <div>
-              <strong>4. Data Persistence:</strong> Your onboarding progress and choices are saved throughout the process.
+              <strong>4. Data Persistence:</strong> Test data is saved during the process and can be reviewed for optimization.
             </div>
           </CardContent>
         </Card>

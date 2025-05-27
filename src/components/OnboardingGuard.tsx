@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useOnboarding } from '@/contexts/OnboardingContext';
-import OnboardingFlow from './Onboarding/OnboardingFlow';
+import OnboardingPage from '@/pages/onboarding/OnboardingPage';
 
 interface OnboardingGuardProps {
   children: React.ReactNode;
@@ -10,7 +9,6 @@ interface OnboardingGuardProps {
 
 const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
   const { user, profile, loading } = useAuth();
-  const { isOnboardingComplete } = useOnboarding();
 
   // Show loading state
   if (loading) {
@@ -27,11 +25,11 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
   }
 
   // Check if onboarding is needed
-  const needsOnboarding = user && !isOnboardingComplete && 
-    !localStorage.getItem(`onboarding_complete_${user.id}`);
+  const needsOnboarding = user && profile?.company_id && 
+    !localStorage.getItem(`onboarding_complete_${profile.company_id}`);
 
   if (needsOnboarding) {
-    return <OnboardingFlow />;
+    return <OnboardingPage />;
   }
 
   return <>{children}</>;
