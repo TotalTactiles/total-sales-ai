@@ -1,6 +1,7 @@
 
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ElevenLabsVoiceOptions {
   text: string;
@@ -14,7 +15,6 @@ export interface ElevenLabsVoiceOptions {
 
 export class ElevenLabsService {
   private static instance: ElevenLabsService;
-  private apiKey: string | null = null;
   private isInitialized = false;
 
   static getInstance(): ElevenLabsService {
@@ -26,23 +26,17 @@ export class ElevenLabsService {
 
   async initialize(): Promise<boolean> {
     try {
-      // Check if we have API key in localStorage for fallback
-      this.apiKey = localStorage.getItem('elevenlabs_api_key');
-      
-      if (!this.apiKey) {
-        logger.warn('ElevenLabs API key not found', {}, 'elevenlabs');
-        return false;
-      }
-
-      // Test API connection
-      const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-        headers: {
-          'xi-api-key': this.apiKey
+      // Test connection using the edge function
+      const { error } = await supabase.functions.invoke('ai-voice', {
+        body: { 
+          text: 'test', 
+          voiceId: '9BWtsMINqrJLrRacOk9x' // Aria voice
         }
       });
 
-      if (!response.ok) {
-        throw new Error('Invalid API key or service unavailable');
+      if (error) {
+        logger.warn('ElevenLabs service not available', error, 'elevenlabs');
+        return false;
       }
 
       this.isInitialized = true;
@@ -60,49 +54,32 @@ export class ElevenLabsService {
       if (!this.isInitialized) {
         const initialized = await this.initialize();
         if (!initialized) {
-          // Fallback to browser speech synthesis
           return this.fallbackToNativeSpeech(options.text);
         }
       }
 
-      const voiceId = options.voiceId || '9BWtsMINqrJLrRacOk9x'; // Aria voice
-      const model = options.model || 'eleven_multilingual_v2';
-
-      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': this.apiKey!
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('ai-voice', {
+        body: {
           text: options.text,
-          model_id: model,
-          voice_settings: {
-            stability: options.stability || 0.5,
-            similarity_boost: options.similarityBoost || 0.75,
-            style: options.style || 0,
-            use_speaker_boost: options.useSpeakerBoost || true
-          }
-        })
+          voiceId: options.voiceId || '9BWtsMINqrJLrRacOk9x', // Aria voice
+          model: options.model || 'eleven_multilingual_v2'
+        }
       });
 
-      if (!response.ok) {
-        throw new Error(`ElevenLabs API error: ${response.statusText}`);
-      }
+      if (error) throw error;
 
-      const audioBuffer = await response.arrayBuffer();
-      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)));
+      // The edge function returns raw audio data
+      const audioBlob = new Blob([data], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
       
       logger.info('Speech generated successfully', { 
         textLength: options.text.length,
-        voiceId 
+        voiceId: options.voiceId 
       }, 'elevenlabs');
 
-      return `data:audio/mpeg;base64,${base64Audio}`;
+      return audioUrl;
     } catch (error) {
       logger.error('Failed to generate speech with ElevenLabs', error, 'elevenlabs');
-      // Fallback to native speech synthesis
       return this.fallbackToNativeSpeech(options.text);
     }
   }
@@ -138,12 +115,6 @@ export class ElevenLabsService {
       toast.info(text); // Final fallback - show as text
       return null;
     }
-  }
-
-  setApiKey(apiKey: string): void {
-    this.apiKey = apiKey;
-    localStorage.setItem('elevenlabs_api_key', apiKey);
-    this.isInitialized = false; // Force re-initialization
   }
 
   isServiceReady(): boolean {

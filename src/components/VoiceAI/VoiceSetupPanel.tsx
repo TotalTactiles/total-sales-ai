@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { 
@@ -12,7 +11,8 @@ import {
   CheckCircle, 
   XCircle, 
   AlertTriangle,
-  TestTube
+  TestTube,
+  Phone
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { retellAIService } from '@/services/ai/retellAIService';
@@ -20,7 +20,6 @@ import { elevenLabsService } from '@/services/ai/elevenLabsService';
 import { useVoicePermissions } from '@/hooks/useVoicePermissions';
 
 const VoiceSetupPanel: React.FC = () => {
-  const [elevenLabsApiKey, setElevenLabsApiKey] = useState('');
   const [retellEnabled, setRetellEnabled] = useState(false);
   const [elevenLabsEnabled, setElevenLabsEnabled] = useState(false);
   const [isTestingVoice, setIsTestingVoice] = useState(false);
@@ -45,30 +44,6 @@ const VoiceSetupPanel: React.FC = () => {
     // Check ElevenLabs status
     const elevenLabsReady = await elevenLabsService.initialize();
     setElevenLabsEnabled(elevenLabsReady);
-
-    // Load saved API key
-    const savedKey = localStorage.getItem('elevenlabs_api_key');
-    if (savedKey) {
-      setElevenLabsApiKey(savedKey.slice(0, 8) + '...');
-    }
-  };
-
-  const handleElevenLabsSetup = async () => {
-    if (!elevenLabsApiKey.trim()) {
-      toast.error('Please enter your ElevenLabs API key');
-      return;
-    }
-
-    elevenLabsService.setApiKey(elevenLabsApiKey);
-    const initialized = await elevenLabsService.initialize();
-    setElevenLabsEnabled(initialized);
-
-    if (initialized) {
-      toast.success('ElevenLabs connected successfully!');
-      setElevenLabsApiKey(elevenLabsApiKey.slice(0, 8) + '...');
-    } else {
-      toast.error('Failed to connect to ElevenLabs. Please check your API key.');
-    }
   };
 
   const testVoiceGeneration = async () => {
@@ -76,15 +51,14 @@ const VoiceSetupPanel: React.FC = () => {
     
     try {
       const audioData = await elevenLabsService.generateSpeech({
-        text: "Hello! This is a test of the voice generation system. Everything sounds great!",
+        text: "Hello! This is a test of the ElevenLabs voice generation system. Everything sounds great!",
         voiceId: '9BWtsMINqrJLrRacOk9x' // Aria voice
       });
 
       if (audioData && audioData !== 'native_speech_used') {
-        // Play the generated audio
         const audio = new Audio(audioData);
         await audio.play();
-        toast.success('Voice test completed successfully!');
+        toast.success('ElevenLabs voice test completed successfully!');
       } else {
         toast.success('Voice test completed using browser speech synthesis');
       }
@@ -144,16 +118,18 @@ const VoiceSetupPanel: React.FC = () => {
               {getStatusIcon(speechRecognitionSupported)}
             </div>
             
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <div className="flex items-center gap-2">
-                <span className="text-sm">Retell AI</span>
+                <Phone className="h-4 w-4" />
+                <span className="text-sm">Retell AI (Calls)</span>
               </div>
               {getStatusIcon(retellEnabled)}
             </div>
             
-            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
               <div className="flex items-center gap-2">
-                <span className="text-sm">ElevenLabs</span>
+                <Volume2 className="h-4 w-4" />
+                <span className="text-sm">ElevenLabs (UI Voice)</span>
               </div>
               {getStatusIcon(elevenLabsEnabled)}
             </div>
@@ -180,62 +156,48 @@ const VoiceSetupPanel: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* ElevenLabs Setup */}
+      {/* Service Information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Volume2 className="h-5 w-5" />
-            ElevenLabs Voice Setup
+            <AlertTriangle className="h-5 w-5 text-blue-600" />
+            Voice Services Overview
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <AlertTriangle className="h-4 w-4 text-blue-600" />
-            <div className="text-sm text-blue-800">
-              ElevenLabs provides high-quality AI voice generation. 
-              <a 
-                href="https://elevenlabs.io/app/speech-synthesis" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="underline ml-1"
-              >
-                Get your API key here
-              </a>
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Phone className="h-4 w-4 text-blue-600" />
+              <span className="font-medium text-blue-800">Retell AI - Phone Calls</span>
             </div>
+            <p className="text-sm text-blue-700">
+              Handles all automated phone calls and conversations with leads. 
+              Provides full conversational AI with optimized phone infrastructure.
+            </p>
           </div>
 
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm font-medium">API Key</label>
-              <div className="flex gap-2 mt-1">
-                <Input
-                  type="password"
-                  placeholder="Enter your ElevenLabs API key..."
-                  value={elevenLabsApiKey}
-                  onChange={(e) => setElevenLabsApiKey(e.target.value)}
-                  disabled={elevenLabsEnabled}
-                />
-                <Button
-                  onClick={handleElevenLabsSetup}
-                  disabled={elevenLabsEnabled || !elevenLabsApiKey.trim()}
-                >
-                  {elevenLabsEnabled ? 'Connected' : 'Connect'}
-                </Button>
-              </div>
+          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Volume2 className="h-4 w-4 text-purple-600" />
+              <span className="font-medium text-purple-800">ElevenLabs - UI Voice Feedback</span>
             </div>
-
-            {elevenLabsEnabled && (
-              <Button
-                variant="outline"
-                onClick={testVoiceGeneration}
-                disabled={isTestingVoice}
-                className="w-full"
-              >
-                <TestTube className="h-4 w-4 mr-2" />
-                {isTestingVoice ? 'Testing Voice...' : 'Test Voice Generation'}
-              </Button>
-            )}
+            <p className="text-sm text-purple-700">
+              Provides high-quality text-to-speech for AI assistant responses, 
+              notifications, and UI interactions within the application.
+            </p>
           </div>
+
+          {elevenLabsEnabled && (
+            <Button
+              variant="outline"
+              onClick={testVoiceGeneration}
+              disabled={isTestingVoice}
+              className="w-full"
+            >
+              <TestTube className="h-4 w-4 mr-2" />
+              {isTestingVoice ? 'Testing ElevenLabs Voice...' : 'Test ElevenLabs Voice'}
+            </Button>
+          )}
         </CardContent>
       </Card>
 
@@ -248,16 +210,16 @@ const VoiceSetupPanel: React.FC = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div>
-                <div className="font-medium">AI Conversational Calls</div>
-                <div className="text-sm text-gray-600">Autonomous AI agent phone calls</div>
+                <div className="font-medium">AI Phone Calls (Retell AI)</div>
+                <div className="text-sm text-gray-600">Autonomous AI agent phone conversations</div>
               </div>
               <Switch checked={retellEnabled} disabled />
             </div>
             
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div>
-                <div className="font-medium">High-Quality Voice Synthesis</div>
-                <div className="text-sm text-gray-600">ElevenLabs AI voice generation</div>
+                <div className="font-medium">UI Voice Feedback (ElevenLabs)</div>
+                <div className="text-sm text-gray-600">High-quality voice responses in the app</div>
               </div>
               <Switch checked={elevenLabsEnabled} disabled />
             </div>
