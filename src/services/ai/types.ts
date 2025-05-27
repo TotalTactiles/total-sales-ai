@@ -1,43 +1,39 @@
 
+// Core AI system types
 export interface AIIngestionEvent {
-  id?: string;
-  user_id: string;
-  company_id: string;
-  event_type: 'user_action' | 'crm_sync' | 'email_interaction' | 'call_activity' | 'social_media' | 'website_data' | 'ai_output' | 'external_data';
-  source: string;
-  data: Record<string, any>;
-  context?: Record<string, any>;
+  id: string;
   timestamp: Date;
   processed: boolean;
-}
-
-export interface AIInsight {
-  id: string;
-  type: 'performance' | 'recommendation' | 'optimization' | 'alert' | 'trend';
-  title: string;
-  description: string;
-  confidence: number;
-  impact: 'low' | 'medium' | 'high' | 'critical';
-  actionable: boolean;
-  metadata: Record<string, any>;
-  user_id?: string;
+  user_id: string;
   company_id: string;
-  timestamp: Date;
+  event_type: 'user_action' | 'ai_output' | 'crm_sync' | 'email_interaction' | 'call_activity' | 'social_media' | 'website_data' | 'external_data';
+  source: string;
+  data: any;
+  context?: Record<string, any>;
 }
 
 export interface AIRecommendation {
   id: string;
-  type: 'lead_action' | 'timing' | 'content' | 'automation' | 'coaching' | 'strategy';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  type: 'optimization' | 'feature_request' | 'bug_report' | 'performance' | 'security';
   title: string;
   description: string;
-  suggested_action: string;
-  context: Record<string, any>;
+  priority: 'low' | 'medium' | 'high' | 'critical';
   confidence: number;
-  expires_at?: Date;
-  user_id: string;
-  company_id: string;
-  accepted?: boolean;
-  executed?: boolean;
+  impact: string;
+  implementation: string;
+  userId: string;
+  companyId: string;
   timestamp: Date;
+  resolved: boolean;
+}
+
+export interface AIResponse {
+  response: string;
+  model: string;
+  provider: string;
+  confidence?: number;
+  usage?: {
+    tokens: number;
+    cost?: number;
+  };
 }

@@ -8,7 +8,7 @@ import { AIContextProvider } from "./contexts/AIContext";
 
 // Guards and Layout Components
 import OnboardingGuard from "./components/OnboardingGuard";
-import RoleToggle from "./components/DeveloperMode/RoleToggle";
+import DeveloperModeToggle from "./components/DeveloperMode/DeveloperModeToggle";
 
 // Auth Pages
 import AuthPage from "./pages/Auth";
@@ -20,6 +20,7 @@ import ManagerLayout from "./layouts/ManagerLayout";
 // Standalone Pages
 import LandingPage from "./pages/LandingPage";
 import OnboardingTest from "./pages/OnboardingTest";
+import DeveloperDashboard from "./pages/DeveloperDashboard";
 
 // Health monitoring for production readiness
 import HealthMonitor from "./components/SystemHealth/HealthMonitor";
@@ -38,6 +39,24 @@ aiLearningLayer; // Initialize the learning layer
 enhancedVoiceService; // Initialize enhanced voice
 
 function App() {
+  const [currentMode, setCurrentMode] = React.useState<'sales_rep' | 'manager' | 'developer'>('sales_rep');
+
+  const handleModeChange = (mode: 'sales_rep' | 'manager' | 'developer') => {
+    setCurrentMode(mode);
+  };
+
+  const renderContent = () => {
+    switch (currentMode) {
+      case 'developer':
+        return <DeveloperDashboard />;
+      case 'manager':
+        return <ManagerLayout />;
+      case 'sales_rep':
+      default:
+        return <SalesLayout />;
+    }
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -47,8 +66,8 @@ function App() {
             <AIContextProvider>
               <OnboardingGuard>
                 <div className="relative">
-                  {/* Developer Mode Role Toggle */}
-                  <RoleToggle />
+                  {/* Developer Mode Toggle */}
+                  <DeveloperModeToggle onModeChange={handleModeChange} />
                   
                   {/* Health Monitor (only in dev) */}
                   {process.env.NODE_ENV === 'development' && (
@@ -65,12 +84,8 @@ function App() {
                     {/* Onboarding Test Route */}
                     <Route path="/onboarding-test" element={<OnboardingTest />} />
                     
-                    {/* Protected Sales Rep Routes */}
-                    <Route path="/sales-rep-dashboard/*" element={<SalesLayout />} />
-                    <Route path="/*" element={<SalesLayout />} />
-                    
-                    {/* Protected Manager Routes */}
-                    <Route path="/manager-dashboard/*" element={<ManagerLayout />} />
+                    {/* Main Application Routes - handled by mode switching */}
+                    <Route path="/*" element={renderContent()} />
                     
                     {/* Fallback */}
                     <Route path="*" element={<Navigate to="/" replace />} />

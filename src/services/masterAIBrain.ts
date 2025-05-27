@@ -376,6 +376,62 @@ class MasterAIBrain {
       console.error('Health check failed:', error);
     }
   }
+
+  private async performHybridAnalysis(events: AIIngestionEvent[], companyId: string, userId: string): Promise<void> {
+    try {
+      // Use Claude for pattern analysis on the batch of events
+      const analysisTask = {
+        id: crypto.randomUUID(),
+        type: 'pattern_analysis' as const,
+        input: {
+          userInteractions: events.filter(e => e.event_type === 'user_action'),
+          systemMetrics: events.filter(e => e.event_type === 'crm_sync' || e.event_type === 'call_activity')
+        },
+        context: `Batch analysis for company ${companyId}`,
+        priority: 'medium' as const,
+        userId,
+        companyId
+      };
+
+      await hybridAIOrchestrator.queueTask(analysisTask);
+    } catch (error) {
+      console.error('Error in hybrid analysis:', error);
+    }
+  }
+
+  private async checkNativeAutomationTriggers(event: AIIngestionEvent): Promise<void> {
+    try {
+      // Map AI events to automation triggers
+      let triggerType: string | null = null;
+      const eventData = {
+        ...event.data,
+        userId: event.user_id,
+        companyId: event.company_id,
+        timestamp: event.timestamp.toISOString()
+      };
+
+      switch (event.event_type) {
+        case 'user_action':
+          if (event.data.action === 'lead_created') {
+            triggerType = 'lead_created';
+          } else if (event.data.action === 'call_completed') {
+            triggerType = 'call_completed';
+          }
+          break;
+        case 'email_interaction':
+          if (event.data.action === 'opened') {
+            triggerType = 'email_opened';
+          }
+          break;
+      }
+
+      if (triggerType) {
+        await emailAutomationService.evaluateAutomationTriggers(triggerType, eventData);
+      }
+    } catch (error) {
+      console.error('Error checking native automation triggers:', error);
+    }
+  }
 }
 
 export const masterAIBrain = MasterAIBrain.getInstance();

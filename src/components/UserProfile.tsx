@@ -1,46 +1,71 @@
 
 import React from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { LogOut, Settings, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-interface UserProfileProps {
+export interface UserProfileProps {
   name: string;
   role: string;
-  avatar?: string;
-  xp?: number;
-  level?: number;
 }
 
-const UserProfile = ({ 
-  name = "Sam Smith", 
-  role = "Sales Representative", 
-  avatar = "/placeholder.svg",
-  xp = 750,
-  level = 12
-}: UserProfileProps) => {
-  // XP to next level (just a simple calculation for demo purposes)
-  const nextLevelXp = 1000;
-  const xpProgress = (xp / nextLevelXp) * 100;
-  
+const UserProfile: React.FC<UserProfileProps> = ({ name, role }) => {
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+
   return (
-    <div className="flex items-center gap-3">
-      <div className="relative">
-        <div className="w-10 h-10 rounded-full overflow-hidden">
-          <img src={avatar} alt={name} className="w-full h-full object-cover" />
-        </div>
-        <div className="absolute -bottom-1 -right-1 bg-salesGreen text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-          {level}
-        </div>
-      </div>
-      <div>
-        <div className="font-semibold text-sm">{name}</div>
-        <div className="text-xs text-slate-500">{role}</div>
-        <div className="w-24 h-1 bg-slate-100 rounded-full mt-1">
-          <div 
-            className="h-full bg-salesGreen rounded-full animate-progress-bar" 
-            style={{ width: `${xpProgress}%` }}
-          ></div>
-        </div>
-      </div>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src="" alt={name} />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {role}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem>
+          <User className="mr-2 h-4 w-4" />
+          <span>Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Log out</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
