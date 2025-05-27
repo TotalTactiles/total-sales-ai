@@ -19,7 +19,10 @@ export const Topbar: React.FC = () => {
           <Bell className="h-5 w-5" />
         </Button>
         <ThemeToggle />
-        <UserProfile />
+        <UserProfile 
+          name="Manager User"
+          role="Manager"
+        />
       </div>
     </header>
   );
