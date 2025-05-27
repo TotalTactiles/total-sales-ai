@@ -1,5 +1,5 @@
 
-export type UserRole = 'developer' | 'manager' | 'sales_rep';
+export type UserRole = 'developer' | 'manager' | 'sales_rep' | 'admin';
 
 export interface UserPermissions {
   canAccessDeveloperOS: boolean;
@@ -12,6 +12,15 @@ export interface UserPermissions {
 
 export const getRolePermissions = (role: UserRole): UserPermissions => {
   switch (role) {
+    case 'admin':
+      return {
+        canAccessDeveloperOS: true,
+        canAccessManagerOS: true,
+        canAccessSalesRepOS: true,
+        canViewSystemLogs: true,
+        canManageUsers: true,
+        canAccessSandbox: true
+      };
     case 'developer':
       return {
         canAccessDeveloperOS: true,

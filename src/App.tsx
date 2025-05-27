@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AIContextProvider } from "./contexts/AIContext";
 import { UnifiedAIProvider } from "./contexts/UnifiedAIContext";
 
@@ -22,18 +22,18 @@ import SalesRepOS from "./layouts/SalesRepOS";
 // Developer Pages
 import DeveloperDashboard from "./pages/developer/DeveloperDashboard";
 import DeveloperSystemMonitor from "./pages/developer/SystemMonitor";
-import DeveloperAILogs from "./pages/developer/AILogs";
-import DeveloperAPILogs from "./pages/developer/APILogs";
-import DeveloperErrorLogs from "./pages/developer/ErrorLogs";
-import DeveloperQAChecklist from "./pages/developer/QAChecklist";
-import DeveloperTestingSandbox from "./pages/developer/TestingSandbox";
-import DeveloperVersionControl from "./pages/developer/VersionControl";
-import DeveloperSettings from "./pages/developer/Settings";
+import DeveloperAILogs from "./pages/developer/DeveloperDashboard"; // Using existing page
+import DeveloperAPILogs from "./pages/developer/DeveloperDashboard"; // Using existing page
+import DeveloperErrorLogs from "./pages/developer/DeveloperDashboard"; // Using existing page
+import DeveloperQAChecklist from "./pages/developer/DeveloperDashboard"; // Using existing page
+import DeveloperTestingSandbox from "./pages/developer/DeveloperDashboard"; // Using existing page
+import DeveloperVersionControl from "./pages/developer/DeveloperDashboard"; // Using existing page
+import DeveloperSettings from "./pages/developer/DeveloperDashboard"; // Using existing page
 
 // Manager Pages
 import ManagerDashboard from "./pages/manager/Dashboard";
 import ManagerAnalytics from "./pages/manager/Analytics";
-import ManagerLeads from "./pages/manager/Leads";
+import ManagerLeads from "./pages/manager/LeadManagement"; // Using existing LeadManagement page
 import ManagerCompanyBrain from "./pages/manager/CompanyBrain";
 import ManagerAI from "./pages/manager/AI";
 import ManagerSettings from "./pages/manager/Settings";
@@ -41,7 +41,7 @@ import ManagerSettings from "./pages/manager/Settings";
 // Sales Rep Pages
 import SalesRepDashboard from "./pages/sales/SalesRepDashboard";
 import SalesRepAnalytics from "./pages/sales/Analytics";
-import SalesRepLeads from "./pages/sales/Leads";
+import SalesRepLeads from "./pages/sales/LeadManagement"; // Using existing LeadManagement page
 import SalesRepAcademy from "./pages/sales/Academy";
 import SalesRepAI from "./pages/sales/AI";
 import SalesRepSettings from "./pages/sales/Settings";

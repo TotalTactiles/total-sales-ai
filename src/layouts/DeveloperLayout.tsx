@@ -8,7 +8,7 @@ import { Navigate } from 'react-router-dom';
 const DeveloperLayout: React.FC = () => {
   const { profile } = useAuth();
 
-  // Restrict access to developers only
+  // Restrict access to developers and admins only
   if (profile?.role !== 'admin' && profile?.role !== 'developer') {
     return <Navigate to="/auth" replace />;
   }
