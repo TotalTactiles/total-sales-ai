@@ -28,12 +28,13 @@ export class RecommendationService {
             priority: this.mapImpactToPriority(insightContext.impact),
             title: insightContext.title || 'AI Recommendation',
             description: insightContext.description || 'AI-generated recommendation',
-            suggested_action: this.generateSuggestedAction(insight),
-            context: insightContext,
             confidence: insightContext.confidence || 0.5,
-            user_id: userId,
-            company_id: companyId,
-            timestamp: new Date()
+            impact: insightContext.impact || 'medium',
+            implementation: this.generateSuggestedAction(insight),
+            userId: userId,
+            companyId: companyId,
+            timestamp: new Date(),
+            resolved: false
           });
         }
       }
@@ -47,13 +48,13 @@ export class RecommendationService {
 
   private mapInsightToRecommendationType(insightType: string): AIRecommendation['type'] {
     const mapping: Record<string, AIRecommendation['type']> = {
-      'performance': 'coaching',
-      'recommendation': 'lead_action',
-      'optimization': 'automation',
-      'alert': 'strategy',
-      'trend': 'timing'
+      'performance': 'performance',
+      'recommendation': 'optimization',
+      'optimization': 'optimization',
+      'alert': 'security',
+      'trend': 'feature_request'
     };
-    return mapping[insightType] || 'strategy';
+    return mapping[insightType] || 'optimization';
   }
 
   private mapImpactToPriority(impact: string): AIRecommendation['priority'] {
@@ -61,7 +62,7 @@ export class RecommendationService {
       'low': 'low',
       'medium': 'medium',
       'high': 'high',
-      'critical': 'urgent'
+      'critical': 'critical'
     };
     return mapping[impact] || 'medium';
   }

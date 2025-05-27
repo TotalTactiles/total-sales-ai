@@ -40,7 +40,7 @@ export class HybridAIOrchestrator {
     const startTime = performance.now();
     
     try {
-      // Log task initiation
+      // Log task initiation using static method
       await auditLoggingService.logAuditEvent(
         task.userId,
         'user',
@@ -151,7 +151,7 @@ export class HybridAIOrchestrator {
     } catch (error) {
       const executionTime = performance.now() - startTime;
       
-      // Log failure
+      // Log failure using static method
       await auditLoggingService.logAuditEvent(
         task.userId,
         'user',

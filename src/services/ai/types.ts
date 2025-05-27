@@ -27,6 +27,20 @@ export interface AIRecommendation {
   resolved: boolean;
 }
 
+export interface AIInsight {
+  id: string;
+  type: 'recommendation' | 'trend' | 'alert' | 'optimization' | 'performance';
+  title: string;
+  description: string;
+  confidence: number;
+  impact: 'low' | 'medium' | 'high' | 'critical';
+  actionable: boolean;
+  metadata?: Record<string, any>;
+  company_id: string;
+  user_id: string;
+  timestamp: Date;
+}
+
 export interface AIResponse {
   response: string;
   model: string;

@@ -10,7 +10,7 @@ interface DeveloperModeToggleProps {
 }
 
 const DeveloperModeToggle: React.FC<DeveloperModeToggleProps> = ({ onModeChange }) => {
-  const { profile, updateProfile } = useAuth();
+  const { profile } = useAuth();
   const [isDeveloperMode, setIsDeveloperMode] = useState(false);
   const [currentViewMode, setCurrentViewMode] = useState<'sales_rep' | 'manager' | 'developer'>('sales_rep');
 
