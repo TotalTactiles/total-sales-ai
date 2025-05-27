@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
@@ -30,7 +31,7 @@ const ManagerLayout = () => {
         </Routes>
       </main>
       
-      {/* Add Voice Assistant */}
+      {/* Unified Voice AI Assistant */}
       <ContextAwareVoiceAssistant />
     </div>
   );

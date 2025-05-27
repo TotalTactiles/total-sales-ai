@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesNavigation from '@/components/Navigation/SalesNavigation';
@@ -11,7 +12,6 @@ import SalesAI from '@/pages/sales/AI';
 import SalesSettings from '@/pages/sales/Settings';
 import SalesDialer from '@/pages/sales/Dialer';
 
-import SalesRepAIAssistant from '@/components/SalesAI/SalesRepAIAssistant';
 import ContextAwareVoiceAssistant from '@/components/VoiceAI/ContextAwareVoiceAssistant';
 import { useAIContext } from '@/contexts/AIContext';
 
@@ -36,10 +36,7 @@ const SalesLayout = () => {
         </Routes>
       </main>
       
-      {/* AI Assistant */}
-      <SalesRepAIAssistant />
-      
-      {/* Add Voice Assistant */}
+      {/* Unified Voice AI Assistant */}
       <ContextAwareVoiceAssistant
         currentLead={currentLead}
         isCallActive={isCallActive}
