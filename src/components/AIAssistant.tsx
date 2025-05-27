@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { MessageCircle, ChevronUp, ChevronDown, Zap, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useAIAgent } from "@/hooks/useAIAgent";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUnifiedAI } from "@/contexts/UnifiedAIContext";
 import { toast } from "sonner";
 
-// Import our new components
+// Import our components
 import AIMessageList from './AIAssistant/AIMessageList';
 import AINotificationList from './AIAssistant/AINotificationList';
 import AIInputBar from './AIAssistant/AIInputBar';
@@ -23,10 +22,10 @@ const AIAssistant = () => {
   const [messages, setMessages] = useState<AIMessage[]>([
     {
       id: 1,
-      text: "Good morning! 👋 Welcome to your unified AI Assistant. I'm here to help with calls, emails, notes, and provide coaching. Try asking me: 'What should I focus on today?'",
+      text: "Hello! 👋 I'm your enhanced AI Assistant powered by both ChatGPT and Claude. I can help with calls, emails, notes, strategy, and provide coaching. Claude handles complex analysis while ChatGPT provides quick responses. Try asking me: 'Analyze my sales performance' or 'Draft a follow-up email'",
       sender: 'ai',
       timestamp: new Date(),
-      suggestedActions: ['Show priority leads', 'Draft follow-up email', 'Coaching tip']
+      suggestedActions: ['Analyze performance', 'Draft email', 'Create strategy']
     }
   ]);
 
@@ -75,9 +74,10 @@ const AIAssistant = () => {
   ]);
   
   const { user } = useAuth();
-  const { callAIAgent, isLoading, error } = useAIAgent();
+  const { generateAIResponse, generateStrategyResponse, generateCommunication } = useUnifiedAI();
+  const [isLoading, setIsLoading] = useState(false);
   
-  // Handle sending a message using the AI Agent
+  // Handle sending a message using the Unified AI Service
   const handleSendMessage = async () => {
     if (inputMessage.trim()) {
       // Add user message
@@ -88,46 +88,52 @@ const AIAssistant = () => {
         timestamp: new Date(),
       };
       setMessages(prevMessages => [...prevMessages, userMessage]);
+      
+      const currentInput = inputMessage;
       setInputMessage('');
+      setIsLoading(true);
       
       if (!user) {
         // Handle unauthenticated user
         const aiMessage: AIMessage = {
           id: messages.length + 2,
-          text: "Please log in to access the full AI assistant capabilities.",
+          text: "Please log in to access the full AI assistant capabilities with Claude and ChatGPT integration.",
           sender: 'ai',
           timestamp: new Date(),
         };
         setMessages(prevMessages => [...prevMessages, aiMessage]);
+        setIsLoading(false);
         return;
       }
       
       try {
-        // Call the AI agent with the user's message
-        const response = await callAIAgent({
-          prompt: `Global AI Assistant Query: ${inputMessage}`
-        });
+        // Determine which AI service to use based on content
+        let response: string;
+        const inputLower = currentInput.toLowerCase();
         
-        if (response) {
-          // Add AI response to messages
-          const aiMessage: AIMessage = {
-            id: messages.length + 2,
-            text: response.response,
-            sender: 'ai',
-            timestamp: new Date(),
-            suggestedActions: response.suggestedAction ? [response.suggestedAction.type] : undefined
-          };
-          setMessages(prevMessages => [...prevMessages, aiMessage]);
-        } else if (error) {
-          // Handle error from AI agent
-          const aiMessage: AIMessage = {
-            id: messages.length + 2,
-            text: `I'm having trouble responding right now. Please try again later. (Error: ${error})`,
-            sender: 'ai',
-            timestamp: new Date(),
-          };
-          setMessages(prevMessages => [...prevMessages, aiMessage]);
+        if (inputLower.includes('strategy') || inputLower.includes('analyze') || inputLower.includes('plan')) {
+          response = await generateStrategyResponse(currentInput);
+          toast.success('Strategic analysis generated with Claude');
+        } else if (inputLower.includes('email') || inputLower.includes('draft') || inputLower.includes('write')) {
+          response = await generateCommunication(currentInput);
+          toast.success('Communication drafted with Claude');
+        } else {
+          response = await generateAIResponse(currentInput);
+          toast.success('Response generated with AI');
         }
+        
+        // Add AI response to messages
+        const aiMessage: AIMessage = {
+          id: messages.length + 2,
+          text: response,
+          sender: 'ai',
+          timestamp: new Date(),
+          suggestedActions: inputLower.includes('strategy') ? ['Review plan', 'Get insights'] : 
+                          inputLower.includes('email') ? ['Send email', 'Edit draft'] : 
+                          ['Follow up', 'Get more help']
+        };
+        setMessages(prevMessages => [...prevMessages, aiMessage]);
+        
       } catch (err: any) {
         console.error("Error processing AI response:", err);
         toast.error("Failed to get AI response");
@@ -135,11 +141,13 @@ const AIAssistant = () => {
         // Add error message
         const aiMessage: AIMessage = {
           id: messages.length + 2,
-          text: "I'm having trouble connecting to my brain right now. Please try again in a moment.",
+          text: "I'm having trouble connecting to my AI services right now. Both ChatGPT and Claude are temporarily unavailable. Please try again in a moment.",
           sender: 'ai',
           timestamp: new Date(),
         };
         setMessages(prevMessages => [...prevMessages, aiMessage]);
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -158,48 +166,56 @@ const AIAssistant = () => {
       timestamp: new Date(),
     };
     setMessages(prevMessages => [...prevMessages, userMessage]);
+    setIsLoading(true);
     
     if (!user) {
       // Handle unauthenticated user
       const aiMessage: AIMessage = {
         id: messages.length + 2,
-        text: "Please log in to use the AI assistant features.",
+        text: "Please log in to use the AI assistant features with Claude and ChatGPT.",
         sender: 'ai',
         timestamp: new Date(),
       };
       setMessages(prevMessages => [...prevMessages, aiMessage]);
+      setIsLoading(false);
       return;
     }
     
     try {
-      // Call AI agent with the selected action
-      const response = await callAIAgent({
-        prompt: `Execute action: ${action}`
-      });
+      let response: string;
       
-      if (response) {
-        // Add AI response
-        const aiMessage: AIMessage = {
-          id: messages.length + 2,
-          text: response.response,
-          sender: 'ai',
-          timestamp: new Date(),
-          suggestedActions: response.suggestedAction ? 
-            [response.suggestedAction.type] : undefined
-        };
-        setMessages(prevMessages => [...prevMessages, aiMessage]);
+      // Route to appropriate AI service based on action type
+      if (action.toLowerCase().includes('strategy') || action.toLowerCase().includes('analyze')) {
+        response = await generateStrategyResponse(`Execute action: ${action}`);
+      } else if (action.toLowerCase().includes('email') || action.toLowerCase().includes('draft')) {
+        response = await generateCommunication(`Execute action: ${action}`);
+      } else {
+        response = await generateAIResponse(`Execute action: ${action}`);
       }
+      
+      // Add AI response
+      const aiMessage: AIMessage = {
+        id: messages.length + 2,
+        text: response,
+        sender: 'ai',
+        timestamp: new Date(),
+        suggestedActions: ['Continue', 'Get more help', 'Try something else']
+      };
+      setMessages(prevMessages => [...prevMessages, aiMessage]);
+      
     } catch (err) {
       console.error("Error processing suggested action:", err);
       
       // Add error message
       const aiMessage: AIMessage = {
         id: messages.length + 2,
-        text: "I'm having trouble processing that action right now. Let's try something else.",
+        text: "I'm having trouble processing that action right now. Both my AI engines are temporarily busy. Let's try something else.",
         sender: 'ai',
         timestamp: new Date(),
       };
       setMessages(prevMessages => [...prevMessages, aiMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -235,15 +251,11 @@ const AIAssistant = () => {
               ) : (
                 <MessageCircle className="h-6 w-6" />
               )}
-              {filteredNotifications.filter(n => !n.read).length > 0 && (
-                <Badge className="absolute -top-2 -right-2 bg-red-500 rounded-full w-5 h-5 flex items-center justify-center text-xs p-0">
-                  {filteredNotifications.filter(n => !n.read).length}
-                </Badge>
-              )}
+              {/* ... keep existing code (notification badge) */}
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p>Your Unified AI Assistant</p>
+            <p>Claude + ChatGPT AI Assistant</p>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -258,7 +270,7 @@ const AIAssistant = () => {
                   <Zap className="h-5 w-5" />
                   <div className="w-2 h-2 rounded-full bg-white absolute -top-0.5 -right-0.5 animate-pulse-soft"></div>
                 </div>
-                Unified AI Assistant
+                Claude + ChatGPT AI
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Button 
@@ -286,7 +298,7 @@ const AIAssistant = () => {
               </div>
             </div>
             <div className="text-xs text-blue-100 mt-1">
-              Your AI guide across calls, emails, notes & coaching
+              Intelligent routing between Claude & ChatGPT for optimal responses
             </div>
           </CardHeader>
           

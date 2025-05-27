@@ -1,9 +1,9 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { masterAIBrain } from '@/services/masterAIBrain';
 import { useManagerAI } from '@/hooks/useManagerAI';
 import { useSalesRepAI } from '@/hooks/useSalesRepAI';
+import { unifiedAIService } from '@/services/ai/unifiedAIService';
 
 interface UnifiedAIContextType {
   // Manager AI
@@ -11,6 +11,11 @@ interface UnifiedAIContextType {
   
   // Sales Rep AI
   salesRepAI: ReturnType<typeof useSalesRepAI>;
+  
+  // Unified AI Service
+  generateAIResponse: (prompt: string, context?: string) => Promise<string>;
+  generateStrategyResponse: (prompt: string, context?: string) => Promise<string>;
+  generateCommunication: (prompt: string, context?: string) => Promise<string>;
   
   // Shared AI functions
   logUserAction: (action: string, data: Record<string, any>) => Promise<void>;
@@ -72,6 +77,63 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
     } catch (error) {
       console.error('Error initializing AI:', error);
       addAIError('Failed to initialize AI system');
+    }
+  };
+
+  const generateAIResponse = async (prompt: string, context?: string): Promise<string> => {
+    try {
+      const response = await unifiedAIService.generateResponse(prompt, undefined, context);
+      
+      await logAIInteraction('unified_ai_response', {
+        model: response.model,
+        provider: response.provider,
+        promptLength: prompt.length,
+        responseLength: response.response.length
+      });
+      
+      return response.response;
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      addAIError('Failed to generate AI response');
+      throw error;
+    }
+  };
+
+  const generateStrategyResponse = async (prompt: string, context?: string): Promise<string> => {
+    try {
+      const response = await unifiedAIService.generateStrategy(prompt, context);
+      
+      await logAIInteraction('strategy_response', {
+        model: response.model,
+        provider: response.provider,
+        promptLength: prompt.length,
+        responseLength: response.response.length
+      });
+      
+      return response.response;
+    } catch (error) {
+      console.error('Error generating strategy response:', error);
+      addAIError('Failed to generate strategy response');
+      throw error;
+    }
+  };
+
+  const generateCommunication = async (prompt: string, context?: string): Promise<string> => {
+    try {
+      const response = await unifiedAIService.draftCommunication(prompt, context);
+      
+      await logAIInteraction('communication_draft', {
+        model: response.model,
+        provider: response.provider,
+        promptLength: prompt.length,
+        responseLength: response.response.length
+      });
+      
+      return response.response;
+    } catch (error) {
+      console.error('Error generating communication:', error);
+      addAIError('Failed to generate communication');
+      throw error;
     }
   };
 
@@ -147,6 +209,9 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
   const value: UnifiedAIContextType = {
     managerAI,
     salesRepAI,
+    generateAIResponse,
+    generateStrategyResponse,
+    generateCommunication,
     logUserAction,
     logAIInteraction,
     getAIRecommendations,

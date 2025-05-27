@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { unifiedAIService } from './unifiedAIService';
 
 export class VoiceService {
   private static instance: VoiceService;
@@ -170,20 +170,28 @@ export class VoiceService {
 
       console.log('Sending audio to voice-to-text function...');
 
-      // Transcribe audio using Whisper API
-      const { data: transcriptionData, error: transcriptionError } = await supabase.functions.invoke('voice-to-text', {
-        body: { audio: base64Audio }
-      });
+      // First try OpenAI Whisper for transcription
+      let transcriptionData;
+      try {
+        const { data, error } = await supabase.functions.invoke('voice-to-text', {
+          body: { audio: base64Audio, provider: 'openai' }
+        });
 
-      if (transcriptionError) {
-        console.error('Transcription error:', transcriptionError);
+        if (error) throw error;
+        transcriptionData = data;
+      } catch (openaiError) {
+        console.warn('OpenAI transcription failed, trying Claude fallback:', openaiError);
         
-        // Check for specific API quota error
-        if (transcriptionError.message?.includes('quota') || transcriptionError.message?.includes('insufficient_quota')) {
-          throw new Error('Voice transcription service is temporarily unavailable. Please try typing your message instead.');
+        // Fallback to alternative transcription if available
+        const { data, error } = await supabase.functions.invoke('voice-to-text', {
+          body: { audio: base64Audio, provider: 'fallback' }
+        });
+
+        if (error) {
+          throw new Error('Voice transcription services are temporarily unavailable. Please try typing your message instead.');
         }
         
-        throw new Error('Failed to transcribe audio: ' + transcriptionError.message);
+        transcriptionData = data;
       }
 
       if (!transcriptionData?.text) {
@@ -212,6 +220,24 @@ export class VoiceService {
   async generateVoiceResponse(text: string): Promise<void> {
     try {
       console.log('Generating voice response for text:', text.substring(0, 50) + '...');
+      
+      // Use unified AI service to potentially improve the response before speaking
+      if (text.length > 200) {
+        try {
+          const aiResponse = await unifiedAIService.generateResponse(
+            `Make this response more concise and natural for voice output while keeping the key information: "${text}"`,
+            'You are a voice optimization expert. Make responses sound natural when spoken aloud.',
+            undefined,
+            'claude'
+          );
+          
+          if (aiResponse.response && aiResponse.response.length < text.length) {
+            text = aiResponse.response;
+          }
+        } catch (aiError) {
+          console.warn('AI optimization failed, using original text:', aiError);
+        }
+      }
       
       // Use browser's speech synthesis as primary method
       if ('speechSynthesis' in window) {

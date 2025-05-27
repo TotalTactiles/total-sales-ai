@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -21,17 +20,27 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // AI models
 const MODELS = {
   GPT4O: 'gpt-4o',
-  CLAUDE: 'claude-3-opus-20240229',
+  GPT4O_MINI: 'gpt-4o-mini',
+  CLAUDE_OPUS: 'claude-3-opus-20240229',
+  CLAUDE_SONNET: 'claude-3-sonnet-20240229',
 };
 
 // Define task types that should use Claude instead of GPT-4o
-const LONG_FORM_TASKS = ['training', 'sop', 'documentation', 'policy', 'script'];
+const CLAUDE_PREFERRED_TASKS = [
+  'training', 'sop', 'documentation', 'policy', 'script', 'strategy',
+  'analyze', 'explain', 'write', 'draft', 'create', 'complex',
+  'detailed', 'comprehensive', 'elaborate', 'nuanced'
+];
 
-// Helper function to determine if a prompt is for a long-form task
-function isLongFormTask(prompt: string): boolean {
-  return LONG_FORM_TASKS.some(task => 
-    prompt.toLowerCase().includes(task.toLowerCase())
-  );
+// Helper function to determine if a prompt is better suited for Claude
+function shouldUseClaude(prompt: string, provider?: string): boolean {
+  if (provider === 'anthropic') return true;
+  if (provider === 'openai') return false;
+  
+  const promptLower = prompt.toLowerCase();
+  return CLAUDE_PREFERRED_TASKS.some(task => 
+    promptLower.includes(task.toLowerCase())
+  ) || prompt.length > 500;
 }
 
 // Helper function to fetch user data from Supabase
@@ -95,8 +104,8 @@ async function fetchUserData(userId: string) {
   }
 }
 
-// OpenAI API call
-async function callOpenAI(systemPrompt: string, userPrompt: string) {
+// OpenAI API call with fallback handling
+async function callOpenAI(systemPrompt: string, userPrompt: string, model = MODELS.GPT4O) {
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -105,7 +114,7 @@ async function callOpenAI(systemPrompt: string, userPrompt: string) {
         'Authorization': `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: MODELS.GPT4O,
+        model: model,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -117,19 +126,36 @@ async function callOpenAI(systemPrompt: string, userPrompt: string) {
 
     if (!response.ok) {
       const errorText = await response.text();
+      
+      // Check for quota exceeded error
+      if (response.status === 429 || errorText.includes('quota')) {
+        throw new Error('QUOTA_EXCEEDED');
+      }
+      
       throw new Error(`OpenAI API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
-    return JSON.parse(data.choices[0].message.content);
+    return {
+      response: JSON.parse(data.choices[0].message.content),
+      model: model,
+      provider: 'openai',
+      usage: data.usage
+    };
   } catch (error) {
     console.error('Error calling OpenAI:', error);
+    
+    // If quota exceeded, don't retry with OpenAI
+    if (error.message === 'QUOTA_EXCEEDED') {
+      throw new Error('OPENAI_QUOTA_EXCEEDED');
+    }
+    
     throw error;
   }
 }
 
 // Anthropic (Claude) API call
-async function callClaude(systemPrompt: string, userPrompt: string) {
+async function callClaude(systemPrompt: string, userPrompt: string, model = MODELS.CLAUDE_OPUS) {
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -139,7 +165,7 @@ async function callClaude(systemPrompt: string, userPrompt: string) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: MODELS.CLAUDE,
+        model: model,
         system: systemPrompt,
         messages: [
           { role: 'user', content: userPrompt }
@@ -155,9 +181,53 @@ async function callClaude(systemPrompt: string, userPrompt: string) {
     }
 
     const data = await response.json();
-    return JSON.parse(data.content[0].text);
+    
+    // Try to parse as JSON, fallback to plain text
+    let responseContent;
+    try {
+      responseContent = JSON.parse(data.content[0].text);
+    } catch {
+      responseContent = { response: data.content[0].text };
+    }
+    
+    return {
+      response: responseContent,
+      model: model,
+      provider: 'anthropic',
+      usage: data.usage
+    };
   } catch (error) {
     console.error('Error calling Claude:', error);
+    throw error;
+  }
+}
+
+// Intelligent AI routing with fallback
+async function callAIWithFallback(systemPrompt: string, userPrompt: string, preferredProvider?: string) {
+  const useClaude = shouldUseClaude(userPrompt, preferredProvider);
+  
+  try {
+    if (useClaude && ANTHROPIC_API_KEY) {
+      console.log('Using Claude for complex/long-form task');
+      return await callClaude(systemPrompt, userPrompt);
+    } else if (OPENAI_API_KEY) {
+      console.log('Using OpenAI for standard task');
+      return await callOpenAI(systemPrompt, userPrompt);
+    } else {
+      throw new Error('No AI API keys configured');
+    }
+  } catch (error) {
+    console.warn(`Primary AI service failed: ${error.message}`);
+    
+    // Fallback logic
+    if (error.message === 'OPENAI_QUOTA_EXCEEDED' && ANTHROPIC_API_KEY) {
+      console.log('OpenAI quota exceeded, falling back to Claude');
+      return await callClaude(systemPrompt, userPrompt);
+    } else if (useClaude && OPENAI_API_KEY && !error.message.includes('QUOTA')) {
+      console.log('Claude failed, falling back to OpenAI');
+      return await callOpenAI(systemPrompt, userPrompt);
+    }
+    
     throw error;
   }
 }
@@ -170,50 +240,40 @@ serve(async (req) => {
   }
 
   try {
-    const { userId, currentPersona, prompt } = await req.json();
+    const { userId, currentPersona, prompt, systemPrompt, model, provider } = await req.json();
 
-    if (!userId || !prompt) {
+    if (!prompt) {
       return new Response(
-        JSON.stringify({ error: 'Missing required parameters' }),
+        JSON.stringify({ error: 'Missing required prompt parameter' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Processing request for user ${userId}`);
+    console.log(`Processing request${userId ? ` for user ${userId}` : ''} with provider preference: ${provider || 'auto'}`);
 
-    // Fetch user data from Supabase
-    const userData = await fetchUserData(userId);
+    // Fetch user data if userId provided
+    let userData = { profile: {}, stats: {}, persona: {}, recentActivity: [] };
+    if (userId) {
+      userData = await fetchUserData(userId);
+    }
 
-    // Build context for AI based on user data
-    const userContext = {
-      profile: userData.profile || {},
-      stats: userData.stats || {},
-      persona: userData.persona || currentPersona || {},
-      recentActivity: userData.confidence || [],
-    };
-
-    // Create a system prompt enriched with user context
-    const systemPrompt = `
+    // Build enhanced system prompt with user context
+    const enhancedSystemPrompt = systemPrompt || `
       You are a highly effective AI sales assistant designed to help sales professionals succeed.
       
-      USER CONTEXT:
-      - Role: ${userContext.profile?.role || 'sales_rep'}
-      - Name: ${userContext.profile?.full_name || 'User'}
-      - Stats: Call count: ${userContext.stats?.call_count || 0}, Win count: ${userContext.stats?.win_count || 0}
-      - Current streak: ${userContext.stats?.current_streak || 0}
-      - Best time: ${userContext.stats?.best_time_start || 'unknown'} - ${userContext.stats?.best_time_end || 'unknown'}
-      - Burnout risk: ${userContext.stats?.burnout_risk || 'Low'}
-      - Mood score: ${userContext.stats?.mood_score || '5'}/10
+      ${userId ? `USER CONTEXT:
+      - Role: ${userData.profile?.role || 'sales_rep'}
+      - Name: ${userData.profile?.full_name || 'User'}
+      - Stats: Call count: ${userData.stats?.call_count || 0}, Win count: ${userData.stats?.win_count || 0}
+      - Current streak: ${userData.stats?.current_streak || 0}
+      - Best time: ${userData.stats?.best_time_start || 'unknown'} - ${userData.stats?.best_time_end || 'unknown'}
+      - Burnout risk: ${userData.stats?.burnout_risk || 'Low'}
+      - Mood score: ${userData.stats?.mood_score || '5'}/10
       
       PERSONA SETTINGS:
-      - Persona: ${userContext.persona?.name || 'AI Assistant'}
-      - Tone: ${userContext.persona?.tone || 'Professional'}
-      - Delivery style: ${userContext.persona?.delivery_style || 'Direct'}
-      
-      RECENT ACTIVITY:
-      ${userContext.recentActivity.map((item: any) => 
-        `- ${new Date(item.created_at).toLocaleDateString()}: ${item.win_description} ${item.objection_handled ? `(Objection handled: ${item.objection_handled})` : ''}`
-      ).join('\n')}
+      - Persona: ${userData.persona?.name || currentPersona?.name || 'AI Assistant'}
+      - Tone: ${userData.persona?.tone || currentPersona?.tone || 'Professional'}
+      - Delivery style: ${userData.persona?.delivery_style || currentPersona?.delivery_style || 'Direct'}` : ''}
       
       RESPONSE FORMAT:
       Your response MUST be valid JSON with two keys:
@@ -223,18 +283,9 @@ serve(async (req) => {
       Action types can include: "schedule_call", "review_script", "send_email", "take_break", "practice_objection"
     `;
 
-    let result;
-    
-    // Use Claude for long-form tasks, GPT-4o for everything else
-    if (isLongFormTask(prompt)) {
-      console.log('Using Claude for long-form task');
-      result = await callClaude(systemPrompt, prompt);
-    } else {
-      console.log('Using GPT-4o for standard task');
-      result = await callOpenAI(systemPrompt, prompt);
-    }
+    // Call AI with intelligent routing and fallback
+    const result = await callAIWithFallback(enhancedSystemPrompt, prompt, provider);
 
-    // Create a standardized response
     return new Response(
       JSON.stringify(result),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -243,8 +294,16 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error processing request:', error);
     
+    let errorMessage = 'AI services are temporarily unavailable. Please try again later.';
+    
+    if (error.message.includes('quota')) {
+      errorMessage = 'AI service quota exceeded. Please try again later or contact support.';
+    } else if (error.message.includes('API key')) {
+      errorMessage = 'AI service configuration error. Please contact support.';
+    }
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: errorMessage }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
