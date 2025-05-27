@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,13 +32,14 @@ type AIRecommendation = {
   action: string;
 };
 
-const ManagerDashboard = () => {
+const Dashboard = () => {
   const { user, profile } = useAuth();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
 
+  // Check if in demo mode
   useEffect(() => {
     const isDemoMode = localStorage.getItem('demoMode') === 'true';
     if (isDemoMode) {
@@ -51,6 +51,7 @@ const ManagerDashboard = () => {
   }, [user]);
 
   const initializeDemoData = () => {
+    // Mock team members data
     const mockTeamMembers: TeamMember[] = [
       {
         id: 'demo-tm-1',
@@ -180,30 +181,39 @@ const ManagerDashboard = () => {
   }
 
   return (
-    <div className="flex-1 px-4 md:px-6 py-6">
-      <div className="max-w-7xl mx-auto">
-        <ManagerOverviewCards 
-          teamMembers={teamMembers}
-          recommendations={recommendations}
-          demoMode={demoMode}
-          profile={profile}
-        />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          <div className="lg:col-span-2 space-y-6">
-            <ManagerTeamTable teamMembers={teamMembers} />
-            <ManagerRecognitionEngine />
-          </div>
-          
-          <div className="space-y-6">
-            <ManagerAIAssistant />
-            <ManagerBookingSystem demoMode={demoMode} />
-            <ManagerEscalationCenter demoMode={demoMode} />
+    <div className="min-h-screen bg-background">
+      <main className="pt-16">
+        <div className="flex-1 px-4 md:px-6 py-6">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-foreground">Manager Dashboard</h1>
+              <p className="text-muted-foreground">Team performance and management overview</p>
+            </div>
+            
+            <ManagerOverviewCards 
+              teamMembers={teamMembers}
+              recommendations={recommendations}
+              demoMode={demoMode}
+              profile={profile}
+            />
+            
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+              <div className="lg:col-span-2 space-y-6">
+                <ManagerTeamTable teamMembers={teamMembers} />
+                <ManagerRecognitionEngine />
+              </div>
+              
+              <div className="space-y-6">
+                <ManagerAIAssistant />
+                <ManagerBookingSystem demoMode={demoMode} />
+                <ManagerEscalationCenter demoMode={demoMode} />
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
 
-export default ManagerDashboard;
+export default Dashboard;

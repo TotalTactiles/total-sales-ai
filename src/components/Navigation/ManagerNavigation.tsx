@@ -13,12 +13,12 @@ const ManagerNavigation = () => {
   const { profile } = useAuth();
 
   const navItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: BarChart3 },
-    { label: 'Analytics', href: '/analytics', icon: BarChart3 },
-    { label: 'Lead Management', href: '/lead-management', icon: Users },
-    { label: 'Company Brain', href: '/company-brain', icon: Brain },
-    { label: 'AI Command', href: '/ai', icon: Award },
-    { label: 'Settings', href: '/settings', icon: Settings },
+    { label: 'Dashboard', href: '/manager', icon: BarChart3 },
+    { label: 'Analytics', href: '/manager/analytics', icon: BarChart3 },
+    { label: 'Lead Management', href: '/manager/leads', icon: Users },
+    { label: 'Company Brain', href: '/manager/company-brain', icon: Brain },
+    { label: 'AI Command', href: '/manager/ai', icon: Award },
+    { label: 'Settings', href: '/manager/settings', icon: Settings },
   ];
 
   return (
