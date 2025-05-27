@@ -21,7 +21,6 @@ import {
 import { toast } from 'sonner';
 import { useVoiceCommands } from '@/hooks/useVoiceCommands';
 import { unifiedAIService } from '@/services/ai/unifiedAIService';
-import { voiceService } from '@/services/ai/voiceService';
 
 const SalesRepAIAssistant: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -63,12 +62,20 @@ const SalesRepAIAssistant: React.FC = () => {
       };
       setConversation(prev => [...prev, userMessage]);
 
+      console.log('Processing AI command:', command);
+
       // Generate AI response
       const response = await unifiedAIService.generateResponse(
         command,
         'You are a helpful sales AI assistant. Provide practical, actionable advice for sales representatives. Keep responses concise and professional.',
         'sales_assistant'
       );
+
+      console.log('AI response received:', response);
+
+      if (!response.response) {
+        throw new Error('No response received from AI service');
+      }
 
       // Add AI response to conversation
       const aiMessage = {
@@ -79,7 +86,7 @@ const SalesRepAIAssistant: React.FC = () => {
       };
       setConversation(prev => [...prev, aiMessage]);
 
-      // Speak the response
+      // Speak the response (with proper error handling)
       try {
         await speakResponse(response.response);
       } catch (voiceError) {
@@ -87,10 +94,20 @@ const SalesRepAIAssistant: React.FC = () => {
         // Continue without voice - response is still shown in chat
       }
 
-      toast.success('AI command processed successfully');
+      toast.success('AI response generated successfully');
     } catch (error) {
       console.error('Error processing AI command:', error);
-      toast.error('Failed to process AI command');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process AI command';
+      toast.error(errorMessage);
+      
+      // Add error message to conversation
+      const errorAiMessage = {
+        id: crypto.randomUUID(),
+        type: 'ai' as const,
+        message: `I apologize, but I encountered an error: ${errorMessage}. Please try again.`,
+        timestamp: new Date()
+      };
+      setConversation(prev => [...prev, errorAiMessage]);
     } finally {
       setIsProcessing(false);
       setInputMessage('');
@@ -209,7 +226,7 @@ const SalesRepAIAssistant: React.FC = () => {
           {isExpanded && conversation.length > 0 && (
             <div className="max-h-32 overflow-y-auto space-y-2 border rounded p-2">
               {conversation.slice(-3).map((msg) => (
-                <div key={msg.id} className={`text-xs ${msg.type === 'user' ? 'text-blue-600' : 'text-gray-700'}`}>
+                <div key={msg.id} className={`text-xs ${msg.type === 'user' ? 'text-blue-600 font-medium' : 'text-gray-700'}`}>
                   <strong>{msg.type === 'user' ? 'You:' : 'AI:'}</strong> {msg.message.substring(0, 80)}
                   {msg.message.length > 80 ? '...' : ''}
                 </div>
@@ -226,6 +243,12 @@ const SalesRepAIAssistant: React.FC = () => {
                 placeholder="Ask anything... (e.g., 'Draft follow-up email', 'Suggest objection handling')"
                 className="text-sm resize-none"
                 rows={2}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAICommand(inputMessage);
+                  }
+                }}
               />
               <div className="flex flex-col gap-1">
                 <Button
@@ -273,6 +296,14 @@ const SalesRepAIAssistant: React.FC = () => {
                     Last: {lastTranscription.substring(0, 30)}...
                   </>
                 )}
+              </div>
+            )}
+
+            {/* Processing Status */}
+            {isProcessing && (
+              <div className="text-xs text-blue-600 flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                AI is thinking...
               </div>
             )}
           </div>

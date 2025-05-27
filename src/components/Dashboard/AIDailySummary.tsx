@@ -20,7 +20,13 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({ summary, isFullUser }) 
     
     try {
       setIsPlaying(true);
+      console.log('Starting audio playback for summary');
       toast.info('Generating voice summary...');
+      
+      // Validate summary before playing
+      if (!summary || typeof summary !== 'string') {
+        throw new Error('Invalid summary text');
+      }
       
       // Use the voice service to generate and play the summary
       await voiceService.generateVoiceResponse(summary);
@@ -28,7 +34,8 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({ summary, isFullUser }) 
       toast.success('Summary played successfully');
     } catch (error) {
       console.error('Error playing audio summary:', error);
-      toast.error('Failed to play audio summary');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to play audio summary';
+      toast.error(errorMessage);
     } finally {
       setIsPlaying(false);
     }

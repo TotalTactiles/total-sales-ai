@@ -239,6 +239,12 @@ export class VoiceService {
 
   async generateVoiceResponse(text: string): Promise<void> {
     try {
+      // Validate input
+      if (!text || typeof text !== 'string') {
+        console.error('Invalid text provided to generateVoiceResponse:', text);
+        throw new Error('Invalid text provided for speech generation');
+      }
+
       console.log('Generating voice response for text:', text.substring(0, 50) + '...');
       
       // First try ElevenLabs via edge function
@@ -344,7 +350,8 @@ export class VoiceService {
     } catch (error) {
       console.error('Error generating voice response:', error);
       // Final fallback: show text response as toast
-      toast.info(text.substring(0, 100) + (text.length > 100 ? '...' : ''));
+      const safeText = typeof text === 'string' ? text : 'AI response generated';
+      toast.info(safeText.substring(0, 100) + (safeText.length > 100 ? '...' : ''));
       throw error;
     }
   }

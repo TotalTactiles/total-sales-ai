@@ -94,12 +94,20 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
 
   const speakResponse = useCallback(async (text: string) => {
     try {
+      // Ensure text is a string and not empty
+      if (!text || typeof text !== 'string') {
+        console.error('Invalid text provided to speakResponse:', text);
+        throw new Error('Invalid text provided for speech');
+      }
+
       console.log('Speaking response:', text.substring(0, 50) + '...');
       await voiceService.generateVoiceResponse(text);
     } catch (error) {
       console.error('Error speaking response:', error);
-      // Fallback to toast notification
-      toast.info(text.substring(0, 100) + (text.length > 100 ? '...' : ''));
+      // Fallback to toast notification with safe string handling
+      const fallbackText = typeof text === 'string' ? text : 'AI response generated';
+      const truncatedText = fallbackText.substring(0, 100);
+      toast.info(truncatedText + (fallbackText.length > 100 ? '...' : ''));
       throw error;
     }
   }, []);
