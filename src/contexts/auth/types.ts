@@ -8,6 +8,7 @@ export type Profile = {
   full_name: string | null;
   role: Role;
   company_id?: string; // Added company_id as an optional property
+  ai_assistant_name?: string; // Added ai_assistant_name as an optional property
 };
 
 export type AuthContextType = {
