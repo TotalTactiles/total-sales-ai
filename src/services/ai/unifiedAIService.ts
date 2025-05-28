@@ -1,4 +1,5 @@
 
+
 import { dummyResponseService } from './dummyResponseService';
 import { validateStringParam } from '@/types/actions';
 
@@ -65,6 +66,13 @@ export class UnifiedAIService {
         source: 'dummy'
       };
     }
+  }
+
+  async performQuickAnalysis(prompt: string, context?: string): Promise<AIResponse> {
+    const validPrompt = validateStringParam(prompt, 'analyze data');
+    const validContext = validateStringParam(context, 'analysis');
+    
+    return this.generateResponse(validPrompt, 'You are a quick analysis expert', validContext);
   }
 
   async generateVoiceResponse(text: string): Promise<string> {

@@ -85,8 +85,7 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
       const response = await unifiedAIService.generateResponse(prompt, undefined, context);
       
       await logAIInteraction('unified_ai_response', {
-        model: response.model,
-        provider: response.provider,
+        source: response.source,
         promptLength: prompt.length,
         responseLength: response.response.length
       });
@@ -104,7 +103,7 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
       const response = await unifiedAIService.generateStrategyResponse(prompt);
       
       await logAIInteraction('strategy_response', {
-        source: response.source || 'unknown',
+        source: 'unified_ai',
         promptLength: prompt.length,
         responseLength: response.length
       });

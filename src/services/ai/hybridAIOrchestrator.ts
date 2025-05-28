@@ -17,8 +17,7 @@ interface AITask {
 interface AIResponse {
   taskId: string;
   result: any;
-  model: string;
-  provider: string;
+  source: string;
   executionTime: number;
   confidence: number;
 }
@@ -55,8 +54,7 @@ export class HybridAIOrchestrator {
       const encryptedInput = await dataEncryptionService.encryptSensitiveData(task.input);
       
       let result: any;
-      let model: string;
-      let provider: string;
+      let source: string;
 
       // Route task to appropriate AI service based on type and complexity
       switch (task.type) {
@@ -67,8 +65,7 @@ export class HybridAIOrchestrator {
             task.input.systemMetrics || []
           );
           result = insightsResponse.response;
-          model = insightsResponse.model;
-          provider = insightsResponse.provider;
+          source = insightsResponse.source;
           break;
 
         case 'content_summary':
@@ -78,16 +75,14 @@ export class HybridAIOrchestrator {
               task.context
             );
             result = summaryResponse.response;
-            model = summaryResponse.model;
-            provider = summaryResponse.provider;
+            source = summaryResponse.source;
           } else {
             const quickResponse = await unifiedAIService.performQuickAnalysis(
               `Summarize: ${task.input}`,
               task.context
             );
             result = quickResponse.response;
-            model = quickResponse.model;
-            provider = quickResponse.provider;
+            source = quickResponse.source;
           }
           break;
 
@@ -98,8 +93,7 @@ export class HybridAIOrchestrator {
             task.context
           );
           result = conversationResponse.response;
-          model = conversationResponse.model;
-          provider = conversationResponse.provider;
+          source = conversationResponse.source;
           break;
 
         case 'market_analysis':
@@ -108,8 +102,7 @@ export class HybridAIOrchestrator {
             task.context
           );
           result = marketResponse.response;
-          model = marketResponse.model;
-          provider = marketResponse.provider;
+          source = marketResponse.source;
           break;
 
         default:
@@ -126,8 +119,7 @@ export class HybridAIOrchestrator {
         source: 'hybrid_orchestrator',
         data: {
           taskType: task.type,
-          model,
-          provider,
+          source,
           executionTime,
           resultLength: result.length,
           success: true
@@ -141,8 +133,7 @@ export class HybridAIOrchestrator {
       return {
         taskId: task.id,
         result,
-        model,
-        provider,
+        source,
         executionTime,
         confidence: this.calculateConfidence(task, executionTime)
       };
