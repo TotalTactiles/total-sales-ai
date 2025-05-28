@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { AIProvider } from '@/contexts/AIContext';
+import { AIContextProvider } from '@/contexts/AIContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import RequireAuth from '@/components/RequireAuth';
 import OnboardingGuard from '@/components/OnboardingGuard';
@@ -31,7 +31,7 @@ function App() {
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <Router>
           <AuthProvider>
-            <AIProvider>
+            <AIContextProvider>
               <div className="min-h-screen bg-background">
                 <Routes>
                   {/* Auth route */}
@@ -97,7 +97,7 @@ function App() {
                 </Routes>
               </div>
               <Toaster richColors position="top-right" />
-            </AIProvider>
+            </AIContextProvider>
           </AuthProvider>
         </Router>
       </ThemeProvider>
