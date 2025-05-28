@@ -7,8 +7,11 @@ import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerDashboard from '@/pages/manager/Dashboard';
 import ManagerAnalytics from '@/pages/manager/Analytics';
 import ManagerLeadManagement from '@/pages/manager/LeadManagement';
+import ManagerTeamManagement from '@/pages/manager/TeamManagement';
 import ManagerCompanyBrain from '@/pages/manager/CompanyBrain';
 import ManagerAI from '@/pages/manager/AI';
+import ManagerReports from '@/pages/manager/Reports';
+import ManagerSecurity from '@/pages/manager/Security';
 import ManagerSettings from '@/pages/manager/Settings';
 
 const ManagerOS: React.FC = () => {
@@ -21,8 +24,11 @@ const ManagerOS: React.FC = () => {
           <Route path="dashboard" element={<ManagerDashboard />} />
           <Route path="analytics" element={<ManagerAnalytics />} />
           <Route path="leads" element={<ManagerLeadManagement />} />
-          <Route path="company-brain" element={<ManagerCompanyBrain />} />
+          <Route path="team" element={<ManagerTeamManagement />} />
+          <Route path="brain" element={<ManagerCompanyBrain />} />
           <Route path="ai" element={<ManagerAI />} />
+          <Route path="reports" element={<ManagerReports />} />
+          <Route path="security" element={<ManagerSecurity />} />
           <Route path="settings" element={<ManagerSettings />} />
           <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
         </Routes>

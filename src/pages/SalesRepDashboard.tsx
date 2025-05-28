@@ -53,7 +53,6 @@ const SalesRepDashboard = () => {
   }));
 
   const handleLeadClick = (leadId: string) => {
-    // Navigate to the correct workspace route
     navigate(`/workspace/${leadId}`);
   };
 
