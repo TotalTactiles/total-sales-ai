@@ -20,6 +20,7 @@ const SalesLayout = () => {
             <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
             <Route path="/dashboard" element={<SalesRepDashboard />} />
             <Route path="/dialer" element={<Dialer />} />
+            <Route path="/leads" element={<LeadManagement />} />
             <Route path="/lead-management" element={<LeadManagement />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/ai" element={<AI />} />
