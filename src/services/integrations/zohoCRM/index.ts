@@ -42,30 +42,36 @@ export class ZohoCRMIntegration {
         };
       }
 
-      // Get sync statistics
-      const { data: syncData } = await supabase
+      // Get sync statistics with simplified queries
+      const integrationLogsQuery = supabase
         .from('integration_logs')
         .select('*')
         .eq('provider', 'zoho')
         .order('created_at', { ascending: false })
         .limit(1);
 
-      const { data: errorData, count: errorCount } = await supabase
+      const errorLogsQuery = supabase
         .from('error_logs')
         .select('*', { count: 'exact' })
         .eq('provider', 'zoho')
         .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
-      const { data: leadsData, count: totalLeads } = await supabase
+      const leadsQuery = supabase
         .from('leads')
         .select('*', { count: 'exact' })
         .eq('source', 'zoho');
 
+      const [syncResult, errorResult, leadsResult] = await Promise.all([
+        integrationLogsQuery,
+        errorLogsQuery,
+        leadsQuery
+      ]);
+
       return {
         connected: true,
-        lastSync: syncData?.[0] ? new Date(syncData[0].created_at) : undefined,
-        totalLeads: totalLeads || 0,
-        syncErrors: errorCount || 0
+        lastSync: syncResult.data?.[0] ? new Date(syncResult.data[0].created_at) : undefined,
+        totalLeads: leadsResult.count || 0,
+        syncErrors: errorResult.count || 0
       };
     } catch (error) {
       console.error('Error getting Zoho integration status:', error);
@@ -84,7 +90,7 @@ export class ZohoCRMIntegration {
         success: true,
         authUrl
       };
-    } catch (error) {
+    } catch (error: any) {
       await this.errorHandler.logError(error, 'Connection initiation');
       return {
         success: false,
@@ -110,7 +116,7 @@ export class ZohoCRMIntegration {
       this.startAutoSync();
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       await this.errorHandler.handleConnectionError(error);
       return {
         success: false,
@@ -125,7 +131,7 @@ export class ZohoCRMIntegration {
       this.stopAutoSync();
       
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       await this.errorHandler.logError(error, 'Disconnection');
       return {
         success: false,
@@ -155,13 +161,13 @@ export class ZohoCRMIntegration {
         throw new Error('User not authenticated');
       }
 
-      const { data: profile } = await supabase
+      const profileQuery = await supabase
         .from('profiles')
         .select('company_id')
         .eq('id', user.id)
         .single();
 
-      if (!profile?.company_id) {
+      if (!profileQuery.data?.company_id) {
         throw new Error('User company not found');
       }
 
@@ -175,17 +181,17 @@ export class ZohoCRMIntegration {
             continue;
           }
 
-          const transformedLead = this.helpers.transformZohoLeadToOSLead(zohoLead, profile.company_id);
+          const transformedLead = this.helpers.transformZohoLeadToOSLead(zohoLead, profileQuery.data.company_id);
           
           // Check if lead already exists
-          const { data: existingLead } = await supabase
+          const existingLeadQuery = await supabase
             .from('leads')
             .select('id')
             .eq('source_id', zohoLead.id)
             .eq('source', 'zoho')
             .single();
 
-          if (existingLead) {
+          if (existingLeadQuery.data) {
             // Update existing lead
             await supabase
               .from('leads')
@@ -193,7 +199,7 @@ export class ZohoCRMIntegration {
                 ...transformedLead,
                 updated_at: new Date().toISOString()
               })
-              .eq('id', existingLead.id);
+              .eq('id', existingLeadQuery.data.id);
           } else {
             // Create new lead
             await supabase
@@ -206,7 +212,7 @@ export class ZohoCRMIntegration {
           }
 
           syncedCount++;
-        } catch (leadError) {
+        } catch (leadError: any) {
           console.error(`Error syncing lead ${zohoLead.id}:`, leadError);
           await this.errorHandler.handleSyncError(zohoLead.id, leadError);
           errorCount++;
@@ -223,7 +229,7 @@ export class ZohoCRMIntegration {
         synced: syncedCount,
         errors: errorCount
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Zoho sync failed:', error);
       await this.errorHandler.logError(error, 'Lead sync');
       return {
@@ -236,13 +242,13 @@ export class ZohoCRMIntegration {
 
   private async getLastSyncTime(): Promise<Date | undefined> {
     try {
-      const { data } = await supabase
+      const result = await supabase
         .from('integration_sync_status')
         .select('last_sync')
         .eq('provider', 'zoho')
         .single();
 
-      return data?.last_sync ? new Date(data.last_sync) : undefined;
+      return result.data?.last_sync ? new Date(result.data.last_sync) : undefined;
     } catch {
       return undefined;
     }
