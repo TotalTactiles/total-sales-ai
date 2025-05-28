@@ -2,36 +2,35 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-
-// Manager Pages
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
-import ManagerAnalytics from '@/pages/manager/Analytics';
-import ManagerLeadManagement from '@/pages/manager/LeadManagement';
-import ManagerTeamManagement from '@/pages/manager/TeamManagement';
-import ManagerCompanyBrain from '@/pages/manager/CompanyBrain';
-import ManagerAI from '@/pages/manager/AI';
-import ManagerReports from '@/pages/manager/Reports';
-import ManagerSecurity from '@/pages/manager/Security';
-import ManagerSettings from '@/pages/manager/Settings';
+import TeamManagement from '@/pages/manager/TeamManagement';
+import LeadManagement from '@/pages/manager/LeadManagement';
+import Analytics from '@/pages/manager/Analytics';
+import Reports from '@/pages/manager/Reports';
+import Settings from '@/pages/manager/Settings';
+import AI from '@/pages/manager/AI';
+import CompanyBrain from '@/pages/manager/CompanyBrain';
+import Security from '@/pages/manager/Security';
 
-const ManagerOS: React.FC = () => {
+const ManagerOS = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex h-screen bg-background">
       <ManagerNavigation />
-      <main className="pt-16">
-        <Routes>
-          <Route index element={<ManagerDashboard />} />
-          <Route path="dashboard" element={<ManagerDashboard />} />
-          <Route path="analytics" element={<ManagerAnalytics />} />
-          <Route path="leads" element={<ManagerLeadManagement />} />
-          <Route path="team" element={<ManagerTeamManagement />} />
-          <Route path="brain" element={<ManagerCompanyBrain />} />
-          <Route path="ai" element={<ManagerAI />} />
-          <Route path="reports" element={<ManagerReports />} />
-          <Route path="security" element={<ManagerSecurity />} />
-          <Route path="settings" element={<ManagerSettings />} />
-          <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
-        </Routes>
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-6">
+          <Routes>
+            <Route path="/" element={<Navigate to="/manager/dashboard" replace />} />
+            <Route path="/dashboard" element={<ManagerDashboard />} />
+            <Route path="/team-management" element={<TeamManagement />} />
+            <Route path="/lead-management" element={<LeadManagement />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/ai" element={<AI />} />
+            <Route path="/company-brain" element={<CompanyBrain />} />
+            <Route path="/security" element={<Security />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </div>
       </main>
     </div>
   );

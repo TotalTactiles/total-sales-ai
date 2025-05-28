@@ -2,38 +2,35 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
+import SystemMonitor from '@/pages/developer/SystemMonitor';
+import APILogs from '@/pages/developer/APILogs';
+import ErrorLogs from '@/pages/developer/ErrorLogs';
+import TestingSandbox from '@/pages/developer/TestingSandbox';
+import Settings from '@/pages/developer/Settings';
+import CRMIntegrations from '@/pages/developer/CRMIntegrations';
+import QAChecklist from '@/pages/developer/QAChecklist';
+import VersionControl from '@/pages/developer/VersionControl';
 
-// Developer Pages
-import DeveloperDashboard from '@/pages/developer/Dashboard';
-import DeveloperSystemMonitor from '@/pages/developer/SystemMonitor';
-import DeveloperAPILogs from '@/pages/developer/APILogs';
-import DeveloperErrorLogs from '@/pages/developer/ErrorLogs';
-import DeveloperAIBrainLogs from '@/pages/developer/AIBrainLogs';
-import DeveloperCRMIntegrations from '@/pages/developer/CRMIntegrations';
-import DeveloperTestingSandbox from '@/pages/developer/TestingSandbox';
-import DeveloperQAChecklist from '@/pages/developer/QAChecklist';
-import DeveloperVersionControl from '@/pages/developer/VersionControl';
-import DeveloperSettings from '@/pages/developer/Settings';
-
-const DeveloperOS: React.FC = () => {
+const DeveloperOS = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex h-screen bg-background">
       <DeveloperNavigation />
-      <main className="pt-16">
-        <Routes>
-          <Route index element={<DeveloperDashboard />} />
-          <Route path="dashboard" element={<DeveloperDashboard />} />
-          <Route path="system-monitor" element={<DeveloperSystemMonitor />} />
-          <Route path="api-logs" element={<DeveloperAPILogs />} />
-          <Route path="error-logs" element={<DeveloperErrorLogs />} />
-          <Route path="ai-brain-logs" element={<DeveloperAIBrainLogs />} />
-          <Route path="crm-integrations" element={<DeveloperCRMIntegrations />} />
-          <Route path="testing-sandbox" element={<DeveloperTestingSandbox />} />
-          <Route path="qa-checklist" element={<DeveloperQAChecklist />} />
-          <Route path="version-control" element={<DeveloperVersionControl />} />
-          <Route path="settings" element={<DeveloperSettings />} />
-          <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
-        </Routes>
+      <main className="flex-1 overflow-y-auto">
+        <div className="p-6">
+          <Routes>
+            <Route path="/" element={<Navigate to="/developer/dashboard" replace />} />
+            <Route path="/dashboard" element={<DeveloperDashboard />} />
+            <Route path="/system-monitor" element={<SystemMonitor />} />
+            <Route path="/api-logs" element={<APILogs />} />
+            <Route path="/error-logs" element={<ErrorLogs />} />
+            <Route path="/testing-sandbox" element={<TestingSandbox />} />
+            <Route path="/crm-integrations" element={<CRMIntegrations />} />
+            <Route path="/qa-checklist" element={<QAChecklist />} />
+            <Route path="/version-control" element={<VersionControl />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </div>
       </main>
     </div>
   );

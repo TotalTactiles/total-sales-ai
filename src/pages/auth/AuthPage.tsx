@@ -13,66 +13,45 @@ import AuthDemoOptions from './components/AuthDemoOptions';
 import AuthLoadingScreen from './components/AuthLoadingScreen';
 
 const AuthPage = () => {
-  const { user, profile, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode, signOut } = useAuth();
+  const { user, profile, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [authCleared, setAuthCleared] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
   });
 
-  // Clear any existing auth state when accessing auth page directly
+  // Check for existing authentication and redirect if needed
   useEffect(() => {
-    const clearExistingAuth = async () => {
-      // If user is coming to auth page with existing session or demo mode, clear it
-      if ((user && profile) || isDemoMode()) {
-        console.log("AuthPage: Clearing existing auth state");
-        try {
-          await signOut();
-        } catch (error) {
-          console.error("Error clearing auth state:", error);
-        }
-      }
-      setAuthCleared(true);
-    };
-
-    clearExistingAuth();
-  }, []);
-
-  // Only check for redirects after we've cleared existing auth
-  useEffect(() => {
-    if (!authCleared) return;
-
     console.log("AuthPage: Checking login status. User:", !!user, "Profile:", !!profile, "Demo mode:", isDemoMode());
     
     // Only redirect if we have both user and profile (fully authenticated)
     if (user && profile && !isTransitioning) {
       console.log("AuthPage: User is logged in, redirecting to dashboard");
       
-      // Navigate using new OS structure
-      let targetPath = '/sales';
+      // Navigate using OS structure
+      let targetPath = '/sales/dashboard';
       
       switch (profile.role) {
         case 'developer':
         case 'admin':
-          targetPath = '/developer';
+          targetPath = '/developer/dashboard';
           break;
         case 'manager':
-          targetPath = '/manager';
+          targetPath = '/manager/dashboard';
           break;
         case 'sales_rep':
         default:
-          targetPath = '/sales';
+          targetPath = '/sales/dashboard';
           break;
       }
       
       navigate(targetPath);
     }
-  }, [user, profile, navigate, isDemoMode, authCleared, isTransitioning]);
+  }, [user, profile, navigate, isDemoMode, isTransitioning]);
 
   const handleRoleChange = (role: Role) => {
     console.log("AuthPage: Role changed to", role);
@@ -83,20 +62,20 @@ const AuthPage = () => {
   const simulateLoginTransition = () => {
     // Simulate loading and transition to dashboard
     setTimeout(() => {
-      // Use new OS structure
-      let targetPath = '/sales';
+      // Use OS structure
+      let targetPath = '/sales/dashboard';
       
       switch (selectedRole) {
         case 'developer':
         case 'admin':
-          targetPath = '/developer';
+          targetPath = '/developer/dashboard';
           break;
         case 'manager':
-          targetPath = '/manager';
+          targetPath = '/manager/dashboard';
           break;
         case 'sales_rep':
         default:
-          targetPath = '/sales';
+          targetPath = '/sales/dashboard';
           break;
       }
       
@@ -104,18 +83,6 @@ const AuthPage = () => {
       navigate(targetPath);
     }, 1500);
   };
-
-  // Show loading while clearing auth state
-  if (!authCleared) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/80 dark:from-dark dark:to-dark/90">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Initializing...</p>
-        </div>
-      </div>
-    );
-  }
 
   // If transitioning, show loading screen
   if (isTransitioning) {
