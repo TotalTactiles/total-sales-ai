@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -24,6 +24,12 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+// Component to handle legacy lead workspace redirect
+const LegacyLeadWorkspaceRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/workspace/${id}`} replace />;
+};
 
 function App() {
   return (
@@ -88,9 +94,17 @@ function App() {
                     } 
                   />
                   
-                  {/* Legacy redirects */}
+                  {/* Legacy redirects - fix these to use proper patterns */}
                   <Route path="/leads" element={<Navigate to="/sales/leads" replace />} />
-                  <Route path="/lead-workspace/:id" element={<Navigate to="/workspace/$1" replace />} />
+                  <Route path="/lead-workspace/:id" element={<LegacyLeadWorkspaceRedirect />} />
+                  <Route path="/analytics" element={<Navigate to="/sales/analytics" replace />} />
+                  <Route path="/dashboard" element={<Navigate to="/sales/dashboard" replace />} />
+                  <Route path="/sales-rep-dashboard" element={<Navigate to="/sales/dashboard" replace />} />
+                  <Route path="/lead-management" element={<Navigate to="/sales/leads" replace />} />
+                  <Route path="/dialer" element={<Navigate to="/sales/dialer" replace />} />
+                  <Route path="/company-brain" element={<Navigate to="/sales/academy" replace />} />
+                  <Route path="/ai-agent" element={<Navigate to="/sales/ai" replace />} />
+                  <Route path="/settings" element={<Navigate to="/sales/settings" replace />} />
                   
                   {/* Catch all */}
                   <Route path="*" element={<Navigate to="/" replace />} />

@@ -31,50 +31,50 @@ export const createNavItems = (getDashboardUrl: () => string): NavItem[] => [
   {
     icon: <BarChart3 className="h-5 w-5" />,
     label: 'Analytics',
-    href: '/analytics',
+    href: getDashboardUrl().replace('/dashboard', '/analytics'),
     description: 'Performance insights and reports'
   },
   {
     icon: <TrendingUp className="h-5 w-5" />,
     label: 'Manager Analytics',
-    href: '/manager-analytics',
+    href: '/manager/analytics',
     description: 'Executive command center'
   },
   {
     icon: <Users className="h-5 w-5" />,
     label: 'Leads',
-    href: '/leads',
+    href: getDashboardUrl().replace('/dashboard', '/leads'),
     badge: '24',
     description: 'Lead management and tracking'
   },
   {
     icon: <Brain className="h-5 w-5" />,
     label: 'Company Brain',
-    href: '/company-brain',
+    href: getDashboardUrl().replace('/dashboard', '/academy'),
     description: 'Knowledge base and AI insights'
   },
   {
     icon: <Phone className="h-5 w-5" />,
     label: 'Dialer',
-    href: '/dialer',
+    href: getDashboardUrl().replace('/dashboard', '/dialer'),
     description: 'Auto-dialer and call management'
   },
   {
     icon: <Bot className="h-5 w-5" />,
     label: 'AI Agent',
-    href: '/ai-agent',
+    href: getDashboardUrl().replace('/dashboard', '/ai'),
     description: 'AI-powered calling assistant'
   },
   {
     icon: <FileText className="h-5 w-5" />,
     label: 'Reports',
-    href: '/reports',
+    href: getDashboardUrl().replace('/dashboard', '/reports'),
     description: 'Detailed reports and analytics'
   },
   {
     icon: <Settings className="h-5 w-5" />,
     label: 'Settings',
-    href: '/settings',
+    href: getDashboardUrl().replace('/dashboard', '/settings'),
     description: 'Account and system settings'
   }
 ];
