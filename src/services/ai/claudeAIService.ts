@@ -1,8 +1,10 @@
 
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ClaudeResponse {
   response: string;
+  source: string;
   model: 'claude-3-opus' | 'claude-3-sonnet' | 'claude-3-haiku';
   provider: 'anthropic';
   usage?: {
@@ -36,6 +38,7 @@ export class ClaudeAIService {
 
       return {
         response: response.response || response.text || 'No analysis generated',
+        source: 'claude',
         model: 'claude-3-opus',
         provider: 'anthropic',
         usage: response.usage
@@ -61,6 +64,7 @@ export class ClaudeAIService {
 
       return {
         response: response.response || response.text || 'No summary generated',
+        source: 'claude',
         model: 'claude-3-opus',
         provider: 'anthropic',
         usage: response.usage
@@ -86,6 +90,7 @@ export class ClaudeAIService {
 
       return {
         response: response.response || response.text || 'No insights generated',
+        source: 'claude',
         model: 'claude-3-opus',
         provider: 'anthropic',
         usage: response.usage
@@ -111,6 +116,7 @@ export class ClaudeAIService {
 
       return {
         response: response.response || response.text || 'No market analysis generated',
+        source: 'claude',
         model: 'claude-3-opus',
         provider: 'anthropic',
         usage: response.usage
@@ -123,3 +129,4 @@ export class ClaudeAIService {
 }
 
 export const claudeAIService = ClaudeAIService.getInstance();
+
