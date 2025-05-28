@@ -1,11 +1,10 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Users, Settings, Brain, FileText, Calendar, Award } from 'lucide-react';
+import { BarChart3, Users, Settings, Brain, Award, Building2 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import UserProfile from '@/components/UserProfile';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import RoleToggle from '@/components/Navigation/RoleToggle';
 import { useAuth } from '@/contexts/AuthContext';
 
 const ManagerNavigation = () => {
@@ -13,7 +12,7 @@ const ManagerNavigation = () => {
   const { profile } = useAuth();
 
   const navItems = [
-    { label: 'Dashboard', href: '/manager', icon: BarChart3 },
+    { label: 'Dashboard', href: '/manager/dashboard', icon: BarChart3 },
     { label: 'Analytics', href: '/manager/analytics', icon: BarChart3 },
     { label: 'Lead Management', href: '/manager/leads', icon: Users },
     { label: 'Company Brain', href: '/manager/company-brain', icon: Brain },
@@ -24,8 +23,12 @@ const ManagerNavigation = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
       <div className="h-[60px] flex items-center justify-between px-6">
-        <div className="flex items-center">
+        <div className="flex items-center space-x-2">
           <Logo />
+          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+            <Building2 className="h-4 w-4" />
+            <span>Manager OS</span>
+          </div>
         </div>
 
         <nav className="hidden md:flex items-center space-x-6">
@@ -51,7 +54,6 @@ const ManagerNavigation = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
-          <RoleToggle />
           <ThemeToggle />
           <UserProfile 
             name={profile?.full_name || "Manager"}
