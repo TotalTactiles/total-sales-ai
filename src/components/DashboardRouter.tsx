@@ -22,7 +22,7 @@ const DashboardRouter = () => {
     return <Navigate to="/auth" replace />;
   }
   
-  // Route based on user role or demo mode
+  // Check for demo mode first
   const userStatus = localStorage.getItem('userStatus');
   const demoRole = localStorage.getItem('demoRole');
   
@@ -30,6 +30,7 @@ const DashboardRouter = () => {
   if (userStatus === 'demo' && demoRole) {
     switch (demoRole) {
       case 'sales-rep':
+      case 'sales_rep':
         return <Navigate to="/sales" replace />;
       case 'manager':
         return <Navigate to="/manager" replace />;

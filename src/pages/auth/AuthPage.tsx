@@ -13,37 +13,66 @@ import AuthDemoOptions from './components/AuthDemoOptions';
 import AuthLoadingScreen from './components/AuthLoadingScreen';
 
 const AuthPage = () => {
-  const { user, profile, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode } = useAuth();
+  const { user, profile, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode, signOut } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [authCleared, setAuthCleared] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
   });
 
-  // Redirect if already logged in or in demo mode
+  // Clear any existing auth state when accessing auth page directly
   useEffect(() => {
+    const clearExistingAuth = async () => {
+      // If user is coming to auth page with existing session or demo mode, clear it
+      if ((user && profile) || isDemoMode()) {
+        console.log("AuthPage: Clearing existing auth state");
+        try {
+          await signOut();
+        } catch (error) {
+          console.error("Error clearing auth state:", error);
+        }
+      }
+      setAuthCleared(true);
+    };
+
+    clearExistingAuth();
+  }, []);
+
+  // Only check for redirects after we've cleared existing auth
+  useEffect(() => {
+    if (!authCleared) return;
+
     console.log("AuthPage: Checking login status. User:", !!user, "Profile:", !!profile, "Demo mode:", isDemoMode());
     
-    if (user && profile) {
+    // Only redirect if we have both user and profile (fully authenticated)
+    if (user && profile && !isTransitioning) {
       console.log("AuthPage: User is logged in, redirecting to dashboard");
-      const redirectPath = profile.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
-      navigate(redirectPath);
-    } else if (isDemoMode()) {
-      // Check if demo mode is active but navigation didn't happen
-      const demoRole = localStorage.getItem('demoRole') as Role | null;
-      console.log("AuthPage: Demo mode is active with role:", demoRole);
       
-      if (demoRole) {
-        const redirectPath = demoRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
-        console.log("AuthPage: Redirecting to", redirectPath);
-        navigate(redirectPath);
+      // Navigate using new OS structure
+      let targetPath = '/sales';
+      
+      switch (profile.role) {
+        case 'developer':
+        case 'admin':
+          targetPath = '/developer';
+          break;
+        case 'manager':
+          targetPath = '/manager';
+          break;
+        case 'sales_rep':
+        default:
+          targetPath = '/sales';
+          break;
       }
+      
+      navigate(targetPath);
     }
-  }, [user, profile, navigate, isDemoMode]);
+  }, [user, profile, navigate, isDemoMode, authCleared, isTransitioning]);
 
   const handleRoleChange = (role: Role) => {
     console.log("AuthPage: Role changed to", role);
@@ -54,18 +83,46 @@ const AuthPage = () => {
   const simulateLoginTransition = () => {
     // Simulate loading and transition to dashboard
     setTimeout(() => {
-      const redirectPath = selectedRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
-      console.log("AuthPage: Transitioning to", redirectPath);
-      navigate(redirectPath);
+      // Use new OS structure
+      let targetPath = '/sales';
+      
+      switch (selectedRole) {
+        case 'developer':
+        case 'admin':
+          targetPath = '/developer';
+          break;
+        case 'manager':
+          targetPath = '/manager';
+          break;
+        case 'sales_rep':
+        default:
+          targetPath = '/sales';
+          break;
+      }
+      
+      console.log("AuthPage: Transitioning to", targetPath);
+      navigate(targetPath);
     }, 1500);
   };
 
-  // If already in demo mode or transitioning, show loading screen
-  if (isDemoMode() || isTransitioning) {
+  // Show loading while clearing auth state
+  if (!authCleared) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/80 dark:from-dark dark:to-dark/90">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Initializing...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If transitioning, show loading screen
+  if (isTransitioning) {
     return (
       <AuthLoadingScreen 
-        role={localStorage.getItem('demoRole') as Role || selectedRole} 
-        isDemoMode={isDemoMode()} 
+        role={selectedRole} 
+        isDemoMode={false} 
       />
     );
   }
