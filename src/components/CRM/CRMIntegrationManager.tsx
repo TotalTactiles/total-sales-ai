@@ -62,7 +62,10 @@ const CRMIntegrationManager: React.FC = () => {
               status: status.connected ? 'connected' : 'disconnected',
               description: config.description,
               lastSync: status.lastSync,
-              totalRecords: config.id === 'zoho' ? status.totalLeads : status.totalTasks || 0,
+              // Handle different property names for total records
+              totalRecords: config.id === 'zoho' 
+                ? (status as any).totalLeads 
+                : (status as any).totalTasks || 0,
               syncErrors: status.syncErrors
             });
           } catch (error) {
@@ -109,7 +112,16 @@ const CRMIntegrationManager: React.FC = () => {
     }
 
     try {
-      const result = await config.service.connect();
+      // Handle different connection methods
+      let result;
+      if (config.id === 'zoho') {
+        result = await (config.service as any).connect();
+      } else if (config.id === 'clickup') {
+        result = await (config.service as any).connectWithOAuth();
+      } else {
+        throw new Error('Unsupported CRM type');
+      }
+
       if (result.success && result.authUrl) {
         window.open(result.authUrl, `${config.id}-auth`, 'width=600,height=700');
         toast.success(`${crmName} authentication window opened`);
@@ -152,9 +164,14 @@ const CRMIntegrationManager: React.FC = () => {
     ));
 
     try {
-      const result = config.id === 'zoho' 
-        ? await config.service.syncLeads(false)
-        : await config.service.syncTasks(false);
+      let result;
+      if (config.id === 'zoho') {
+        result = await (config.service as any).syncLeads(false);
+      } else if (config.id === 'clickup') {
+        result = await (config.service as any).syncTasks(false);
+      } else {
+        throw new Error('Unsupported CRM sync type');
+      }
 
       if (result.success) {
         toast.success(`${crmName} sync completed: ${result.synced} records synced`);

@@ -41,7 +41,6 @@ interface Lead {
 interface SalesRep {
   id: string;
   full_name: string;
-  email: string;
   last_login?: string;
 }
 
@@ -87,9 +86,10 @@ const ManagerLeadManagement: React.FC = () => {
     if (!profile?.company_id) return;
 
     try {
+      // Only select columns that exist in the profiles table
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, last_login')
+        .select('id, full_name, last_login')
         .eq('company_id', profile.company_id)
         .eq('role', 'sales_rep');
 
