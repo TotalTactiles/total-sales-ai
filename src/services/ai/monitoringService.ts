@@ -122,7 +122,7 @@ export class AIMonitoringService {
         id: item.id,
         type: item.type as AIInsight['type'],
         suggestion_text: item.suggestion_text,
-        context: item.context || {},
+        context: typeof item.context === 'object' && item.context !== null ? item.context as Record<string, any> : {},
         triggered_by: item.triggered_by,
         user_id: item.user_id,
         company_id: item.company_id,
