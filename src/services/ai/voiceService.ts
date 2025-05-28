@@ -305,9 +305,8 @@ export class VoiceService {
           try {
             const aiResponse = await unifiedAIService.generateResponse(
               `Make this response concise and natural for voice output while keeping key information: "${validText}"`,
-              validateStringParam('You are a voice optimization expert. Make responses sound natural when spoken aloud.', 'You are a helpful assistant.'),
-              undefined,
-              'claude'
+              'You are a voice optimization expert. Make responses sound natural when spoken aloud.',
+              'voice_optimization'
             );
             
             if (aiResponse.response && typeof aiResponse.response === 'string' && aiResponse.response.length < validText.length) {

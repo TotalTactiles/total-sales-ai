@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Play, ChevronDown, ChevronUp, Volume2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { voiceService } from '@/services/ai/voiceService';
+import { unifiedAIService } from '@/services/ai/unifiedAIService';
 import { validateStringParam } from '@/types/actions';
 
 interface AIDailySummaryProps {

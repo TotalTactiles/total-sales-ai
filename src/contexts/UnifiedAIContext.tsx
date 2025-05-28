@@ -101,16 +101,15 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
 
   const generateStrategyResponse = async (prompt: string, context?: string): Promise<string> => {
     try {
-      const response = await unifiedAIService.generateStrategy(prompt, context);
+      const response = await unifiedAIService.generateStrategyResponse(prompt);
       
       await logAIInteraction('strategy_response', {
-        model: response.model,
-        provider: response.provider,
+        source: response.source || 'unknown',
         promptLength: prompt.length,
-        responseLength: response.response.length
+        responseLength: response.length
       });
       
-      return response.response;
+      return response;
     } catch (error) {
       console.error('Error generating strategy response:', error);
       addAIError('Failed to generate strategy response');
@@ -120,16 +119,15 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
 
   const generateCommunication = async (prompt: string, context?: string): Promise<string> => {
     try {
-      const response = await unifiedAIService.draftCommunication(prompt, context);
+      const response = await unifiedAIService.generateCommunication(prompt);
       
       await logAIInteraction('communication_draft', {
-        model: response.model,
-        provider: response.provider,
+        source: 'unified_ai',
         promptLength: prompt.length,
-        responseLength: response.response.length
+        responseLength: response.length
       });
       
-      return response.response;
+      return response;
     } catch (error) {
       console.error('Error generating communication:', error);
       addAIError('Failed to generate communication');

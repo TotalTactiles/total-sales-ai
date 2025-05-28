@@ -6,6 +6,7 @@ import { CheckCircle, AlertCircle, XCircle, RefreshCw, Database, Wifi, Mic, Spea
 import { supabase } from '@/integrations/supabase/client';
 import { voiceService } from '@/services/ai/voiceService';
 import { unifiedAIService } from '@/services/ai/unifiedAIService';
+
 interface HealthCheck {
   name: string;
   status: 'healthy' | 'warning' | 'error';
@@ -65,11 +66,11 @@ const HealthMonitor: React.FC = () => {
   };
   const checkAIServices = async (): Promise<HealthCheck> => {
     try {
-      const response = await unifiedAIService.generateResponse('Health check test', 'Reply with just "OK" for health check', undefined, 'openai');
+      const response = await unifiedAIService.generateResponse('Health check test', 'Reply with just "OK" for health check', 'health_check');
       return {
         name: 'AI Services',
         status: response.response ? 'healthy' : 'warning',
-        message: response.response ? `AI services active (${response.provider})` : 'AI response incomplete',
+        message: response.response ? `AI services active (${response.source})` : 'AI response incomplete',
         icon: Brain,
         lastChecked: new Date()
       };
