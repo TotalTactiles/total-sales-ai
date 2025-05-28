@@ -35,12 +35,27 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
     initializeDemoMode(selectedRole);
     setIsTransitioning(true);
     
-    // Direct navigation based on role - using correct existing routes
-    const redirectPath = selectedRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
-    console.log("Redirecting to:", redirectPath);
+    // Navigate using new OS structure
+    let targetPath = '/sales';
+    
+    switch (selectedRole) {
+      case 'developer':
+      case 'admin':
+        targetPath = '/developer';
+        break;
+      case 'manager':
+        targetPath = '/manager';
+        break;
+      case 'sales_rep':
+      default:
+        targetPath = '/sales';
+        break;
+    }
+    
+    console.log("Redirecting to:", targetPath);
     
     setTimeout(() => {
-      navigate(redirectPath);
+      navigate(targetPath);
     }, 1500);
   };
 

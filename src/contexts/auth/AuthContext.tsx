@@ -115,11 +115,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    // Redirect to appropriate dashboard based on role
-    const targetPath = userProfile.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+    // Redirect to appropriate dashboard based on role using new OS structure
+    let targetPath = '/sales';
+    
+    switch (userProfile.role) {
+      case 'developer':
+      case 'admin':
+        targetPath = '/developer';
+        break;
+      case 'manager':
+        targetPath = '/manager';
+        break;
+      case 'sales_rep':
+      default:
+        targetPath = '/sales';
+        break;
+    }
     
     // Only redirect if we're not already on the correct path
-    if (!location.pathname.startsWith(targetPath.split('/')[1])) {
+    if (!location.pathname.startsWith(targetPath)) {
       navigate(targetPath);
     }
   };
@@ -169,14 +183,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      // Clear demo mode if active
-      clearDemoMode();
+      console.log("Starting signout process...");
       
-      await supabase.auth.signOut();
+      // Clear demo mode if active
+      const wasDemoMode = isDemoMode();
+      if (wasDemoMode) {
+        console.log("Clearing demo mode");
+        clearDemoMode();
+      }
+      
+      // Sign out from Supabase if not in demo mode
+      if (!wasDemoMode) {
+        await supabase.auth.signOut();
+      }
+      
+      // Clear all auth state
       setUser(null);
       setSession(null);
       setProfile(null);
-      navigate('/auth');
+      
+      // Navigate to auth page
+      console.log("Redirecting to /auth");
+      navigate('/auth', { replace: true });
+      
       toast.info('You have been logged out');
     } catch (error: any) {
       console.error("Sign out error:", error);
@@ -191,8 +220,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(demoUser);
     setProfile(demoProfile);
     
-    // Navigate to appropriate dashboard
-    const targetPath = role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+    // Navigate to appropriate OS using new structure
+    let targetPath = '/sales';
+    
+    switch (role) {
+      case 'developer':
+      case 'admin':
+        targetPath = '/developer';
+        break;
+      case 'manager':
+        targetPath = '/manager';
+        break;
+      case 'sales_rep':
+      default:
+        targetPath = '/sales';
+        break;
+    }
+    
+    console.log("Navigating to:", targetPath);
     navigate(targetPath);
   };
 

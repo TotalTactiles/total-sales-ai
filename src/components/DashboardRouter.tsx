@@ -4,7 +4,18 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const DashboardRouter = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   // If not authenticated, redirect to auth
   if (!user) {
@@ -15,31 +26,33 @@ const DashboardRouter = () => {
   const userStatus = localStorage.getItem('userStatus');
   const demoRole = localStorage.getItem('demoRole');
   
-  // Handle demo mode
+  // Handle demo mode with new OS structure
   if (userStatus === 'demo' && demoRole) {
     switch (demoRole) {
       case 'sales-rep':
-        return <Navigate to="/" replace />;
+        return <Navigate to="/sales" replace />;
       case 'manager':
-        return <Navigate to="/manager-dashboard" replace />;
+        return <Navigate to="/manager" replace />;
       case 'admin':
-        return <Navigate to="/admin-dashboard" replace />;
+      case 'developer':
+        return <Navigate to="/developer" replace />;
       default:
-        return <Navigate to="/" replace />;
+        return <Navigate to="/sales" replace />;
     }
   }
   
-  // Handle authenticated users based on profile role
+  // Handle authenticated users based on profile role using new OS structure
   const role = profile?.role || 'sales_rep';
   
   switch (role) {
-    case 'manager':
-      return <Navigate to="/manager-dashboard" replace />;
+    case 'developer':
     case 'admin':
-      return <Navigate to="/admin-dashboard" replace />;
+      return <Navigate to="/developer" replace />;
+    case 'manager':
+      return <Navigate to="/manager" replace />;
     case 'sales_rep':
     default:
-      return <Navigate to="/" replace />;
+      return <Navigate to="/sales" replace />;
   }
 };
 
