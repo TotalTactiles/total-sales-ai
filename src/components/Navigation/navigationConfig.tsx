@@ -50,43 +50,43 @@ export const createNavItems = (getDashboardUrl: () => string, profile: any): Nav
     });
   }
 
-  // Add common items
+  // Add common items with proper sales URLs
   items.push(
     {
       icon: <Users className="h-5 w-5" />,
       label: 'Leads',
-      href: getDashboardUrl().replace('/dashboard', '/leads'),
+      href: '/sales/leads',
       badge: '24',
       description: 'Lead management and tracking'
     },
     {
       icon: <Brain className="h-5 w-5" />,
       label: 'Company Brain',
-      href: getDashboardUrl().replace('/dashboard', '/academy'),
+      href: '/sales/academy',
       description: 'Knowledge base and AI insights'
     },
     {
       icon: <Phone className="h-5 w-5" />,
       label: 'Dialer',
-      href: getDashboardUrl().replace('/dashboard', '/dialer'),
+      href: '/sales/dialer',
       description: 'Auto-dialer and call management'
     },
     {
       icon: <Bot className="h-5 w-5" />,
       label: 'AI Agent',
-      href: getDashboardUrl().replace('/dashboard', '/ai'),
+      href: '/sales/ai',
       description: 'AI-powered calling assistant'
     },
     {
       icon: <FileText className="h-5 w-5" />,
       label: 'Reports',
-      href: getDashboardUrl().replace('/dashboard', '/reports'),
+      href: '/sales/reports',
       description: 'Detailed reports and analytics'
     },
     {
       icon: <Settings className="h-5 w-5" />,
       label: 'Settings',
-      href: getDashboardUrl().replace('/dashboard', '/settings'),
+      href: '/sales/settings',
       description: 'Account and system settings'
     }
   );
