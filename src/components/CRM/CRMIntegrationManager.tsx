@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { RefreshCw, Plus, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import CRMConnectionCard from './CRMConnectionCard';
 import { zohoCRMIntegration } from '@/services/integrations/zohoCRM';
 import { clickUpCRMIntegration } from '@/services/integrations/clickupCRM';
+import type { ZohoIntegrationService, ClickUpIntegrationService, CRMIntegrationStatus } from '@/services/integrations/types';
 
 interface CRMStatus {
   name: string;
@@ -29,14 +29,14 @@ const CRMIntegrationManager: React.FC = () => {
       name: 'Zoho CRM',
       icon: '🎯',
       description: 'Lead management and customer data synchronization',
-      service: zohoCRMIntegration
+      service: zohoCRMIntegration as ZohoIntegrationService
     },
     {
       id: 'clickup',
       name: 'ClickUp',
       icon: '📋',
       description: 'Task and project management integration',
-      service: clickUpCRMIntegration
+      service: clickUpCRMIntegration as ClickUpIntegrationService
     },
     {
       id: 'hubspot',
@@ -56,16 +56,22 @@ const CRMIntegrationManager: React.FC = () => {
         if (config.service) {
           try {
             const status = await config.service.getStatus();
+            let totalRecords = 0;
+            
+            // Handle different integration types
+            if (config.id === 'zoho' && 'totalLeads' in status) {
+              totalRecords = status.totalLeads;
+            } else if (config.id === 'clickup' && 'totalTasks' in status) {
+              totalRecords = status.totalTasks;
+            }
+
             statuses.push({
               name: config.name,
               icon: config.icon,
               status: status.connected ? 'connected' : 'disconnected',
               description: config.description,
               lastSync: status.lastSync,
-              // Handle different property names for total records
-              totalRecords: config.id === 'zoho' 
-                ? (status as any).totalLeads 
-                : (status as any).totalTasks || 0,
+              totalRecords,
               syncErrors: status.syncErrors
             });
           } catch (error) {
@@ -112,12 +118,13 @@ const CRMIntegrationManager: React.FC = () => {
     }
 
     try {
-      // Handle different connection methods
       let result;
       if (config.id === 'zoho') {
-        result = await (config.service as any).connect();
+        const zohoService = config.service as ZohoIntegrationService;
+        result = await zohoService.connect();
       } else if (config.id === 'clickup') {
-        result = await (config.service as any).connectWithOAuth();
+        const clickupService = config.service as ClickUpIntegrationService;
+        result = await clickupService.connectWithOAuth();
       } else {
         throw new Error('Unsupported CRM type');
       }
@@ -166,9 +173,11 @@ const CRMIntegrationManager: React.FC = () => {
     try {
       let result;
       if (config.id === 'zoho') {
-        result = await (config.service as any).syncLeads(false);
+        const zohoService = config.service as ZohoIntegrationService;
+        result = await zohoService.syncLeads(false);
       } else if (config.id === 'clickup') {
-        result = await (config.service as any).syncTasks(false);
+        const clickupService = config.service as ClickUpIntegrationService;
+        result = await clickupService.syncTasks(false);
       } else {
         throw new Error('Unsupported CRM sync type');
       }
