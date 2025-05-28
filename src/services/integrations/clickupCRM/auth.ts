@@ -26,13 +26,17 @@ export class ClickUpAuth {
 
   constructor() {
     this.authConfig = {
-      clientId: process.env.CLICKUP_CLIENT_ID || '',
-      clientSecret: process.env.CLICKUP_CLIENT_SECRET || '',
+      clientId: '', // Will be configured via Supabase secrets
+      clientSecret: '', // Will be configured via Supabase secrets
       redirectUri: `${window.location.origin}/integrations/clickup/callback`
     };
   }
 
   generateAuthUrl(): string {
+    if (!this.authConfig.clientId) {
+      throw new Error('ClickUp Client ID not configured. Please configure it in Supabase secrets.');
+    }
+
     const params = new URLSearchParams({
       client_id: this.authConfig.clientId,
       redirect_uri: this.authConfig.redirectUri,
@@ -44,6 +48,10 @@ export class ClickUpAuth {
 
   async exchangeCodeForTokens(code: string): Promise<ClickUpTokens> {
     try {
+      if (!this.authConfig.clientId || !this.authConfig.clientSecret) {
+        throw new Error('ClickUp credentials not configured. Please configure them in Supabase secrets.');
+      }
+
       const response = await fetch('https://api.clickup.com/api/v2/oauth/token', {
         method: 'POST',
         headers: {
@@ -139,6 +147,10 @@ export class ClickUpAuth {
         throw new Error('No refresh token available');
       }
 
+      if (!this.authConfig.clientId || !this.authConfig.clientSecret) {
+        throw new Error('ClickUp credentials not configured. Please configure them in Supabase secrets.');
+      }
+
       const response = await fetch('https://api.clickup.com/api/v2/oauth/token', {
         method: 'POST',
         headers: {
@@ -169,6 +181,21 @@ export class ClickUpAuth {
     } catch (error) {
       console.error('ClickUp token refresh failed:', error);
       throw error;
+    }
+  }
+
+  // Load configuration from Supabase secrets
+  async loadConfiguration(): Promise<void> {
+    try {
+      // In a real implementation, you would call a Supabase edge function
+      // that securely retrieves the configuration from Supabase secrets
+      // For now, we'll use placeholder values
+      console.log('Loading ClickUp configuration from Supabase secrets...');
+      
+      // TODO: Implement actual configuration loading from Supabase secrets
+      // This would typically involve calling an edge function that has access to secrets
+    } catch (error) {
+      console.error('Failed to load ClickUp configuration:', error);
     }
   }
 
