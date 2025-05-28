@@ -148,7 +148,8 @@ export class ZohoAuth {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      await supabase
+      // Use type assertion for the new table
+      await (supabase as any)
         .from('crm_integrations')
         .upsert({
           user_id: user.id,
@@ -169,7 +170,8 @@ export class ZohoAuth {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
+      // Use type assertion for the new table
+      const { data, error } = await (supabase as any)
         .from('crm_integrations')
         .select('*')
         .eq('user_id', user.id)
@@ -204,7 +206,8 @@ export class ZohoAuth {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase
+      // Use type assertion for the new table
+      await (supabase as any)
         .from('crm_integrations')
         .update({ is_active: false })
         .eq('user_id', user.id)

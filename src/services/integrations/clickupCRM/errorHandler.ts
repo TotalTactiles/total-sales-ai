@@ -67,7 +67,8 @@ export class ClickUpErrorHandler {
         user_id: await this.getCurrentUserId()
       };
 
-      await supabase
+      // Use type assertion for the new table
+      await (supabase as any)
         .from('error_logs')
         .insert(errorLog);
 
@@ -108,7 +109,8 @@ export class ClickUpErrorHandler {
 
     await this.logError(syncError, `Task Sync - ${taskId}`);
     
-    await supabase
+    // Use type assertion for the new table
+    await (supabase as any)
       .from('sync_failures')
       .insert({
         provider: 'clickup',
@@ -146,7 +148,8 @@ export class ClickUpErrorHandler {
 
     await this.logError(rateLimitError, 'Rate Limiting');
     
-    await supabase
+    // Use type assertion for the new table
+    await (supabase as any)
       .from('api_usage')
       .upsert({
         provider: 'clickup',
@@ -170,7 +173,8 @@ export class ClickUpErrorHandler {
       
       const userId = await this.getCurrentUserId();
       if (userId) {
-        await supabase
+        // Use type assertion for the new table
+        await (supabase as any)
           .from('user_notifications')
           .insert({
             user_id: userId,

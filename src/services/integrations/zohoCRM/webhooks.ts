@@ -106,10 +106,10 @@ export class ZohoWebhooks {
         .from('leads')
         .update({ 
           status: 'deleted',
-          deleted_at: new Date().toISOString()
+          updated_at: new Date().toISOString()
         })
-        .eq('source_id', leadId)
-        .eq('source', 'zoho');
+        .eq('source', 'zoho')
+        .like('tags', `%zoho_lead_${leadId}%`);
 
       await this.logWebhookActivity(leadId, 'deleted', 'success');
     } catch (error) {
@@ -125,7 +125,8 @@ export class ZohoWebhooks {
     error?: string
   ): Promise<void> {
     try {
-      await supabase
+      // Use type assertion for the new table
+      await (supabase as any)
         .from('integration_logs')
         .insert({
           provider: 'zoho',

@@ -111,6 +111,27 @@ export type Database = {
         }
         Relationships: []
       }
+      api_usage: {
+        Row: {
+          id: string
+          last_updated: string | null
+          provider: string
+          rate_limited_until: string | null
+        }
+        Insert: {
+          id?: string
+          last_updated?: string | null
+          provider: string
+          rate_limited_until?: string | null
+        }
+        Update: {
+          id?: string
+          last_updated?: string | null
+          provider?: string
+          rate_limited_until?: string | null
+        }
+        Relationships: []
+      }
       call_logs: {
         Row: {
           call_sid: string | null
@@ -261,6 +282,42 @@ export type Database = {
         }
         Relationships: []
       }
+      crm_integrations: {
+        Row: {
+          access_token: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          provider: string
+          refresh_token: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          provider: string
+          refresh_token?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          provider?: string
+          refresh_token?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_sequences: {
         Row: {
           body_template: string
@@ -324,6 +381,42 @@ export type Database = {
           token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      error_logs: {
+        Row: {
+          context: string | null
+          error_code: string | null
+          error_details: Json | null
+          error_message: string
+          error_type: string
+          id: string
+          provider: string
+          timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          context?: string | null
+          error_code?: string | null
+          error_details?: Json | null
+          error_message: string
+          error_type: string
+          id?: string
+          provider: string
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          context?: string | null
+          error_code?: string | null
+          error_details?: Json | null
+          error_message?: string
+          error_type?: string
+          id?: string
+          provider?: string
+          timestamp?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -615,6 +708,60 @@ export type Database = {
           industry?: string
           source_id?: string
           source_type?: string
+        }
+        Relationships: []
+      }
+      integration_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          event_type: string
+          id: string
+          operation: string
+          provider: string
+          resource_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type: string
+          id?: string
+          operation: string
+          provider: string
+          resource_id?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          operation?: string
+          provider?: string
+          resource_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
+      integration_sync_status: {
+        Row: {
+          id: string
+          last_sync: string | null
+          provider: string
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          last_sync?: string | null
+          provider: string
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          last_sync?: string | null
+          provider?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -975,6 +1122,39 @@ export type Database = {
         }
         Relationships: []
       }
+      sync_failures: {
+        Row: {
+          created_at: string | null
+          error_message: string
+          id: string
+          provider: string
+          resolved_at: string | null
+          resource_id: string
+          resource_type: string
+          retry_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message: string
+          id?: string
+          provider: string
+          resolved_at?: string | null
+          resource_id: string
+          resource_type: string
+          retry_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string
+          id?: string
+          provider?: string
+          resolved_at?: string | null
+          resource_id?: string
+          resource_type?: string
+          retry_count?: number | null
+        }
+        Relationships: []
+      }
       unused_features: {
         Row: {
           company_id: string | null
@@ -1064,6 +1244,36 @@ export type Database = {
           outcome?: string | null
           role?: string | null
           timestamp?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: []

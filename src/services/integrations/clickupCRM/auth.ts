@@ -177,7 +177,8 @@ export class ClickUpAuth {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      await supabase
+      // Use type assertion for the new table
+      const { error } = await (supabase as any)
         .from('crm_integrations')
         .upsert({
           user_id: user.id,
@@ -187,6 +188,8 @@ export class ClickUpAuth {
           expires_at: tokens.expiresAt ? new Date(tokens.expiresAt).toISOString() : null,
           is_active: true
         });
+
+      if (error) throw error;
     } catch (error) {
       console.error('Failed to store ClickUp tokens:', error);
       throw error;
@@ -198,7 +201,8 @@ export class ClickUpAuth {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
+      // Use type assertion for the new table
+      const { data, error } = await (supabase as any)
         .from('crm_integrations')
         .select('*')
         .eq('user_id', user.id)
@@ -233,7 +237,8 @@ export class ClickUpAuth {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase
+      // Use type assertion for the new table
+      await (supabase as any)
         .from('crm_integrations')
         .update({ is_active: false })
         .eq('user_id', user.id)

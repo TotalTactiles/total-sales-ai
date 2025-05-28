@@ -140,10 +140,10 @@ export class ClickUpWebhooks {
         .from('leads')
         .update({ 
           status: 'deleted',
-          deleted_at: new Date().toISOString()
+          updated_at: new Date().toISOString()
         })
-        .eq('source_id', taskId)
-        .eq('source', 'clickup');
+        .eq('source', 'clickup')
+        .like('tags', `%clickup_task_${taskId}%`);
 
       await this.logWebhookActivity(taskId, 'deleted', 'success');
     } catch (error) {
@@ -159,7 +159,8 @@ export class ClickUpWebhooks {
     error?: string
   ): Promise<void> {
     try {
-      await supabase
+      // Use type assertion for the new table
+      await (supabase as any)
         .from('integration_logs')
         .insert({
           provider: 'clickup',

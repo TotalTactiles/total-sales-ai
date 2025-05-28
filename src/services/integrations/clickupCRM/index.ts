@@ -43,14 +43,15 @@ export class ClickUpCRMIntegration {
         };
       }
 
-      const { data: syncData } = await supabase
+      // Use type assertion for new tables
+      const { data: syncData } = await (supabase as any)
         .from('integration_logs')
         .select('*')
         .eq('provider', 'clickup')
         .order('created_at', { ascending: false })
         .limit(1);
 
-      const { data: errorData, count: errorCount } = await supabase
+      const { data: errorData, count: errorCount } = await (supabase as any)
         .from('error_logs')
         .select('*', { count: 'exact' })
         .eq('provider', 'clickup')
@@ -230,8 +231,8 @@ export class ClickUpCRMIntegration {
           const { data: existingLead } = await supabase
             .from('leads')
             .select('id')
-            .eq('source_id', task.id)
             .eq('source', 'clickup')
+            .like('tags', `%clickup_task_${task.id}%`)
             .single();
 
           if (existingLead) {
@@ -247,8 +248,8 @@ export class ClickUpCRMIntegration {
               .from('leads')
               .insert({
                 ...transformedLead,
-                source_id: task.id,
-                source: 'clickup'
+                source: 'clickup',
+                tags: [...(transformedLead.tags || []), `clickup_task_${task.id}`]
               });
           }
 
@@ -282,7 +283,8 @@ export class ClickUpCRMIntegration {
 
   private async getLastSyncTime(): Promise<Date | undefined> {
     try {
-      const { data } = await supabase
+      // Use type assertion for new table
+      const { data } = await (supabase as any)
         .from('integration_sync_status')
         .select('last_sync')
         .eq('provider', 'clickup')
@@ -296,7 +298,8 @@ export class ClickUpCRMIntegration {
 
   private async updateLastSyncTime(): Promise<void> {
     try {
-      await supabase
+      // Use type assertion for new table
+      await (supabase as any)
         .from('integration_sync_status')
         .upsert({
           provider: 'clickup',

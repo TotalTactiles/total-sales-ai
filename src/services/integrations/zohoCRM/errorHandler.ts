@@ -69,8 +69,8 @@ export class ZohoErrorHandler {
         user_id: await this.getCurrentUserId()
       };
 
-      // Log to developer error logs
-      await supabase
+      // Use type assertion for the new table
+      await (supabase as any)
         .from('error_logs')
         .insert(errorLog);
 
@@ -115,8 +115,8 @@ export class ZohoErrorHandler {
 
     await this.logError(syncError, `Lead Sync - ${leadId}`);
     
-    // Log sync failure for monitoring
-    await supabase
+    // Use type assertion for the new table
+    await (supabase as any)
       .from('sync_failures')
       .insert({
         provider: 'zoho',
@@ -154,8 +154,8 @@ export class ZohoErrorHandler {
 
     await this.logError(rateLimitError, 'Rate Limiting');
     
-    // Update rate limit status in database
-    await supabase
+    // Use type assertion for the new table
+    await (supabase as any)
       .from('api_usage')
       .upsert({
         provider: 'zoho',
@@ -182,7 +182,8 @@ export class ZohoErrorHandler {
       // Could also store in a notifications table
       const userId = await this.getCurrentUserId();
       if (userId) {
-        await supabase
+        // Use type assertion for the new table
+        await (supabase as any)
           .from('user_notifications')
           .insert({
             user_id: userId,
