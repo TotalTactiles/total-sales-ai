@@ -116,7 +116,18 @@ export class AIMonitoringService {
         .limit(10);
 
       if (error) throw error;
-      return data || [];
+      
+      // Type cast the database response to match our interface
+      return (data || []).map(item => ({
+        id: item.id,
+        type: item.type as AIInsight['type'],
+        suggestion_text: item.suggestion_text,
+        context: item.context || {},
+        triggered_by: item.triggered_by,
+        user_id: item.user_id,
+        company_id: item.company_id,
+        accepted: item.accepted
+      }));
     } catch (error) {
       console.error('Failed to fetch AI insights:', error);
       return [];
