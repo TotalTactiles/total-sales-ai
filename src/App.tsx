@@ -12,7 +12,7 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 
 // Lazy load layouts
 const SalesLayout = lazy(() => import('@/layouts/SalesLayout'));
-const ManagerLayout = lazy(() => import('@/layouts/ManagerLayout'));
+const ManagerOS = lazy(() => import('@/layouts/ManagerOS'));
 const AuthLayout = lazy(() => import('@/layouts/AuthLayout'));
 
 // Direct imports for other pages
@@ -49,10 +49,10 @@ function App() {
                         </ProtectedRoute>
                       } />
                       
-                      {/* Manager Routes */}
+                      {/* Manager Routes - Updated to use ManagerOS */}
                       <Route path="/manager/*" element={
                         <ProtectedRoute requiredRole="manager">
-                          <ManagerLayout />
+                          <ManagerOS />
                         </ProtectedRoute>
                       } />
                       
@@ -63,7 +63,7 @@ function App() {
                         </ProtectedRoute>
                       } />
                       
-                      {/* Root redirect */}
+                      {/* Root redirect based on role */}
                       <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
                       
                       {/* 404 */}
