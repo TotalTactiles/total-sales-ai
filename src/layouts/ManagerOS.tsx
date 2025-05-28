@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 
 // Manager Pages
-import ManagerDashboard from '@/pages/manager/Dashboard';
+import ManagerDashboard from '@/pages/manager/ManagerDashboard';
 import ManagerAnalytics from '@/pages/manager/Analytics';
 import ManagerLeadManagement from '@/pages/manager/LeadManagement';
 import ManagerTeamManagement from '@/pages/manager/TeamManagement';
