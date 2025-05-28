@@ -16,12 +16,27 @@ export const getDashboardUrl = (profile: Profile | null): string => {
   }
 };
 
+export const getAnalyticsUrl = (profile: Profile | null): string => {
+  if (!profile) return '/sales/analytics';
+  
+  switch (profile.role) {
+    case 'developer':
+    case 'admin':
+      return '/developer/dashboard'; // Developers don't have separate analytics
+    case 'manager':
+      return '/manager/analytics';
+    case 'sales_rep':
+    default:
+      return '/sales/analytics';
+  }
+};
+
 export const updateActiveItem = (pathname: string, setActiveItem: (item: string) => void) => {
   if (pathname === '/' || pathname.includes('dashboard')) {
     setActiveItem('dashboard');
-  } else if (pathname.includes('analytics')) {
+  } else if (pathname.includes('/sales/analytics')) {
     setActiveItem('analytics');
-  } else if (pathname.includes('manager-analytics')) {
+  } else if (pathname.includes('/manager/analytics')) {
     setActiveItem('manager-analytics');
   } else if (pathname.includes('leads')) {
     setActiveItem('leads');
@@ -40,8 +55,13 @@ export const updateActiveItem = (pathname: string, setActiveItem: (item: string)
 
 export const shouldShowNavItem = (href: string, profile: Profile | null): boolean => {
   // Manager Analytics is only for managers and admins
-  if (href === '/manager-analytics' || href === '/manager/analytics') {
-    return profile?.role === 'manager' || profile?.role === 'admin';
+  if (href.includes('/manager/analytics')) {
+    return profile?.role === 'manager' || profile?.role === 'admin' || profile?.role === 'developer';
+  }
+  
+  // Sales Analytics is only for sales reps and admins
+  if (href.includes('/sales/analytics')) {
+    return profile?.role === 'sales_rep' || profile?.role === 'admin' || profile?.role === 'developer';
   }
   
   // All other items are visible to everyone
