@@ -12,7 +12,7 @@ import SalesAI from '@/pages/sales/AI';
 import SalesSettings from '@/pages/sales/Settings';
 import SalesDialer from '@/pages/sales/Dialer';
 
-import ContextAwareVoiceAssistant from '@/components/VoiceAI/ContextAwareVoiceAssistant';
+import SalesRepAIAssistant from '@/components/SalesAI/SalesRepAIAssistant';
 import { useAIContext } from '@/contexts/AIContext';
 
 const SalesLayout = () => {
@@ -24,7 +24,7 @@ const SalesLayout = () => {
       
       <main className="pt-[60px]">
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
           <Route path="/dashboard" element={<SalesRepDashboard />} />
           <Route path="/analytics" element={<SalesAnalytics />} />
           <Route path="/leads" element={<SalesLeadManagement />} />
@@ -32,17 +32,12 @@ const SalesLayout = () => {
           <Route path="/academy" element={<SalesAcademy />} />
           <Route path="/ai" element={<SalesAI />} />
           <Route path="/settings" element={<SalesSettings />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
         </Routes>
       </main>
       
-      {/* Unified Voice AI Assistant */}
-      <ContextAwareVoiceAssistant
-        currentLead={currentLead}
-        isCallActive={isCallActive}
-        emailContext={emailContext}
-        smsContext={smsContext}
-      />
+      {/* Sales Rep AI Assistant - Fixed positioning */}
+      <SalesRepAIAssistant />
     </div>
   );
 };

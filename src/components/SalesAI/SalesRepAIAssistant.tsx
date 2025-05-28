@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +31,16 @@ const SalesRepAIAssistant: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [conversation, setConversation] = useState<Array<{id: string, type: 'user' | 'ai', message: string, timestamp: Date}>>([]);
 
+  // Mock voice commands hook for now
+  const useVoiceCommandsMock = {
+    isListening: false,
+    isProcessing: false,
+    lastTranscription: '',
+    startListening: () => console.log('Voice listening started'),
+    stopListening: () => console.log('Voice listening stopped'),
+    speakResponse: (text: string) => console.log('Speaking:', text)
+  };
+
   const {
     isListening,
     isProcessing: isVoiceProcessing,
@@ -37,18 +48,7 @@ const SalesRepAIAssistant: React.FC = () => {
     startListening,
     stopListening,
     speakResponse
-  } = useVoiceCommands({
-    onCommand: (command) => {
-      const validCommand = validateStringParam(command, 'help');
-      setInputMessage(validCommand);
-      handleAICommand(validCommand);
-    },
-    onError: (error) => {
-      const errorMessage = validateStringParam(error, 'Voice command failed');
-      toast.error(errorMessage);
-    },
-    context: 'sales_assistant'
-  });
+  } = useVoiceCommandsMock;
 
   const handleAICommand = async (command: any) => {
     const validCommand = validateStringParam(command, 'help');
@@ -72,49 +72,18 @@ const SalesRepAIAssistant: React.FC = () => {
 
       console.log('Processing AI command:', validCommand);
 
-      // Execute action through safe handler first
-      const actionResult = await safeActionHandler.executeAction(
-        ActionTypes.AI_COMMAND,
-        { command: validCommand },
-        'sales_assistant'
-      );
+      // Mock AI response for now
+      const mockResponse = `I understand you want help with: "${validCommand}". This is a demo response. The AI system is ready to assist with sales tasks, email drafting, lead analysis, and more.`;
 
-      // Generate AI response using unified service
-      const aiResponse = await unifiedAIService.generateResponse(
-        validCommand,
-        'You are a helpful sales AI assistant. Provide practical, actionable advice for sales representatives. Keep responses professional and helpful.',
-        'sales_assistant'
-      );
-
-      console.log('AI response received:', aiResponse);
-
-      if (!aiResponse.response || typeof aiResponse.response !== 'string') {
-        throw new Error('Invalid response received from AI service');
-      }
-
-      const safeResponse = validateStringParam(aiResponse.response, 'I apologize, but I could not generate a response. Please try again.');
-
-      // Add AI response to conversation with dummy indicator
       const aiMessage = {
         id: crypto.randomUUID(),
         type: 'ai' as const,
-        message: `${safeResponse}\n\n${aiResponse.source === 'dummy' ? '🧪 *This is a dummy response for testing purposes*' : ''}`,
-        timestamp: new Date(),
-        confidence: aiResponse.confidence,
-        suggestedActions: aiResponse.suggestedActions
+        message: `${mockResponse}\n\n🧪 *This is a demo response for testing purposes*`,
+        timestamp: new Date()
       };
       setConversation(prev => [...prev, aiMessage]);
 
-      // Generate voice response
-      try {
-        const voiceText = await unifiedAIService.generateVoiceResponse(safeResponse);
-        await speakResponse(voiceText);
-      } catch (voiceError) {
-        console.warn('Voice response failed:', voiceError);
-        // Continue without voice - response is still shown in chat
-      }
-
-      toast.success(`AI response generated successfully ${aiResponse.source === 'dummy' ? '(Test Mode)' : ''}`);
+      toast.success('AI response generated successfully (Demo Mode)');
     } catch (error) {
       console.error('Error processing AI command:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to process AI command';
@@ -126,7 +95,7 @@ const SalesRepAIAssistant: React.FC = () => {
       const errorAiMessage = {
         id: crypto.randomUUID(),
         type: 'ai' as const,
-        message: `I apologize, but I encountered an error: ${safeErrorMessage}. Please try again.\n\n🧪 *Test mode active - using dummy responses*`,
+        message: `I apologize, but I encountered an error: ${safeErrorMessage}. Please try again.\n\n🧪 *Demo mode active*`,
         timestamp: new Date()
       };
       setConversation(prev => [...prev, errorAiMessage]);
@@ -160,7 +129,7 @@ const SalesRepAIAssistant: React.FC = () => {
 
   if (isMinimized) {
     return (
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-6 right-6 z-[9999]">
         <Button
           onClick={() => setIsMinimized(false)}
           className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg relative"
@@ -180,7 +149,7 @@ const SalesRepAIAssistant: React.FC = () => {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-[9999]">
       <Card className={`shadow-2xl border-blue-200 transition-all duration-300 ${
         isExpanded ? 'w-96 h-[500px]' : 'w-80 h-auto'
       }`}>
@@ -298,30 +267,6 @@ const SalesRepAIAssistant: React.FC = () => {
                 </Button>
               </div>
             </div>
-            
-            {/* Voice Status */}
-            {(isListening || isVoiceProcessing || lastTranscription) && (
-              <div className="text-xs text-gray-500 flex items-center gap-1">
-                {isListening && (
-                  <>
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    Listening...
-                  </>
-                )}
-                {isVoiceProcessing && (
-                  <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Processing...
-                  </>
-                )}
-                {lastTranscription && !isListening && !isVoiceProcessing && (
-                  <>
-                    <Volume2 className="w-3 h-3" />
-                    Last: {validateStringParam(lastTranscription, 'No transcription').substring(0, 30)}...
-                  </>
-                )}
-              </div>
-            )}
 
             {/* Processing Status */}
             {isProcessing && (
