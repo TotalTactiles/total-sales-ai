@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AIDailySummary from '@/components/Dashboard/AIDailySummary';
@@ -54,7 +53,8 @@ const SalesRepDashboard = () => {
   }));
 
   const handleLeadClick = (leadId: string) => {
-    navigate(`/lead-workspace/${leadId}`);
+    // Navigate to the correct workspace route
+    navigate(`/workspace/${leadId}`);
   };
 
   const victories = [
