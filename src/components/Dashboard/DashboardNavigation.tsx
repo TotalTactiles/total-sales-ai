@@ -12,11 +12,11 @@ const DashboardNavigation = () => {
   const { profile } = useAuth();
 
   const navItems = [
-    { label: 'Dashboard', href: '/sales/dashboard', icon: Grid },
-    { label: 'Leads', href: '/sales/leads', icon: Users },
-    { label: 'Analytics', href: '/sales/analytics', icon: BarChart3 },
-    { label: 'Academy', href: '/sales/academy', icon: GraduationCap },
-    { label: 'Dialer', href: '/sales/dialer', icon: Wrench },
+    { label: 'Dashboard', href: '/sales-rep-dashboard', icon: Grid },
+    { label: 'Leads', href: '/leads', icon: Users },
+    { label: 'Statistics', href: '/analytics', icon: BarChart3 },
+    { label: 'Rep Dev', href: '/company-brain', icon: GraduationCap },
+    { label: 'Tools', href: '/dialer', icon: Wrench },
   ];
 
   return (
@@ -31,7 +31,8 @@ const DashboardNavigation = () => {
         <nav className="hidden md:flex items-center space-x-8">
           {navItems.map((item) => {
             const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
+            const isActive = location.pathname === item.href || 
+                           (item.href === '/sales-rep-dashboard' && location.pathname === '/');
             
             return (
               <Link

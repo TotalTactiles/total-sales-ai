@@ -1,125 +1,84 @@
 
-import React, { useState } from 'react';
-import { Users, Plus, Settings, Award, TrendingUp, Target } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
-import DemoModeIndicator from '@/components/Demo/DemoModeIndicator';
-import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
-import { toast } from 'sonner';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users, UserPlus, TrendingUp, Award } from 'lucide-react';
 
-const ManagerTeamManagement = () => {
-  const { isDemoMode } = useAuth();
-  const [showDemo, setShowDemo] = useState(false);
-
-  const shouldShowMockData = isDemoMode() || showDemo;
-
-  const handleStartDemo = () => {
-    setShowDemo(true);
-    toast.success('Demo mode activated! Explore team management capabilities.');
-  };
-
-  const mockTeamData = {
-    teamMembers: [
-      {
-        id: '1',
-        name: 'Sarah Johnson',
-        role: 'Senior Sales Rep',
-        email: 'sarah@company.com',
-        performance: 'Excellent',
-        quota: 150000,
-        achieved: 187500,
-        streak: 5,
-        status: 'Active'
-      },
-      {
-        id: '2',
-        name: 'Michael Chen',
-        role: 'Sales Rep',
-        email: 'michael@company.com',
-        performance: 'Good',
-        quota: 120000,
-        achieved: 95000,
-        streak: 0,
-        status: 'Needs Support'
-      }
-    ]
-  };
-
-  if (!shouldShowMockData && !showDemo) {
-    return (
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <div className="max-w-4xl mx-auto py-12">
-          <WorkspaceShowcase 
-            workspace="Team Management" 
-            onStartDemo={handleStartDemo}
-          />
-        </div>
-      </div>
-    );
-  }
-
+const TeamManagement: React.FC = () => {
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {shouldShowMockData && (
-        <DemoModeIndicator workspace="Team Management & Performance Dashboard" />
-      )}
-
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team Management</h1>
-          <p className="text-muted-foreground mt-2">
-            Manage your sales team performance and development
-          </p>
-        </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Team Member
-        </Button>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Team Management
+        </h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {mockTeamData.teamMembers.map((member) => (
-          <Card key={member.id}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>{member.name}</CardTitle>
-                  <CardDescription>{member.role}</CardDescription>
-                </div>
-                <Badge variant={member.status === 'Active' ? 'default' : 'destructive'}>
-                  {member.status}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-sm text-muted-foreground">Quota Achievement</span>
-                  <div className="font-bold">{((member.achieved / member.quota) * 100).toFixed(1)}%</div>
-                </div>
-                <div>
-                  <span className="text-sm text-muted-foreground">Current Streak</span>
-                  <div className="font-bold">{member.streak} wins</div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Settings className="h-3 w-3 mr-1" />
-                  Manage
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Award className="h-3 w-3 mr-1" />
-                  Recognize
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Team Members</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground">
+              +2 from last month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Reps</CardTitle>
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">10</div>
+            <p className="text-xs text-muted-foreground">
+              83% team activity rate
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Performance Score</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">85%</div>
+            <p className="text-xs text-muted-foreground">
+              +5% from last quarter
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Top Performer</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">Sarah J.</div>
+            <p className="text-xs text-muted-foreground">
+              150% quota achievement
+            </p>
+          </CardContent>
+        </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Overview</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-gray-600 dark:text-gray-400">
+            Detailed team management features will be implemented here, including
+            performance tracking, goal setting, and team collaboration tools.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export default ManagerTeamManagement;
+export default TeamManagement;

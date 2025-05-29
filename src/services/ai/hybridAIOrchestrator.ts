@@ -77,9 +77,12 @@ export class HybridAIOrchestrator {
             result = summaryResponse.response;
             source = summaryResponse.source;
           } else {
-            const quickResponse = await unifiedAIService.performQuickAnalysis(task.input);
-            result = quickResponse;
-            source = 'unified_ai';
+            const quickResponse = await unifiedAIService.performQuickAnalysis(
+              `Summarize: ${task.input}`,
+              task.context
+            );
+            result = quickResponse.response;
+            source = quickResponse.source;
           }
           break;
 
@@ -118,7 +121,7 @@ export class HybridAIOrchestrator {
           taskType: task.type,
           source,
           executionTime,
-          resultLength: typeof result === 'string' ? result.length : JSON.stringify(result).length,
+          resultLength: result.length,
           success: true
         },
         context: { 

@@ -1,57 +1,105 @@
 
-interface AIResponse {
+
+import { dummyResponseService } from './dummyResponseService';
+import { validateStringParam } from '@/types/actions';
+
+export interface AIResponse {
   response: string;
   confidence: number;
+  suggestedActions?: string[];
+  reasoning?: string;
   source: 'dummy' | 'openai' | 'claude';
-  suggestedActions?: Array<{
-    type: string;
-    label: string;
-    data?: any;
-  }>;
 }
 
-class UnifiedAIService {
-  async generateResponse(
-    prompt: string,
-    systemMessage?: string,
-    context?: string
-  ): Promise<AIResponse> {
-    // Mock response for demo purposes
-    console.log('Generating AI response for:', prompt);
-    
-    return {
-      response: `I understand your request: "${prompt}". This is a demo response from the unified AI service. I'm ready to help with sales tasks, lead management, email drafting, and strategic planning.`,
-      confidence: 0.85,
-      source: 'dummy',
-      suggestedActions: [
-        { type: 'follow_up', label: 'Schedule Follow-up' },
-        { type: 'draft_email', label: 'Draft Email' }
-      ]
-    };
+export class UnifiedAIService {
+  private static instance: UnifiedAIService;
+  private useDummyResponses = true; // Set to true for testing
+
+  static getInstance(): UnifiedAIService {
+    if (!UnifiedAIService.instance) {
+      UnifiedAIService.instance = new UnifiedAIService();
+    }
+    return UnifiedAIService.instance;
   }
 
-  async generateStrategyResponse(prompt: string): Promise<string> {
-    console.log('Generating strategy response for:', prompt);
-    
-    return `Strategic Analysis: ${prompt}. Based on your request, here's my strategic recommendation: Focus on high-value prospects, leverage AI insights for personalized outreach, and maintain consistent follow-up cadence. This is a demo response.`;
+  setDummyMode(enabled: boolean) {
+    this.useDummyResponses = enabled;
+    console.log(`AI Service: Dummy mode ${enabled ? 'enabled' : 'disabled'}`);
   }
 
-  async generateCommunication(prompt: string): Promise<string> {
-    console.log('Generating communication for:', prompt);
+  async generateResponse(prompt: string, systemPrompt?: string, context?: string): Promise<AIResponse> {
+    const validPrompt = validateStringParam(prompt, 'help');
+    const validContext = validateStringParam(context, 'general');
     
-    return `Subject: Follow-up on our conversation\n\nHi [Name],\n\nI hope this email finds you well. Based on our previous discussion about ${prompt}, I wanted to follow up with some additional insights that might be valuable for your business.\n\n[Your personalized message here]\n\nBest regards,\n[Your name]\n\n--- This is a demo email template ---`;
+    try {
+      if (this.useDummyResponses) {
+        console.log('Using dummy AI response for testing');
+        const dummyResponse = dummyResponseService.generateResponse(validPrompt, validContext);
+        
+        // Simulate processing delay for realism
+        await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
+        
+        return {
+          ...dummyResponse,
+          source: 'dummy'
+        };
+      }
+
+      // In production, this would call real AI services
+      // For now, fallback to dummy responses
+      console.log('Real AI services not configured, using dummy responses');
+      const dummyResponse = dummyResponseService.generateResponse(validPrompt, validContext);
+      
+      return {
+        ...dummyResponse,
+        source: 'dummy'
+      };
+      
+    } catch (error) {
+      console.error('AI Service error:', error);
+      
+      // Fallback to dummy response on error
+      const fallbackResponse = dummyResponseService.generateResponse('error occurred', validContext);
+      return {
+        ...fallbackResponse,
+        response: "I encountered an issue processing your request, but I'm still here to help! " + fallbackResponse.response,
+        source: 'dummy'
+      };
+    }
+  }
+
+  async performQuickAnalysis(prompt: string, context?: string): Promise<AIResponse> {
+    const validPrompt = validateStringParam(prompt, 'analyze data');
+    const validContext = validateStringParam(context, 'analysis');
+    
+    return this.generateResponse(validPrompt, 'You are a quick analysis expert', validContext);
   }
 
   async generateVoiceResponse(text: string): Promise<string> {
-    // Return simplified text for voice synthesis
-    return text.replace(/\*.*?\*/g, '').replace(/🧪.*$/gm, '').trim();
+    const validText = validateStringParam(text, 'Hello!');
+    
+    if (this.useDummyResponses) {
+      console.log('Generating dummy voice response');
+      return dummyResponseService.generateVoiceResponse(validText);
+    }
+    
+    // Fallback to dummy for testing
+    return dummyResponseService.generateVoiceResponse(validText);
   }
 
-  async performQuickAnalysis(data: any): Promise<string> {
-    console.log('Performing quick analysis on:', data);
+  async generateStrategyResponse(prompt: string): Promise<string> {
+    const validPrompt = validateStringParam(prompt, 'provide strategy help');
     
-    return `Quick Analysis Complete: Based on the provided data, I've identified key patterns and opportunities. This analysis suggests focusing on high-conversion leads and optimizing your current sales approach. Demo analysis result.`;
+    const response = await this.generateResponse(validPrompt, 'You are a sales strategy expert', 'strategy');
+    return response.response;
+  }
+
+  async generateCommunication(prompt: string): Promise<string> {
+    const validPrompt = validateStringParam(prompt, 'help with communication');
+    
+    const response = await this.generateResponse(validPrompt, 'You are a communication expert', 'communication');
+    return response.response;
   }
 }
 
-export const unifiedAIService = new UnifiedAIService();
+export const unifiedAIService = UnifiedAIService.getInstance();

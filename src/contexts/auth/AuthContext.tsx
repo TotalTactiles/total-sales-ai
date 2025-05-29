@@ -90,11 +90,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('profiles')
           .update({ last_login: new Date().toISOString() })
           .eq('id', userId);
+
+        // Handle post-authentication routing
+        handlePostAuthRouting(data as Profile);
       } else {
         console.warn("No profile found for user:", userId);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
+    }
+  };
+
+  const handlePostAuthRouting = (userProfile: Profile) => {
+    // Don't redirect if we're already on auth page or in onboarding
+    if (location.pathname === '/auth' || location.pathname.includes('onboarding')) {
+      return;
+    }
+
+    // Check if onboarding is complete
+    const onboardingComplete = localStorage.getItem(`onboarding_complete_${userProfile.id}`);
+    
+    if (!onboardingComplete) {
+      // Onboarding will handle routing
+      return;
+    }
+
+    // Redirect to appropriate dashboard based on role
+    const targetPath = userProfile.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+    
+    // Only redirect if we're not already on the correct path
+    if (!location.pathname.startsWith(targetPath.split('/')[1])) {
+      navigate(targetPath);
     }
   };
 
@@ -114,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       console.log("Sign up successful:", data);
-      toast.success('Account created successfully!');
+      toast.success('Account created successfully! Please complete onboarding.');
     } catch (error: any) {
       console.error("Sign up error:", error);
       toast.error(error.message || 'Error signing up');
@@ -143,29 +169,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
-      console.log("Starting signout process...");
-      
       // Clear demo mode if active
-      const wasDemoMode = isDemoMode();
-      if (wasDemoMode) {
-        console.log("Clearing demo mode");
-        clearDemoMode();
-      }
+      clearDemoMode();
       
-      // Sign out from Supabase if not in demo mode
-      if (!wasDemoMode) {
-        await supabase.auth.signOut();
-      }
-      
-      // Clear all auth state
+      await supabase.auth.signOut();
       setUser(null);
       setSession(null);
       setProfile(null);
-      
-      // Navigate to auth page
-      console.log("Redirecting to /auth");
-      navigate('/auth', { replace: true });
-      
+      navigate('/auth');
       toast.info('You have been logged out');
     } catch (error: any) {
       console.error("Sign out error:", error);
@@ -180,24 +191,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(demoUser);
     setProfile(demoProfile);
     
-    // Navigate to appropriate OS using new structure
-    let targetPath = '/sales';
-    
-    switch (role) {
-      case 'developer':
-      case 'admin':
-        targetPath = '/developer';
-        break;
-      case 'manager':
-        targetPath = '/manager';
-        break;
-      case 'sales_rep':
-      default:
-        targetPath = '/sales';
-        break;
-    }
-    
-    console.log("Navigating to:", targetPath);
+    // Navigate to appropriate dashboard
+    const targetPath = role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
     navigate(targetPath);
   };
 

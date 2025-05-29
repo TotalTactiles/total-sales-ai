@@ -18,35 +18,32 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    fullName: '',
+  });
 
-  // Check for existing authentication and redirect if needed
+  // Redirect if already logged in or in demo mode
   useEffect(() => {
     console.log("AuthPage: Checking login status. User:", !!user, "Profile:", !!profile, "Demo mode:", isDemoMode());
     
-    // Only redirect if we have both user and profile (fully authenticated)
-    if (user && profile && !isTransitioning) {
+    if (user && profile) {
       console.log("AuthPage: User is logged in, redirecting to dashboard");
+      const redirectPath = profile.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+      navigate(redirectPath);
+    } else if (isDemoMode()) {
+      // Check if demo mode is active but navigation didn't happen
+      const demoRole = localStorage.getItem('demoRole') as Role | null;
+      console.log("AuthPage: Demo mode is active with role:", demoRole);
       
-      // Navigate using OS structure
-      let targetPath = '/sales/dashboard';
-      
-      switch (profile.role) {
-        case 'developer':
-        case 'admin':
-          targetPath = '/developer/dashboard';
-          break;
-        case 'manager':
-          targetPath = '/manager/dashboard';
-          break;
-        case 'sales_rep':
-        default:
-          targetPath = '/sales/dashboard';
-          break;
+      if (demoRole) {
+        const redirectPath = demoRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+        console.log("AuthPage: Redirecting to", redirectPath);
+        navigate(redirectPath);
       }
-      
-      navigate(targetPath);
     }
-  }, [user, profile, navigate, isDemoMode, isTransitioning]);
+  }, [user, profile, navigate, isDemoMode]);
 
   const handleRoleChange = (role: Role) => {
     console.log("AuthPage: Role changed to", role);
@@ -57,34 +54,18 @@ const AuthPage = () => {
   const simulateLoginTransition = () => {
     // Simulate loading and transition to dashboard
     setTimeout(() => {
-      // Use OS structure
-      let targetPath = '/sales/dashboard';
-      
-      switch (selectedRole) {
-        case 'developer':
-        case 'admin':
-          targetPath = '/developer/dashboard';
-          break;
-        case 'manager':
-          targetPath = '/manager/dashboard';
-          break;
-        case 'sales_rep':
-        default:
-          targetPath = '/sales/dashboard';
-          break;
-      }
-      
-      console.log("AuthPage: Transitioning to", targetPath);
-      navigate(targetPath);
+      const redirectPath = selectedRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+      console.log("AuthPage: Transitioning to", redirectPath);
+      navigate(redirectPath);
     }, 1500);
   };
 
-  // If transitioning, show loading screen
-  if (isTransitioning) {
+  // If already in demo mode or transitioning, show loading screen
+  if (isDemoMode() || isTransitioning) {
     return (
       <AuthLoadingScreen 
-        role={selectedRole} 
-        isDemoMode={false} 
+        role={localStorage.getItem('demoRole') as Role || selectedRole} 
+        isDemoMode={isDemoMode()} 
       />
     );
   }
@@ -108,28 +89,22 @@ const AuthPage = () => {
           onValueChange={(value) => handleRoleChange(value as Role)}
           className="w-full"
         >
-          <TabsList className="grid grid-cols-3 mb-6">
-            <TabsTrigger value="sales_rep" className="flex items-center gap-2">
-              Sales Rep
-            </TabsTrigger>
+          <TabsList className="grid grid-cols-2 mb-6">
             <TabsTrigger value="manager" className="flex items-center gap-2">
-              Manager
+              Manager View
             </TabsTrigger>
-            <TabsTrigger value="developer" className="flex items-center gap-2">
-              Developer
+            <TabsTrigger value="sales_rep" className="flex items-center gap-2">
+              Sales Rep View
             </TabsTrigger>
           </TabsList>
         
           <div className="space-y-6">
             <div className="text-center p-4 mb-4 border border-dashed border-border rounded-lg dark:border-dark-border">
               <h3 className="font-medium text-lg mb-1">
-                {selectedRole === 'developer' ? 'Developer OS' : 
-                 selectedRole === 'manager' ? 'Manager OS' : 'Sales Rep OS'}
+                {selectedRole === 'manager' ? 'Manager Dashboard' : 'Sales Rep Dashboard'}
               </h3>
               <p className="text-sm text-muted-foreground dark:text-gray-400">
-                {selectedRole === 'developer' 
-                  ? 'System monitoring, AI brain, sandbox & dev tools' 
-                  : selectedRole === 'manager'
+                {selectedRole === 'manager' 
                   ? 'Team analysis, performance tracking & AI coaching' 
                   : 'Smart dialer, call scripts & AI sales assistant'}
               </p>
@@ -140,6 +115,16 @@ const AuthPage = () => {
                 <AuthLoginForm 
                   setIsTransitioning={setIsTransitioning} 
                   simulateLoginTransition={simulateLoginTransition}
+                  formData={{
+                    email: formData.email,
+                    password: formData.password
+                  }}
+                  setFormData={(data: { email: string; password: string; }) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      ...data
+                    }));
+                  }}
                 />
               ) : (
                 <AuthSignupForm 
@@ -162,6 +147,12 @@ const AuthPage = () => {
               selectedRole={selectedRole} 
               setIsTransitioning={setIsTransitioning}
               simulateLoginTransition={simulateLoginTransition}
+              setFormData={(data: { email: string; password: string; }) => {
+                setFormData(prev => ({
+                  ...prev,
+                  ...data
+                }));
+              }}
             />
           </div>
         </Tabs>

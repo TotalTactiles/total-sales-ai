@@ -71,10 +71,6 @@ const CRMConnectionCard: React.FC<CRMConnectionCardProps> = ({
     }
   };
 
-  const isSyncing = status === 'syncing';
-  const isConnected = status === 'connected';
-  const canSync = isConnected && !isSyncing;
-
   return (
     <Card className="bg-card border-border">
       <CardHeader className="pb-3">
@@ -91,7 +87,7 @@ const CRMConnectionCard: React.FC<CRMConnectionCardProps> = ({
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isConnected && (
+        {status === 'connected' && (
           <>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
@@ -129,10 +125,10 @@ const CRMConnectionCard: React.FC<CRMConnectionCardProps> = ({
                 size="sm" 
                 variant="outline" 
                 onClick={() => handleAction(onSync)}
-                disabled={isLoading || !canSync}
+                disabled={isLoading || status === 'syncing'}
               >
-                <RefreshCw className={`h-3 w-3 mr-1 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Syncing...' : 'Sync Now'}
+                <RefreshCw className={`h-3 w-3 mr-1 ${status === 'syncing' ? 'animate-spin' : ''}`} />
+                Sync Now
               </Button>
               <Button size="sm" variant="outline" onClick={onViewLogs}>
                 View Logs

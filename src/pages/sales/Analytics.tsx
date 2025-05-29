@@ -1,379 +1,258 @@
 
-import React, { useState } from 'react';
-import { BarChart3, TrendingUp, Target, Clock, Users, DollarSign, Phone, Mail } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLeads } from '@/hooks/useLeads';
-import { useMockData } from '@/hooks/useMockData';
-import DemoModeIndicator from '@/components/Demo/DemoModeIndicator';
-import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
-import { toast } from 'sonner';
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Users, 
+  Phone, 
+  Mail, 
+  DollarSign,
+  Target,
+  Calendar,
+  Star,
+  Award
+} from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
-const SalesAnalytics = () => {
-  const { leads } = useLeads();
-  const { leads: mockLeads } = useMockData();
-  const { isDemoMode } = useAuth();
-  const [showDemo, setShowDemo] = useState(false);
+const SalesRepAnalytics: React.FC = () => {
+  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter'>('month');
 
-  const hasRealData = leads && leads.length > 0;
-  const shouldShowMockData = isDemoMode() || showDemo || !hasRealData;
+  const performanceData = [
+    { name: 'Week 1', calls: 45, emails: 120, meetings: 8, revenue: 12000 },
+    { name: 'Week 2', calls: 52, emails: 98, meetings: 12, revenue: 18000 },
+    { name: 'Week 3', calls: 38, emails: 145, meetings: 6, revenue: 8500 },
+    { name: 'Week 4', calls: 61, emails: 132, meetings: 15, revenue: 25000 }
+  ];
 
-  const handleStartDemo = () => {
-    setShowDemo(true);
-    toast.success('Demo mode activated! Explore sales analytics with comprehensive mock data.');
-  };
+  const conversionData = [
+    { stage: 'Prospects', count: 120, percentage: 100 },
+    { stage: 'Qualified', count: 84, percentage: 70 },
+    { stage: 'Demo', count: 42, percentage: 35 },
+    { stage: 'Proposal', count: 21, percentage: 17.5 },
+    { stage: 'Closed Won', count: 8, percentage: 6.7 }
+  ];
 
-  // Mock analytics data
-  const mockAnalytics = {
-    performance: {
-      totalRevenue: 1247500,
-      dealsWon: 23,
-      conversionRate: 34.5,
-      avgDealSize: 54250,
-      pipelineValue: 3850000,
-      avgSalesCycle: 42
+  const kpis = [
+    { 
+      title: 'Calls Made', 
+      value: '196', 
+      change: '+12%', 
+      trend: 'up', 
+      icon: Phone,
+      color: 'text-blue-600'
     },
-    activity: {
-      callsMade: 156,
-      emailsSent: 89,
-      meetingsScheduled: 12,
-      responseRate: 67.8,
-      followUpRate: 91.2
+    { 
+      title: 'Email Responses', 
+      value: '89', 
+      change: '+8%', 
+      trend: 'up', 
+      icon: Mail,
+      color: 'text-green-600'
     },
-    trends: [
-      { month: 'Jan', revenue: 98000, deals: 4 },
-      { month: 'Feb', revenue: 125000, deals: 6 },
-      { month: 'Mar', revenue: 142000, deals: 5 },
-      { month: 'Apr', revenue: 189000, deals: 8 },
-      { month: 'May', revenue: 234000, deals: 7 },
-      { month: 'Jun', revenue: 267000, deals: 9 }
-    ],
-    topLeads: mockLeads.slice(0, 5),
-    sourceBreakdown: [
-      { source: 'LinkedIn Outreach', count: 45, percentage: 35 },
-      { source: 'Referrals', count: 32, percentage: 25 },
-      { source: 'Website Form', count: 28, percentage: 22 },
-      { source: 'Trade Shows', count: 15, percentage: 12 },
-      { source: 'Cold Email', count: 8, percentage: 6 }
-    ]
-  };
-
-  // Show workspace showcase if no data and demo not started
-  if (!shouldShowMockData && !showDemo) {
-    return (
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <div className="max-w-4xl mx-auto py-12">
-          <WorkspaceShowcase 
-            workspace="Sales Analytics" 
-            onStartDemo={handleStartDemo}
-          />
-        </div>
-      </div>
-    );
-  }
+    { 
+      title: 'Meetings Booked', 
+      value: '41', 
+      change: '+25%', 
+      trend: 'up', 
+      icon: Calendar,
+      color: 'text-purple-600'
+    },
+    { 
+      title: 'Revenue Generated', 
+      value: '$63.5K', 
+      change: '+18%', 
+      trend: 'up', 
+      icon: DollarSign,
+      color: 'text-green-600'
+    }
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Demo Mode Indicator */}
-      {shouldShowMockData && (
-        <DemoModeIndicator workspace="Sales Analytics & Performance Insights" />
-      )}
-
-      {/* Header */}
+    <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Sales Analytics</h1>
-          <p className="text-muted-foreground mt-2">
-            Comprehensive performance insights and data-driven recommendations
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Sales Analytics</h1>
+          <p className="text-gray-600">Track your performance and identify opportunities</p>
         </div>
-        <Badge variant="outline" className="px-3 py-1">
-          <TrendingUp className="h-3 w-3 mr-1" />
-          +23% vs last month
-        </Badge>
+        <div className="flex gap-2">
+          {['week', 'month', 'quarter'].map((range) => (
+            <button
+              key={range}
+              onClick={() => setTimeRange(range as any)}
+              className={`px-3 py-1 rounded-md text-sm ${
+                timeRange === range
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {range.charAt(0).toUpperCase() + range.slice(1)}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
-          <TabsTrigger value="leads">Lead Analytics</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-6">
-          {/* Key Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card>
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {kpis.map((kpi, index) => {
+          const Icon = kpi.icon;
+          return (
+            <Card key={index}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
+                <Icon className={`h-4 w-4 ${kpi.color}`} />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  ${mockAnalytics.performance.totalRevenue.toLocaleString()}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  +23% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Deals Won</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{mockAnalytics.performance.dealsWon}</div>
-                <p className="text-xs text-muted-foreground">
-                  +4 from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{mockAnalytics.performance.conversionRate}%</div>
-                <p className="text-xs text-muted-foreground">
-                  +5.2% from last month
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Revenue Trend Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Trend</CardTitle>
-              <CardDescription>Monthly revenue performance over the last 6 months</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64 flex items-end justify-between gap-2 px-4">
-                {mockAnalytics.trends.map((month, index) => (
-                  <div key={month.month} className="flex-1 flex flex-col items-center">
-                    <div className="text-xs text-muted-foreground mb-2">
-                      ${(month.revenue / 1000).toFixed(0)}k
-                    </div>
-                    <div 
-                      className="w-full bg-blue-500 rounded-t transition-all"
-                      style={{ 
-                        height: `${(month.revenue / Math.max(...mockAnalytics.trends.map(t => t.revenue))) * 200}px` 
-                      }}
-                    />
-                    <div className="text-xs mt-2 text-center">
-                      <div>{month.month}</div>
-                      <div className="text-muted-foreground">{month.deals} deals</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Lead Source Breakdown */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Lead Source Performance</CardTitle>
-              <CardDescription>Where your best leads are coming from</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockAnalytics.sourceBreakdown.map((source) => (
-                  <div key={source.source} className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>{source.source}</span>
-                      <span className="text-muted-foreground">
-                        {source.count} leads ({source.percentage}%)
-                      </span>
-                    </div>
-                    <Progress value={source.percentage} />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="performance" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Pipeline Health</CardTitle>
-                <CardDescription>Current pipeline analysis</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span>Pipeline Value</span>
-                  <span className="font-semibold">
-                    ${mockAnalytics.performance.pipelineValue.toLocaleString()}
+                <div className="text-2xl font-bold">{kpi.value}</div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  {kpi.trend === 'up' ? (
+                    <TrendingUp className="h-3 w-3 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-500" />
+                  )}
+                  <span className={kpi.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
+                    {kpi.change}
                   </span>
+                  <span>from last month</span>
                 </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Performance Trends */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Trends</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={performanceData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Line type="monotone" dataKey="calls" stroke="#3b82f6" strokeWidth={2} />
+                <Line type="monotone" dataKey="meetings" stroke="#10b981" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Revenue Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={performanceData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
+                <Bar dataKey="revenue" fill="#8b5cf6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Conversion Funnel */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Sales Funnel Conversion</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {conversionData.map((stage, index) => (
+              <div key={index} className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span>Average Deal Size</span>
-                  <span className="font-semibold">
-                    ${mockAnalytics.performance.avgDealSize.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Average Sales Cycle</span>
-                  <span className="font-semibold">{mockAnalytics.performance.avgSalesCycle} days</span>
-                </div>
-                <div className="pt-4">
-                  <div className="text-sm text-muted-foreground mb-2">Conversion Rate Progress</div>
-                  <Progress value={mockAnalytics.performance.conversionRate} />
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {mockAnalytics.performance.conversionRate}% of leads converted
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Activity Metrics</CardTitle>
-                <CardDescription>Your engagement statistics</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
+                  <span className="font-medium">{stage.stage}</span>
                   <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-blue-500" />
-                    <span>Calls Made</span>
+                    <span className="text-sm text-gray-600">{stage.count} leads</span>
+                    <Badge variant="outline">{stage.percentage}%</Badge>
                   </div>
-                  <span className="font-semibold">{mockAnalytics.activity.callsMade}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-green-500" />
-                    <span>Emails Sent</span>
-                  </div>
-                  <span className="font-semibold">{mockAnalytics.activity.emailsSent}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-purple-500" />
-                    <span>Meetings Scheduled</span>
-                  </div>
-                  <span className="font-semibold">{mockAnalytics.activity.meetingsScheduled}</span>
-                </div>
-                <div className="pt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Response Rate</span>
-                    <span>{mockAnalytics.activity.responseRate}%</span>
-                  </div>
-                  <Progress value={mockAnalytics.activity.responseRate} />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="activity" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Daily Calls</CardTitle>
-                <Phone className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">24</div>
-                <p className="text-xs text-muted-foreground">
-                  Target: 30 calls/day
-                </p>
-                <Progress value={80} className="mt-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Emails Sent</CardTitle>
-                <Mail className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">18</div>
-                <p className="text-xs text-muted-foreground">
-                  Target: 20 emails/day
-                </p>
-                <Progress value={90} className="mt-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Connect Rate</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">68%</div>
-                <p className="text-xs text-muted-foreground">
-                  +12% vs last week
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Follow-up Rate</CardTitle>
-                <Clock className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">91%</div>
-                <p className="text-xs text-muted-foreground">
-                  Excellent consistency
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="leads" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Performing Leads</CardTitle>
-              <CardDescription>Leads with highest conversion potential</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {mockAnalytics.topLeads.map((lead) => (
-                  <div key={lead.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <h4 className="font-semibold">{lead.name}</h4>
-                      <p className="text-sm text-muted-foreground">{lead.company}</p>
-                      <div className="flex gap-2 mt-1">
-                        <Badge 
-                          variant={lead.priority === 'high' ? 'destructive' : 'secondary'}
-                          className="text-xs"
-                        >
-                          {lead.priority}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">
-                          {lead.source}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold">{lead.score}%</div>
-                      <div className="text-xs text-muted-foreground">Lead Score</div>
-                      <div className="text-xs text-green-600">
-                        {lead.conversion_likelihood}% conversion
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                <Progress value={stage.percentage} className="h-2" />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Goals & Achievements */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-600" />
+              Monthly Goals
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Calls Target</span>
+                <span>196/200</span>
+              </div>
+              <Progress value={98} className="h-2" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Revenue Target</span>
+                <span>$63.5K/$80K</span>
+              </div>
+              <Progress value={79} className="h-2" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Meetings Target</span>
+                <span>41/50</span>
+              </div>
+              <Progress value={82} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-yellow-600" />
+              Recent Achievements
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-3 p-2 bg-green-50 rounded-lg">
+              <Star className="h-4 w-4 text-yellow-500" />
+              <div>
+                <p className="text-sm font-medium">Top Performer</p>
+                <p className="text-xs text-gray-600">Highest conversion rate this month</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
+              <Phone className="h-4 w-4 text-blue-500" />
+              <div>
+                <p className="text-sm font-medium">Call Champion</p>
+                <p className="text-xs text-gray-600">100+ calls made this month</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 p-2 bg-purple-50 rounded-lg">
+              <DollarSign className="h-4 w-4 text-purple-500" />
+              <div>
+                <p className="text-sm font-medium">Revenue Goal</p>
+                <p className="text-xs text-gray-600">80% of monthly target achieved</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
 
-export default SalesAnalytics;
+export default SalesRepAnalytics;

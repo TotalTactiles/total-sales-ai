@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,8 +20,6 @@ interface PipelinePulseProps {
 }
 
 const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, onLeadClick }) => {
-  const navigate = useNavigate();
-
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
       case 'high': return '🔥';
@@ -41,11 +38,6 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, onLeadClick }) => 
       case 'closed': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const handleLeadClick = (leadId: string) => {
-    // Navigate to the lead workspace
-    navigate(`/workspace/${leadId}`);
   };
 
   return (
@@ -70,7 +62,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, onLeadClick }) => 
                 <tr
                   key={lead.id}
                   className="border-b hover:bg-muted/30 cursor-pointer transition-colors"
-                  onClick={() => handleLeadClick(lead.id)}
+                  onClick={() => onLeadClick(lead.id)}
                 >
                   <td className="p-4">
                     <div>
@@ -89,13 +81,13 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, onLeadClick }) => 
                   <td className="p-4 font-medium">{lead.value}</td>
                   <td className="p-4">
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); }}>
+                      <Button size="sm" variant="ghost">
                         <PhoneCall className="h-3 w-3" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); }}>
+                      <Button size="sm" variant="ghost">
                         <Mail className="h-3 w-3" />
                       </Button>
-                      <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); }}>
+                      <Button size="sm" variant="ghost">
                         <Calendar className="h-3 w-3" />
                       </Button>
                     </div>

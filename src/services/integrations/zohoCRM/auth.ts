@@ -27,18 +27,14 @@ export class ZohoAuth {
 
   constructor() {
     this.authConfig = {
-      clientId: '', // Will be configured via Supabase secrets
-      clientSecret: '', // Will be configured via Supabase secrets
+      clientId: process.env.ZOHO_CLIENT_ID || '',
+      clientSecret: process.env.ZOHO_CLIENT_SECRET || '',
       redirectUri: `${window.location.origin}/integrations/zoho/callback`,
       scope: 'ZohoCRM.modules.ALL,ZohoCRM.settings.ALL'
     };
   }
 
   generateAuthUrl(): string {
-    if (!this.authConfig.clientId) {
-      throw new Error('Zoho Client ID not configured. Please configure it in Supabase secrets.');
-    }
-
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.authConfig.clientId,
@@ -52,10 +48,6 @@ export class ZohoAuth {
 
   async exchangeCodeForTokens(code: string): Promise<ZohoTokens> {
     try {
-      if (!this.authConfig.clientId || !this.authConfig.clientSecret) {
-        throw new Error('Zoho credentials not configured. Please configure them in Supabase secrets.');
-      }
-
       const response = await fetch('https://accounts.zoho.com/oauth/v2/token', {
         method: 'POST',
         headers: {
@@ -95,10 +87,6 @@ export class ZohoAuth {
       const storedTokens = await this.getStoredTokens();
       if (!storedTokens?.refreshToken) {
         throw new Error('No refresh token available');
-      }
-
-      if (!this.authConfig.clientId || !this.authConfig.clientSecret) {
-        throw new Error('Zoho credentials not configured. Please configure them in Supabase secrets.');
       }
 
       const response = await fetch('https://accounts.zoho.com/oauth/v2/token', {
@@ -152,21 +140,6 @@ export class ZohoAuth {
     } catch (error) {
       console.error('Failed to get valid access token:', error);
       throw error;
-    }
-  }
-
-  // Load configuration from Supabase secrets
-  async loadConfiguration(): Promise<void> {
-    try {
-      // In a real implementation, you would call a Supabase edge function
-      // that securely retrieves the configuration from Supabase secrets
-      // For now, we'll use placeholder values
-      console.log('Loading Zoho configuration from Supabase secrets...');
-      
-      // TODO: Implement actual configuration loading from Supabase secrets
-      // This would typically involve calling an edge function that has access to secrets
-    } catch (error) {
-      console.error('Failed to load Zoho configuration:', error);
     }
   }
 

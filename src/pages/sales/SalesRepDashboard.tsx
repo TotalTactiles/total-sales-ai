@@ -1,116 +1,197 @@
-
-import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Phone, Users, Target, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import AIDailySummary from '@/components/Dashboard/AIDailySummary';
+import PerformanceMetricsGrid from '@/components/Dashboard/PerformanceMetricsGrid';
+import PipelinePulse from '@/components/Dashboard/PipelinePulse';
+import AIOptimizedTimeBlocks from '@/components/Dashboard/AIOptimizedTimeBlocks';
+import VictoryArchive from '@/components/Dashboard/VictoryArchive';
+import AISummaryCard from '@/components/Dashboard/AISummaryCard';
+import AIRecommendedActions from '@/components/Dashboard/AIRecommendedActions';
+import SalesRepAIAssistant from '@/components/SalesAI/SalesRepAIAssistant';
+import { SafeErrorBoundary } from '@/components/ErrorBoundary/SafeErrorBoundary';
+import { useAuth } from '@/contexts/AuthContext';
+import { useLeads } from '@/hooks/useLeads';
+import { useMockData } from '@/hooks/useMockData';
+import { supabase } from '@/integrations/supabase/client';
+import { validateStringParam } from '@/types/actions';
+import { runtimeValidator } from '@/utils/runtimeValidator';
 
 const SalesRepDashboard = () => {
+  const navigate = useNavigate();
+  const { user, profile } = useAuth();
+  const { leads } = useLeads();
+  const { leads: mockLeads } = useMockData();
+  const [userStats, setUserStats] = useState(null);
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { data } = await supabase
+          .from('user_stats')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+        setUserStats(data);
+      } catch (error) {
+        console.log('No user stats found, using defaults');
+      }
+    };
+
+    fetchUserStats();
+
+    // Show test mode notification
+    const isTestMode = true; // Will be configurable later
+    if (isTestMode) {
+      console.log('🧪 SalesOS running in TEST MODE - AI responses are dummy data for demonstration');
+    }
+
+    // Perform system integrity check
+    const integrityCheck = runtimeValidator.checkSystemIntegrity();
+    console.log('System integrity check:', integrityCheck);
+  }, [user?.id]);
+
+  const displayLeads = leads && leads.length > 0 ? leads : mockLeads;
+  const isFullUser = !!user && !!profile;
+
+  const dailySummary = validateStringParam(
+    `Good morning! You have 12 high-priority leads requiring immediate attention. Your conversion rate improved by 23% this week. AI suggests focusing on Enterprise prospects between 2-4 PM for optimal engagement. Your pipeline value increased to $847K with 3 deals expected to close this week.`,
+    'Welcome to your sales dashboard! Check your pipeline and take action on your leads today.'
+  );
+
+  const pipelineLeads = displayLeads.slice(0, 5).map(lead => ({
+    id: validateStringParam(lead.id, crypto.randomUUID()),
+    name: validateStringParam(lead.name, 'Unknown Lead'),
+    status: lead.status as 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed',
+    priority: lead.priority as 'high' | 'medium' | 'low',
+    lastContact: validateStringParam(lead.lastContact, 'Never'),
+    value: `$${Math.floor(Math.random() * 50000 + 10000).toLocaleString()}`
+  }));
+
+  const handleLeadClick = (leadId: any) => {
+    const validLeadId = validateStringParam(leadId, 'default-lead');
+    navigate(`/lead-workspace/${validLeadId}`);
+  };
+
+  const victories = [
+    { 
+      id: '1',
+      clientName: 'TechCorp Inc.',
+      dealValue: '$125,000',
+      dateClosed: '2024-01-15',
+      type: 'new' as const
+    },
+    { 
+      id: '2',
+      clientName: 'Global Solutions',
+      dealValue: '$85,000',
+      dateClosed: '2024-01-12',
+      type: 'upsell' as const
+    },
+    { 
+      id: '3',
+      clientName: 'StartupXYZ',
+      dealValue: '$45,000',
+      dateClosed: '2024-01-08',
+      type: 'renewal' as const
+    }
+  ];
+
+  const aiSummaryData = {
+    emailsDrafted: 23,
+    callsScheduled: 12,
+    proposalsGenerated: 5,
+    improvementPercentage: 34
+  };
+
+  const recommendedActions = [
+    {
+      id: '1',
+      description: 'Call Maria Rodriguez at TechCorp - warm lead ready to close',
+      suggestedTime: '2:30 PM',
+      urgency: 'high' as const,
+      type: 'call' as const,
+      impact: 'high' as const
+    },
+    {
+      id: '2',
+      description: 'Send follow-up email to Global Solutions with updated proposal',
+      suggestedTime: '3:15 PM',
+      urgency: 'medium' as const,
+      type: 'email' as const,
+      impact: 'medium' as const
+    },
+    {
+      id: '3',
+      description: 'Schedule demo with StartupXYZ for next week',
+      suggestedTime: '4:00 PM',
+      urgency: 'low' as const,
+      type: 'meeting' as const,
+      impact: 'low' as const
+    }
+  ];
+
+  const handleActionClick = (actionId: any) => {
+    const validActionId = validateStringParam(actionId, 'default-action');
+    console.log('Action clicked:', validActionId);
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Sales Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Your personal sales metrics and lead pipeline
-        </p>
-      </div>
+    <SafeErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <main className="pt-16">
+          <div className="max-w-7xl mx-auto p-6 space-y-6">
+            <SafeErrorBoundary>
+              <section>
+                <AIDailySummary summary={dailySummary} isFullUser={isFullUser} />
+              </section>
+            </SafeErrorBoundary>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Calls Today</CardTitle>
-            <Phone className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">23</div>
-            <p className="text-xs text-muted-foreground">Goal: 30 calls</p>
-          </CardContent>
-        </Card>
+            <SafeErrorBoundary>
+              <section>
+                <PerformanceMetricsGrid userStats={userStats} isFullUser={isFullUser} />
+              </section>
+            </SafeErrorBoundary>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Leads</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">42</div>
-            <p className="text-xs text-muted-foreground">+5 new this week</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">32%</div>
-            <p className="text-xs text-muted-foreground">Above team average</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$34,520</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Today's Priorities</CardTitle>
-            <CardDescription>Your action items for today</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                <span className="text-sm">Follow up with ABC Corp - Decision due today</span>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2 space-y-6">
+                <SafeErrorBoundary>
+                  <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
+                </SafeErrorBoundary>
+                <SafeErrorBoundary>
+                  <AIOptimizedTimeBlocks isFullUser={isFullUser} />
+                </SafeErrorBoundary>
               </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                <span className="text-sm">Demo call with XYZ Inc at 2 PM</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Send proposal to Tech Solutions Ltd</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm">Complete 30 cold calls</span>
+
+              <div className="space-y-6">
+                <SafeErrorBoundary>
+                  <VictoryArchive victories={victories} isFullUser={isFullUser} />
+                </SafeErrorBoundary>
+                <SafeErrorBoundary>
+                  <AISummaryCard data={aiSummaryData} isFullUser={isFullUser} />
+                </SafeErrorBoundary>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Start your sales activities</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <button className="w-full text-left p-2 rounded-md hover:bg-accent transition-colors">
-                Start Dialing Session
-              </button>
-              <button className="w-full text-left p-2 rounded-md hover:bg-accent transition-colors">
-                Review Lead Queue
-              </button>
-              <button className="w-full text-left p-2 rounded-md hover:bg-accent transition-colors">
-                Update CRM Notes
-              </button>
-              <button className="w-full text-left p-2 rounded-md hover:bg-accent transition-colors">
-                Schedule Follow-ups
-              </button>
-            </div>
-          </CardContent>
-        </Card>
+            <SafeErrorBoundary>
+              <section>
+                <AIRecommendedActions 
+                  actions={recommendedActions} 
+                  onActionClick={handleActionClick}
+                  isFullUser={isFullUser}
+                />
+              </section>
+            </SafeErrorBoundary>
+          </div>
+        </main>
+        
+        {/* AI Assistant - Fixed positioning with error boundary */}
+        <SafeErrorBoundary>
+          <SalesRepAIAssistant />
+        </SafeErrorBoundary>
       </div>
-    </div>
+    </SafeErrorBoundary>
   );
 };
 

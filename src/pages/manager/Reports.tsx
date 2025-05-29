@@ -1,89 +1,93 @@
 
-import React, { useState } from 'react';
-import { FileText, Download, Calendar, Filter } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FileText, Download, Calendar, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import DemoModeIndicator from '@/components/Demo/DemoModeIndicator';
-import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
-import { toast } from 'sonner';
 
-const ManagerReports = () => {
-  const { isDemoMode } = useAuth();
-  const [showDemo, setShowDemo] = useState(false);
-
-  const shouldShowMockData = isDemoMode() || showDemo;
-
-  const handleStartDemo = () => {
-    setShowDemo(true);
-    toast.success('Demo mode activated! Explore reporting capabilities.');
-  };
-
-  if (!shouldShowMockData && !showDemo) {
-    return (
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
-        <div className="max-w-4xl mx-auto py-12">
-          <WorkspaceShowcase 
-            workspace="Manager Reports" 
-            onStartDemo={handleStartDemo}
-          />
-        </div>
-      </div>
-    );
-  }
-
+const Reports: React.FC = () => {
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {shouldShowMockData && (
-        <DemoModeIndicator workspace="Manager Reports & Analytics Dashboard" />
-      )}
-
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
-          <p className="text-muted-foreground mt-2">
-            Comprehensive reporting and data analysis tools
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
-          <Button>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Reports & Analytics
+        </h1>
+        <Button>
+          <Download className="h-4 w-4 mr-2" />
+          Export All
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Sales Reports
-            </CardTitle>
-            <CardDescription>Team performance and sales metrics</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Reports</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full">
-              Generate Report
-            </Button>
+            <div className="text-2xl font-bold">24</div>
+            <p className="text-xs text-muted-foreground">
+              Generated this month
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Monthly Summary
-            </CardTitle>
-            <CardDescription>Monthly performance overview</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Scheduled Reports</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full">
-              View Summary
+            <div className="text-2xl font-bold">8</div>
+            <p className="text-xs text-muted-foreground">
+              Active schedules
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Data Points</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">1.2M</div>
+            <p className="text-xs text-muted-foreground">
+              Tracked this quarter
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Export Format</CardTitle>
+            <Download className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">PDF</div>
+            <p className="text-xs text-muted-foreground">
+              Most popular format
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Reports</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button variant="outline" className="w-full justify-start">
+              <FileText className="h-4 w-4 mr-2" />
+              Sales Performance Report
+            </Button>
+            <Button variant="outline" className="w-full justify-start">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Team Activity Report
+            </Button>
+            <Button variant="outline" className="w-full justify-start">
+              <Calendar className="h-4 w-4 mr-2" />
+              Weekly Summary
             </Button>
           </CardContent>
         </Card>
@@ -91,11 +95,13 @@ const ManagerReports = () => {
         <Card>
           <CardHeader>
             <CardTitle>Custom Reports</CardTitle>
-            <CardDescription>Create custom analytics reports</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button variant="outline" className="w-full">
-              Create Report
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Create custom reports with specific metrics and date ranges.
+            </p>
+            <Button className="w-full">
+              Create Custom Report
             </Button>
           </CardContent>
         </Card>
@@ -104,4 +110,4 @@ const ManagerReports = () => {
   );
 };
 
-export default ManagerReports;
+export default Reports;

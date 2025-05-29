@@ -1,67 +1,123 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Settings, Brain, Monitor, Code, TestTube, Building2 } from 'lucide-react';
-import Logo from '@/components/Logo';
-import UserProfile from '@/components/UserProfile';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Code, 
+  Monitor, 
+  Brain, 
+  Activity, 
+  AlertTriangle, 
+  CheckSquare, 
+  TestTube, 
+  GitBranch, 
+  Settings,
+  LogOut,
+  User,
+  Database,
+  Zap
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
-const DeveloperNavigation = () => {
+const DeveloperNavigation: React.FC = () => {
   const location = useLocation();
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
+  const [sandboxMode, setSandboxMode] = useState(false);
 
   const navItems = [
-    { label: 'Dashboard', href: '/developer/dashboard', icon: BarChart3 },
-    { label: 'Analytics', href: '/developer/analytics', icon: BarChart3 },
-    { label: 'AI Master Brain', href: '/developer/brain', icon: Brain },
-    { label: 'System Monitoring', href: '/developer/monitoring', icon: Monitor },
-    { label: 'Sandbox', href: '/developer/sandbox', icon: TestTube },
-    { label: 'Settings', href: '/developer/settings', icon: Settings },
+    { href: '/developer/dashboard', label: 'Dashboard', icon: Monitor },
+    { href: '/developer/ai-brain-logs', label: 'AI Brain Hub', icon: Brain },
+    { href: '/developer/system-monitor', label: 'System Monitor', icon: Activity },
+    { href: '/developer/api-logs', label: 'API Logs', icon: Code },
+    { href: '/developer/error-logs', label: 'Error Logs', icon: AlertTriangle },
+    { href: '/developer/crm-integrations', label: 'CRM Integration Dashboard', icon: Database },
+    { href: '/developer/qa-checklist', label: 'QA Checklist', icon: CheckSquare },
+    { href: '/developer/testing-sandbox', label: 'Testing Tools', icon: TestTube },
+    { href: '/developer/version-control', label: 'Version Control', icon: GitBranch },
+    { href: '/developer/settings', label: 'Settings', icon: Settings }
   ];
 
+  const toggleSandboxMode = () => {
+    setSandboxMode(!sandboxMode);
+    // TODO: Implement sandbox mode logic
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
-      <div className="h-[60px] flex items-center justify-between px-6">
-        <div className="flex items-center space-x-2">
-          <Logo />
-          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-            <Building2 className="h-4 w-4" />
-            <span>Developer OS</span>
+    <nav className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Code className="h-8 w-8 text-cyan-400" />
+              <span className="ml-2 text-xl font-bold text-white">Developer OS</span>
+              {sandboxMode && (
+                <Badge className="ml-2 bg-orange-500 text-white animate-pulse">
+                  <Zap className="h-3 w-3 mr-1" />
+                  SANDBOX MODE
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <div className="hidden md:ml-6 md:flex md:space-x-8">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'border-cyan-400 text-cyan-400'
+                      : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Icon className="h-4 w-4 mr-2" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <Button
+              onClick={toggleSandboxMode}
+              variant={sandboxMode ? "destructive" : "outline"}
+              size="sm"
+              className="text-white border-slate-600"
+            >
+              <TestTube className="h-4 w-4 mr-2" />
+              {sandboxMode ? 'Exit Sandbox' : 'Sandbox Mode'}
+            </Button>
+
+            <div className="flex items-center space-x-2 text-white">
+              <User className="h-4 w-4" />
+              <span className="text-sm">{profile?.full_name || 'Developer'}</span>
+            </div>
+
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              size="sm"
+              className="text-slate-300 hover:text-white"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-
-        <nav className="hidden md:flex items-center space-x-6">
-          {navItems.map((item) => {
-            const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <Link
-                key={item.label}
-                to={item.href}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                }`}
-              >
-                <IconComponent className="h-4 w-4" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="flex items-center space-x-4">
-          <ThemeToggle />
-          <UserProfile 
-            name={profile?.full_name || "Developer"}
-            role="Developer"
-          />
-        </div>
       </div>
-    </header>
+    </nav>
   );
 };
 

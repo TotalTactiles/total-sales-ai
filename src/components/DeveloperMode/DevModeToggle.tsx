@@ -2,24 +2,15 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Code, Shield, User, Settings, Lock } from 'lucide-react';
+import { Code, Shield, User, Settings } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const DevModeToggle: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { profile, isDemoMode } = useAuth();
+  const { profile } = useAuth();
   const [showOptions, setShowOptions] = useState(false);
-
-  // Security check: Only show in development or for admin users
-  const isDevelopment = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost';
-  const isAdmin = profile?.role === 'admin';
-  const canAccessDevMode = isDevelopment || isAdmin || isDemoMode();
-
-  if (!canAccessDevMode) {
-    return null;
-  }
 
   // Determine current OS view
   const getCurrentOS = () => {
@@ -32,21 +23,15 @@ const DevModeToggle: React.FC = () => {
   const currentOS = getCurrentOS();
 
   const handleOSSwitch = (targetOS: string) => {
-    // Additional security check for production
-    if (!isDevelopment && !isAdmin && targetOS === 'developer') {
-      console.warn('Access denied: Developer mode restricted in production');
-      return;
-    }
-
     switch (targetOS) {
       case 'developer':
         navigate('/developer');
         break;
       case 'manager':
-        navigate('/manager-dashboard');
+        navigate('/manager');
         break;
       case 'sales':
-        navigate('/sales-rep-dashboard');
+        navigate('/sales');
         break;
     }
     setShowOptions(false);
@@ -71,21 +56,18 @@ const DevModeToggle: React.FC = () => {
           <div className="flex items-center gap-2 mb-3 pb-2 border-b border-gray-700">
             <Shield className="h-4 w-4 text-cyan-400" />
             <span className="text-white text-sm font-medium">Switch OS View</span>
-            {!isDevelopment && <Lock className="h-3 w-3 text-yellow-400" />}
           </div>
           
-          {(isDevelopment || isAdmin) && (
-            <Button
-              onClick={() => handleOSSwitch('developer')}
-              variant={currentOS === 'developer' ? 'default' : 'ghost'}
-              size="sm"
-              className="w-full justify-start text-left"
-            >
-              <Code className="h-4 w-4 mr-2 text-cyan-400" />
-              Developer OS
-              {currentOS === 'developer' && <Badge className="ml-auto text-xs">ACTIVE</Badge>}
-            </Button>
-          )}
+          <Button
+            onClick={() => handleOSSwitch('developer')}
+            variant={currentOS === 'developer' ? 'default' : 'ghost'}
+            size="sm"
+            className="w-full justify-start text-left"
+          >
+            <Code className="h-4 w-4 mr-2 text-cyan-400" />
+            Developer OS
+            {currentOS === 'developer' && <Badge className="ml-auto text-xs">ACTIVE</Badge>}
+          </Button>
           
           <Button
             onClick={() => handleOSSwitch('manager')}
@@ -127,7 +109,6 @@ const DevModeToggle: React.FC = () => {
         >
           <CurrentIcon className="h-4 w-4 mr-2" />
           {currentDisplay.label}
-          {!isDevelopment && <Lock className="h-3 w-3 ml-1" />}
         </Button>
       )}
     </div>

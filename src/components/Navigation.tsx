@@ -21,7 +21,7 @@ const Navigation = () => {
     updateActiveItem(location.pathname, setActiveItem);
   }, [location]);
   
-  const navItems = createNavItems(dashboardUrl, profile);
+  const navItems = createNavItems(dashboardUrl);
   
   return (
     <div className="bg-sidebar text-sidebar-foreground shadow-lg">

@@ -10,7 +10,6 @@ import SalesRepLeadManagement from '@/pages/sales/LeadManagement';
 import SalesRepAcademy from '@/pages/sales/Academy';
 import SalesRepAI from '@/pages/sales/AI';
 import SalesRepSettings from '@/pages/sales/Settings';
-import SalesRepDialer from '@/pages/sales/Dialer';
 
 const SalesRepOS: React.FC = () => {
   return (
@@ -23,7 +22,6 @@ const SalesRepOS: React.FC = () => {
           <Route path="analytics" element={<SalesRepAnalytics />} />
           <Route path="leads" element={<SalesRepLeadManagement />} />
           <Route path="academy" element={<SalesRepAcademy />} />
-          <Route path="dialer" element={<SalesRepDialer />} />
           <Route path="ai" element={<SalesRepAI />} />
           <Route path="settings" element={<SalesRepSettings />} />
           <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
