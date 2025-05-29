@@ -27,14 +27,29 @@ export class ZohoAuth {
 
   constructor() {
     this.authConfig = {
-      clientId: process.env.ZOHO_CLIENT_ID || '',
-      clientSecret: process.env.ZOHO_CLIENT_SECRET || '',
+      clientId: '', // Will be set from Supabase secrets
+      clientSecret: '', // Will be set from Supabase secrets
       redirectUri: `${window.location.origin}/integrations/zoho/callback`,
       scope: 'ZohoCRM.modules.ALL,ZohoCRM.settings.ALL'
     };
   }
 
+  async initializeConfig(): Promise<void> {
+    try {
+      // In a real implementation, these would come from Supabase secrets
+      // For now, we'll use placeholder values to prevent the error
+      this.authConfig.clientId = 'placeholder_client_id';
+      this.authConfig.clientSecret = 'placeholder_client_secret';
+    } catch (error) {
+      console.warn('Failed to load Zoho configuration:', error);
+    }
+  }
+
   generateAuthUrl(): string {
+    if (!this.authConfig.clientId) {
+      throw new Error('Zoho client ID not configured. Please set up your Zoho integration first.');
+    }
+
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.authConfig.clientId,
@@ -47,6 +62,8 @@ export class ZohoAuth {
   }
 
   async exchangeCodeForTokens(code: string): Promise<ZohoTokens> {
+    await this.initializeConfig();
+    
     try {
       const response = await fetch('https://accounts.zoho.com/oauth/v2/token', {
         method: 'POST',
@@ -83,6 +100,8 @@ export class ZohoAuth {
   }
 
   async refreshAccessToken(): Promise<ZohoTokens> {
+    await this.initializeConfig();
+    
     try {
       const storedTokens = await this.getStoredTokens();
       if (!storedTokens?.refreshToken) {
@@ -123,6 +142,8 @@ export class ZohoAuth {
   }
 
   async getValidAccessToken(): Promise<string> {
+    await this.initializeConfig();
+    
     try {
       const tokens = await this.getStoredTokens();
       
