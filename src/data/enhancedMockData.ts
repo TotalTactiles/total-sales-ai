@@ -280,246 +280,77 @@ export const enhancedMockCalls: MockCall[] = [
       recommendations: [
         'Prioritize technical demo',
         'Involve solution architect',
-        'Fast-track proposal process'
-      ],
-      nextBestAction: 'Schedule technical deep-dive demo',
-      confidenceScore: 92
-    },
-    callAnalytics: {
-      talkTime: 60, // percentage
-      customerQuestions: 12,
-      objections: 0,
-      buyingSignals: 8,
-      competitorMentions: ['Salesforce'],
-      emotionalTone: 'enthusiastic'
-    }
-  },
-  {
-    id: 'call-002',
-    leadId: 'lead-002',
-    type: 'outbound',
-    status: 'completed',
-    duration: 1800, // 30 minutes
-    timestamp: '2024-01-11T14:20:00Z',
-    notes: 'Marcus is interested but needs to see clear ROI before moving forward.',
-    recordingUrl: '/recordings/call-002.mp3',
-    transcriptUrl: '/transcripts/call-002.txt',
-    sentiment: 'positive',
-    aiInsights: {
-      summary: 'Cost-conscious buyer focused on operational efficiency and ROI.',
-      keyPoints: [
-        'ROI is primary concern',
-        'Manual processes causing inefficiencies',
-        'Decision timeline: Q2 2024',
-        'Budget approval needed'
-      ],
-      riskFactors: ['Price sensitivity', 'Budget approval required'],
-      recommendations: [
-        'Provide detailed ROI calculations',
-        'Share relevant case studies',
-        'Offer pilot program'
-      ],
-      nextBestAction: 'Send ROI analysis and case studies',
-      confidenceScore: 65
-    },
-    callAnalytics: {
-      talkTime: 45,
-      customerQuestions: 8,
-      objections: 3,
-      buyingSignals: 4,
-      competitorMentions: [],
-      emotionalTone: 'analytical'
-    }
-  },
-  {
-    id: 'call-003',
-    leadId: 'lead-003',
-    type: 'outbound',
-    status: 'completed',
-    duration: 3600, // 60 minutes
-    timestamp: '2024-01-08T13:00:00Z',
-    notes: 'Dr. Watson is very impressed. Ready to move to proposal stage.',
-    recordingUrl: '/recordings/call-003.mp3',
-    transcriptUrl: '/transcripts/call-003.txt',
-    sentiment: 'very_positive',
-    aiInsights: {
-      summary: 'Highly motivated buyer with clear need and budget. Ready to purchase.',
-      keyPoints: [
-        'Immediate need identified',
-        'Budget confirmed: $100k-150k',
-        'HIPAA compliance critical',
-        'Implementation timeline: ASAP'
-      ],
-      riskFactors: ['Compliance requirements must be met'],
-      recommendations: [
-        'Fast-track compliance documentation',
-        'Involve legal/compliance team',
-        'Prepare detailed proposal'
-      ],
-      nextBestAction: 'Send proposal with compliance documentation',
-      confidenceScore: 95
-    },
-    callAnalytics: {
-      talkTime: 70,
-      customerQuestions: 15,
-      objections: 1,
-      buyingSignals: 12,
-      competitorMentions: ['Epic Systems'],
-      emotionalTone: 'excited'
+        'Send enterprise pricing'
+      ]
     }
   }
 ];
 
-// CRM Integration mock data
+// Mock CRM integrations
 export const mockCRMIntegrations = [
   {
-    id: 'crm-001',
+    id: 'zoho-1',
     name: 'Zoho CRM',
-    type: 'zoho' as const,
+    type: 'zoho',
     isConnected: true,
-    lastSync: '2024-01-16T08:00:00Z',
-    leadsImported: 150,
-    tasksImported: 45,
-    status: 'active'
+    lastSync: '2024-01-16T10:00:00Z'
   },
   {
-    id: 'crm-002',
+    id: 'clickup-1',
     name: 'ClickUp',
-    type: 'clickup' as const,
+    type: 'clickup',
     isConnected: true,
-    lastSync: '2024-01-15T18:30:00Z',
-    leadsImported: 0,
-    tasksImported: 78,
-    status: 'active'
-  },
-  {
-    id: 'crm-003',
-    name: 'Salesforce',
-    type: 'salesforce' as const,
-    isConnected: false,
-    lastSync: null,
-    leadsImported: 0,
-    tasksImported: 0,
-    status: 'disconnected'
+    lastSync: '2024-01-16T09:30:00Z'
   }
 ];
 
-// Automation Workflow mock data
+// Mock workflows
 export const mockWorkflows = [
   {
-    id: 'workflow-001',
-    name: 'Lead Follow-up Automation',
-    description: 'Automatically send follow-up emails and create tasks for new qualified leads',
+    id: 'workflow-1',
+    name: 'New Lead Follow-up',
+    description: 'Automatically follow up with new leads within 5 minutes',
     isActive: true,
     trigger: {
-      type: 'lead_status_change' as const,
-      conditions: { status: 'qualified' }
+      type: 'lead_status_change',
+      conditions: { status: 'new' }
     },
     actions: [
       {
-        type: 'send_email' as const,
-        parameters: {
-          template: 'qualified_lead_followup',
-          delay: 300 // 5 minutes
-        }
+        type: 'send_email',
+        parameters: { template: 'welcome_new_lead' },
+        delay: 300
       },
       {
-        type: 'create_task' as const,
-        parameters: {
-          title: 'Schedule discovery call',
-          priority: 'high',
-          dueDate: '+2 days'
-        },
-        delay: 600 // 10 minutes
+        type: 'create_task',
+        parameters: { title: 'Call new lead', assignedTo: 'current_user' },
+        delay: 600
       }
     ],
-    createdBy: 'user-001',
-    createdAt: '2024-01-10T12:00:00Z',
-    runCount: 23,
-    lastRun: '2024-01-16T09:15:00Z'
+    createdBy: 'user-1',
+    createdAt: '2024-01-10T00:00:00Z',
+    runCount: 15,
+    lastRun: '2024-01-16T08:30:00Z'
   },
   {
-    id: 'workflow-002',
-    name: 'Voice Command Lead Update',
-    description: 'Update lead status and send notification when triggered by voice command',
+    id: 'workflow-2',
+    name: 'Proposal Follow-up',
+    description: 'Follow up 3 days after sending proposal',
     isActive: true,
     trigger: {
-      type: 'voice_command' as const,
-      conditions: { command: 'update lead status' }
+      type: 'lead_status_change',
+      conditions: { status: 'proposal' }
     },
     actions: [
       {
-        type: 'update_lead' as const,
-        parameters: {
-          status: 'contacted'
-        }
-      },
-      {
-        type: 'ai_analysis' as const,
-        parameters: {
-          analysisType: 'lead_scoring',
-          prompt: 'Analyze lead interaction and update score'
-        }
+        type: 'send_email',
+        parameters: { template: 'proposal_followup' },
+        delay: 259200
       }
     ],
-    createdBy: 'user-001',
-    createdAt: '2024-01-12T15:30:00Z',
+    createdBy: 'user-1',
+    createdAt: '2024-01-08T00:00:00Z',
     runCount: 8,
-    lastRun: '2024-01-16T11:45:00Z'
+    lastRun: '2024-01-15T10:00:00Z'
   }
 ];
-
-// AI Analysis mock data
-export const mockAIAnalyses = [
-  {
-    id: 'analysis-001',
-    type: 'lead_scoring',
-    leadId: 'lead-001',
-    timestamp: '2024-01-16T10:30:00Z',
-    confidence: 92,
-    insights: [
-      'High engagement score based on call duration and questions asked',
-      'Strong technical background aligns with enterprise features',
-      'Decision-making authority confirmed',
-      'Timeline and budget well-defined'
-    ],
-    recommendations: [
-      'Prioritize technical demo with solution architect',
-      'Provide detailed API documentation',
-      'Fast-track proposal process'
-    ],
-    riskFactors: ['None identified'],
-    scoreChange: +5,
-    reasoning: 'Recent positive call interaction and confirmed budget/timeline increased score'
-  },
-  {
-    id: 'analysis-002',
-    type: 'conversation_analysis',
-    leadId: 'lead-002',
-    timestamp: '2024-01-15T16:00:00Z',
-    confidence: 78,
-    insights: [
-      'Strong focus on ROI and cost justification',
-      'Currently using manual processes causing inefficiencies',
-      'Budget approval process required',
-      'Analytical decision-making style'
-    ],
-    recommendations: [
-      'Provide detailed ROI calculations with industry benchmarks',
-      'Share case studies from similar retail companies',
-      'Offer pilot program to reduce risk'
-    ],
-    riskFactors: ['Price sensitivity', 'Extended decision timeline'],
-    scoreChange: -3,
-    reasoning: 'Multiple objections around pricing reduced confidence score'
-  }
-];
-
-export const enhancedMockData = {
-  leads: enhancedMockLeads,
-  activities: enhancedMockActivities,
-  calls: enhancedMockCalls,
-  crmIntegrations: mockCRMIntegrations,
-  workflows: mockWorkflows,
-  aiAnalyses: mockAIAnalyses
-};

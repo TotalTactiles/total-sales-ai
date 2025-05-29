@@ -1,482 +1,348 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Brain, 
   Database, 
-  Zap, 
-  Settings, 
-  Upload,
-  Download,
-  RefreshCw,
-  CheckCircle,
-  AlertTriangle,
-  Clock
+  TrendingUp, 
+  Users, 
+  FileText, 
+  Zap,
+  Settings,
+  Search,
+  BarChart3,
+  MessageSquare
 } from 'lucide-react';
+import CRMIntegrationsPanel from '@/components/CRM/CRMIntegrationsPanel';
+import WorkflowBuilder from '@/components/Automation/WorkflowBuilder';
 
 const ManagerCompanyBrain = () => {
-  const [integrations] = useState([
-    {
-      name: 'Zoho CRM',
-      status: 'connected',
-      lastSync: '2 minutes ago',
-      records: '1,247 leads',
-      description: 'Real-time lead ingestion and contact management'
-    },
-    {
-      name: 'ClickUp',
-      status: 'connected',
-      lastSync: '5 minutes ago',
-      records: '89 tasks',
-      description: 'Task and project management integration'
-    },
-    {
-      name: 'Salesforce',
-      status: 'available',
-      lastSync: 'Never',
-      records: 'Not connected',
-      description: 'Enterprise CRM and sales pipeline management'
-    },
-    {
-      name: 'GoHighLevel',
-      status: 'available',
-      lastSync: 'Never',
-      records: 'Not connected',
-      description: 'All-in-one marketing and sales platform'
-    }
-  ]);
-
-  const [knowledgeBase] = useState([
-    {
-      category: 'Sales Scripts',
-      items: 47,
-      lastUpdated: '1 day ago',
-      aiOptimized: true
-    },
-    {
-      category: 'Product Information',
-      items: 23,
-      lastUpdated: '3 days ago',
-      aiOptimized: true
-    },
-    {
-      category: 'Competitor Analysis',
-      items: 15,
-      lastUpdated: '1 week ago',
-      aiOptimized: false
-    },
-    {
-      category: 'Case Studies',
-      items: 31,
-      lastUpdated: '2 days ago',
-      aiOptimized: true
-    }
-  ]);
-
-  const [automations] = useState([
-    {
-      name: 'Lead Scoring Automation',
-      status: 'active',
-      triggers: 'New lead import',
-      actions: 'AI scoring + assignment',
-      lastRun: '5 minutes ago'
-    },
-    {
-      name: 'Follow-up Sequence',
-      status: 'active',
-      triggers: 'Demo completed',
-      actions: 'Email sequence + CRM update',
-      lastRun: '1 hour ago'
-    },
-    {
-      name: 'Deal Alert System',
-      status: 'active',
-      triggers: 'High-value opportunity',
-      actions: 'Manager notification + priority flag',
-      lastRun: '3 hours ago'
-    }
-  ]);
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'connected':
-      case 'active':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'available':
-        return <Clock className="h-4 w-4 text-gray-400" />;
-      case 'error':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-gray-400" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'connected':
-      case 'active':
-        return 'bg-green-100 text-green-800';
-      case 'available':
-        return 'bg-gray-100 text-gray-800';
-      case 'error':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const [selectedTab, setSelectedTab] = useState('overview');
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Company Brain</h1>
-          <p className="text-gray-600">Centralized intelligence and automation hub</p>
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Brain className="h-8 w-8 text-purple-600" />
+            <h1 className="text-3xl font-bold text-slate-900">Company Brain</h1>
+            <Badge variant="outline" className="bg-purple-100 text-purple-800 border-purple-300">
+              AI-Powered
+            </Badge>
+          </div>
+          <p className="text-slate-600">
+            Central intelligence hub for your organization's knowledge and automation
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-            <Brain className="h-3 w-3 mr-1" />
-            AI Brain Active
-          </Badge>
-          <Button variant="outline">
-            <Settings className="h-4 w-4 mr-2" />
-            Configure
-          </Button>
-        </div>
-      </div>
 
-      {/* System Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Connected Systems</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{integrations.filter(i => i.status === 'connected').length}</div>
-            <p className="text-xs text-muted-foreground">
-              {integrations.filter(i => i.status === 'available').length} available
-            </p>
-          </CardContent>
-        </Card>
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="knowledge" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Knowledge
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              Integrations
+            </TabsTrigger>
+            <TabsTrigger value="automation" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Automation
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              AI Insights
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
+          </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Automations</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{automations.filter(a => a.status === 'active').length}</div>
-            <p className="text-xs text-muted-foreground">
-              Running smoothly
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Knowledge Items</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{knowledgeBase.reduce((acc, kb) => acc + kb.items, 0)}</div>
-            <p className="text-xs text-muted-foreground">
-              AI-optimized content
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Health</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">98%</div>
-            <p className="text-xs text-muted-foreground">
-              All systems operational
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="integrations" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="integrations">CRM Integrations</TabsTrigger>
-          <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
-          <TabsTrigger value="automations">Automations</TabsTrigger>
-          <TabsTrigger value="analytics">AI Analytics</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="integrations" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Database className="h-5 w-5" />
-                CRM Integration Dashboard
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {integrations.map((integration, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(integration.status)}
-                      </div>
+          <TabsContent value="overview" className="mt-6">
+            <div className="grid gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">{integration.name}</h4>
-                        <p className="text-sm text-gray-600">{integration.description}</p>
-                        <div className="flex items-center gap-4 mt-1">
-                          <span className="text-xs text-gray-500">Last sync: {integration.lastSync}</span>
-                          <span className="text-xs text-gray-500">{integration.records}</span>
+                        <p className="text-sm font-medium text-slate-600">Active Integrations</p>
+                        <p className="text-3xl font-bold text-slate-900">5</p>
+                      </div>
+                      <Database className="h-8 w-8 text-blue-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-600">Knowledge Articles</p>
+                        <p className="text-3xl font-bold text-slate-900">1,247</p>
+                      </div>
+                      <FileText className="h-8 w-8 text-green-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-600">Automation Flows</p>
+                        <p className="text-3xl font-bold text-slate-900">12</p>
+                      </div>
+                      <Zap className="h-8 w-8 text-purple-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-slate-600">AI Confidence</p>
+                        <p className="text-3xl font-bold text-slate-900">94%</p>
+                      </div>
+                      <Brain className="h-8 w-8 text-orange-600" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent AI Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Brain className="h-5 w-5 text-purple-600" />
+                        <div>
+                          <p className="font-medium">Lead Scoring Updated</p>
+                          <p className="text-sm text-slate-600">AI analyzed 47 new leads and updated scoring models</p>
                         </div>
                       </div>
+                      <Badge variant="outline" className="text-green-600 border-green-600">Success</Badge>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className={getStatusColor(integration.status)}>
-                        {integration.status}
-                      </Badge>
-                      {integration.status === 'connected' ? (
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <RefreshCw className="h-3 w-3 mr-1" />
-                            Sync
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            <Settings className="h-3 w-3 mr-1" />
-                            Configure
-                          </Button>
+
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Zap className="h-5 w-5 text-yellow-600" />
+                        <div>
+                          <p className="font-medium">Workflow Optimization</p>
+                          <p className="text-sm text-slate-600">Email sequence performance improved by 23%</p>
                         </div>
-                      ) : (
-                        <Button size="sm">
-                          Connect
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Integration Health</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="font-medium text-green-800">Zoho CRM Sync</h4>
-                  <p className="text-sm text-green-700">Successfully imported 23 new leads in the last hour</p>
-                </div>
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-medium text-blue-800">ClickUp Tasks</h4>
-                  <p className="text-sm text-blue-700">12 follow-up tasks created automatically</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="knowledge" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Brain className="h-5 w-5" />
-                  AI-Powered Knowledge Base
-                </span>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
-                    <Upload className="h-3 w-3 mr-1" />
-                    Upload
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    <Download className="h-3 w-3 mr-1" />
-                    Export
-                  </Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {knowledgeBase.map((kb, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <h4 className="font-medium">{kb.category}</h4>
-                      <p className="text-sm text-gray-600">{kb.items} items • Last updated: {kb.lastUpdated}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className={kb.aiOptimized ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}>
-                        {kb.aiOptimized ? 'AI Optimized' : 'Manual'}
-                      </Badge>
-                      <Button size="sm" variant="outline">Manage</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Content Recommendations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <h4 className="font-medium text-yellow-800">Update Competitor Analysis</h4>
-                  <p className="text-sm text-yellow-700">AI detected new competitor pricing changes - knowledge base needs update</p>
-                </div>
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-medium text-blue-800">Optimize Sales Scripts</h4>
-                  <p className="text-sm text-blue-700">Based on call analysis, 3 scripts could be improved for better conversion</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="automations" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  AI Workflow Builder
-                </span>
-                <Button>
-                  Create Automation
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {automations.map((automation, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(automation.status)}
                       </div>
+                      <Badge variant="outline" className="text-blue-600 border-blue-600">Optimized</Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Database className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="font-medium">CRM Sync Complete</p>
+                          <p className="text-sm text-slate-600">Successfully imported 125 leads from Zoho CRM</p>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-green-600 border-green-600">Complete</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="knowledge" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Knowledge Base Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4">
+                  <div className="flex items-center gap-4">
+                    <Search className="h-5 w-5 text-slate-400" />
+                    <input 
+                      type="text" 
+                      placeholder="Search knowledge base..." 
+                      className="flex-1 p-2 border border-slate-300 rounded-md"
+                    />
+                    <Button>
+                      <FileText className="h-4 w-4 mr-2" />
+                      Add Article
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                    <Card>
+                      <CardContent className="p-4">
+                        <h4 className="font-medium mb-2">Sales Playbooks</h4>
+                        <p className="text-sm text-slate-600 mb-3">342 articles</p>
+                        <Badge variant="outline">Most Active</Badge>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="p-4">
+                        <h4 className="font-medium mb-2">Product Information</h4>
+                        <p className="text-sm text-slate-600 mb-3">189 articles</p>
+                        <Badge variant="outline">Updated Recently</Badge>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardContent className="p-4">
+                        <h4 className="font-medium mb-2">Competitor Analysis</h4>
+                        <p className="text-sm text-slate-600 mb-3">96 articles</p>
+                        <Badge variant="outline">High Impact</Badge>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="integrations" className="mt-6">
+            <CRMIntegrationsPanel />
+          </TabsContent>
+
+          <TabsContent value="automation" className="mt-6">
+            <WorkflowBuilder />
+          </TabsContent>
+
+          <TabsContent value="insights" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>AI-Generated Insights</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <Brain className="h-5 w-5 text-blue-600 mt-1" />
                       <div>
-                        <h4 className="font-medium">{automation.name}</h4>
-                        <p className="text-sm text-gray-600">
-                          Trigger: {automation.triggers} → Action: {automation.actions}
+                        <h4 className="font-medium text-blue-900 mb-1">Lead Conversion Opportunity</h4>
+                        <p className="text-blue-800 text-sm">
+                          AI detected a 23% increase in response rates for emails sent between 2-4 PM. 
+                          Consider adjusting your team's outreach schedule.
                         </p>
-                        <p className="text-xs text-gray-500">Last run: {automation.lastRun}</p>
+                        <Button size="sm" variant="outline" className="mt-2 border-blue-300 text-blue-700">
+                          Apply Suggestion
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className={getStatusColor(automation.status)}>
-                        {automation.status}
-                      </Badge>
-                      <Button size="sm" variant="outline">
-                        <Settings className="h-3 w-3 mr-1" />
-                        Edit
-                      </Button>
+                  </div>
+
+                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <TrendingUp className="h-5 w-5 text-green-600 mt-1" />
+                      <div>
+                        <h4 className="font-medium text-green-900 mb-1">Performance Trend</h4>
+                        <p className="text-green-800 text-sm">
+                          Your team's average deal size has increased by 15% this month. 
+                          The AI suggests focusing on enterprise leads for continued growth.
+                        </p>
+                        <Button size="sm" variant="outline" className="mt-2 border-green-300 text-green-700">
+                          View Analysis
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Automation Limits</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Active Workflows</span>
-                  <span className="text-sm font-medium">3 / 10</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Actions per Workflow</span>
-                  <span className="text-sm font-medium">Max 10</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm">Voice Triggers</span>
-                  <Badge variant="secondary">Available</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-blue-600" />
-                AI System Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-medium">AI Suggestions Performance</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Suggestions Generated</span>
-                      <span className="text-sm font-medium">147 this week</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Acceptance Rate</span>
-                      <span className="text-sm font-medium">78%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Success Rate</span>
-                      <span className="text-sm font-medium">85%</span>
+                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <Zap className="h-5 w-5 text-purple-600 mt-1" />
+                      <div>
+                        <h4 className="font-medium text-purple-900 mb-1">Automation Recommendation</h4>
+                        <p className="text-purple-800 text-sm">
+                          Create an automated follow-up sequence for leads in "proposal" stage. 
+                          This could improve conversion rates by an estimated 18%.
+                        </p>
+                        <Button size="sm" variant="outline" className="mt-2 border-purple-300 text-purple-700">
+                          Create Workflow
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <div className="space-y-4">
-                  <h4 className="font-medium">System Usage</h4>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm">Daily Active Users</span>
-                      <span className="text-sm font-medium">12</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">AI Interactions</span>
-                      <span className="text-sm font-medium">234 today</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm">Automation Runs</span>
-                      <span className="text-sm font-medium">67 today</span>
+          <TabsContent value="settings" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Company Brain Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  <div>
+                    <h4 className="font-medium mb-2">AI Learning Preferences</h4>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" defaultChecked className="rounded" />
+                        <span className="text-sm">Enable automatic lead scoring updates</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" defaultChecked className="rounded" />
+                        <span className="text-sm">Allow AI to suggest workflow optimizations</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded" />
+                        <span className="text-sm">Auto-update knowledge base from CRM data</span>
+                      </label>
                     </div>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>AI Learning Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="font-medium text-green-800">Pattern Recognition Improved</h4>
-                  <p className="text-sm text-green-700">AI now identifies high-value leads with 92% accuracy (up from 84%)</p>
+                  <div>
+                    <h4 className="font-medium mb-2">Data Sources</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-3 border border-slate-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">CRM Data</span>
+                          <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
+                        </div>
+                      </div>
+                      <div className="p-3 border border-slate-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Email Analytics</span>
+                          <Badge variant="outline" className="text-green-600 border-green-600">Active</Badge>
+                        </div>
+                      </div>
+                      <div className="p-3 border border-slate-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Call Recordings</span>
+                          <Badge variant="outline">Disabled</Badge>
+                        </div>
+                      </div>
+                      <div className="p-3 border border-slate-200 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">Social Media</span>
+                          <Badge variant="outline">Disabled</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button className="w-full">
+                    Save Settings
+                  </Button>
                 </div>
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-medium text-blue-800">New Automation Opportunities</h4>
-                  <p className="text-sm text-blue-700">Detected 4 manual processes that could benefit from automation</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };

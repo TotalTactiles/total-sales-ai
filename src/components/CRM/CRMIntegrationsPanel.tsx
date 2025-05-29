@@ -133,6 +133,13 @@ const CRMIntegrationsPanel = () => {
     return isConnected ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
   };
 
+  const switchToAddNewTab = () => {
+    const addNewTab = document.querySelector('[data-value="add-new"]') as HTMLElement;
+    if (addNewTab) {
+      addNewTab.click();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -151,7 +158,7 @@ const CRMIntegrationsPanel = () => {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="connected">Connected</TabsTrigger>
           <TabsTrigger value="available">Available</TabsTrigger>
-          <TabsTrigger value="add-new">Add New</TabsTrigger>
+          <TabsTrigger value="add-new" data-value="add-new">Add New</TabsTrigger>
         </TabsList>
 
         <TabsContent value="connected" className="space-y-4">
@@ -227,7 +234,7 @@ const CRMIntegrationsPanel = () => {
                   <p className="text-muted-foreground mb-4">
                     Connect your CRM systems to sync leads and automate workflows.
                   </p>
-                  <Button onClick={() => document.querySelector('[value="add-new"]')?.click()}>
+                  <Button onClick={switchToAddNewTab}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Integration
                   </Button>

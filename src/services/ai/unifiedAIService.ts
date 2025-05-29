@@ -1,20 +1,21 @@
 
-
-import { dummyResponseService } from './dummyResponseService';
-import { validateStringParam } from '@/types/actions';
+// Unified AI Service for Total Tactiles OS
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 export interface AIResponse {
   response: string;
   confidence: number;
-  suggestedActions?: string[];
-  reasoning?: string;
-  source: 'dummy' | 'openai' | 'claude';
+  context?: string;
+  suggestions?: string[];
 }
+
+export type AIProvider = 'claude' | 'openai' | 'local';
 
 export class UnifiedAIService {
   private static instance: UnifiedAIService;
-  private useDummyResponses = true; // Set to true for testing
-
+  
   static getInstance(): UnifiedAIService {
     if (!UnifiedAIService.instance) {
       UnifiedAIService.instance = new UnifiedAIService();
@@ -22,83 +23,57 @@ export class UnifiedAIService {
     return UnifiedAIService.instance;
   }
 
-  setDummyMode(enabled: boolean) {
-    this.useDummyResponses = enabled;
-    console.log(`AI Service: Dummy mode ${enabled ? 'enabled' : 'disabled'}`);
-  }
-
-  async generateResponse(prompt: string, systemPrompt?: string, context?: string): Promise<AIResponse> {
-    const validPrompt = validateStringParam(prompt, 'help');
-    const validContext = validateStringParam(context, 'general');
-    
+  async generateResponse(
+    prompt: string, 
+    systemMessage?: string, 
+    context?: string,
+    provider: AIProvider = 'openai'
+  ): Promise<AIResponse> {
     try {
-      if (this.useDummyResponses) {
-        console.log('Using dummy AI response for testing');
-        const dummyResponse = dummyResponseService.generateResponse(validPrompt, validContext);
-        
-        // Simulate processing delay for realism
-        await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
-        
-        return {
-          ...dummyResponse,
-          source: 'dummy'
-        };
-      }
-
-      // In production, this would call real AI services
-      // For now, fallback to dummy responses
-      console.log('Real AI services not configured, using dummy responses');
-      const dummyResponse = dummyResponseService.generateResponse(validPrompt, validContext);
-      
-      return {
-        ...dummyResponse,
-        source: 'dummy'
+      // For now, return a mock response since we need to implement the actual AI service
+      const mockResponse: AIResponse = {
+        response: `AI Analysis: ${prompt.substring(0, 100)}... [This is a mock response]`,
+        confidence: 0.85,
+        context: context || 'general',
+        suggestions: [
+          'Consider following up with the lead',
+          'Review the data for accuracy',
+          'Schedule a demo call'
+        ]
       };
+
+      logger.info('AI response generated', { prompt: prompt.substring(0, 50), provider }, 'automation');
       
+      return mockResponse;
     } catch (error) {
-      console.error('AI Service error:', error);
+      logger.error('Failed to generate AI response', error, 'automation');
+      throw error;
+    }
+  }
+
+  async analyzeData(data: any, analysisType: string): Promise<AIResponse> {
+    try {
+      const prompt = `Analyze this ${analysisType} data: ${JSON.stringify(data)}`;
+      return await this.generateResponse(prompt, 'You are a data analysis expert.', analysisType);
+    } catch (error) {
+      logger.error('Failed to analyze data', error, 'automation');
+      throw error;
+    }
+  }
+
+  async generateSuggestions(context: string, userRole: string): Promise<string[]> {
+    try {
+      const response = await this.generateResponse(
+        `Generate suggestions for ${userRole} in context: ${context}`,
+        `You are an AI assistant helping a ${userRole}.`,
+        context
+      );
       
-      // Fallback to dummy response on error
-      const fallbackResponse = dummyResponseService.generateResponse('error occurred', validContext);
-      return {
-        ...fallbackResponse,
-        response: "I encountered an issue processing your request, but I'm still here to help! " + fallbackResponse.response,
-        source: 'dummy'
-      };
+      return response.suggestions || [];
+    } catch (error) {
+      logger.error('Failed to generate suggestions', error, 'automation');
+      return [];
     }
-  }
-
-  async performQuickAnalysis(prompt: string, context?: string): Promise<AIResponse> {
-    const validPrompt = validateStringParam(prompt, 'analyze data');
-    const validContext = validateStringParam(context, 'analysis');
-    
-    return this.generateResponse(validPrompt, 'You are a quick analysis expert', validContext);
-  }
-
-  async generateVoiceResponse(text: string): Promise<string> {
-    const validText = validateStringParam(text, 'Hello!');
-    
-    if (this.useDummyResponses) {
-      console.log('Generating dummy voice response');
-      return dummyResponseService.generateVoiceResponse(validText);
-    }
-    
-    // Fallback to dummy for testing
-    return dummyResponseService.generateVoiceResponse(validText);
-  }
-
-  async generateStrategyResponse(prompt: string): Promise<string> {
-    const validPrompt = validateStringParam(prompt, 'provide strategy help');
-    
-    const response = await this.generateResponse(validPrompt, 'You are a sales strategy expert', 'strategy');
-    return response.response;
-  }
-
-  async generateCommunication(prompt: string): Promise<string> {
-    const validPrompt = validateStringParam(prompt, 'help with communication');
-    
-    const response = await this.generateResponse(validPrompt, 'You are a communication expert', 'communication');
-    return response.response;
   }
 }
 
