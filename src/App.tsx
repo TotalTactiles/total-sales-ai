@@ -15,8 +15,7 @@ import ManagerLayout from '@/layouts/ManagerLayout';
 import DeveloperLayout from '@/layouts/DeveloperLayout';
 
 // Auth pages
-import Login from '@/pages/Login';
-import SignUp from '@/pages/SignUp';
+import AuthPage from '@/pages/Auth';
 
 // Standalone pages
 import LeadWorkspace from '@/pages/LeadWorkspace';
@@ -39,8 +38,9 @@ function App() {
             <AIContextProvider>
               <Routes>
                 {/* Auth routes */}
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<SignUp />} />
+                <Route path="/login" element={<AuthPage />} />
+                <Route path="/signup" element={<AuthPage />} />
+                <Route path="/auth" element={<AuthPage />} />
                 
                 {/* Protected routes */}
                 <Route path="/" element={
@@ -74,15 +74,6 @@ function App() {
                   <RequireAuth>
                     <OnboardingGuard>
                       <DeveloperLayout />
-                    </OnboardingGuard>
-                  </RequireAuth>
-                } />
-                
-                {/* Standalone lead workspace route */}
-                <Route path="/lead-workspace/:id" element={
-                  <RequireAuth>
-                    <OnboardingGuard>
-                      <LeadWorkspace />
                     </OnboardingGuard>
                   </RequireAuth>
                 } />
