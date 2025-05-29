@@ -13,7 +13,6 @@ import SalesSettings from '@/pages/sales/Settings';
 import SalesDialer from '@/pages/sales/Dialer';
 import LeadWorkspace from '@/pages/LeadWorkspace';
 
-import ContextAwareVoiceAssistant from '@/components/VoiceAI/ContextAwareVoiceAssistant';
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
 import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
@@ -72,15 +71,7 @@ const SalesLayout = () => {
         </Routes>
       </main>
       
-      {/* Unified Voice AI Assistant */}
-      <ContextAwareVoiceAssistant
-        currentLead={currentLead}
-        isCallActive={isCallActive}
-        emailContext={emailContext}
-        smsContext={smsContext}
-      />
-
-      {/* Unified AI Bubble - Fixed positioning with high z-index */}
+      {/* Unified AI Bubble - Single AI assistant with fixed positioning */}
       <div className="fixed bottom-6 right-6 z-[9999]">
         <UnifiedAIBubble context={aiContext} />
       </div>
