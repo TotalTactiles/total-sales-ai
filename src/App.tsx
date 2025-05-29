@@ -18,6 +18,7 @@ const AuthLayout = lazy(() => import('@/layouts/AuthLayout'));
 
 // Direct imports for other pages
 import NotFound from '@/pages/NotFound';
+import LeadWorkspace from '@/pages/LeadWorkspace';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -41,6 +42,13 @@ function App() {
                     <Routes>
                       {/* Auth Routes */}
                       <Route path="/auth/*" element={<AuthLayout />} />
+                      
+                      {/* Lead Workspace Route (accessible from any OS) */}
+                      <Route path="/workspace/:leadId" element={
+                        <ProtectedRoute>
+                          <LeadWorkspace />
+                        </ProtectedRoute>
+                      } />
                       
                       {/* Sales OS Routes */}
                       <Route path="/sales/*" element={

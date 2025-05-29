@@ -44,7 +44,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, onLeadClick }) => 
   };
 
   const handleLeadClick = (leadId: string) => {
-    // Navigate to the correct workspace route
+    // Navigate to the lead workspace
     navigate(`/workspace/${leadId}`);
   };
 
