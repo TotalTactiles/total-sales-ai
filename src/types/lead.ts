@@ -1,41 +1,54 @@
 
+// Enhanced lead type that includes all necessary fields
 export interface Lead {
   id: string;
   name: string;
-  company: string;
-  source: string;
-  score: number;
-  priority: 'high' | 'medium' | 'low';
-  lastContact?: string;
-  sentiment?: 'positive' | 'neutral' | 'negative';
-  objection?: string;
   email: string;
   phone: string;
-  status: 'new' | 'contacted' | 'qualified' | 'closed';
+  company: string;
+  title?: string;
+  status: 'qualified' | 'contacted' | 'new' | 'closed' | 'proposal' | 'negotiation';
+  score: number;
+  priority: 'high' | 'medium' | 'low';
+  source: string;
   tags: string[];
-  isSensitive: boolean;
-  conversionLikelihood: number;
-  speedToLead?: number; // minutes since lead creation
-  leadSource?: 'marketing' | 'referral' | 'cold_outreach' | 'website';
-  autopilotEnabled?: boolean;
-  lastCallOutcome?: 'connected' | 'voicemail' | 'no_answer' | 'busy' | 'declined';
-  timezonePref?: string;
-  doNotCall?: boolean;
+  notes: string;
+  lastContact: string;
+  last_contact?: string; // Alternative naming for database compatibility
+  nextFollowUp?: string;
+  value: number;
+  conversion_likelihood: number;
+  industry?: string;
+  employeeCount?: number;
+  location?: string;
+  timezone?: string;
+  speed_to_lead?: number;
+  is_sensitive?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  socialProfiles?: {
+    linkedin?: string;
+    twitter?: string;
+  };
+  customFields?: {
+    currentSolution?: string;
+    painPoints?: string[];
+    decisionCriteria?: string[];
+    budget?: string;
+    timeline?: string;
+  };
 }
 
-export interface CallWorkflow {
-  id: string;
-  name: string;
-  industry: string;
-  steps: WorkflowStep[];
-  aiOptimized: boolean;
-  successRate: number;
+// Database lead type for Supabase integration
+export interface DatabaseLead extends Lead {
+  last_contact: string;
+  speed_to_lead: number;
+  is_sensitive: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-export interface WorkflowStep {
-  id: string;
-  type: 'email' | 'sms' | 'call' | 'meeting' | 'wait';
-  timing: string; // e.g., "immediately", "2 hours", "1 day"
-  template?: string;
-  aiGenerated: boolean;
+// Mock lead type for development
+export interface MockLead extends Lead {
+  lastContact: string;
 }

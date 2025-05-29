@@ -1,4 +1,3 @@
-
 // Base mock data types
 export interface MockLead {
   id: string;
@@ -156,5 +155,76 @@ export const mockCalls: MockCall[] = [
     timestamp: '2024-01-15T10:00:00Z',
     notes: 'Great conversation about their needs',
     sentiment: 'positive'
+  }
+];
+
+// Add missing exports that are imported elsewhere
+export const mockImportSessions = [
+  {
+    id: 'import-1',
+    source: 'Zoho CRM',
+    timestamp: '2024-01-16T10:00:00Z',
+    recordsImported: 25,
+    status: 'completed'
+  },
+  {
+    id: 'import-2',
+    source: 'ClickUp',
+    timestamp: '2024-01-16T09:30:00Z',
+    recordsImported: 12,
+    status: 'completed'
+  }
+];
+
+export const mockAIInsights = [
+  {
+    id: 'insight-1',
+    type: 'performance',
+    title: 'Call Success Rate Improvement',
+    description: 'Your call success rate has improved by 15% this week',
+    confidence: 0.89,
+    timestamp: '2024-01-16T08:00:00Z'
+  },
+  {
+    id: 'insight-2',
+    type: 'opportunity',
+    title: 'High-Value Lead Identified',
+    description: 'Sarah Chen from TechStartup Inc shows strong buying signals',
+    confidence: 0.92,
+    timestamp: '2024-01-16T07:30:00Z'
+  }
+];
+
+export const mockEmailTemplates = [
+  {
+    id: 'template-1',
+    name: 'Initial Outreach',
+    subject: 'Quick question about {{company}} growth',
+    body: 'Hi {{name}}, I noticed {{company}} has been expanding rapidly...',
+    category: 'outreach'
+  },
+  {
+    id: 'template-2',
+    name: 'Follow-up',
+    subject: 'Following up on our conversation',
+    body: 'Hi {{name}}, Thank you for taking the time to speak with me...',
+    category: 'follow-up'
+  }
+];
+
+export const mockKnowledgeBase = [
+  {
+    id: 'kb-1',
+    title: 'Sales Methodology Guide',
+    content: 'Complete guide to our proven sales methodology...',
+    category: 'sales',
+    tags: ['methodology', 'process', 'best-practices']
+  },
+  {
+    id: 'kb-2',
+    title: 'Product Feature Overview',
+    content: 'Comprehensive overview of all product features...',
+    category: 'product',
+    tags: ['features', 'benefits', 'technical']
   }
 ];

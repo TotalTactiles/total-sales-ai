@@ -6,7 +6,18 @@ export interface LogLevel {
   ERROR: 'error';
 }
 
-export type LogCategory = 'automation' | 'voice_ai' | 'crm' | 'system' | 'ui' | 'api';
+export type LogCategory = 
+  | 'automation' 
+  | 'voice_ai' 
+  | 'crm' 
+  | 'system' 
+  | 'ui' 
+  | 'api'
+  | 'ai_brain'
+  | 'system_health'
+  | 'elevenlabs'
+  | 'speech_synthesis'
+  | 'retell_ai';
 
 class Logger {
   private static instance: Logger;
