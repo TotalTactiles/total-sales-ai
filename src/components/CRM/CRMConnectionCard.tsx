@@ -6,23 +6,31 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertCircle, RefreshCw, Settings } from "lucide-react";
 
 interface CRMConnectionCardProps {
-  provider: string;
-  status: 'connected' | 'disconnected' | 'syncing' | 'error';
-  lastSync?: string;
-  recordCount?: number;
+  name: string;
+  icon: string;
+  status: 'connected' | 'disconnected' | 'syncing' | 'available';
+  description: string;
+  lastSync?: Date;
+  totalRecords?: number;
+  syncErrors?: number;
   onConnect: () => void;
+  onDisconnect: () => void;
   onSync: () => void;
-  onConfigure: () => void;
+  onViewLogs: () => void;
 }
 
 const CRMConnectionCard: React.FC<CRMConnectionCardProps> = ({
-  provider,
+  name,
+  icon,
   status,
+  description,
   lastSync,
-  recordCount,
+  totalRecords,
+  syncErrors,
   onConnect,
+  onDisconnect,
   onSync,
-  onConfigure
+  onViewLogs
 }) => {
   const getStatusIcon = () => {
     switch (status) {
@@ -30,8 +38,8 @@ const CRMConnectionCard: React.FC<CRMConnectionCardProps> = ({
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case 'syncing':
         return <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />;
-      case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-600" />;
+      case 'available':
+        return <AlertCircle className="h-4 w-4 text-blue-600" />;
       default:
         return <AlertCircle className="h-4 w-4 text-gray-400" />;
     }
@@ -43,8 +51,8 @@ const CRMConnectionCard: React.FC<CRMConnectionCardProps> = ({
         return 'bg-green-100 text-green-800';
       case 'syncing':
         return 'bg-blue-100 text-blue-800';
-      case 'error':
-        return 'bg-red-100 text-red-800';
+      case 'available':
+        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -52,37 +60,48 @@ const CRMConnectionCard: React.FC<CRMConnectionCardProps> = ({
 
   const canSync = status === 'connected';
   const canConfigure = status !== 'syncing';
+  const isConnected = status === 'connected';
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center space-x-2">
-          <CardTitle className="text-lg font-semibold">{provider}</CardTitle>
+          <span className="text-2xl">{icon}</span>
+          <CardTitle className="text-lg font-semibold">{name}</CardTitle>
           {getStatusIcon()}
         </div>
         <Badge className={getStatusColor()}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
+          {status === 'available' ? 'Available' : status.charAt(0).toUpperCase() + status.slice(1)}
         </Badge>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {status === 'connected' && (
+          <CardDescription className="text-sm">
+            {description}
+          </CardDescription>
+          
+          {isConnected && (
             <div className="space-y-2">
               <CardDescription>
-                Last sync: {lastSync || 'Never'}
+                Last sync: {lastSync ? lastSync.toLocaleDateString() : 'Never'}
               </CardDescription>
-              {recordCount !== undefined && (
+              {totalRecords !== undefined && (
                 <CardDescription>
-                  Records synced: {recordCount.toLocaleString()}
+                  Records synced: {totalRecords.toLocaleString()}
+                </CardDescription>
+              )}
+              {syncErrors !== undefined && syncErrors > 0 && (
+                <CardDescription className="text-red-600">
+                  Sync errors: {syncErrors}
                 </CardDescription>
               )}
             </div>
           )}
           
           <div className="flex space-x-2">
-            {status === 'disconnected' ? (
+            {status === 'disconnected' || status === 'available' ? (
               <Button onClick={onConnect} className="flex-1">
-                Connect {provider}
+                Connect {name}
               </Button>
             ) : (
               <>
@@ -96,7 +115,15 @@ const CRMConnectionCard: React.FC<CRMConnectionCardProps> = ({
                   Sync Now
                 </Button>
                 <Button 
-                  onClick={onConfigure}
+                  onClick={onDisconnect}
+                  disabled={!canConfigure}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  Disconnect
+                </Button>
+                <Button 
+                  onClick={onViewLogs}
                   disabled={!canConfigure}
                   variant="outline"
                   size="icon"

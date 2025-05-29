@@ -12,33 +12,31 @@ import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligenc
 
 const LeadManagement = () => {
   const { profile, isDemoMode } = useAuth();
-  const { leads: realLeads, loading: realLoading } = useLeadData();
-  const { mockLeads, loading: mockLoading } = useMockData();
+  const { leads: realLeads } = useLeadData();
+  const { leads: mockLeads } = useMockData();
   
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isIntelligencePanelOpen, setIsIntelligencePanelOpen] = useState(false);
   const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Determine which leads to show and loading state
-  const { leads, loading, isInDemoMode, hasRealData, showDemo } = useMemo(() => {
+  const { leads, isInDemoMode, hasRealData, showDemo } = useMemo(() => {
     const isDemo = isDemoMode();
     const hasReal = realLeads.length > 0;
-    const shouldShowDemo = isDemo || (!hasReal && !realLoading);
+    const shouldShowDemo = isDemo || (!hasReal);
     
     console.log('LeadManagement state:', {
       isDemo,
       hasReal,
       shouldShowDemo,
       realLeadsCount: realLeads.length,
-      mockLeadsCount: mockLeads.length,
-      realLoading,
-      mockLoading
+      mockLeadsCount: mockLeads.length
     });
 
     if (shouldShowDemo) {
       return {
         leads: mockLeads.map(convertMockLeadToLead),
-        loading: mockLoading,
         isInDemoMode: isDemo,
         hasRealData: hasReal,
         showDemo: shouldShowDemo
@@ -47,12 +45,11 @@ const LeadManagement = () => {
 
     return {
       leads: realLeads,
-      loading: realLoading,
       isInDemoMode: isDemo,
       hasRealData: hasReal,
       showDemo: shouldShowDemo
     };
-  }, [realLeads, mockLeads, realLoading, mockLoading, isDemoMode]);
+  }, [realLeads, mockLeads, isDemoMode]);
 
   const handleLeadSelect = (lead: Lead) => {
     console.log('Lead selected:', lead);
