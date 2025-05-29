@@ -6,8 +6,8 @@ import { Progress } from '@/components/ui/progress';
 import { RefreshCw, Plus, Database } from 'lucide-react';
 import { toast } from 'sonner';
 import CRMConnectionCard from './CRMConnectionCard';
-import { zohoCRMIntegration } from '@/services/integrations/zohoCRM';
-import { clickUpCRMIntegration } from '@/services/integrations/clickupCRM';
+import { zohoCRMIntegration, type ZohoIntegrationStatus } from '@/services/integrations/zohoCRM';
+import { clickUpCRMIntegration, type ClickUpIntegrationStatus } from '@/services/integrations/clickupCRM';
 
 interface CRMStatus {
   name: string;
@@ -56,13 +56,17 @@ const CRMIntegrationManager: React.FC = () => {
         if (config.service) {
           try {
             const status = await config.service.getStatus();
+            const totalRecords = config.id === 'zoho' 
+              ? (status as ZohoIntegrationStatus).totalLeads 
+              : (status as ClickUpIntegrationStatus).totalTasks;
+            
             statuses.push({
               name: config.name,
               icon: config.icon,
               status: status.connected ? 'connected' : 'disconnected',
               description: config.description,
               lastSync: status.lastSync,
-              totalRecords: config.id === 'zoho' ? status.totalLeads : status.totalTasks || 0,
+              totalRecords,
               syncErrors: status.syncErrors
             });
           } catch (error) {
@@ -109,12 +113,18 @@ const CRMIntegrationManager: React.FC = () => {
     }
 
     try {
-      const result = await config.service.connect();
-      if (result.success && result.authUrl) {
+      let result;
+      if (config.id === 'zoho') {
+        result = await (config.service as any).connect();
+      } else if (config.id === 'clickup') {
+        result = await (config.service as any).connectWithOAuth();
+      }
+
+      if (result?.success && result.authUrl) {
         window.open(result.authUrl, `${config.id}-auth`, 'width=600,height=700');
         toast.success(`${crmName} authentication window opened`);
       } else {
-        toast.error(result.error || `Failed to connect ${crmName}`);
+        toast.error(result?.error || `Failed to connect ${crmName}`);
       }
     } catch (error) {
       console.error(`Failed to connect ${crmName}:`, error);
@@ -152,11 +162,14 @@ const CRMIntegrationManager: React.FC = () => {
     ));
 
     try {
-      const result = config.id === 'zoho' 
-        ? await config.service.syncLeads(false)
-        : await config.service.syncTasks(false);
+      let result;
+      if (config.id === 'zoho') {
+        result = await (config.service as any).syncLeads(false);
+      } else if (config.id === 'clickup') {
+        result = await (config.service as any).syncTasks(false);
+      }
 
-      if (result.success) {
+      if (result?.success) {
         toast.success(`${crmName} sync completed: ${result.synced} records synced`);
         if (result.errors > 0) {
           toast.warning(`${result.errors} errors encountered during sync`);
