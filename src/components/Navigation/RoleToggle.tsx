@@ -7,46 +7,35 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const RoleToggle = () => {
   const navigate = useNavigate();
-  const { profile, isDemoMode } = useAuth();
+  const { profile, signOut } = useAuth();
 
   const currentRole = profile?.role || 'sales_rep';
   
-  const toggleRole = () => {
-    if (currentRole === 'sales_rep' || currentRole === 'manager') {
-      const newRole = currentRole === 'sales_rep' ? 'manager' : 'sales_rep';
-      
-      // Update demo mode with new role
-      localStorage.setItem('demoMode', 'true');
-      localStorage.setItem('demoRole', newRole);
-      
-      // Navigate to appropriate dashboard with new routing structure
-      if (newRole === 'manager') {
-        navigate('/dashboard');
-      } else {
-        navigate('/dashboard');
-      }
-      
-      // Reload to reinitialize with new role
-      window.location.reload();
-    }
-  };
-
-  // Only show in development or demo mode
+  // Only show in Developer OS for testing purposes
   const isDev = process.env.NODE_ENV === 'development';
-  if (!isDev && !isDemoMode()) return null;
+  const isOnDeveloperRoute = window.location.pathname.startsWith('/developer');
+  
+  if (!isDev && !isOnDeveloperRoute) return null;
+
+  const handleRoleSwitch = async () => {
+    // For proper role switching, user must log out and log back in
+    // This ensures clean state and proper routing
+    await signOut();
+    navigate('/auth');
+  };
 
   return (
     <div className="flex items-center space-x-2">
       <Badge variant="outline" className="text-xs">
-        {currentRole === 'manager' ? 'Manager' : 'Sales Rep'}
+        {currentRole === 'manager' ? 'Manager' : currentRole === 'developer' ? 'Developer' : 'Sales Rep'}
       </Badge>
       <Button
         variant="ghost"
         size="sm"
-        onClick={toggleRole}
+        onClick={handleRoleSwitch}
         className="text-xs"
       >
-        Switch to {currentRole === 'sales_rep' ? 'Manager' : 'Sales Rep'}
+        Switch Role (Logout)
       </Button>
     </div>
   );

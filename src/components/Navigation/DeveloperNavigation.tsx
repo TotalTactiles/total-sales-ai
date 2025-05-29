@@ -16,14 +16,15 @@ import {
   LogOut,
   User,
   Database,
-  Zap
+  Zap,
+  RefreshCw
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const DeveloperNavigation: React.FC = () => {
   const location = useLocation();
   const { profile, signOut } = useAuth();
-  const [sandboxMode, setSandboxMode] = useState(false);
+  const [testMode, setTestMode] = useState('developer');
 
   const navItems = [
     { href: '/developer/dashboard', label: 'Dashboard', icon: Monitor },
@@ -38,9 +39,14 @@ const DeveloperNavigation: React.FC = () => {
     { href: '/developer/settings', label: 'Settings', icon: Settings }
   ];
 
-  const toggleSandboxMode = () => {
-    setSandboxMode(!sandboxMode);
-    // TODO: Implement sandbox mode logic
+  const toggleTestMode = () => {
+    const modes = ['developer', 'manager', 'sales_rep'];
+    const currentIndex = modes.indexOf(testMode);
+    const nextMode = modes[(currentIndex + 1) % modes.length];
+    setTestMode(nextMode);
+    
+    // In Developer OS, we can simulate different OS views for testing
+    console.log(`Developer Testing: Simulating ${nextMode} experience`);
   };
 
   const handleLogout = async () => {
@@ -59,12 +65,10 @@ const DeveloperNavigation: React.FC = () => {
             <div className="flex-shrink-0 flex items-center">
               <Code className="h-8 w-8 text-cyan-400" />
               <span className="ml-2 text-xl font-bold text-white">Developer OS</span>
-              {sandboxMode && (
-                <Badge className="ml-2 bg-orange-500 text-white animate-pulse">
-                  <Zap className="h-3 w-3 mr-1" />
-                  SANDBOX MODE
-                </Badge>
-              )}
+              <Badge className="ml-2 bg-cyan-500 text-white">
+                <Zap className="h-3 w-3 mr-1" />
+                TESTING MODE
+              </Badge>
             </div>
           </div>
 
@@ -91,14 +95,15 @@ const DeveloperNavigation: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            {/* Developer-only role simulation toggle */}
             <Button
-              onClick={toggleSandboxMode}
-              variant={sandboxMode ? "destructive" : "outline"}
+              onClick={toggleTestMode}
+              variant="outline"
               size="sm"
-              className="text-white border-slate-600"
+              className="text-white border-slate-600 hover:bg-slate-700"
             >
-              <TestTube className="h-4 w-4 mr-2" />
-              {sandboxMode ? 'Exit Sandbox' : 'Sandbox Mode'}
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Test as {testMode === 'developer' ? 'Manager' : testMode === 'manager' ? 'Sales Rep' : 'Developer'}
             </Button>
 
             <div className="flex items-center space-x-2 text-white">

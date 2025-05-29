@@ -1,219 +1,203 @@
+
 import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  Users, 
+  TrendingUp, 
+  DollarSign, 
+  Target, 
+  Brain,
+  BarChart3,
+  Calendar,
+  AlertTriangle
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import ManagerOverviewCards from '@/components/Manager/ManagerOverviewCards';
-import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
-import ManagerAIAssistant from '@/components/ManagerAI/ManagerAIAssistant';
-import ManagerRecognitionEngine from '@/components/Manager/ManagerRecognitionEngine';
-import ManagerEscalationCenter from '@/components/Manager/ManagerEscalationCenter';
-import ManagerBookingSystem from '@/components/Manager/ManagerBookingSystem';
 
-type TeamMember = {
-  id: string;
-  full_name: string | null;
-  last_login: string | null;
-  role: string;
-  stats: {
-    call_count: number;
-    win_count: number;
-    current_streak: number;
-    burnout_risk: number;
-    last_active: string | null;
-    mood_score: number | null;
-  }
-};
+const ManagerDashboard = () => {
+  const { profile } = useAuth();
+  const [teamMetrics, setTeamMetrics] = useState({
+    totalReps: 12,
+    activeDeals: 45,
+    pipelineValue: 1250000,
+    monthlyTarget: 2000000,
+    conversion: 23.5,
+    avgDealSize: 27800
+  });
 
-type AIRecommendation = {
-  id: string;
-  type: 'follow-up' | 'burnout' | 'trending-down' | 'reward';
-  rep_name: string;
-  rep_id: string;
-  message: string;
-  action: string;
-};
+  const [recentActivity] = useState([
+    { id: 1, rep: 'Sarah Chen', action: 'Closed deal with TechCorp', value: '$45,000', time: '2 hours ago' },
+    { id: 2, rep: 'Mike Johnson', action: 'Scheduled demo with StartupX', value: '$12,000', time: '4 hours ago' },
+    { id: 3, rep: 'Emma Davis', action: 'Follow-up call completed', value: '$8,500', time: '6 hours ago' },
+  ]);
 
-const Dashboard = () => {
-  const { user, profile } = useAuth();
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [demoMode, setDemoMode] = useState(false);
-
-  // Check if in demo mode
-  useEffect(() => {
-    const isDemoMode = localStorage.getItem('demoMode') === 'true';
-    if (isDemoMode) {
-      setDemoMode(true);
-      initializeDemoData();
-    } else {
-      fetchData();
-    }
-  }, [user]);
-
-  const initializeDemoData = () => {
-    // Mock team members data
-    const mockTeamMembers: TeamMember[] = [
-      {
-        id: 'demo-tm-1',
-        full_name: 'Sarah Johnson',
-        last_login: new Date().toISOString(),
-        role: 'sales_rep',
-        stats: {
-          call_count: 172,
-          win_count: 45,
-          current_streak: 5,
-          burnout_risk: 10,
-          last_active: new Date().toISOString(),
-          mood_score: 85
-        }
-      },
-      {
-        id: 'demo-tm-2',
-        full_name: 'Michael Chen',
-        last_login: new Date(Date.now() - 3600000).toISOString(),
-        role: 'sales_rep',
-        stats: {
-          call_count: 143,
-          win_count: 32,
-          current_streak: 0,
-          burnout_risk: 75,
-          last_active: new Date(Date.now() - 3600000).toISOString(),
-          mood_score: 45
-        }
-      },
-      {
-        id: 'demo-tm-3',
-        full_name: 'Jasmine Lee',
-        last_login: new Date(Date.now() - 86400000).toISOString(),
-        role: 'sales_rep',
-        stats: {
-          call_count: 198,
-          win_count: 57,
-          current_streak: 7,
-          burnout_risk: 20,
-          last_active: new Date(Date.now() - 43200000).toISOString(),
-          mood_score: 90
-        }
-      }
-    ];
-    
-    const mockRecommendations: AIRecommendation[] = [
-      {
-        id: 'demo-rec-1',
-        type: 'follow-up',
-        rep_name: 'Sarah Johnson',
-        rep_id: 'demo-tm-1',
-        message: 'Sarah missed 3 follow-ups with Enterprise leads this week',
-        action: 'Assign Recovery Mode'
-      },
-      {
-        id: 'demo-rec-2',
-        type: 'burnout',
-        rep_name: 'Michael Chen',
-        rep_id: 'demo-tm-2',
-        message: 'Michael worked 12+ hours overtime this week and mood score is dropping',
-        action: 'Schedule 1-on-1'
-      }
-    ];
-    
-    setTeamMembers(mockTeamMembers);
-    setRecommendations(mockRecommendations);
-    setLoading(false);
-  };
-
-  const fetchData = async () => {
-    if (!user) return;
-    
-    try {
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('role', 'sales_rep');
-      
-      if (profilesError) throw profilesError;
-      
-      const teamData: TeamMember[] = [];
-      
-      for (const profile of profilesData) {
-        const { data: statsData, error: statsError } = await supabase
-          .from('user_stats')
-          .select('*')
-          .eq('user_id', profile.id)
-          .single();
-          
-        if (statsError && statsError.code !== 'PGRST116') {
-          console.error('Error fetching stats for user', profile.id, statsError);
-          continue;
-        }
-        
-        teamData.push({
-          id: profile.id,
-          full_name: profile.full_name,
-          last_login: profile.last_login,
-          role: profile.role,
-          stats: statsData || {
-            call_count: 0,
-            win_count: 0,
-            current_streak: 0,
-            burnout_risk: 0,
-            last_active: null,
-            mood_score: null
-          }
-        });
-      }
-      
-      setTeamMembers(teamData);
-      setRecommendations([]);
-      
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-salesBlue"></div>
-      </div>
-    );
-  }
+  const [aiInsights] = useState([
+    { type: 'opportunity', message: 'Sarah Chen is 15% ahead of monthly target - consider promoting her success strategy', severity: 'success' },
+    { type: 'warning', message: '3 deals worth $125K are stalling - AI suggests intervention needed', severity: 'warning' },
+    { type: 'info', message: 'Team conversion rate improved by 8% this week - email outreach is performing well', severity: 'info' }
+  ]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <main className="pt-16">
-        <div className="flex-1 px-4 md:px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-foreground">Manager Dashboard</h1>
-              <p className="text-muted-foreground">Team performance and management overview</p>
-            </div>
-            
-            <ManagerOverviewCards 
-              teamMembers={teamMembers}
-              recommendations={recommendations}
-              demoMode={demoMode}
-              profile={profile}
-            />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-              <div className="lg:col-span-2 space-y-6">
-                <ManagerTeamTable teamMembers={teamMembers} />
-                <ManagerRecognitionEngine />
-              </div>
-              
-              <div className="space-y-6">
-                <ManagerAIAssistant />
-                <ManagerBookingSystem demoMode={demoMode} />
-                <ManagerEscalationCenter demoMode={demoMode} />
-              </div>
-            </div>
-          </div>
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
+          <p className="text-gray-600">Welcome back, {profile?.full_name || 'Manager'}</p>
         </div>
-      </main>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <Brain className="h-3 w-3 mr-1" />
+            AI Assistant Active
+          </Badge>
+          <Button variant="outline">
+            <Calendar className="h-4 w-4 mr-2" />
+            Schedule Review
+          </Button>
+        </div>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{teamMetrics.totalReps}</div>
+            <p className="text-xs text-muted-foreground">
+              +2 new hires this month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pipeline Value</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${(teamMetrics.pipelineValue / 1000000).toFixed(2)}M</div>
+            <p className="text-xs text-muted-foreground">
+              +15% from last month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Deals</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{teamMetrics.activeDeals}</div>
+            <p className="text-xs text-muted-foreground">
+              {Math.round((teamMetrics.pipelineValue / teamMetrics.monthlyTarget) * 100)}% of monthly target
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{teamMetrics.conversion}%</div>
+            <p className="text-xs text-muted-foreground">
+              +3.2% improvement
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* AI Insights */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-600" />
+            AI Manager Insights
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {aiInsights.map((insight, index) => (
+              <div key={index} className={`p-3 rounded-lg border-l-4 ${
+                insight.severity === 'success' ? 'bg-green-50 border-green-400' :
+                insight.severity === 'warning' ? 'bg-yellow-50 border-yellow-400' :
+                'bg-blue-50 border-blue-400'
+              }`}>
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className={`h-4 w-4 mt-0.5 ${
+                    insight.severity === 'success' ? 'text-green-600' :
+                    insight.severity === 'warning' ? 'text-yellow-600' :
+                    'text-blue-600'
+                  }`} />
+                  <p className="text-sm text-gray-700">{insight.message}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Team Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Team Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-sm">{activity.rep}</p>
+                    <p className="text-xs text-gray-600">{activity.action}</p>
+                    <p className="text-xs text-gray-500">{activity.time}</p>
+                  </div>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    {activity.value}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <Button className="w-full justify-start" variant="outline">
+                <Users className="h-4 w-4 mr-2" />
+                Review Team Performance
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <Target className="h-4 w-4 mr-2" />
+                Set Monthly Targets
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <Brain className="h-4 w-4 mr-2" />
+                AI Strategy Session
+              </Button>
+              <Button className="w-full justify-start" variant="outline">
+                <Calendar className="h-4 w-4 mr-2" />
+                Schedule Team Meeting
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default ManagerDashboard;

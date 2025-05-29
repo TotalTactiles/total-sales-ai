@@ -44,16 +44,7 @@ function App() {
                   <Route path="/signup" element={<AuthPage />} />
                   <Route path="/auth" element={<AuthPage />} />
                   
-                  {/* Legacy route redirects */}
-                  <Route path="/lead-management" element={<Navigate to="/sales/lead-management" replace />} />
-                  <Route path="/dashboard" element={<Navigate to="/sales/dashboard" replace />} />
-                  <Route path="/analytics" element={<Navigate to="/sales/analytics" replace />} />
-                  <Route path="/academy" element={<Navigate to="/sales/academy" replace />} />
-                  <Route path="/dialer" element={<Navigate to="/sales/dialer" replace />} />
-                  <Route path="/ai" element={<Navigate to="/sales/ai" replace />} />
-                  <Route path="/settings" element={<Navigate to="/sales/settings" replace />} />
-                  
-                  {/* Protected routes */}
+                  {/* Root redirect */}
                   <Route path="/" element={
                     <RequireAuth>
                       <OnboardingGuard>
@@ -62,7 +53,7 @@ function App() {
                     </RequireAuth>
                   } />
                   
-                  {/* Sales routes */}
+                  {/* Sales OS routes */}
                   <Route path="/sales/*" element={
                     <RequireAuth>
                       <OnboardingGuard>
@@ -71,7 +62,7 @@ function App() {
                     </RequireAuth>
                   } />
                   
-                  {/* Manager routes */}
+                  {/* Manager OS routes */}
                   <Route path="/manager/*" element={
                     <RequireAuth>
                       <OnboardingGuard>
@@ -80,7 +71,7 @@ function App() {
                     </RequireAuth>
                   } />
                   
-                  {/* Developer routes */}
+                  {/* Developer OS routes */}
                   <Route path="/developer/*" element={
                     <RequireAuth>
                       <OnboardingGuard>
@@ -89,7 +80,7 @@ function App() {
                     </RequireAuth>
                   } />
                   
-                  {/* Standalone lead workspace route - CRITICAL for lead navigation */}
+                  {/* Standalone lead workspace route */}
                   <Route path="/lead-workspace/:id" element={
                     <RequireAuth>
                       <OnboardingGuard>

@@ -10,42 +10,41 @@ import ManagerLeadManagement from '@/pages/manager/LeadManagement';
 import ManagerCompanyBrain from '@/pages/manager/CompanyBrain';
 import ManagerAI from '@/pages/manager/AI';
 import ManagerSettings from '@/pages/manager/Settings';
-import ManagerTeamManagement from '@/pages/manager/TeamManagement';
-import ManagerReports from '@/pages/manager/Reports';
-import ManagerSecurity from '@/pages/manager/Security';
 
-import ManagerAIAssistant from '@/components/ManagerAI/ManagerAIAssistant';
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
+import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
 
 const ManagerLayout = () => {
+  const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
   const location = useLocation();
   
-  // Determine workspace context from current route
   const getWorkspaceContext = () => {
     const path = location.pathname;
     
-    if (path.includes('/analytics')) {
-      return 'dashboard';
-    } else if (path.includes('/lead-management') || path.includes('/lead/')) {
-      return 'leads';
+    if (path.includes('/lead-management')) {
+      return 'manager_leads';
     } else if (path.includes('/company-brain')) {
       return 'company_brain';
-    } else if (path.includes('/team-management')) {
-      return 'dashboard';
-    } else if (path.includes('/reports')) {
-      return 'dashboard';
+    } else if (path.includes('/analytics')) {
+      return 'manager_analytics';
+    } else if (path.includes('/dashboard')) {
+      return 'manager_dashboard';
     } else {
-      return 'dashboard';
+      return 'manager_dashboard';
     }
   };
 
   const aiContext = {
-    workspace: getWorkspaceContext() as any
+    workspace: getWorkspaceContext() as any,
+    currentLead,
+    isCallActive,
+    emailContext,
+    smsContext
   };
   
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 relative">
       <ManagerNavigation />
       
       <main className="pt-[60px]">
@@ -57,21 +56,14 @@ const ManagerLayout = () => {
           <Route path="/company-brain" element={<ManagerCompanyBrain />} />
           <Route path="/ai" element={<ManagerAI />} />
           <Route path="/settings" element={<ManagerSettings />} />
-          <Route path="/team-management" element={<ManagerTeamManagement />} />
-          <Route path="/reports" element={<ManagerReports />} />
-          <Route path="/security" element={<ManagerSecurity />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
       
       {/* Manager AI Assistant */}
-      <ManagerAIAssistant />
-
-      {/* Unified AI Bubble - Always present */}
-      <UnifiedAIBubble 
-        context={aiContext}
-        className="z-30"
-      />
+      <div className="fixed bottom-6 right-6 z-[9999]">
+        <UnifiedAIBubble context={aiContext} />
+      </div>
     </div>
   );
 };

@@ -5,7 +5,6 @@ import { Grid, Users, BarChart3, GraduationCap, Wrench, Phone, Bot } from 'lucid
 import Logo from '@/components/Logo';
 import UserProfile from '@/components/UserProfile';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import RoleToggle from '@/components/Navigation/RoleToggle';
 import { useAuth } from '@/contexts/AuthContext';
 
 const SalesNavigation = () => {
@@ -27,6 +26,10 @@ const SalesNavigation = () => {
       <div className="h-[60px] flex items-center justify-between px-6">
         <div className="flex items-center">
           <Logo />
+          <div className="flex items-center space-x-1 text-sm text-muted-foreground ml-2">
+            <Users className="h-4 w-4" />
+            <span>Sales OS</span>
+          </div>
         </div>
 
         <nav className="hidden md:flex items-center space-x-6">
@@ -54,7 +57,6 @@ const SalesNavigation = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
-          <RoleToggle />
           <ThemeToggle />
           <UserProfile 
             name={profile?.full_name || "Sales Rep"}

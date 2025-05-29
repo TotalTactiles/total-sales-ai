@@ -4,70 +4,74 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
 
 // Developer pages
-import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
-import APILogs from '@/pages/developer/APILogs';
-import ErrorLogs from '@/pages/developer/ErrorLogs';
-import AIBrainLogs from '@/pages/developer/AIBrainLogs';
-import SystemMonitor from '@/pages/developer/SystemMonitor';
-import CRMIntegrations from '@/pages/developer/CRMIntegrations';
-import TestingSandbox from '@/pages/developer/TestingSandbox';
-import QAChecklist from '@/pages/developer/QAChecklist';
-import VersionControl from '@/pages/developer/VersionControl';
+import DeveloperDashboard from '@/pages/developer/Dashboard';
+import DeveloperSystemMonitor from '@/pages/developer/SystemMonitor';
+import DeveloperAILogs from '@/pages/developer/AIBrainLogs';
+import DeveloperAPILogs from '@/pages/developer/APILogs';
+import DeveloperErrorLogs from '@/pages/developer/ErrorLogs';
+import DeveloperQAChecklist from '@/pages/developer/QAChecklist';
+import DeveloperTestingSandbox from '@/pages/developer/TestingSandbox';
+import DeveloperVersionControl from '@/pages/developer/VersionControl';
 import DeveloperSettings from '@/pages/developer/Settings';
+import DeveloperCRMIntegrations from '@/pages/developer/CRMIntegrations';
 
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
+import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
 
 const DeveloperLayout = () => {
+  const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
   const location = useLocation();
   
-  // Determine workspace context from current route
   const getWorkspaceContext = () => {
     const path = location.pathname;
     
-    if (path.includes('/api-logs') || path.includes('/error-logs') || path.includes('/ai-brain-logs')) {
-      return 'dashboard';
+    if (path.includes('/ai-brain-logs')) {
+      return 'developer_ai_logs';
     } else if (path.includes('/system-monitor')) {
-      return 'dashboard';
-    } else if (path.includes('/crm-integrations')) {
-      return 'dashboard';
+      return 'developer_system';
     } else if (path.includes('/testing-sandbox')) {
-      return 'dashboard';
+      return 'developer_testing';
+    } else if (path.includes('/dashboard')) {
+      return 'developer_dashboard';
     } else {
-      return 'dashboard';
+      return 'developer_dashboard';
     }
   };
 
   const aiContext = {
-    workspace: getWorkspaceContext() as any
+    workspace: getWorkspaceContext() as any,
+    currentLead,
+    isCallActive,
+    emailContext,
+    smsContext
   };
   
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-900 text-white relative">
       <DeveloperNavigation />
       
       <main className="pt-[60px]">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<DeveloperDashboard />} />
-          <Route path="/api-logs" element={<APILogs />} />
-          <Route path="/error-logs" element={<ErrorLogs />} />
-          <Route path="/ai-brain-logs" element={<AIBrainLogs />} />
-          <Route path="/system-monitor" element={<SystemMonitor />} />
-          <Route path="/crm-integrations" element={<CRMIntegrations />} />
-          <Route path="/testing-sandbox" element={<TestingSandbox />} />
-          <Route path="/qa-checklist" element={<QAChecklist />} />
-          <Route path="/version-control" element={<VersionControl />} />
+          <Route path="/system-monitor" element={<DeveloperSystemMonitor />} />
+          <Route path="/ai-brain-logs" element={<DeveloperAILogs />} />
+          <Route path="/api-logs" element={<DeveloperAPILogs />} />
+          <Route path="/error-logs" element={<DeveloperErrorLogs />} />
+          <Route path="/qa-checklist" element={<DeveloperQAChecklist />} />
+          <Route path="/testing-sandbox" element={<DeveloperTestingSandbox />} />
+          <Route path="/version-control" element={<DeveloperVersionControl />} />
+          <Route path="/crm-integrations" element={<DeveloperCRMIntegrations />} />
           <Route path="/settings" element={<DeveloperSettings />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
-
-      {/* Unified AI Bubble - Always present */}
-      <UnifiedAIBubble 
-        context={aiContext}
-        className="z-30"
-      />
+      
+      {/* Developer AI Assistant */}
+      <div className="fixed bottom-6 right-6 z-[9999]">
+        <UnifiedAIBubble context={aiContext} />
+      </div>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Users, Settings, Brain, Award, Building2 } from 'lucide-react';
+import { BarChart3, Users, Settings, Brain, Building2, Database } from 'lucide-react';
 import Logo from '@/components/Logo';
 import UserProfile from '@/components/UserProfile';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -14,9 +14,9 @@ const ManagerNavigation = () => {
   const navItems = [
     { label: 'Dashboard', href: '/manager/dashboard', icon: BarChart3 },
     { label: 'Analytics', href: '/manager/analytics', icon: BarChart3 },
-    { label: 'Lead Management', href: '/manager/leads', icon: Users },
-    { label: 'Company Brain', href: '/manager/company-brain', icon: Brain },
-    { label: 'AI Command', href: '/manager/ai', icon: Award },
+    { label: 'Lead Management', href: '/manager/lead-management', icon: Users },
+    { label: 'Company Brain', href: '/manager/company-brain', icon: Database },
+    { label: 'AI Assistant', href: '/manager/ai', icon: Brain },
     { label: 'Settings', href: '/manager/settings', icon: Settings },
   ];
 

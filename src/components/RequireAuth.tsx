@@ -5,10 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 
 interface RequireAuthProps {
   children: React.ReactNode;
-  requiredRole?: string;
 }
 
-const RequireAuth: React.FC<RequireAuthProps> = ({ children, requiredRole }) => {
+const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
 
@@ -24,22 +23,32 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, requiredRole }) => 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Allow admin access to everything
-  if (profile?.role === 'admin') {
-    return <>{children}</>;
+  // If user is authenticated but no profile, redirect to auth for completion
+  if (!profile) {
+    return <Navigate to="/auth" replace />;
   }
 
-  // For testing purposes, allow cross-role access during development
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Dev mode: Allowing ${profile?.role} to access ${requiredRole} content`);
-    return <>{children}</>;
-  }
+  // Route user to appropriate OS based on their role
+  const currentPath = location.pathname;
+  const userRole = profile.role;
 
-  // Check if user has required role
-  if (requiredRole && profile?.role !== requiredRole) {
-    // Redirect to appropriate dashboard based on actual role
-    switch (profile?.role) {
+  // Determine if user is on correct OS path
+  const isOnCorrectOS = () => {
+    if (userRole === 'developer' || userRole === 'admin') {
+      return currentPath.startsWith('/developer');
+    } else if (userRole === 'manager') {
+      return currentPath.startsWith('/manager');
+    } else if (userRole === 'sales_rep') {
+      return currentPath.startsWith('/sales');
+    }
+    return false;
+  };
+
+  // Redirect to correct OS if on wrong path
+  if (!isOnCorrectOS() && !currentPath.startsWith('/lead-workspace')) {
+    switch (userRole) {
       case 'developer':
+      case 'admin':
         return <Navigate to="/developer" replace />;
       case 'manager':
         return <Navigate to="/manager" replace />;
