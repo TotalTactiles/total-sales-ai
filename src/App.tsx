@@ -78,6 +78,15 @@ function App() {
                   </RequireAuth>
                 } />
                 
+                {/* Standalone lead workspace route - CRITICAL for lead navigation */}
+                <Route path="/lead-workspace/:id" element={
+                  <RequireAuth>
+                    <OnboardingGuard>
+                      <LeadWorkspace />
+                    </OnboardingGuard>
+                  </RequireAuth>
+                } />
+                
                 {/* Fallback */}
                 <Route path="*" element={<Navigate to="/sales" replace />} />
               </Routes>

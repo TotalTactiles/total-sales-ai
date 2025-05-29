@@ -66,6 +66,11 @@ const LeadCard: React.FC<LeadCardProps> = ({
     onQuickAction(action, lead);
   };
 
+  const handleCardClick = () => {
+    console.log('LeadCard clicked - Lead ID:', lead.id, 'Lead Name:', lead.name);
+    onCardClick(lead);
+  };
+
   const needsAttention = !lead.lastContact || lead.score < 60;
 
   return (
@@ -74,7 +79,7 @@ const LeadCard: React.FC<LeadCardProps> = ({
         className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-[1.02] ${
           needsAttention ? 'ring-2 ring-amber-200' : ''
         } ${isHovered ? 'shadow-lg' : 'shadow-sm'}`}
-        onClick={() => onCardClick(lead)}
+        onClick={handleCardClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >

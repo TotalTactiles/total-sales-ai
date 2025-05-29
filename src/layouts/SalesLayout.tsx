@@ -54,7 +54,7 @@ const SalesLayout = () => {
   };
   
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 relative">
       <SalesNavigation />
       
       <main className="pt-[60px]">
@@ -80,11 +80,10 @@ const SalesLayout = () => {
         smsContext={smsContext}
       />
 
-      {/* Unified AI Bubble - Always present with fixed positioning */}
-      <UnifiedAIBubble 
-        context={aiContext}
-        className="fixed bottom-6 right-6 z-50"
-      />
+      {/* Unified AI Bubble - Fixed positioning with high z-index */}
+      <div className="fixed bottom-6 right-6 z-[9999]">
+        <UnifiedAIBubble context={aiContext} />
+      </div>
     </div>
   );
 };
