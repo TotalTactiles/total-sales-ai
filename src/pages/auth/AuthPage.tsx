@@ -18,11 +18,6 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    fullName: '',
-  });
 
   // Check for existing authentication and redirect if needed
   useEffect(() => {
@@ -113,22 +108,28 @@ const AuthPage = () => {
           onValueChange={(value) => handleRoleChange(value as Role)}
           className="w-full"
         >
-          <TabsList className="grid grid-cols-2 mb-6">
-            <TabsTrigger value="manager" className="flex items-center gap-2">
-              Manager View
-            </TabsTrigger>
+          <TabsList className="grid grid-cols-3 mb-6">
             <TabsTrigger value="sales_rep" className="flex items-center gap-2">
-              Sales Rep View
+              Sales Rep
+            </TabsTrigger>
+            <TabsTrigger value="manager" className="flex items-center gap-2">
+              Manager
+            </TabsTrigger>
+            <TabsTrigger value="developer" className="flex items-center gap-2">
+              Developer
             </TabsTrigger>
           </TabsList>
         
           <div className="space-y-6">
             <div className="text-center p-4 mb-4 border border-dashed border-border rounded-lg dark:border-dark-border">
               <h3 className="font-medium text-lg mb-1">
-                {selectedRole === 'manager' ? 'Manager Dashboard' : 'Sales Rep Dashboard'}
+                {selectedRole === 'developer' ? 'Developer OS' : 
+                 selectedRole === 'manager' ? 'Manager OS' : 'Sales Rep OS'}
               </h3>
               <p className="text-sm text-muted-foreground dark:text-gray-400">
-                {selectedRole === 'manager' 
+                {selectedRole === 'developer' 
+                  ? 'System monitoring, AI brain, sandbox & dev tools' 
+                  : selectedRole === 'manager'
                   ? 'Team analysis, performance tracking & AI coaching' 
                   : 'Smart dialer, call scripts & AI sales assistant'}
               </p>
@@ -139,16 +140,6 @@ const AuthPage = () => {
                 <AuthLoginForm 
                   setIsTransitioning={setIsTransitioning} 
                   simulateLoginTransition={simulateLoginTransition}
-                  formData={{
-                    email: formData.email,
-                    password: formData.password
-                  }}
-                  setFormData={(data: { email: string; password: string; }) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      ...data
-                    }));
-                  }}
                 />
               ) : (
                 <AuthSignupForm 
@@ -171,12 +162,6 @@ const AuthPage = () => {
               selectedRole={selectedRole} 
               setIsTransitioning={setIsTransitioning}
               simulateLoginTransition={simulateLoginTransition}
-              setFormData={(data: { email: string; password: string; }) => {
-                setFormData(prev => ({
-                  ...prev,
-                  ...data
-                }));
-              }}
             />
           </div>
         </Tabs>

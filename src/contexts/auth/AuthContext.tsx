@@ -90,51 +90,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('profiles')
           .update({ last_login: new Date().toISOString() })
           .eq('id', userId);
-
-        // Handle post-authentication routing
-        handlePostAuthRouting(data as Profile);
       } else {
         console.warn("No profile found for user:", userId);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
-    }
-  };
-
-  const handlePostAuthRouting = (userProfile: Profile) => {
-    // Don't redirect if we're already on auth page or in onboarding
-    if (location.pathname === '/auth' || location.pathname.includes('onboarding')) {
-      return;
-    }
-
-    // Check if onboarding is complete
-    const onboardingComplete = localStorage.getItem(`onboarding_complete_${userProfile.id}`);
-    
-    if (!onboardingComplete) {
-      // Onboarding will handle routing
-      return;
-    }
-
-    // Redirect to appropriate dashboard based on role using new OS structure
-    let targetPath = '/sales';
-    
-    switch (userProfile.role) {
-      case 'developer':
-      case 'admin':
-        targetPath = '/developer';
-        break;
-      case 'manager':
-        targetPath = '/manager';
-        break;
-      case 'sales_rep':
-      default:
-        targetPath = '/sales';
-        break;
-    }
-    
-    // Only redirect if we're not already on the correct path
-    if (!location.pathname.startsWith(targetPath)) {
-      navigate(targetPath);
     }
   };
 
@@ -154,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       console.log("Sign up successful:", data);
-      toast.success('Account created successfully! Please complete onboarding.');
+      toast.success('Account created successfully!');
     } catch (error: any) {
       console.error("Sign up error:", error);
       toast.error(error.message || 'Error signing up');

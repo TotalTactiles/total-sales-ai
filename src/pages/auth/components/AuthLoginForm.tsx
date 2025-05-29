@@ -6,33 +6,22 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
   simulateLoginTransition: () => void;
-  formData?: { email: string; password: string; };
-  setFormData?: (data: { email: string; password: string; }) => void;
 }
 
 const AuthLoginForm: React.FC<AuthLoginFormProps> = ({ 
   setIsTransitioning, 
-  simulateLoginTransition,
-  formData: externalFormData,
-  setFormData: externalSetFormData
+  simulateLoginTransition
 }) => {
-  const { signIn, initializeDemoMode } = useAuth();
-  const navigate = useNavigate();
-  const [internalFormData, setInternalFormData] = useState({
-    email: 'sales.rep@company.com',
-    password: 'fulluser123',
+  const { signIn } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
-  
-  // Use either external or internal form data based on what's provided
-  const formData = externalFormData || internalFormData;
-  const setFormData = externalSetFormData || setInternalFormData;
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -41,84 +30,14 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     });
   };
 
-  const checkCompanySettings = async (userId: string) => {
-    try {
-      // Get the user's profile to find company_id
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('company_id, role')
-        .eq('id', userId)
-        .single();
-      
-      if (profileError) throw profileError;
-      
-      // If no company_id, we can't check settings
-      if (!profileData.company_id) {
-        return null;
-      }
-      
-      // Check if company settings exist and if onboarding is completed
-      const { data: settingsData, error: settingsError } = await supabase
-        .from('company_settings')
-        .select('onboarding_completed_at')
-        .eq('company_id', profileData.company_id)
-        .maybeSingle();
-      
-      if (settingsError) throw settingsError;
-      
-      // Return combination of profile and settings
-      return {
-        hasSettings: !!settingsData,
-        onboardingCompleted: !!settingsData?.onboarding_completed_at,
-        isManager: profileData.role === 'manager',
-        companyId: profileData.company_id
-      };
-    } catch (error) {
-      console.error('Error checking company settings:', error);
-      return null;
-    }
-  };
-
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      console.log('Logging in as full paying user');
-      
-      // Simulate full user authentication with all features unlocked
-      initializeDemoMode('sales_rep');
-      
-      // Set full user status in localStorage
-      localStorage.setItem('userStatus', 'full');
-      localStorage.setItem('planType', 'pro');
-      localStorage.setItem('userEmail', formData.email);
-      
+      await signIn(formData.email, formData.password);
       setIsTransitioning(true);
-      
-      // Check for company settings (only in real mode, not demo mode)
-      // In a real implementation, you would check after actual authentication
-      const userId = localStorage.getItem('userId') || '123e4567-e89b-12d3-a456-426614174000'; // Mock user ID for demo
-      const companyStatus = await checkCompanySettings(userId);
-
-      // Direct navigation based on settings status
-      setTimeout(() => {
-        if (companyStatus) {
-          if (companyStatus.isManager && (!companyStatus.hasSettings || !companyStatus.onboardingCompleted)) {
-            // Manager with no company settings or incomplete onboarding -> onboarding
-            navigate('/onboarding');
-          } else {
-            // Regular navigation based on role
-            navigate('/sales-rep-dashboard');
-          }
-        } else {
-          navigate('/sales-rep-dashboard');
-        }
-      }, 1500);
-      
-      toast.success('Welcome back! Logged in as full user with Pro features.');
-      return;
-      
+      // The auth context will handle navigation after successful login
     } catch (error: any) {
       console.error('Authentication error:', error);
       toast.error(error.message || 'Login failed');
@@ -140,6 +59,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           required
           disabled={isLoading}
           autoComplete="email"
+          placeholder="Enter your email"
         />
       </div>
       <div>
@@ -153,13 +73,14 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           required
           disabled={isLoading}
           autoComplete="current-password"
+          placeholder="Enter your password"
         />
       </div>
       
       <Button 
         type="submit" 
         className="w-full bg-salesBlue hover:bg-salesBlue-dark"
-        disabled={isLoading}
+        disabled={isLoading || !formData.email || !formData.password}
       >
         {isLoading ? (
           <>
@@ -168,16 +89,10 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           </>
         ) : (
           <>
-            <LogIn className="mr-2 h-4 w-4" /> Login as Full User
+            <LogIn className="mr-2 h-4 w-4" /> Login
           </>
         )}
       </Button>
-      
-      <div className="text-center">
-        <p className="text-xs text-muted-foreground">
-          Auto-filled with full user credentials
-        </p>
-      </div>
     </form>
   );
 };
