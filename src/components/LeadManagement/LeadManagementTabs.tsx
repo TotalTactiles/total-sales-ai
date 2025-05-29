@@ -1,78 +1,98 @@
 
-import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Lead } from '@/types/lead';
 import LeadCardGrid from './LeadCardGrid';
+import LeadManagementActions from './LeadManagementActions';
 
 interface LeadManagementTabsProps {
-  activeFilter: string;
-  setActiveFilter: (filter: string) => void;
-  displayLeads: Lead[];
-  filteredLeads: Lead[];
-  isLoading: boolean;
-  onLeadClick: (lead: Lead) => void;
-  onQuickAction: (action: string, lead: Lead) => void;
+  leads: Lead[];
+  loading: boolean;
+  onLeadSelect: (lead: Lead) => void;
+  selectedLead: Lead | null;
 }
 
 const LeadManagementTabs: React.FC<LeadManagementTabsProps> = ({
-  activeFilter,
-  setActiveFilter,
-  displayLeads,
-  filteredLeads,
-  isLoading,
-  onLeadClick,
-  onQuickAction
+  leads,
+  loading,
+  onLeadSelect,
+  selectedLead
 }) => {
-  return (
-    <Tabs defaultValue="all" className="mb-6">
-      <TabsList className="mb-4">
-        <TabsTrigger 
-          value="all" 
-          onClick={() => setActiveFilter('all')}
-        >
-          All Leads ({displayLeads.length})
-        </TabsTrigger>
-        <TabsTrigger 
-          value="new" 
-          onClick={() => setActiveFilter('new')}
-        >
-          New ({displayLeads.filter(l => l.status === 'new').length})
-        </TabsTrigger>
-        <TabsTrigger 
-          value="contacted" 
-          onClick={() => setActiveFilter('contacted')}
-        >
-          Contacted ({displayLeads.filter(l => l.status === 'contacted').length})
-        </TabsTrigger>
-        <TabsTrigger 
-          value="qualified" 
-          onClick={() => setActiveFilter('qualified')}
-        >
-          Qualified ({displayLeads.filter(l => l.status === 'qualified').length})
-        </TabsTrigger>
-        <TabsTrigger 
-          value="closed" 
-          onClick={() => setActiveFilter('closed')}
-        >
-          Closed ({displayLeads.filter(l => l.status === 'closed').length})
-        </TabsTrigger>
-      </TabsList>
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useState<string>('all');
 
-      <TabsContent value="all" className="mt-0">
-        {isLoading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading leads...</p>
-          </div>
-        ) : (
-          <LeadCardGrid
-            leads={filteredLeads}
-            onLeadClick={onLeadClick}
-            onQuickAction={onQuickAction}
+  // Filter leads based on current filters
+  const filteredLeads = leads.filter(lead => {
+    const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         lead.company.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
+    const matchesPriority = priorityFilter === 'all' || lead.priority === priorityFilter;
+    
+    return matchesSearch && matchesStatus && matchesPriority;
+  });
+
+  // Group leads by status for tabs
+  const allLeads = filteredLeads;
+  const newLeads = filteredLeads.filter(lead => lead.status === 'new');
+  const contactedLeads = filteredLeads.filter(lead => lead.status === 'contacted');
+  const qualifiedLeads = filteredLeads.filter(lead => lead.status === 'qualified');
+
+  return (
+    <div className="space-y-6">
+      <LeadManagementActions
+        onSearch={setSearchTerm}
+        onStatusFilter={setStatusFilter}
+        onPriorityFilter={setPriorityFilter}
+        statusFilter={statusFilter}
+        priorityFilter={priorityFilter}
+      />
+
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="all">All Leads ({allLeads.length})</TabsTrigger>
+          <TabsTrigger value="new">New ({newLeads.length})</TabsTrigger>
+          <TabsTrigger value="contacted">Contacted ({contactedLeads.length})</TabsTrigger>
+          <TabsTrigger value="qualified">Qualified ({qualifiedLeads.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all" className="space-y-6">
+          <LeadCardGrid 
+            leads={allLeads} 
+            loading={loading}
+            onLeadClick={onLeadSelect}
+            selectedLead={selectedLead}
           />
-        )}
-      </TabsContent>
-    </Tabs>
+        </TabsContent>
+
+        <TabsContent value="new" className="space-y-6">
+          <LeadCardGrid 
+            leads={newLeads} 
+            loading={loading}
+            onLeadClick={onLeadSelect}
+            selectedLead={selectedLead}
+          />
+        </TabsContent>
+
+        <TabsContent value="contacted" className="space-y-6">
+          <LeadCardGrid 
+            leads={contactedLeads} 
+            loading={loading}
+            onLeadClick={onLeadSelect}
+            selectedLead={selectedLead}
+          />
+        </TabsContent>
+
+        <TabsContent value="qualified" className="space-y-6">
+          <LeadCardGrid 
+            leads={qualifiedLeads} 
+            loading={loading}
+            onLeadClick={onLeadSelect}
+            selectedLead={selectedLead}
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
