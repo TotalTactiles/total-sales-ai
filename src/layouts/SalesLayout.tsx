@@ -13,10 +13,42 @@ import SalesSettings from '@/pages/sales/Settings';
 import SalesDialer from '@/pages/sales/Dialer';
 
 import ContextAwareVoiceAssistant from '@/components/VoiceAI/ContextAwareVoiceAssistant';
+import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
 import { useAIContext } from '@/contexts/AIContext';
+import { useLocation } from 'react-router-dom';
 
 const SalesLayout = () => {
   const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
+  const location = useLocation();
+  
+  // Determine workspace context from current route
+  const getWorkspaceContext = () => {
+    const path = location.pathname;
+    
+    if (path.includes('/dialer')) {
+      return 'dialer';
+    } else if (path.includes('/lead-management') || path.includes('/lead/')) {
+      return 'leads';
+    } else if (path.includes('/email')) {
+      return 'email';
+    } else if (path.includes('/sms')) {
+      return 'sms';
+    } else if (path.includes('/academy')) {
+      return 'company_brain';
+    } else if (path.includes('/dashboard')) {
+      return 'dashboard';
+    } else {
+      return 'dashboard';
+    }
+  };
+
+  const aiContext = {
+    workspace: getWorkspaceContext() as any,
+    currentLead,
+    isCallActive,
+    emailContext,
+    smsContext
+  };
   
   return (
     <div className="min-h-screen bg-slate-50">
@@ -42,6 +74,12 @@ const SalesLayout = () => {
         isCallActive={isCallActive}
         emailContext={emailContext}
         smsContext={smsContext}
+      />
+
+      {/* Unified AI Bubble - Always present */}
+      <UnifiedAIBubble 
+        context={aiContext}
+        className="z-40"
       />
     </div>
   );
