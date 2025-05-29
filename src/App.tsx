@@ -17,7 +17,6 @@ const DeveloperOS = lazy(() => import('@/layouts/DeveloperOS'));
 const AuthLayout = lazy(() => import('@/layouts/AuthLayout'));
 
 // Direct imports for other pages
-import CompanyBrain from '@/pages/CompanyBrain';
 import NotFound from '@/pages/NotFound';
 
 const queryClient = new QueryClient({
@@ -61,13 +60,6 @@ function App() {
                       <Route path="/developer/*" element={
                         <ProtectedRoute requiredRole="admin">
                           <DeveloperOS />
-                        </ProtectedRoute>
-                      } />
-                      
-                      {/* Company Brain */}
-                      <Route path="/company-brain" element={
-                        <ProtectedRoute>
-                          <CompanyBrain />
                         </ProtectedRoute>
                       } />
                       
