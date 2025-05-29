@@ -6,6 +6,7 @@ export type Role = 'developer' | 'manager' | 'sales_rep' | 'admin';
 export type Profile = {
   id: string;
   full_name: string | null;
+  email?: string; // Added email property
   role: Role;
   company_id?: string; // Added company_id as an optional property
   ai_assistant_name?: string; // Added ai_assistant_name as an optional property
