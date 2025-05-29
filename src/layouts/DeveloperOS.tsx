@@ -2,36 +2,34 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+
+// Import Developer OS pages
 import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
-import SystemMonitor from '@/pages/developer/SystemMonitor';
-import APILogs from '@/pages/developer/APILogs';
-import ErrorLogs from '@/pages/developer/ErrorLogs';
-import TestingSandbox from '@/pages/developer/TestingSandbox';
-import Settings from '@/pages/developer/Settings';
-import CRMIntegrations from '@/pages/developer/CRMIntegrations';
-import QAChecklist from '@/pages/developer/QAChecklist';
-import VersionControl from '@/pages/developer/VersionControl';
+import DeveloperAnalytics from '@/pages/developer/DeveloperAnalytics';
+import AIMasterBrain from '@/pages/developer/AIMasterBrain';
+import SystemMonitoring from '@/pages/developer/SystemMonitoring';
+import DeveloperSettings from '@/pages/developer/DeveloperSettings';
+import Sandbox from '@/pages/developer/Sandbox';
 
 const DeveloperOS = () => {
   return (
     <div className="flex h-screen bg-background">
-      <DeveloperNavigation />
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6">
+      <div className="flex-1 flex flex-col">
+        <DeveloperNavigation />
+        <main className="flex-1 overflow-y-auto pt-[60px]">
           <Routes>
             <Route path="/" element={<Navigate to="/developer/dashboard" replace />} />
             <Route path="/dashboard" element={<DeveloperDashboard />} />
-            <Route path="/system-monitor" element={<SystemMonitor />} />
-            <Route path="/api-logs" element={<APILogs />} />
-            <Route path="/error-logs" element={<ErrorLogs />} />
-            <Route path="/testing-sandbox" element={<TestingSandbox />} />
-            <Route path="/crm-integrations" element={<CRMIntegrations />} />
-            <Route path="/qa-checklist" element={<QAChecklist />} />
-            <Route path="/version-control" element={<VersionControl />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/analytics" element={<DeveloperAnalytics />} />
+            <Route path="/ai-master-brain" element={<AIMasterBrain />} />
+            <Route path="/brain" element={<AIMasterBrain />} />
+            <Route path="/system-monitoring" element={<SystemMonitoring />} />
+            <Route path="/monitoring" element={<SystemMonitoring />} />
+            <Route path="/sandbox" element={<Sandbox />} />
+            <Route path="/settings" element={<DeveloperSettings />} />
           </Routes>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
