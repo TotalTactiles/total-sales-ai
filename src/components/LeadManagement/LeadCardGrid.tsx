@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -117,8 +118,9 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
   };
 
   const handleLeadClick = (lead: Lead) => {
-    // Fix: Navigate to the correct lead-workspace route
-    navigate(`/lead-workspace/${lead.id}`);
+    console.log('Navigating to lead workspace:', lead.id);
+    // Fix: Navigate to the sales lead-workspace route
+    navigate(`/sales/lead-workspace/${lead.id}`);
     trackEvent({
       feature: 'lead_card_click',
       action: 'navigate_to_workspace',

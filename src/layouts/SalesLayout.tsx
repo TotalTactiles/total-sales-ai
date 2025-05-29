@@ -11,6 +11,7 @@ import SalesAcademy from '@/pages/sales/Academy';
 import SalesAI from '@/pages/sales/AI';
 import SalesSettings from '@/pages/sales/Settings';
 import SalesDialer from '@/pages/sales/Dialer';
+import LeadWorkspace from '@/pages/LeadWorkspace';
 
 import ContextAwareVoiceAssistant from '@/components/VoiceAI/ContextAwareVoiceAssistant';
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
@@ -29,6 +30,8 @@ const SalesLayout = () => {
       return 'dialer';
     } else if (path.includes('/lead-management') || path.includes('/lead/')) {
       return 'leads';
+    } else if (path.includes('/lead-workspace/')) {
+      return 'lead_details';
     } else if (path.includes('/email')) {
       return 'email';
     } else if (path.includes('/sms')) {
@@ -60,6 +63,7 @@ const SalesLayout = () => {
           <Route path="/dashboard" element={<SalesRepDashboard />} />
           <Route path="/analytics" element={<SalesAnalytics />} />
           <Route path="/lead-management" element={<SalesLeadManagement />} />
+          <Route path="/lead-workspace/:id" element={<LeadWorkspace />} />
           <Route path="/dialer" element={<SalesDialer />} />
           <Route path="/academy" element={<SalesAcademy />} />
           <Route path="/ai" element={<SalesAI />} />
@@ -76,10 +80,10 @@ const SalesLayout = () => {
         smsContext={smsContext}
       />
 
-      {/* Unified AI Bubble - Always present */}
+      {/* Unified AI Bubble - Always present with fixed positioning */}
       <UnifiedAIBubble 
         context={aiContext}
-        className="z-40"
+        className="fixed bottom-6 right-6 z-50"
       />
     </div>
   );
