@@ -148,10 +148,10 @@ const LeadManagementSales = () => {
                   <span>Score: <strong>{lead.score}%</strong></span>
                   <span className="text-xs text-muted-foreground">Source: {lead.source}</span>
                 </div>
-                {lead.lastContact && (
+                {lead.last_contact && (
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>Last contact: {lead.lastContact}</span>
+                    <span>Last contact: {new Date(lead.last_contact).toLocaleDateString()}</span>
                   </div>
                 )}
                 <div className="flex space-x-2 pt-2">
