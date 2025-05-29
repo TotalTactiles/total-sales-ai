@@ -2,12 +2,14 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
-import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
+
+// Import all Sales OS pages
+import SalesDashboard from '@/pages/sales/SalesDashboard';
+import SalesAnalytics from '@/pages/sales/SalesAnalytics';
+import LeadManagementSales from '@/pages/sales/LeadManagementSales';
+import SalesAIAssistant from '@/pages/sales/SalesAIAssistant';
+import SalesSettings from '@/pages/sales/SalesSettings';
 import Dialer from '@/pages/sales/Dialer';
-import LeadManagement from '@/pages/sales/LeadManagement';
-import Analytics from '@/pages/sales/Analytics';
-import Settings from '@/pages/sales/Settings';
-import AI from '@/pages/sales/AI';
 import Academy from '@/pages/sales/Academy';
 
 const SalesLayout = () => {
@@ -15,19 +17,18 @@ const SalesLayout = () => {
     <div className="flex h-screen bg-background">
       <SalesRepNavigation />
       <main className="flex-1 overflow-y-auto">
-        <div className="p-6">
-          <Routes>
-            <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
-            <Route path="/dashboard" element={<SalesRepDashboard />} />
-            <Route path="/dialer" element={<Dialer />} />
-            <Route path="/leads" element={<LeadManagement />} />
-            <Route path="/lead-management" element={<LeadManagement />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/ai" element={<AI />} />
-            <Route path="/academy" element={<Academy />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
-        </div>
+        <Routes>
+          <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
+          <Route path="/dashboard" element={<SalesDashboard />} />
+          <Route path="/analytics" element={<SalesAnalytics />} />
+          <Route path="/leads" element={<LeadManagementSales />} />
+          <Route path="/lead-management" element={<LeadManagementSales />} />
+          <Route path="/ai" element={<SalesAIAssistant />} />
+          <Route path="/ai-assistant" element={<SalesAIAssistant />} />
+          <Route path="/settings" element={<SalesSettings />} />
+          <Route path="/dialer" element={<Dialer />} />
+          <Route path="/academy" element={<Academy />} />
+        </Routes>
       </main>
     </div>
   );
