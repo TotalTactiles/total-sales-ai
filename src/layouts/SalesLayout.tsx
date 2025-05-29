@@ -2,6 +2,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
+import FloatingAIChat from '@/components/AIAssistant/FloatingAIChat';
 
 // Import Sales OS pages
 import SalesDashboard from '@/pages/sales/SalesDashboard';
@@ -31,6 +32,9 @@ const SalesLayout = () => {
             <Route path="/academy" element={<Academy />} />
           </Routes>
         </main>
+        
+        {/* Floating AI Chat - Available across all Sales OS pages */}
+        <FloatingAIChat />
       </div>
     </div>
   );
