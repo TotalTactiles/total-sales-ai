@@ -15,7 +15,12 @@ export interface MockLead {
   lastContact: string;
   nextFollowUp?: string;
   value: number;
-  conversion_likelihood: number;
+  conversionLikelihood: number;
+  speedToLead?: number;
+  sentiment?: 'positive' | 'neutral' | 'negative' | 'very_positive';
+  objection?: string;
+  doNotCall?: boolean;
+  isSensitive?: boolean;
   industry?: string;
   employeeCount?: number;
   location?: string;
@@ -82,7 +87,7 @@ export interface MockCall {
   };
 }
 
-// Basic mock data
+// Basic mock data with consistent property names
 export const mockLeads: MockLead[] = [
   {
     id: 'lead-1',
@@ -100,7 +105,14 @@ export const mockLeads: MockLead[] = [
     lastContact: '2024-01-15T10:00:00Z',
     nextFollowUp: '2024-01-20T14:00:00Z',
     value: 50000,
-    conversion_likelihood: 80
+    conversionLikelihood: 80,
+    speedToLead: 5,
+    sentiment: 'positive',
+    doNotCall: false,
+    isSensitive: false,
+    industry: 'Technology',
+    employeeCount: 500,
+    location: 'San Francisco, CA'
   },
   {
     id: 'lead-2',
@@ -117,7 +129,38 @@ export const mockLeads: MockLead[] = [
     notes: 'Needs technical demo',
     lastContact: '2024-01-12T09:30:00Z',
     value: 35000,
-    conversion_likelihood: 60
+    conversionLikelihood: 60,
+    speedToLead: 12,
+    sentiment: 'neutral',
+    doNotCall: false,
+    isSensitive: false,
+    industry: 'Software',
+    employeeCount: 250,
+    location: 'Austin, TX'
+  },
+  {
+    id: 'lead-3',
+    name: 'Mike Chen',
+    email: 'mike@innovate.com',
+    phone: '+1-555-0125',
+    company: 'Innovate Inc',
+    title: 'CEO',
+    status: 'new',
+    score: 90,
+    priority: 'high',
+    source: 'Referral',
+    tags: ['enterprise', 'urgent'],
+    notes: 'Hot lead - schedule call ASAP',
+    lastContact: '2024-01-16T11:00:00Z',
+    value: 75000,
+    conversionLikelihood: 85,
+    speedToLead: 2,
+    sentiment: 'very_positive',
+    doNotCall: false,
+    isSensitive: true,
+    industry: 'Manufacturing',
+    employeeCount: 1000,
+    location: 'Chicago, IL'
   }
 ];
 
@@ -131,7 +174,9 @@ export const mockActivities: MockActivity[] = [
     timestamp: '2024-01-15T10:00:00Z',
     duration: 30,
     outcome: 'positive',
-    nextAction: 'Send proposal'
+    nextAction: 'Send proposal',
+    recordingUrl: '/recordings/call-1.mp3',
+    participants: ['John Smith', 'Sales Rep']
   },
   {
     id: 'activity-2',
@@ -141,7 +186,10 @@ export const mockActivities: MockActivity[] = [
     description: 'Sent follow-up with pricing information',
     timestamp: '2024-01-12T14:00:00Z',
     outcome: 'neutral',
-    nextAction: 'Schedule demo'
+    nextAction: 'Schedule demo',
+    emailSubject: 'Pricing Information for TechCorp',
+    openRate: true,
+    clickRate: false
   }
 ];
 
@@ -154,7 +202,14 @@ export const mockCalls: MockCall[] = [
     duration: 1800,
     timestamp: '2024-01-15T10:00:00Z',
     notes: 'Great conversation about their needs',
-    sentiment: 'positive'
+    sentiment: 'positive',
+    recordingUrl: '/recordings/call-1.mp3',
+    aiInsights: {
+      summary: 'Lead is very interested in the enterprise package',
+      keyPoints: ['Budget approved', 'Decision timeline: 2 weeks'],
+      riskFactors: ['Competitor evaluation ongoing'],
+      recommendations: ['Send proposal by Friday', 'Schedule technical demo']
+    }
   }
 ];
 

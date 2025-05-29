@@ -1,336 +1,267 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { 
   Brain, 
-  Mic, 
-  MicOff, 
-  Send, 
-  Minimize2, 
-  Maximize2,
-  X,
-  Volume2,
-  Loader2,
-  MessageSquare,
+  MessageSquare, 
+  Lightbulb, 
+  Send,
+  Mic,
+  MicOff,
   Zap,
+  TrendingUp,
   Target
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useVoiceCommands } from '@/hooks/useVoiceCommands';
-import { unifiedAIService } from '@/services/ai/unifiedAIService';
-import { safeActionHandler } from '@/utils/actionHandler';
-import { ActionTypes, validateStringParam } from '@/types/actions';
+import { unifiedAIService, AIResponse } from '@/services/ai/unifiedAIService';
+import { logger } from '@/utils/logger';
 
-const SalesRepAIAssistant: React.FC = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [conversation, setConversation] = useState<Array<{id: string, type: 'user' | 'ai', message: string, timestamp: Date}>>([]);
+interface SalesRepAIAssistantProps {
+  isOpen: boolean;
+  onClose: () => void;
+  context?: string;
+  leadData?: any;
+}
 
-  const {
-    isListening,
-    isProcessing: isVoiceProcessing,
-    lastTranscription,
-    startListening,
-    stopListening,
-    speakResponse
-  } = useVoiceCommands({
-    onCommand: (command) => {
-      const validCommand = validateStringParam(command, 'help');
-      setInputMessage(validCommand);
-      handleAICommand(validCommand);
-    },
-    onError: (error) => {
-      const errorMessage = validateStringParam(error, 'Voice command failed');
-      toast.error(errorMessage);
-    },
-    context: 'sales_assistant'
-  });
+const SalesRepAIAssistant: React.FC<SalesRepAIAssistantProps> = ({
+  isOpen,
+  onClose,
+  context,
+  leadData
+}) => {
+  const [query, setQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [conversation, setConversation] = useState<Array<{
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+    source?: string;
+  }>>([]);
 
-  const handleAICommand = async (command: any) => {
-    const validCommand = validateStringParam(command, 'help');
-    
-    if (!validCommand.trim()) {
-      toast.warning('Please enter a command');
-      return;
+  // Initialize with a welcome message
+  useEffect(() => {
+    if (isOpen && conversation.length === 0) {
+      setConversation([{
+        role: 'assistant',
+        content: `Hi! I'm your personal sales AI assistant. I'm here to help you with lead insights, talk tracks, objection handling, and sales strategy. What can I help you with today?`,
+        timestamp: new Date(),
+        source: 'system'
+      }]);
     }
+  }, [isOpen, conversation.length]);
+
+  const handleSendQuery = async () => {
+    if (!query.trim() || isLoading) return;
+
+    const userMessage = query.trim();
+    setQuery('');
+    setIsLoading(true);
+
+    // Add user message to conversation
+    setConversation(prev => [...prev, {
+      role: 'user',
+      content: userMessage,
+      timestamp: new Date()
+    }]);
 
     try {
-      setIsProcessing(true);
+      const systemMessage = `You are a personal AI sales assistant for a sales representative. 
+      Your role is to be friendly, helpful, and focused on practical sales advice. 
+      Provide specific, actionable recommendations for sales activities, lead management, and closing deals.
+      Keep responses conversational and encouraging.
       
-      // Add user message to conversation
-      const userMessage = {
-        id: crypto.randomUUID(),
-        type: 'user' as const,
-        message: validCommand,
-        timestamp: new Date()
-      };
-      setConversation(prev => [...prev, userMessage]);
+      ${leadData ? `Current lead context: ${JSON.stringify(leadData)}` : ''}
+      ${context ? `Current context: ${context}` : ''}`;
 
-      console.log('Processing AI command:', validCommand);
-
-      // Execute action through safe handler first
-      const actionResult = await safeActionHandler.executeAction(
-        ActionTypes.AI_COMMAND,
-        { command: validCommand },
-        'sales_assistant'
+      const response: AIResponse = await unifiedAIService.generateResponse(
+        userMessage,
+        systemMessage,
+        context,
+        'openai',
+        'lead_management'
       );
 
-      // Generate AI response using unified service
-      const aiResponse = await unifiedAIService.generateResponse(
-        validCommand,
-        'You are a helpful sales AI assistant. Provide practical, actionable advice for sales representatives. Keep responses professional and helpful.',
-        'sales_assistant'
-      );
-
-      console.log('AI response received:', aiResponse);
-
-      if (!aiResponse.response || typeof aiResponse.response !== 'string') {
-        throw new Error('Invalid response received from AI service');
-      }
-
-      const safeResponse = validateStringParam(aiResponse.response, 'I apologize, but I could not generate a response. Please try again.');
-
-      // Add AI response to conversation with dummy indicator
-      const aiMessage = {
-        id: crypto.randomUUID(),
-        type: 'ai' as const,
-        message: `${safeResponse}\n\n${aiResponse.source === 'dummy' ? '🧪 *This is a dummy response for testing purposes*' : ''}`,
+      // Add AI response to conversation
+      setConversation(prev => [...prev, {
+        role: 'assistant',
+        content: response.response,
         timestamp: new Date(),
-        confidence: aiResponse.confidence,
-        suggestedActions: aiResponse.suggestedActions
-      };
-      setConversation(prev => [...prev, aiMessage]);
+        source: response.source
+      }]);
 
-      // Generate voice response
-      try {
-        const voiceText = await unifiedAIService.generateVoiceResponse(safeResponse);
-        await speakResponse(voiceText);
-      } catch (voiceError) {
-        console.warn('Voice response failed:', voiceError);
-        // Continue without voice - response is still shown in chat
-      }
+      logger.info('Sales AI response generated', { 
+        source: response.source, 
+        confidence: response.confidence 
+      }, 'ai_brain');
 
-      toast.success(`AI response generated successfully ${aiResponse.source === 'dummy' ? '(Test Mode)' : ''}`);
     } catch (error) {
-      console.error('Error processing AI command:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to process AI command';
-      const safeErrorMessage = validateStringParam(errorMessage, 'An error occurred while processing your request');
-      
-      toast.error(safeErrorMessage);
+      logger.error('Failed to get AI response', error, 'ai_brain');
       
       // Add error message to conversation
-      const errorAiMessage = {
-        id: crypto.randomUUID(),
-        type: 'ai' as const,
-        message: `I apologize, but I encountered an error: ${safeErrorMessage}. Please try again.\n\n🧪 *Test mode active - using dummy responses*`,
-        timestamp: new Date()
-      };
-      setConversation(prev => [...prev, errorAiMessage]);
+      setConversation(prev => [...prev, {
+        role: 'assistant',
+        content: "I'm having trouble connecting right now. Let me give you some quick sales tips: Focus on understanding your lead's pain points, ask open-ended questions, and always follow up promptly!",
+        timestamp: new Date(),
+        source: 'fallback'
+      }]);
     } finally {
-      setIsProcessing(false);
-      setInputMessage('');
+      setIsLoading(false);
     }
   };
 
-  const handleQuickAction = (action: any) => {
-    const validAction = validateStringParam(action, 'help');
-    let command = '';
-    
-    switch (validAction) {
-      case 'draft_email':
-        command = 'Help me draft a follow-up email for my current lead';
-        break;
-      case 'summarize':
-        command = 'Summarize my recent interactions and suggest next steps';
-        break;
-      case 'next_action':
-        command = 'What should be my next best action to close more deals today?';
-        break;
-      default:
-        command = 'How can I help you today?';
+  const handleVoiceToggle = () => {
+    setIsListening(!isListening);
+    if (!isListening) {
+      // Mock voice input - in real implementation, this would use speech recognition
+      setTimeout(() => {
+        setQuery("How do I handle price objections?");
+        setIsListening(false);
+        toast.success('Voice command captured');
+      }, 2000);
     }
-    
-    setInputMessage(command);
-    handleAICommand(command);
   };
 
-  if (isMinimized) {
-    return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <Button
-          onClick={() => setIsMinimized(false)}
-          className="rounded-full w-14 h-14 bg-blue-600 hover:bg-blue-700 shadow-lg relative"
-        >
-          <Brain className="h-6 w-6" />
-          {isListening && (
-            <div className="absolute inset-0 rounded-full bg-blue-500 opacity-30 animate-ping" />
-          )}
-          {conversation.length > 0 && (
-            <Badge className="absolute -top-2 -right-2 bg-red-500 rounded-full w-5 h-5 flex items-center justify-center text-xs p-0">
-              {conversation.length}
-            </Badge>
-          )}
-        </Button>
-      </div>
-    );
-  }
+  const quickActions = [
+    {
+      label: "Objection Handling",
+      icon: <MessageSquare className="h-4 w-4" />,
+      query: "Give me scripts for handling common sales objections"
+    },
+    {
+      label: "Closing Techniques",
+      icon: <Target className="h-4 w-4" />,
+      query: "What are the best closing techniques for this type of lead?"
+    },
+    {
+      label: "Follow-up Strategy",
+      icon: <TrendingUp className="h-4 w-4" />,
+      query: "Create a follow-up sequence for this lead"
+    },
+    {
+      label: "Industry Insights",
+      icon: <Lightbulb className="h-4 w-4" />,
+      query: "Give me insights about this industry and how to sell to them"
+    }
+  ];
+
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <Card className={`shadow-2xl border-blue-200 transition-all duration-300 ${
-        isExpanded ? 'w-96 h-[500px]' : 'w-80 h-auto'
-      }`}>
-        <CardHeader className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <div className="relative">
-                <Brain className="h-5 w-5" />
-                <div className="w-2 h-2 rounded-full bg-green-400 absolute -top-0.5 -right-0.5 animate-pulse"></div>
-              </div>
-              Sales AI Assistant
-            </CardTitle>
-            <div className="flex items-center gap-1">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="text-white p-1 h-auto hover:bg-white/10"
-              >
-                {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setIsMinimized(true)}
-                className="text-white p-1 h-auto hover:bg-white/10"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <Card className="w-full max-w-2xl max-h-[80vh] flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-600" />
+            Sales AI Assistant
+            <Badge variant="outline" className="text-xs">Personal</Badge>
+          </CardTitle>
+          <Button variant="ghost" onClick={onClose}>✕</Button>
         </CardHeader>
 
-        <CardContent className="p-4 space-y-4">
-          {/* Quick Actions */}
-          <div className="grid grid-cols-3 gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handleQuickAction('draft_email')}
-              disabled={isProcessing}
-            >
-              <MessageSquare className="h-3 w-3 mr-1" />
-              Email
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handleQuickAction('summarize')}
-              disabled={isProcessing}
-            >
-              <Target className="h-3 w-3 mr-1" />
-              Summary
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => handleQuickAction('next_action')}
-              disabled={isProcessing}
-            >
-              <Zap className="h-3 w-3 mr-1" />
-              Next
-            </Button>
+        <CardContent className="flex-1 flex flex-col overflow-hidden">
+          {/* Conversation Area */}
+          <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+            {conversation.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] p-3 rounded-lg ${
+                    message.role === 'user'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
+                  <p className="text-sm">{message.content}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs opacity-70">
+                      {message.timestamp.toLocaleTimeString()}
+                    </span>
+                    {message.source && message.source !== 'system' && (
+                      <Badge variant="outline" className="text-xs">
+                        {message.source}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 p-3 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span className="text-sm text-gray-600">AI is thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Conversation History */}
-          {isExpanded && conversation.length > 0 && (
-            <div className="max-h-32 overflow-y-auto space-y-2 border rounded p-2">
-              {conversation.slice(-3).map((msg) => (
-                <div key={msg.id} className={`text-xs ${msg.type === 'user' ? 'text-blue-600 font-medium' : 'text-gray-700'}`}>
-                  <strong>{msg.type === 'user' ? 'You:' : 'AI:'}</strong> {validateStringParam(msg.message, 'No message').substring(0, 80)}
-                  {validateStringParam(msg.message, '').length > 80 ? '...' : ''}
-                </div>
-              ))}
-            </div>
-          )}
+          {/* Quick Actions */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {quickActions.map((action, index) => (
+              <Button
+                key={index}
+                variant="outline"
+                size="sm"
+                className="justify-start text-xs h-auto py-2"
+                onClick={() => {
+                  setQuery(action.query);
+                  handleSendQuery();
+                }}
+                disabled={isLoading}
+              >
+                {action.icon}
+                <span className="ml-2 truncate">{action.label}</span>
+              </Button>
+            ))}
+          </div>
 
           {/* Input Area */}
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <Textarea
-                value={inputMessage}
-                onChange={(e) => setInputMessage(validateStringParam(e.target.value, ''))}
-                placeholder="Ask anything... (e.g., 'Draft follow-up email', 'Suggest objection handling')"
-                className="text-sm resize-none"
-                rows={2}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleAICommand(inputMessage);
-                  }
-                }}
-              />
-              <div className="flex flex-col gap-1">
-                <Button
-                  onClick={() => handleAICommand(inputMessage)}
-                  disabled={!inputMessage.trim() || isProcessing}
-                  size="sm"
-                >
-                  {isProcessing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
-                </Button>
-                <Button
-                  onClick={isListening ? stopListening : startListening}
-                  variant={isListening ? "destructive" : "outline"}
-                  size="sm"
-                  disabled={isVoiceProcessing}
-                >
-                  {isVoiceProcessing ? (
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                  ) : isListening ? (
-                    <MicOff className="h-3 w-3" />
-                  ) : (
-                    <Mic className="h-3 w-3" />
-                  )}
-                </Button>
-              </div>
+          <div className="flex gap-2">
+            <Textarea
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ask me anything about sales, leads, or strategy..."
+              className="flex-1 min-h-[60px] text-sm"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendQuery();
+                }
+              }}
+              disabled={isLoading}
+            />
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={handleSendQuery}
+                disabled={!query.trim() || isLoading}
+                size="sm"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={handleVoiceToggle}
+                variant={isListening ? "destructive" : "outline"}
+                size="sm"
+              >
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
             </div>
-            
-            {/* Voice Status */}
-            {(isListening || isVoiceProcessing || lastTranscription) && (
-              <div className="text-xs text-gray-500 flex items-center gap-1">
-                {isListening && (
-                  <>
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    Listening...
-                  </>
-                )}
-                {isVoiceProcessing && (
-                  <>
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    Processing...
-                  </>
-                )}
-                {lastTranscription && !isListening && !isVoiceProcessing && (
-                  <>
-                    <Volume2 className="w-3 h-3" />
-                    Last: {validateStringParam(lastTranscription, 'No transcription').substring(0, 30)}...
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Processing Status */}
-            {isProcessing && (
-              <div className="text-xs text-blue-600 flex items-center gap-1">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                AI is thinking...
-              </div>
-            )}
           </div>
+
+          {isListening && (
+            <div className="text-xs text-gray-500 flex items-center gap-1 mt-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              Listening for voice command...
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

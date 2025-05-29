@@ -1,5 +1,5 @@
 
-// Enhanced lead type that includes all necessary fields
+// Enhanced lead type that includes all necessary fields with consistent camelCase naming
 export interface Lead {
   id: string;
   name: string;
@@ -17,13 +17,19 @@ export interface Lead {
   last_contact?: string; // Alternative naming for database compatibility
   nextFollowUp?: string;
   value: number;
-  conversion_likelihood: number;
+  conversionLikelihood: number;
+  conversion_likelihood?: number; // Alternative naming for database compatibility
   industry?: string;
   employeeCount?: number;
   location?: string;
   timezone?: string;
-  speed_to_lead?: number;
-  is_sensitive?: boolean;
+  speedToLead?: number;
+  speed_to_lead?: number; // Alternative naming for database compatibility
+  isSensitive?: boolean;
+  is_sensitive?: boolean; // Alternative naming for database compatibility
+  doNotCall?: boolean;
+  sentiment?: 'positive' | 'neutral' | 'negative' | 'very_positive';
+  objection?: string;
   created_at?: string;
   updated_at?: string;
   socialProfiles?: {
@@ -51,4 +57,20 @@ export interface DatabaseLead extends Lead {
 // Mock lead type for development
 export interface MockLead extends Lead {
   lastContact: string;
+}
+
+// Workflow types for AutoDialer
+export interface CallWorkflow {
+  id: string;
+  name: string;
+  steps: WorkflowStep[];
+  isActive: boolean;
+}
+
+export interface WorkflowStep {
+  id: string;
+  type: 'call' | 'email' | 'sms' | 'wait' | 'condition';
+  action: string;
+  delay?: number;
+  condition?: string;
 }
