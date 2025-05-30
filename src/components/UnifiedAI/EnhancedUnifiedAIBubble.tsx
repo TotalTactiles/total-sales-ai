@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -188,7 +187,7 @@ const EnhancedUnifiedAIBubble: React.FC<EnhancedUnifiedAIBubbleProps> = ({
     }
 
     // Log the interaction
-    logInteraction('ai_assistant', 'action_executed', 'completed', { 
+    logInteraction({
       action, 
       workspace: context.workspace,
       leadId: context.currentLead?.id 
@@ -393,10 +392,10 @@ const EnhancedUnifiedAIBubble: React.FC<EnhancedUnifiedAIBubbleProps> = ({
                     insights.slice(0, 5).map((insight) => (
                       <div key={insight.id} className="p-3 rounded border-l-4 border-purple-500 bg-purple-50">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium">{insight.title}</span>
-                          <Badge className="text-xs">{insight.confidence}% confident</Badge>
+                          <span className="text-sm font-medium">{insight.type}</span>
+                          <Badge className="text-xs">AI Generated</Badge>
                         </div>
-                        <p className="text-sm text-gray-600">{insight.description}</p>
+                        <p className="text-sm text-gray-600">{insight.suggestion_text}</p>
                         <div className="mt-2 flex gap-2">
                           <Button size="sm" className="h-6 text-xs">Accept</Button>
                           <Button variant="outline" size="sm" className="h-6 text-xs">Dismiss</Button>

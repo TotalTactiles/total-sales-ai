@@ -37,36 +37,54 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
   const workflows: CallWorkflow[] = [
     {
       id: '1',
-      order: 1,
-      type: 'email',
-      action: 'Real Estate - Connected Call Follow-up',
-      timing: 'immediately',
-      template: 'Thank you + property info',
-      aiGenerated: true,
+      name: 'Real Estate Follow-up',
+      steps: [{
+        id: '1',
+        order: 1,
+        type: 'email',
+        action: 'Real Estate - Connected Call Follow-up',
+        timing: 'immediately',
+        template: 'Thank you + property info',
+        aiGenerated: true
+      }],
+      isActive: true,
+      createdAt: new Date().toISOString(),
       industry: 'Real Estate',
       aiOptimized: true,
       successRate: 73
     },
     {
       id: '2',
-      order: 2,
-      type: 'call',
-      action: 'Tech/SaaS - Demo Request Flow',
-      timing: '1 day',
-      template: 'Demo confirmation + calendar link',
-      aiGenerated: true,
+      name: 'Tech Demo Flow',
+      steps: [{
+        id: '2',
+        order: 2,
+        type: 'call',
+        action: 'Tech/SaaS - Demo Request Flow',
+        timing: '1 day',
+        template: 'Demo confirmation + calendar link',
+        aiGenerated: true
+      }],
+      isActive: true,
+      createdAt: new Date().toISOString(),
       industry: 'Technology',
       aiOptimized: true,
       successRate: 81
     },
     {
       id: '3',
-      order: 3,
-      type: 'email',
-      action: 'Finance - Voicemail Recovery',
-      timing: 'immediately',
-      template: 'Voice message follow-up',
-      aiGenerated: true,
+      name: 'Finance Recovery',
+      steps: [{
+        id: '3',
+        order: 3,
+        type: 'email',
+        action: 'Finance - Voicemail Recovery',
+        timing: 'immediately',
+        template: 'Voice message follow-up',
+        aiGenerated: true
+      }],
+      isActive: true,
+      createdAt: new Date().toISOString(),
       industry: 'Finance',
       aiOptimized: true,
       successRate: 45

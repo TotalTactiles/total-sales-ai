@@ -128,7 +128,8 @@ const AutoDialerInterface: React.FC<AutoDialerInterfaceProps> = ({
     const availableLeads = leads.filter(lead => 
       lead.id !== currentLead?.id && 
       !lead.doNotCall &&
-      lead.status !== 'closed'
+      lead.status !== 'closed_won' && 
+      lead.status !== 'closed_lost'
     );
 
     return availableLeads.find(lead => lead.priority === 'high') ||
