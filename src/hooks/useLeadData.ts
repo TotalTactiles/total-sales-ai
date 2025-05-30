@@ -17,7 +17,10 @@ export const useLeadData = () => {
       status: 'new',
       tags: ['Budget Approved'],
       isSensitive: false,
-      conversionLikelihood: 78
+      conversionLikelihood: 78,
+      notes: 'Very interested in our platform',
+      lastContact: '2024-01-15T10:00:00Z',
+      value: 50000
     },
     { 
       id: '2', 
@@ -26,7 +29,7 @@ export const useLeadData = () => {
       source: "Facebook", 
       score: 72, 
       priority: 'medium', 
-      lastContact: '2 days ago',
+      lastContact: '2024-01-12T09:30:00Z',
       sentiment: 'neutral',
       objection: 'Price concern',
       email: 'jim@athlead.com',
@@ -34,7 +37,9 @@ export const useLeadData = () => {
       status: 'contacted',
       tags: ['Price Sensitive'],
       isSensitive: false,
-      conversionLikelihood: 62
+      conversionLikelihood: 62,
+      notes: 'Needs technical demo',
+      value: 35000
     },
     { 
       id: '3', 
@@ -49,7 +54,10 @@ export const useLeadData = () => {
       status: 'qualified',
       tags: ['Hot Lead', 'Demo Scheduled'],
       isSensitive: false,
-      conversionLikelihood: 89
+      conversionLikelihood: 89,
+      notes: 'Ready to move forward',
+      lastContact: '2024-01-14T11:20:00Z',
+      value: 75000
     },
     { 
       id: '4', 
@@ -58,7 +66,7 @@ export const useLeadData = () => {
       source: "Website", 
       score: 68, 
       priority: 'medium', 
-      lastContact: '1 week ago',
+      lastContact: '2024-01-10T15:45:00Z',
       sentiment: 'negative',
       objection: 'Current provider',
       email: 'dwight@schrutefarms.com',
@@ -66,7 +74,9 @@ export const useLeadData = () => {
       status: 'new',
       tags: ['Existing Provider'],
       isSensitive: false,
-      conversionLikelihood: 45
+      conversionLikelihood: 45,
+      notes: 'Needs competitor comparison',
+      value: 40000
     },
     { 
       id: '5', 
@@ -75,7 +85,7 @@ export const useLeadData = () => {
       source: "LinkedIn", 
       score: 64, 
       priority: 'low', 
-      lastContact: '3 days ago',
+      lastContact: '2024-01-11T14:30:00Z',
       sentiment: 'neutral',
       objection: 'No budget',
       email: 'ryan@wuphf.com',
@@ -83,7 +93,9 @@ export const useLeadData = () => {
       status: 'contacted',
       tags: ['Budget Constraints'],
       isSensitive: false,
-      conversionLikelihood: 32
+      conversionLikelihood: 32,
+      notes: 'Early stage inquiry',
+      value: 25000
     },
   ];
 

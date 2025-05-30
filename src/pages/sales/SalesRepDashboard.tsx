@@ -1,197 +1,187 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AIDailySummary from '@/components/Dashboard/AIDailySummary';
-import PerformanceMetricsGrid from '@/components/Dashboard/PerformanceMetricsGrid';
+
+import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMockData } from '@/hooks/useMockData';
+import DashboardHeader from '@/components/Dashboard/DashboardHeader';
+import KPICards from '@/components/Dashboard/KPICards';
 import PipelinePulse from '@/components/Dashboard/PipelinePulse';
-import AIOptimizedTimeBlocks from '@/components/Dashboard/AIOptimizedTimeBlocks';
-import VictoryArchive from '@/components/Dashboard/VictoryArchive';
-import AISummaryCard from '@/components/Dashboard/AISummaryCard';
+import AISummaryBanner from '@/components/Dashboard/AISummaryBanner';
 import AIRecommendedActions from '@/components/Dashboard/AIRecommendedActions';
 import SalesRepAIAssistant from '@/components/SalesAI/SalesRepAIAssistant';
-import { SafeErrorBoundary } from '@/components/ErrorBoundary/SafeErrorBoundary';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLeads } from '@/hooks/useLeads';
-import { useMockData } from '@/hooks/useMockData';
-import { supabase } from '@/integrations/supabase/client';
-import { validateStringParam } from '@/types/actions';
-import { runtimeValidator } from '@/utils/runtimeValidator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Phone, 
+  Mail, 
+  Calendar, 
+  TrendingUp, 
+  Target, 
+  Award,
+  Clock,
+  MessageSquare,
+  Zap,
+  Brain
+} from 'lucide-react';
 
-const SalesRepDashboard = () => {
-  const navigate = useNavigate();
-  const { user, profile } = useAuth();
-  const { leads } = useLeads();
-  const { leads: mockLeads } = useMockData();
-  const [userStats, setUserStats] = useState(null);
+const SalesRepDashboard: React.FC = () => {
+  const { profile } = useAuth();
+  const { leads, getLeadMetrics, getHighPriorityLeads, getRecentActivities } = useMockData();
+  const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUserStats = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const { data } = await supabase
-          .from('user_stats')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-        setUserStats(data);
-      } catch (error) {
-        console.log('No user stats found, using defaults');
-      }
-    };
+  const metrics = getLeadMetrics();
+  const highPriorityLeads = getHighPriorityLeads();
+  const recentActivities = getRecentActivities(5);
 
-    fetchUserStats();
-
-    // Show test mode notification
-    const isTestMode = true; // Will be configurable later
-    if (isTestMode) {
-      console.log('🧪 SalesOS running in TEST MODE - AI responses are dummy data for demonstration');
-    }
-
-    // Perform system integrity check
-    const integrityCheck = runtimeValidator.checkSystemIntegrity();
-    console.log('System integrity check:', integrityCheck);
-  }, [user?.id]);
-
-  const displayLeads = leads && leads.length > 0 ? leads : mockLeads;
-  const isFullUser = !!user && !!profile;
-
-  const dailySummary = validateStringParam(
-    `Good morning! You have 12 high-priority leads requiring immediate attention. Your conversion rate improved by 23% this week. AI suggests focusing on Enterprise prospects between 2-4 PM for optimal engagement. Your pipeline value increased to $847K with 3 deals expected to close this week.`,
-    'Welcome to your sales dashboard! Check your pipeline and take action on your leads today.'
-  );
-
-  const pipelineLeads = displayLeads.slice(0, 5).map(lead => ({
-    id: validateStringParam(lead.id, crypto.randomUUID()),
-    name: validateStringParam(lead.name, 'Unknown Lead'),
-    status: lead.status as 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed',
-    priority: lead.priority as 'high' | 'medium' | 'low',
-    lastContact: validateStringParam(lead.lastContact, 'Never'),
-    value: `$${Math.floor(Math.random() * 50000 + 10000).toLocaleString()}`
-  }));
-
-  const handleLeadClick = (leadId: any) => {
-    const validLeadId = validateStringParam(leadId, 'default-lead');
-    navigate(`/lead-workspace/${validLeadId}`);
+  const todayStats = {
+    callsMade: 12,
+    emailsSent: 8,
+    meetingsBooked: 3,
+    dealsProgressed: 2
   };
 
-  const victories = [
-    { 
-      id: '1',
-      clientName: 'TechCorp Inc.',
-      dealValue: '$125,000',
-      dateClosed: '2024-01-15',
-      type: 'new' as const
-    },
-    { 
-      id: '2',
-      clientName: 'Global Solutions',
-      dealValue: '$85,000',
-      dateClosed: '2024-01-12',
-      type: 'upsell' as const
-    },
-    { 
-      id: '3',
-      clientName: 'StartupXYZ',
-      dealValue: '$45,000',
-      dateClosed: '2024-01-08',
-      type: 'renewal' as const
-    }
-  ];
-
-  const aiSummaryData = {
-    emailsDrafted: 23,
-    callsScheduled: 12,
-    proposalsGenerated: 5,
-    improvementPercentage: 34
+  const weeklyGoals = {
+    calls: { current: 47, target: 60 },
+    emails: { current: 32, target: 45 },
+    meetings: { current: 8, target: 12 },
+    deals: { current: 3, target: 5 }
   };
 
-  const recommendedActions = [
-    {
-      id: '1',
-      description: 'Call Maria Rodriguez at TechCorp - warm lead ready to close',
-      suggestedTime: '2:30 PM',
-      urgency: 'high' as const,
-      type: 'call' as const,
-      impact: 'high' as const
-    },
-    {
-      id: '2',
-      description: 'Send follow-up email to Global Solutions with updated proposal',
-      suggestedTime: '3:15 PM',
-      urgency: 'medium' as const,
-      type: 'email' as const,
-      impact: 'medium' as const
-    },
-    {
-      id: '3',
-      description: 'Schedule demo with StartupXYZ for next week',
-      suggestedTime: '4:00 PM',
-      urgency: 'low' as const,
-      type: 'meeting' as const,
-      impact: 'low' as const
-    }
-  ];
+  const getProgressPercentage = (current: number, target: number) => {
+    return Math.round((current / target) * 100);
+  };
 
-  const handleActionClick = (actionId: any) => {
-    const validActionId = validateStringParam(actionId, 'default-action');
-    console.log('Action clicked:', validActionId);
+  const getProgressColor = (percentage: number) => {
+    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 60) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   return (
-    <SafeErrorBoundary>
-      <div className="min-h-screen bg-background">
-        <main className="pt-16">
-          <div className="max-w-7xl mx-auto p-6 space-y-6">
-            <SafeErrorBoundary>
-              <section>
-                <AIDailySummary summary={dailySummary} isFullUser={isFullUser} />
-              </section>
-            </SafeErrorBoundary>
+    <div className="min-h-screen bg-slate-50 p-6">
+      <DashboardHeader 
+        title={`Welcome back, ${profile?.full_name || 'Sales Rep'}!`}
+        subtitle="Here's your sales performance overview"
+      />
 
-            <SafeErrorBoundary>
-              <section>
-                <PerformanceMetricsGrid userStats={userStats} isFullUser={isFullUser} />
-              </section>
-            </SafeErrorBoundary>
+      {/* AI Summary Banner */}
+      <AISummaryBanner />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <SafeErrorBoundary>
-                  <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
-                </SafeErrorBoundary>
-                <SafeErrorBoundary>
-                  <AIOptimizedTimeBlocks isFullUser={isFullUser} />
-                </SafeErrorBoundary>
+      {/* Quick Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Calls Today</p>
+                <p className="text-3xl font-bold text-gray-900">{todayStats.callsMade}</p>
               </div>
-
-              <div className="space-y-6">
-                <SafeErrorBoundary>
-                  <VictoryArchive victories={victories} isFullUser={isFullUser} />
-                </SafeErrorBoundary>
-                <SafeErrorBoundary>
-                  <AISummaryCard data={aiSummaryData} isFullUser={isFullUser} />
-                </SafeErrorBoundary>
-              </div>
+              <Phone className="h-8 w-8 text-blue-600" />
             </div>
+          </CardContent>
+        </Card>
 
-            <SafeErrorBoundary>
-              <section>
-                <AIRecommendedActions 
-                  actions={recommendedActions} 
-                  onActionClick={handleActionClick}
-                  isFullUser={isFullUser}
-                />
-              </section>
-            </SafeErrorBoundary>
-          </div>
-        </main>
-        
-        {/* AI Assistant - Fixed positioning with error boundary */}
-        <SafeErrorBoundary>
-          <SalesRepAIAssistant />
-        </SafeErrorBoundary>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Emails Sent</p>
+                <p className="text-3xl font-bold text-gray-900">{todayStats.emailsSent}</p>
+              </div>
+              <Mail className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Meetings Booked</p>
+                <p className="text-3xl font-bold text-gray-900">{todayStats.meetingsBooked}</p>
+              </div>
+              <Calendar className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Deals Progressed</p>
+                <p className="text-3xl font-bold text-gray-900">{todayStats.dealsProgressed}</p>
+              </div>
+              <TrendingUp className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </SafeErrorBoundary>
+
+      {/* KPI Cards */}
+      <KPICards />
+
+      {/* Weekly Goals */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Weekly Goals Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Object.entries(weeklyGoals).map(([key, goal]) => {
+              const percentage = getProgressPercentage(goal.current, goal.target);
+              return (
+                <div key={key} className="text-center">
+                  <div className="mb-2">
+                    <span className="text-2xl font-bold">{goal.current}</span>
+                    <span className="text-gray-500">/{goal.target}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        percentage >= 80 ? 'bg-green-500' : 
+                        percentage >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                      }`}
+                      style={{ width: `${Math.min(percentage, 100)}%` }}
+                    ></div>
+                  </div>
+                  <p className={`text-sm font-medium ${getProgressColor(percentage)}`}>
+                    {percentage}% Complete
+                  </p>
+                  <p className="text-xs text-gray-500 capitalize">{key}</p>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Pipeline Pulse */}
+      <PipelinePulse />
+
+      {/* AI Recommended Actions */}
+      <AIRecommendedActions />
+
+      {/* AI Assistant Button */}
+      <Button
+        onClick={() => setIsAIAssistantOpen(true)}
+        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
+        size="lg"
+      >
+        <Brain className="h-6 w-6" />
+      </Button>
+
+      {/* AI Assistant Modal */}
+      <SalesRepAIAssistant
+        isOpen={isAIAssistantOpen}
+        onClose={() => setIsAIAssistantOpen(false)}
+        context="dashboard"
+        leadData={null}
+      />
+    </div>
   );
 };
 

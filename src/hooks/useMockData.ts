@@ -55,7 +55,7 @@ export const useMockData = () => {
     const qualified = leads.filter(l => l.status === 'qualified').length;
     const closed = leads.filter(l => l.status === 'closed').length;
     const avgScore = Math.round(leads.reduce((sum, l) => sum + l.score, 0) / total);
-    const avgConversion = Math.round(leads.reduce((sum, l) => sum + l.conversion_likelihood, 0) / total);
+    const avgConversion = Math.round(leads.reduce((sum, l) => sum + l.conversionLikelihood, 0) / total);
 
     return {
       total,

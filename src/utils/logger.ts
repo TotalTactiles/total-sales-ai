@@ -17,7 +17,8 @@ export type LogCategory =
   | 'system_health'
   | 'elevenlabs'
   | 'speech_synthesis'
-  | 'retell_ai';
+  | 'retell_ai'
+  | 'security';
 
 class Logger {
   private static instance: Logger;

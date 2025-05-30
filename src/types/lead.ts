@@ -65,12 +65,18 @@ export interface CallWorkflow {
   name: string;
   steps: WorkflowStep[];
   isActive: boolean;
+  industry?: string;
+  aiOptimized?: boolean;
+  successRate?: number;
 }
 
 export interface WorkflowStep {
   id: string;
-  type: 'call' | 'email' | 'sms' | 'wait' | 'condition';
+  type: 'call' | 'email' | 'sms' | 'wait' | 'condition' | 'meeting';
   action: string;
   delay?: number;
   condition?: string;
+  timing?: string;
+  template?: string;
+  aiGenerated?: boolean;
 }
