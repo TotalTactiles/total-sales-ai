@@ -44,11 +44,14 @@ export interface CallWorkflow {
   steps: WorkflowStep[];
   isActive: boolean;
   createdAt: string;
+  industry?: string;
+  aiOptimized?: boolean;
+  successRate?: number;
 }
 
 export interface WorkflowStep {
   id: string;
-  type: 'call' | 'email' | 'wait' | 'condition';
+  type: 'call' | 'email' | 'wait' | 'condition' | 'sms' | 'meeting';
   action: string;
   timing: string;
   template?: string;

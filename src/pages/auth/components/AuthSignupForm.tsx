@@ -1,88 +1,85 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
-import { Role } from '@/contexts/auth/types';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
-interface AuthSignupFormProps {
-  selectedRole: Role;
-  setIsLogin: (value: boolean) => void;
-}
-
-const AuthSignupForm: React.FC<AuthSignupFormProps> = ({ selectedRole, setIsLogin }) => {
+const AuthSignupForm: React.FC = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    fullName: '',
-  });
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleAuthSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      if (!formData.fullName.trim()) {
-        toast.error("Please enter your full name");
-        return;
+      const { error } = await signUp(email, password);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Account created successfully! Please check your email.');
       }
-      await signUp(formData.email, formData.password, formData.fullName, selectedRole);
-      setIsLogin(true);
     } catch (error) {
-      console.error('Authentication error:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleAuthSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="fullName">Full Name</Label>
-        <Input
-          id="fullName"
-          name="fullName"
-          type="text"
-          value={formData.fullName}
-          onChange={handleFormChange}
-          required
-        />
-      </div>
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleFormChange}
-          required
-        />
-      </div>
-      <div>
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleFormChange}
-          required
-        />
-      </div>
-      
-      <Button type="submit" className="w-full bg-salesBlue hover:bg-salesBlue-dark">
-        <UserPlus className="mr-2 h-4 w-4" /> Sign Up
-      </Button>
-    </form>
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Create Account</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Creating Account...' : 'Sign Up'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

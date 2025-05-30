@@ -50,9 +50,31 @@ export const useMockData = () => {
     return leads.find(lead => lead.id === id);
   };
 
+  const getLeadMetrics = () => ({
+    totalLeads: leads.length,
+    highPriorityLeads: leads.filter(l => l.priority === 'high').length,
+    conversionRate: Math.round(leads.reduce((acc, l) => acc + l.conversionLikelihood, 0) / leads.length)
+  });
+
+  const getHighPriorityLeads = () => leads.filter(l => l.priority === 'high').slice(0, 5);
+
+  const getRecentActivities = () => leads
+    .filter(l => l.lastContact !== 'Never')
+    .sort((a, b) => new Date(b.lastContact).getTime() - new Date(a.lastContact).getTime())
+    .slice(0, 5)
+    .map(l => ({
+      id: l.id,
+      type: 'contact',
+      description: `Contacted ${l.name}`,
+      timestamp: l.lastContact
+    }));
+
   return {
     leads,
     isLoading,
-    getLeadById
+    getLeadById,
+    getLeadMetrics,
+    getHighPriorityLeads,
+    getRecentActivities
   };
 };

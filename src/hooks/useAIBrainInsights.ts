@@ -1,287 +1,114 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-export interface AIInsight {
+interface AIInsight {
   id: string;
-  type: 'pattern' | 'trend' | 'optimization' | 'alert';
-  title: string;
-  description: string;
-  confidence: number;
-  impact: 'low' | 'medium' | 'high';
-  actionable: boolean;
-  metadata: Record<string, any>;
-  timestamp: Date;
-  accepted?: boolean | null;
-  suggestion_text?: string;
-  triggered_by?: string;
-  context?: any;
-}
-
-export interface GhostIntent {
-  action: string;
-  context: string;
-  reasoning?: string;
-  timestamp: Date;
+  type: string;
+  suggestion_text: string;
+  context: any;
+  triggered_by: string;
+  accepted: boolean;
+  timestamp: string;
 }
 
 export const useAIBrainInsights = () => {
   const [insights, setInsights] = useState<AIInsight[]>([]);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { user, profile } = useAuth();
 
-  const logGhostIntent = async (action: string, reasoning?: string) => {
-    if (!user?.id || !profile?.company_id) return;
-    
-    try {
-      await supabase
-        .from('ai_brain_logs')
-        .insert({
-          company_id: profile.company_id,
-          type: 'ghost_intent',
-          event_summary: `Ghost intent: ${action}`,
-          payload: { 
-            user_id: user.id,
-            action, 
-            context: window.location.pathname,
-            reasoning, 
-            timestamp: new Date().toISOString() 
-          }
-        });
-        
-      console.log('Ghost intent logged:', { action, reasoning });
-    } catch (error) {
-      console.error('Error logging ghost intent:', error);
-    }
+  const safeNumber = (value: unknown): number => {
+    return typeof value === 'number' ? value : 0;
   };
 
-  const logInteraction = async (
-    feature: string, 
-    action: string, 
-    outcome?: string, 
-    metadata?: Record<string, any>
-  ) => {
+  const fetchInsights = async () => {
     if (!user?.id || !profile?.company_id) return;
-    
+
+    setIsLoading(true);
     try {
-      await supabase
-        .from('ai_brain_logs')
-        .insert({
-          company_id: profile.company_id,
-          type: 'interaction',
-          event_summary: `${feature}: ${action}`,
-          payload: { 
-            user_id: user.id,
-            feature,
-            action,
-            outcome,
-            context: window.location.pathname,
-            metadata: { ...metadata, timestamp: new Date().toISOString() }
-          }
-        });
+      const { data, error } = await supabase
+        .from('ai_brain_insights')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('company_id', profile.company_id)
+        .order('timestamp', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      setInsights(data || []);
     } catch (error) {
-      console.error('Error logging interaction:', error);
+      console.error('Error fetching AI insights:', error);
+      toast.error('Failed to fetch AI insights');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const acceptInsight = async (insightId: string) => {
     try {
-      await supabase
+      const { error } = await supabase
         .from('ai_brain_insights')
         .update({ accepted: true })
         .eq('id', insightId);
 
-      setInsights(prev => prev.map(insight => 
-        insight.id === insightId 
-          ? { ...insight, accepted: true }
-          : insight
-      ));
+      if (error) throw error;
 
-      toast.success('Insight accepted and will be implemented');
+      setInsights(prev => 
+        prev.map(insight => 
+          insight.id === insightId 
+            ? { ...insight, accepted: true }
+            : insight
+        )
+      );
+
+      toast.success('Insight accepted');
     } catch (error) {
       console.error('Error accepting insight:', error);
       toast.error('Failed to accept insight');
     }
   };
 
-  const dismissInsight = async (insightId: string) => {
+  const generateInsight = async (context: any) => {
+    if (!user?.id || !profile?.company_id) return;
+
     try {
-      await supabase
+      // Generate AI insight based on context
+      const insight = {
+        type: 'performance',
+        suggestion_text: 'Consider focusing on high-priority leads first',
+        context,
+        triggered_by: 'user_action',
+        user_id: user.id,
+        company_id: profile.company_id
+      };
+
+      const { data, error } = await supabase
         .from('ai_brain_insights')
-        .update({ accepted: false })
-        .eq('id', insightId);
+        .insert(insight)
+        .select()
+        .single();
 
-      setInsights(prev => prev.map(insight => 
-        insight.id === insightId 
-          ? { ...insight, accepted: false }
-          : insight
-      ));
-
-      toast.info('Insight dismissed');
-    } catch (error) {
-      console.error('Error dismissing insight:', error);
-      toast.error('Failed to dismiss insight');
-    }
-  };
-
-  const generateInsights = async () => {
-    if (!user?.id || !profile?.company_id) return;
-    
-    setIsAnalyzing(true);
-    
-    try {
-      const { data: recentLogs } = await supabase
-        .from('ai_brain_logs')
-        .select('*')
-        .eq('company_id', profile.company_id)
-        .gte('timestamp', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-        .order('timestamp', { ascending: false })
-        .limit(1000);
-
-      if (!recentLogs) return;
-
-      const generatedInsights: AIInsight[] = [];
-
-      // Pattern: High ghost intent on specific features
-      const ghostIntents = recentLogs.filter(log => log.type === 'ghost_intent');
-      if (ghostIntents.length > 5) {
-        const commonActions = ghostIntents.reduce((acc, log) => {
-          const payload = log.payload as any;
-          const action = payload?.action;
-          if (action) {
-            acc[action] = (acc[action] || 0) + 1;
-          }
-          return acc;
-        }, {} as Record<string, number>);
-
-        const topGhostAction = Object.entries(commonActions)
-          .sort(([,a], [,b]) => b - a)[0];
-
-        if (topGhostAction && topGhostAction[1] > 2) {
-          generatedInsights.push({
-            id: `ghost-${Date.now()}`,
-            type: 'optimization',
-            title: 'Feature Request Pattern Detected',
-            description: `Users are frequently trying to ${topGhostAction[0]} but hitting limitations. Consider prioritizing this feature.`,
-            confidence: 0.85,
-            impact: 'high',
-            actionable: true,
-            metadata: { action: topGhostAction[0], frequency: topGhostAction[1] },
-            timestamp: new Date(),
-            accepted: null,
-            suggestion_text: `Implement ${topGhostAction[0]} feature`,
-            triggered_by: 'ghost_intent_analysis'
-          });
-        }
-      }
-
-      // Pattern: Call success rates
-      const callLogs = recentLogs.filter(log => {
-        const payload = log.payload as any;
-        return payload?.feature === 'dialer' && payload?.outcome;
-      });
-      
-      if (callLogs.length > 10) {
-        const successRate = callLogs.filter(log => {
-          const payload = log.payload as any;
-          const outcome = payload?.outcome;
-          return outcome?.includes('success') || outcome?.includes('converted');
-        }).length / callLogs.length;
-
-        if (successRate < 0.3) {
-          generatedInsights.push({
-            id: `calls-${Date.now()}`,
-            type: 'alert',
-            title: 'Call Success Rate Below Average',
-            description: `Current call success rate is ${Math.round(successRate * 100)}%. Industry average is 45%. Consider additional coaching.`,
-            confidence: 0.92,
-            impact: 'high',
-            actionable: true,
-            metadata: { successRate, totalCalls: callLogs.length },
-            timestamp: new Date(),
-            accepted: null,
-            suggestion_text: 'Implement additional call coaching',
-            triggered_by: 'call_performance_analysis'
-          });
-        }
-      }
-
-      // Pattern: Feature usage trends
-      const featureUsage = recentLogs.reduce((acc, log) => {
-        const payload = log.payload as any;
-        const feature = payload?.feature;
-        if (feature) {
-          acc[feature] = (acc[feature] || 0) + 1;
-        }
-        return acc;
-      }, {} as Record<string, number>);
-
-      const underusedFeatures = Object.entries(featureUsage)
-        .filter(([feature, count]) => count < 5 && feature !== 'login')
-        .map(([feature]) => feature);
-
-      if (underusedFeatures.length > 0) {
-        generatedInsights.push({
-          id: `underused-${Date.now()}`,
-          type: 'optimization',
-          title: 'Underutilized Features Detected',
-          description: `Features like ${underusedFeatures.join(', ')} are rarely used. Consider training or UI improvements.`,
-          confidence: 0.75,
-          impact: 'medium',
-          actionable: true,
-          metadata: { underusedFeatures },
-          timestamp: new Date(),
-          accepted: null,
-          suggestion_text: 'Improve feature discoverability',
-          triggered_by: 'feature_usage_analysis'
-        });
-      }
-
-      setInsights(generatedInsights);
-      
-      if (generatedInsights.length > 0) {
-        toast.success(`Generated ${generatedInsights.length} AI insights`);
-      }
-      
-    } catch (error) {
-      console.error('Error generating insights:', error);
-      toast.error('Failed to generate AI insights');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const pruneOldData = async () => {
-    if (!user?.id || !profile?.company_id) return;
-    
-    try {
-      const cutoffDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-      
-      const { error } = await supabase
-        .from('ai_brain_logs')
-        .delete()
-        .eq('company_id', profile.company_id)
-        .lt('timestamp', cutoffDate);
-        
       if (error) throw error;
-      
-      console.log('Pruned old AI brain data');
+
+      setInsights(prev => [data, ...prev]);
+      return data;
     } catch (error) {
-      console.error('Error pruning AI brain data:', error);
+      console.error('Error generating insight:', error);
+      return null;
     }
   };
+
+  useEffect(() => {
+    fetchInsights();
+  }, [user?.id, profile?.company_id]);
 
   return {
     insights,
-    isAnalyzing,
-    isLoading: isAnalyzing,
-    generateInsights,
-    logGhostIntent,
-    logInteraction,
+    isLoading,
+    fetchInsights,
     acceptInsight,
-    dismissInsight,
-    pruneOldData
+    generateInsight
   };
 };

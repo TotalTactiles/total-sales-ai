@@ -68,28 +68,6 @@ const LeadWorkspace: React.FC = () => {
     );
   }
 
-  // Handle different lead types safely
-  const getLeadProperty = (property: string) => {
-    const leadData = lead as any;
-    
-    switch (property) {
-      case 'lastContact':
-        return leadData.lastContact || leadData.last_contact || '';
-      case 'conversionLikelihood':
-        return leadData.conversionLikelihood || leadData.conversion_likelihood || 0;
-      case 'speedToLead':
-        return leadData.speedToLead || leadData.speed_to_lead || 0;
-      case 'isSensitive':
-        return leadData.isSensitive ?? leadData.is_sensitive ?? false;
-      case 'createdAt':
-        return leadData.createdAt || leadData.created_at || '';
-      case 'updatedAt':
-        return leadData.updatedAt || leadData.updated_at || '';
-      default:
-        return leadData[property];
-    }
-  };
-
   // Convert Lead to DatabaseLead format for components that expect it
   const leadAsDbLead: DatabaseLead = lead ? {
     id: lead.id,
@@ -103,14 +81,14 @@ const LeadWorkspace: React.FC = () => {
     score: lead.score,
     tags: lead.tags || [],
     company_id: 'demo-company',
-    last_contact: lead.lastContact || lead.last_contact || '',
-    conversion_likelihood: lead.conversionLikelihood || lead.conversion_likelihood || 0,
-    speed_to_lead: lead.speedToLead || lead.speed_to_lead || 0,
-    is_sensitive: lead.isSensitive || lead.is_sensitive || false,
+    last_contact: lead.lastContact || '',
+    conversion_likelihood: lead.conversionLikelihood || 0,
+    speed_to_lead: lead.speedToLead || 0,
+    is_sensitive: lead.isSensitive || false,
     notes: lead.notes || '',
     value: lead.value || 0,
-    created_at: lead.created_at || new Date().toISOString(),
-    updated_at: lead.updated_at || new Date().toISOString()
+    created_at: lead.createdAt || new Date().toISOString(),
+    updated_at: lead.updatedAt || new Date().toISOString()
   } : {
     id: '',
     name: '',

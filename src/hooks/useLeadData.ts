@@ -20,7 +20,11 @@ export const useLeadData = () => {
       conversionLikelihood: 78,
       notes: 'Very interested in our platform',
       lastContact: '2024-01-15T10:00:00Z',
-      value: 50000
+      value: 50000,
+      speedToLead: 5,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-15T10:00:00Z',
+      companyId: 'demo-company'
     },
     { 
       id: '2', 
@@ -39,7 +43,11 @@ export const useLeadData = () => {
       isSensitive: false,
       conversionLikelihood: 62,
       notes: 'Needs technical demo',
-      value: 35000
+      value: 35000,
+      speedToLead: 10,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-12T09:30:00Z',
+      companyId: 'demo-company'
     },
     { 
       id: '3', 
@@ -57,7 +65,11 @@ export const useLeadData = () => {
       conversionLikelihood: 89,
       notes: 'Ready to move forward',
       lastContact: '2024-01-14T11:20:00Z',
-      value: 75000
+      value: 75000,
+      speedToLead: 2,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-14T11:20:00Z',
+      companyId: 'demo-company'
     },
     { 
       id: '4', 
@@ -76,7 +88,11 @@ export const useLeadData = () => {
       isSensitive: false,
       conversionLikelihood: 45,
       notes: 'Needs competitor comparison',
-      value: 40000
+      value: 40000,
+      speedToLead: 15,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-10T15:45:00Z',
+      companyId: 'demo-company'
     },
     { 
       id: '5', 
@@ -95,7 +111,11 @@ export const useLeadData = () => {
       isSensitive: false,
       conversionLikelihood: 32,
       notes: 'Early stage inquiry',
-      value: 25000
+      value: 25000,
+      speedToLead: 20,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-01-11T14:30:00Z',
+      companyId: 'demo-company'
     },
   ];
 

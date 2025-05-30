@@ -110,10 +110,11 @@ export class VoiceAIService {
 
   private async generateVoiceResponse(text: string): Promise<void> {
     try {
-      await elevenLabsService.generateSpeech({
-        text,
-        voiceId: '9BWtsMINqrJLrRacOk9x' // Aria voice
-      });
+      const audioUrl = await elevenLabsService.generateSpeech(text);
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        await audio.play();
+      }
     } catch (error) {
       logger.warn('ElevenLabs failed, using browser speech', error, 'voice_ai');
       // Fallback to browser speech synthesis
