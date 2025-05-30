@@ -17,6 +17,7 @@ interface AIInsight {
 export const useAIBrainInsights = () => {
   const [insights, setInsights] = useState<AIInsight[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { user, profile } = useAuth();
 
   const safeNumber = (value: unknown): number => {
@@ -70,10 +71,38 @@ export const useAIBrainInsights = () => {
     }
   };
 
+  const dismissInsight = async (insightId: string) => {
+    try {
+      const { error } = await supabase
+        .from('ai_brain_insights')
+        .delete()
+        .eq('id', insightId);
+
+      if (error) throw error;
+
+      setInsights(prev => prev.filter(insight => insight.id !== insightId));
+      toast.success('Insight dismissed');
+    } catch (error) {
+      console.error('Error dismissing insight:', error);
+      toast.error('Failed to dismiss insight');
+    }
+  };
+
+  const logGhostIntent = (intent: string, details?: string) => {
+    console.log('Ghost intent logged:', intent, details);
+    // Could store this for analytics later
+  };
+
+  const logInteraction = (data: any) => {
+    console.log('Interaction logged:', data);
+    // Could store this for analytics later
+  };
+
   const generateInsight = async (context: any) => {
-    if (!user?.id || !profile?.company_id) return;
+    if (!user?.id || !profile?.company_id) return null;
 
     try {
+      setIsAnalyzing(true);
       // Generate AI insight based on context
       const insight = {
         type: 'performance',
@@ -97,6 +126,8 @@ export const useAIBrainInsights = () => {
     } catch (error) {
       console.error('Error generating insight:', error);
       return null;
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -107,8 +138,12 @@ export const useAIBrainInsights = () => {
   return {
     insights,
     isLoading,
+    isAnalyzing,
     fetchInsights,
     acceptInsight,
-    generateInsight
+    dismissInsight,
+    generateInsight,
+    logGhostIntent,
+    logInteraction
   };
 };

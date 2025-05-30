@@ -9,7 +9,7 @@ import { useAIBrainInsights } from '@/hooks/useAIBrainInsights';
 import { useUnusedFeatures } from '@/hooks/useUnusedFeatures';
 
 const AIBrainMonitor = () => {
-  const { insights, isAnalyzing, acceptInsight, dismissInsight } = useAIBrainInsights();
+  const { insights, isLoading, isAnalyzing, acceptInsight, dismissInsight } = useAIBrainInsights();
   const { unusedFeatures } = useUnusedFeatures();
   
   const pendingInsights = insights.filter(insight => insight.accepted === null);
@@ -106,9 +106,9 @@ const AIBrainMonitor = () => {
                       insight={{
                         id: insight.id,
                         type: insight.type,
-                        suggestion_text: insight.suggestion_text || insight.description,
-                        triggered_by: insight.triggered_by || 'system',
-                        timestamp: insight.timestamp.toISOString(),
+                        suggestion_text: insight.suggestion_text,
+                        triggered_by: insight.triggered_by,
+                        timestamp: insight.timestamp,
                         accepted: insight.accepted || false,
                         context: insight.context || {}
                       }}
@@ -138,9 +138,9 @@ const AIBrainMonitor = () => {
                       insight={{
                         id: insight.id,
                         type: insight.type,
-                        suggestion_text: insight.suggestion_text || insight.description,
-                        triggered_by: insight.triggered_by || 'system',
-                        timestamp: insight.timestamp.toISOString(),
+                        suggestion_text: insight.suggestion_text,
+                        triggered_by: insight.triggered_by,
+                        timestamp: insight.timestamp,
                         accepted: insight.accepted || false,
                         context: insight.context || {}
                       }}

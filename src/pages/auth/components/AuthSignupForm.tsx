@@ -7,7 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
-const AuthSignupForm: React.FC = () => {
+interface AuthSignupFormProps {
+  selectedRole?: string;
+  setIsLogin?: (value: boolean) => void;
+}
+
+const AuthSignupForm: React.FC<AuthSignupFormProps> = ({ selectedRole, setIsLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

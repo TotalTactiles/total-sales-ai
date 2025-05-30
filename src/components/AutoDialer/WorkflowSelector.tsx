@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -36,54 +37,46 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
   const workflows: CallWorkflow[] = [
     {
       id: '1',
-      name: 'Real Estate - Connected Call Follow-up',
+      order: 1,
+      type: 'email',
+      action: 'Real Estate - Connected Call Follow-up',
+      timing: 'immediately',
+      template: 'Thank you + property info',
+      aiGenerated: true,
       industry: 'Real Estate',
       aiOptimized: true,
-      successRate: 73,
-      isActive: true,
-      steps: [
-        { id: '1', type: 'email', action: 'email', timing: 'immediately', template: 'Thank you + property info', aiGenerated: true },
-        { id: '2', type: 'sms', action: 'sms', timing: '2 hours', template: 'Quick check-in message', aiGenerated: true },
-        { id: '3', type: 'call', action: 'call', timing: '1 day', template: 'Follow-up call script', aiGenerated: false },
-        { id: '4', type: 'meeting', action: 'meeting', timing: '3 days', template: 'Property viewing invitation', aiGenerated: true }
-      ]
+      successRate: 73
     },
     {
       id: '2',
-      name: 'Tech/SaaS - Demo Request Flow',
+      order: 2,
+      type: 'call',
+      action: 'Tech/SaaS - Demo Request Flow',
+      timing: '1 day',
+      template: 'Demo confirmation + calendar link',
+      aiGenerated: true,
       industry: 'Technology',
       aiOptimized: true,
-      successRate: 81,
-      isActive: true,
-      steps: [
-        { id: '1', type: 'email', action: 'email', timing: 'immediately', template: 'Demo confirmation + calendar link', aiGenerated: true },
-        { id: '2', type: 'email', action: 'email', timing: '1 day', template: 'Demo preparation guide', aiGenerated: true },
-        { id: '3', type: 'sms', action: 'sms', timing: '1 hour', template: 'Demo reminder', aiGenerated: true },
-        { id: '4', type: 'call', action: 'call', timing: '2 hours', template: 'Post-demo follow-up', aiGenerated: false }
-      ]
+      successRate: 81
     },
     {
       id: '3',
-      name: 'Finance - Voicemail Recovery',
+      order: 3,
+      type: 'email',
+      action: 'Finance - Voicemail Recovery',
+      timing: 'immediately',
+      template: 'Voice message follow-up',
+      aiGenerated: true,
       industry: 'Finance',
       aiOptimized: true,
-      successRate: 45,
-      isActive: true,
-      steps: [
-        { id: '1', type: 'email', action: 'email', timing: 'immediately', template: 'Voice message follow-up', aiGenerated: true },
-        { id: '2', type: 'wait', action: 'wait', timing: '2 days', template: '', aiGenerated: false },
-        { id: '3', type: 'call', action: 'call', timing: '2 days', template: 'Second attempt call', aiGenerated: false },
-        { id: '4', type: 'sms', action: 'sms', timing: '1 week', template: 'Alternative contact method', aiGenerated: true }
-      ]
+      successRate: 45
     }
   ];
 
-  const getStepIcon = (action: string) => {
-    switch (action) {
+  const getStepIcon = (type: string) => {
+    switch (type) {
       case 'email': return <Mail className="h-4 w-4" />;
-      case 'sms': return <MessageSquare className="h-4 w-4" />;
       case 'call': return <Phone className="h-4 w-4" />;
-      case 'meeting': return <Calendar className="h-4 w-4" />;
       case 'wait': return <Clock className="h-4 w-4" />;
       default: return <CheckCircle className="h-4 w-4" />;
     }
@@ -97,7 +90,7 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
 
   const filteredWorkflows = workflows.filter(w => 
     w.industry?.toLowerCase().includes(leadIndustry.toLowerCase()) ||
-    w.name.toLowerCase().includes(callOutcome.toLowerCase())
+    w.action.toLowerCase().includes(callOutcome.toLowerCase())
   );
 
   const handleSelectWorkflow = (workflow: CallWorkflow) => {
@@ -130,7 +123,7 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
             >
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{workflow.name}</CardTitle>
+                  <CardTitle className="text-lg">{workflow.action}</CardTitle>
                   <div className="flex items-center gap-2">
                     {workflow.aiOptimized && (
                       <Badge className="bg-blue-100 text-blue-800">
@@ -150,31 +143,27 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
               <CardContent>
                 <div className="space-y-3">
                   <div className="text-sm text-gray-600 mb-4">
-                    Industry: {workflow.industry} • {workflow.steps.length} Steps
+                    Industry: {workflow.industry} • {workflow.type} workflow
                   </div>
                   
-                  <div className="grid gap-3">
-                    {workflow.steps.map((step, index) => (
-                      <div key={step.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center justify-center w-8 h-8 bg-white rounded-full border">
-                          {index + 1}
-                        </div>
-                        <div className="flex items-center gap-2 text-gray-600">
-                          {getStepIcon(step.action)}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium capitalize">
-                            {step.action} - {step.timing}
-                          </div>
-                          <div className="text-sm text-gray-600">{step.template}</div>
-                        </div>
-                        {step.aiGenerated && (
-                          <Badge variant="outline" className="text-xs">
-                            AI Generated
-                          </Badge>
-                        )}
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-center w-8 h-8 bg-white rounded-full border">
+                      {workflow.order}
+                    </div>
+                    <div className="flex items-center gap-2 text-gray-600">
+                      {getStepIcon(workflow.type)}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium capitalize">
+                        {workflow.type} - {workflow.timing}
                       </div>
-                    ))}
+                      <div className="text-sm text-gray-600">{workflow.template}</div>
+                    </div>
+                    {workflow.aiGenerated && (
+                      <Badge variant="outline" className="text-xs">
+                        AI Generated
+                      </Badge>
+                    )}
                   </div>
                 </div>
               </CardContent>

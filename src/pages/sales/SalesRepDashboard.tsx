@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMockData } from '@/hooks/useMockData';
@@ -32,7 +31,7 @@ const SalesRepDashboard: React.FC = () => {
 
   const metrics = getLeadMetrics();
   const highPriorityLeads = getHighPriorityLeads();
-  const recentActivities = getRecentActivities(5);
+  const recentActivities = getRecentActivities();
 
   const todayStats = {
     callsMade: 12,
