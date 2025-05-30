@@ -4,7 +4,8 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMockData } from '@/hooks/useMockData';
 import { useLeads } from '@/hooks/useLeads';
-import { Lead, MockLead, DatabaseLead } from '@/types/lead';
+import { Lead, MockLead } from '@/types/lead';
+import { DatabaseLead } from '@/hooks/useLeads';
 import { convertMockLeadToLead } from '@/utils/mockDataUtils';
 import { convertDatabaseLeadToLead } from '@/utils/leadUtils';
 import LeadWorkspaceLeft from '@/components/LeadWorkspace/LeadWorkspaceLeft';
@@ -101,11 +102,11 @@ const LeadWorkspace: React.FC = () => {
     priority: lead.priority,
     score: lead.score,
     tags: lead.tags || [],
-    company_id: 'demo-company', // Add required company_id field
-    last_contact: lead.lastContact || '',
-    conversion_likelihood: lead.conversionLikelihood || 0,
-    speed_to_lead: lead.speedToLead || 0,
-    is_sensitive: lead.isSensitive || false,
+    company_id: 'demo-company',
+    last_contact: lead.lastContact || lead.last_contact || '',
+    conversion_likelihood: lead.conversionLikelihood || lead.conversion_likelihood || 0,
+    speed_to_lead: lead.speedToLead || lead.speed_to_lead || 0,
+    is_sensitive: lead.isSensitive || lead.is_sensitive || false,
     notes: lead.notes || '',
     value: lead.value || 0,
     created_at: lead.created_at || new Date().toISOString(),
