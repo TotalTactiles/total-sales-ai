@@ -34,7 +34,7 @@ const LeadWorkspace: React.FC = () => {
 
     // If not in demo mode, try to find from database leads
     if (databaseLeads && databaseLeads.length > 0) {
-      const dbLead = databaseLeads.find((l: DatabaseLead) => l.id === leadId);
+      const dbLead = databaseLeads.find((l) => l.id === leadId);
       return dbLead ? convertDatabaseLeadToLead(dbLead) : null;
     }
 

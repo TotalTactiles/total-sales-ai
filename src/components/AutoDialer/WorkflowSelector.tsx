@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -43,10 +42,10 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
       successRate: 73,
       isActive: true,
       steps: [
-        { id: '1', action: 'email', timing: 'immediately', template: 'Thank you + property info', aiGenerated: true },
-        { id: '2', action: 'sms', timing: '2 hours', template: 'Quick check-in message', aiGenerated: true },
-        { id: '3', action: 'call', timing: '1 day', template: 'Follow-up call script', aiGenerated: false },
-        { id: '4', action: 'meeting', timing: '3 days', template: 'Property viewing invitation', aiGenerated: true }
+        { id: '1', type: 'email', action: 'email', timing: 'immediately', template: 'Thank you + property info', aiGenerated: true },
+        { id: '2', type: 'sms', action: 'sms', timing: '2 hours', template: 'Quick check-in message', aiGenerated: true },
+        { id: '3', type: 'call', action: 'call', timing: '1 day', template: 'Follow-up call script', aiGenerated: false },
+        { id: '4', type: 'meeting', action: 'meeting', timing: '3 days', template: 'Property viewing invitation', aiGenerated: true }
       ]
     },
     {
@@ -57,10 +56,10 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
       successRate: 81,
       isActive: true,
       steps: [
-        { id: '1', action: 'email', timing: 'immediately', template: 'Demo confirmation + calendar link', aiGenerated: true },
-        { id: '2', action: 'email', timing: '1 day', template: 'Demo preparation guide', aiGenerated: true },
-        { id: '3', action: 'sms', timing: '1 hour', template: 'Demo reminder', aiGenerated: true },
-        { id: '4', action: 'call', timing: '2 hours', template: 'Post-demo follow-up', aiGenerated: false }
+        { id: '1', type: 'email', action: 'email', timing: 'immediately', template: 'Demo confirmation + calendar link', aiGenerated: true },
+        { id: '2', type: 'email', action: 'email', timing: '1 day', template: 'Demo preparation guide', aiGenerated: true },
+        { id: '3', type: 'sms', action: 'sms', timing: '1 hour', template: 'Demo reminder', aiGenerated: true },
+        { id: '4', type: 'call', action: 'call', timing: '2 hours', template: 'Post-demo follow-up', aiGenerated: false }
       ]
     },
     {
@@ -71,10 +70,10 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
       successRate: 45,
       isActive: true,
       steps: [
-        { id: '1', action: 'email', timing: 'immediately', template: 'Voice message follow-up', aiGenerated: true },
-        { id: '2', action: 'wait', timing: '2 days', template: '', aiGenerated: false },
-        { id: '3', action: 'call', timing: '2 days', template: 'Second attempt call', aiGenerated: false },
-        { id: '4', action: 'sms', timing: '1 week', template: 'Alternative contact method', aiGenerated: true }
+        { id: '1', type: 'email', action: 'email', timing: 'immediately', template: 'Voice message follow-up', aiGenerated: true },
+        { id: '2', type: 'wait', action: 'wait', timing: '2 days', template: '', aiGenerated: false },
+        { id: '3', type: 'call', action: 'call', timing: '2 days', template: 'Second attempt call', aiGenerated: false },
+        { id: '4', type: 'sms', action: 'sms', timing: '1 week', template: 'Alternative contact method', aiGenerated: true }
       ]
     }
   ];

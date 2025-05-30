@@ -28,6 +28,7 @@ const SalesRepDashboard: React.FC = () => {
   const { profile } = useAuth();
   const { leads, getLeadMetrics, getHighPriorityLeads, getRecentActivities } = useMockData();
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
+  const [aiSummaryEnabled, setAiSummaryEnabled] = useState(true);
 
   const metrics = getLeadMetrics();
   const highPriorityLeads = getHighPriorityLeads();
@@ -48,10 +49,10 @@ const SalesRepDashboard: React.FC = () => {
   };
 
   const mockUserStats = {
-    callCount: 156,
-    winCount: 23,
-    currentStreak: 5,
-    moodScore: 85
+    call_count: 156,
+    win_count: 23,
+    current_streak: 5,
+    mood_score: 85
   };
 
   const pipelineLeads = leads.slice(0, 5).map(lead => ({
@@ -102,10 +103,14 @@ const SalesRepDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
-      <DashboardHeader />
+      <DashboardHeader 
+        aiSummaryEnabled={aiSummaryEnabled}
+        setAiSummaryEnabled={setAiSummaryEnabled}
+        isFullUser={true}
+      />
 
       {/* AI Summary Banner */}
-      <AISummaryBanner userStats={mockUserStats} enabled={true} />
+      <AISummaryBanner userStats={mockUserStats} enabled={aiSummaryEnabled} />
 
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
