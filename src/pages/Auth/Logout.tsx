@@ -1,20 +1,28 @@
 
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Logout = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
   useEffect(() => {
-    // Clear auth state
-    localStorage.clear();
-    sessionStorage.clear();
+    const performLogout = async () => {
+      try {
+        // Use the auth context signOut method which handles cleanup properly
+        await signOut();
+      } catch (error) {
+        console.error('Logout error:', error);
+        // Fallback: clear storage and redirect manually
+        localStorage.clear();
+        sessionStorage.clear();
+        navigate("/auth", { replace: true });
+      }
+    };
 
-    // Redirect after a delay
-    setTimeout(() => {
-      navigate("/auth", { replace: true });
-    }, 500);
-  }, [navigate]);
+    performLogout();
+  }, [navigate, signOut]);
 
   return <div className="text-center mt-20">Logging out...</div>;
 };
