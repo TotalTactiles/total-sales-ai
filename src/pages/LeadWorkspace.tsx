@@ -91,17 +91,46 @@ const LeadWorkspace: React.FC = () => {
 
   // Convert Lead to DatabaseLead format for components that expect it
   const leadAsDbLead: DatabaseLead = lead ? {
-    ...lead,
-    company_id: '', // Add required company_id field
+    id: lead.id,
+    name: lead.name,
+    email: lead.email || '',
+    phone: lead.phone || '',
+    company: lead.company || '',
+    source: lead.source || '',
+    status: lead.status,
+    priority: lead.priority,
+    score: lead.score,
+    tags: lead.tags || [],
+    company_id: 'demo-company', // Add required company_id field
     last_contact: lead.lastContact || '',
     conversion_likelihood: lead.conversionLikelihood || 0,
     speed_to_lead: lead.speedToLead || 0,
     is_sensitive: lead.isSensitive || false,
-    created_at: lead.created_at || new Date().toISOString(),
-    updated_at: lead.updated_at || new Date().toISOString(),
     notes: lead.notes || '',
-    value: lead.value || 0
-  } as DatabaseLead : {} as DatabaseLead;
+    value: lead.value || 0,
+    created_at: lead.created_at || new Date().toISOString(),
+    updated_at: lead.updated_at || new Date().toISOString()
+  } : {
+    id: '',
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    source: '',
+    status: 'new',
+    priority: 'medium',
+    score: 0,
+    tags: [],
+    company_id: '',
+    last_contact: '',
+    conversion_likelihood: 0,
+    speed_to_lead: 0,
+    is_sensitive: false,
+    notes: '',
+    value: 0,
+    created_at: '',
+    updated_at: ''
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
