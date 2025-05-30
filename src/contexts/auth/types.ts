@@ -1,27 +1,29 @@
 
-import { Session, User } from '@supabase/supabase-js';
+import { User, Session, AuthError } from '@supabase/supabase-js';
 
-export type Role = 'developer' | 'manager' | 'sales_rep' | 'admin';
+export type Role = 'sales_rep' | 'manager' | 'developer' | 'admin';
 
-export type Profile = {
+export interface Profile {
   id: string;
-  full_name: string | null;
-  email?: string; // Added email property
+  full_name?: string;
+  email?: string;
   role: Role;
-  company_id?: string; // Added company_id as an optional property
-  ai_assistant_name?: string; // Added ai_assistant_name as an optional property
-};
+  company_id?: string;
+  email_connected?: boolean;
+  email_provider?: string;
+  email_account?: string;
+  created_at?: string;
+  updated_at?: string;
+  last_login?: string;
+}
 
-export type AuthContextType = {
+export interface AuthContextType {
   user: User | null;
-  session: Session | null;
   profile: Profile | null;
+  session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, role: Role) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error?: AuthError }>;
+  signUp: (email: string, password: string, metadata?: any) => Promise<{ error?: AuthError }>;
   signOut: () => Promise<void>;
-  setLastSelectedRole: (role: Role) => void;
-  getLastSelectedRole: () => Role;
-  initializeDemoMode: (role: Role) => void;
-  isDemoMode: () => boolean;
-};
+  fetchProfile: (userId: string) => Promise<void>;
+}

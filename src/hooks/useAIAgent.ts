@@ -1,71 +1,48 @@
 
 import { useState } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-export interface AIResponse {
+interface AIAgentResponse {
   response: string;
-  suggestedAction: {
-    type: "schedule_call" | "review_script" | "send_email" | "take_break" | "practice_objection";
-    details: any;
+  suggestedAction?: {
+    type: string;
+    data?: any;
   };
 }
 
-export interface AIAgentParams {
-  currentPersona?: {
-    name: string;
-    tone?: string;
-    delivery_style?: string;
-  };
+interface AIAgentRequest {
   prompt: string;
+  context?: any;
+  leadId?: string;
 }
 
-export function useAIAgent() {
+export const useAIAgent = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [aiResponse, setAiResponse] = useState<AIResponse | null>(null);
-  const { user } = useAuth();
 
-  const callAIAgent = async ({ currentPersona, prompt }: AIAgentParams) => {
-    if (!user?.id) {
-      setError("User must be authenticated to use AI Agent");
-      toast.error("Authentication required to use AI features");
-      return null;
-    }
-
+  const callAIAgent = async (request: AIAgentRequest): Promise<AIAgentResponse | null> => {
     setIsLoading(true);
-    setError(null);
     
     try {
-      const { data, error } = await supabase.functions.invoke('ai-agent', {
-        body: {
-          userId: user.id,
-          currentPersona,
-          prompt
+      console.log('Calling AI Agent with request:', request);
+
+      // Mock AI response for now - in production this would call the AI service
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      const mockResponse: AIAgentResponse = {
+        response: "I understand you'd like me to help with that. Based on the context, I suggest we focus on the highest priority lead first.",
+        suggestedAction: {
+          type: 'highlight_lead',
+          data: { leadId: request.leadId }
         }
-      });
+      };
 
-      if (error) {
-        console.error("Error calling AI agent:", error);
-        setError(error.message || "Error communicating with AI agent");
-        toast.error("AI assistant encountered an error");
-        return null;
-      }
+      console.log('AI Agent response:', mockResponse);
+      return mockResponse;
 
-      // Validate response format
-      if (!data.response) {
-        throw new Error("Invalid response format from AI agent");
-      }
-
-      const responseData = data as AIResponse;
-      setAiResponse(responseData);
-      return responseData;
-      
-    } catch (err: any) {
-      console.error("Exception when calling AI agent:", err);
-      setError(err.message || "Unknown error occurred");
-      toast.error("Failed to get AI response");
+    } catch (error) {
+      console.error('AI Agent error:', error);
+      toast.error('Failed to get AI response');
       return null;
     } finally {
       setIsLoading(false);
@@ -74,9 +51,6 @@ export function useAIAgent() {
 
   return {
     callAIAgent,
-    isLoading,
-    error,
-    aiResponse,
-    resetResponse: () => setAiResponse(null)
+    isLoading
   };
-}
+};

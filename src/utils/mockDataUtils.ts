@@ -1,24 +1,44 @@
 
-import { MockLead } from '@/data/mockData';
 import { Lead } from '@/types/lead';
+
+interface MockLead {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  company: string;
+  status: string;
+  priority: string;
+  source: string;
+  score: number;
+  conversionLikelihood: number;
+  lastContact: string;
+  speedToLead: number;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  companyId: string;
+  isSensitive: boolean;
+}
 
 export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
   return {
     id: mockLead.id,
     name: mockLead.name,
-    company: mockLead.company,
-    source: mockLead.source,
-    score: mockLead.score,
-    priority: mockLead.priority,
-    lastContact: mockLead.lastContact ? new Date(mockLead.lastContact).toLocaleDateString() : '',
     email: mockLead.email,
     phone: mockLead.phone,
-    status: mockLead.status,
+    company: mockLead.company,
+    status: mockLead.status as Lead['status'],
+    priority: mockLead.priority as Lead['priority'],
+    source: mockLead.source,
+    score: mockLead.score,
+    conversionLikelihood: mockLead.conversionLikelihood,
+    lastContact: mockLead.lastContact,
+    speedToLead: mockLead.speedToLead,
     tags: mockLead.tags,
-    isSensitive: mockLead.isSensitive || false,
-    conversionLikelihood: mockLead.conversionLikelihood || 0,
-    speedToLead: mockLead.speedToLead || 0,
-    notes: mockLead.notes || '',
-    value: mockLead.value || 0
+    createdAt: mockLead.createdAt,
+    updatedAt: mockLead.updatedAt,
+    companyId: mockLead.companyId,
+    isSensitive: mockLead.isSensitive
   };
 };

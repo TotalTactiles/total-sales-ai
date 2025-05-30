@@ -1,123 +1,48 @@
 
 import { useState, useEffect } from 'react';
-import { 
-  mockLeads, 
-  mockActivities, 
-  mockCalls, 
-  mockImportSessions,
-  mockAIInsights,
-  mockEmailTemplates,
-  mockKnowledgeBase,
-  type MockLead,
-  type MockActivity,
-  type MockCall
-} from '@/data/mockData';
-import { toast } from 'sonner';
+import { Lead } from '@/types/lead';
+
+const generateMockLeads = (): Lead[] => {
+  const companies = ['TechCorp', 'InnovateCo', 'GlobalSoft', 'DataDriven', 'CloudFirst', 'AIVentures'];
+  const sources = ['Website', 'LinkedIn', 'Referral', 'Cold Outreach', 'Event', 'Partner'];
+  const statuses: Lead['status'][] = ['new', 'contacted', 'qualified', 'proposal', 'negotiation'];
+  const priorities: Lead['priority'][] = ['low', 'medium', 'high'];
+
+  return Array.from({ length: 25 }, (_, i) => ({
+    id: `mock-lead-${i + 1}`,
+    name: `Contact ${i + 1}`,
+    email: `contact${i + 1}@${companies[i % companies.length].toLowerCase()}.com`,
+    phone: `+1-555-${String(Math.floor(Math.random() * 900) + 100)}-${String(Math.floor(Math.random() * 9000) + 1000)}`,
+    company: companies[i % companies.length],
+    status: statuses[Math.floor(Math.random() * statuses.length)],
+    priority: priorities[Math.floor(Math.random() * priorities.length)],
+    source: sources[Math.floor(Math.random() * sources.length)],
+    score: Math.floor(Math.random() * 100),
+    conversionLikelihood: Math.floor(Math.random() * 100),
+    lastContact: Math.random() > 0.3 ? new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString() : 'Never',
+    speedToLead: Math.floor(Math.random() * 1440), // minutes
+    tags: ['Demo Lead', 'High Value', 'Enterprise'].slice(0, Math.floor(Math.random() * 3) + 1),
+    createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date().toISOString(),
+    companyId: 'demo-company',
+    isSensitive: Math.random() > 0.8
+  }));
+};
 
 export const useMockData = () => {
-  const [leads, setLeads] = useState(mockLeads);
-  const [activities, setActivities] = useState(mockActivities);
-  const [calls, setCalls] = useState(mockCalls);
-  const [importSessions] = useState(mockImportSessions);
-  const [aiInsights] = useState(mockAIInsights);
-  const [emailTemplates] = useState(mockEmailTemplates);
-  const [knowledgeBase] = useState(mockKnowledgeBase);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getLeadById = (id: string): MockLead | undefined => {
-    return leads.find(lead => lead.id === id);
-  };
-
-  const getActivitiesForLead = (leadId: string): MockActivity[] => {
-    return activities.filter(activity => activity.leadId === leadId);
-  };
-
-  const getCallsForLead = (leadId: string): MockCall[] => {
-    return calls.filter(call => call.leadId === leadId);
-  };
-
-  const getLeadsByStatus = (status: string) => {
-    if (status === 'all') return leads;
-    return leads.filter(lead => lead.status === status);
-  };
-
-  const getHighPriorityLeads = () => {
-    return leads.filter(lead => lead.priority === 'high' && lead.status !== 'closed');
-  };
-
-  const getRecentActivities = (limit = 10) => {
-    return activities
-      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-      .slice(0, limit);
-  };
-
-  const getLeadMetrics = () => {
-    const total = leads.length;
-    const qualified = leads.filter(l => l.status === 'qualified').length;
-    const closed = leads.filter(l => l.status === 'closed').length;
-    const avgScore = Math.round(leads.reduce((sum, l) => sum + l.score, 0) / total);
-    const avgConversion = Math.round(leads.reduce((sum, l) => sum + l.conversionLikelihood, 0) / total);
-
-    return {
-      total,
-      qualified,
-      closed,
-      conversionRate: Math.round((closed / total) * 100),
-      avgScore,
-      avgConversion,
-      highPriority: leads.filter(l => l.priority === 'high' && l.status !== 'closed').length
-    };
-  };
-
-  const deleteLead = (id: string) => {
-    setLeads(prev => prev.filter(lead => lead.id !== id));
-    setActivities(prev => prev.filter(activity => activity.leadId !== id));
-    setCalls(prev => prev.filter(call => call.leadId !== id));
-    toast.success('Mock lead deleted successfully');
-  };
-
-  const deleteActivity = (id: string) => {
-    setActivities(prev => prev.filter(activity => activity.id !== id));
-    toast.success('Mock activity deleted successfully');
-  };
-
-  const deleteCall = (id: string) => {
-    setCalls(prev => prev.filter(call => call.id !== id));
-    toast.success('Mock call deleted successfully');
-  };
-
-  const clearAllMockData = () => {
-    setLeads([]);
-    setActivities([]);
-    setCalls([]);
-    toast.success('All mock data cleared successfully');
-  };
-
-  const resetMockData = () => {
-    setLeads(mockLeads);
-    setActivities(mockActivities);
-    setCalls(mockCalls);
-    toast.success('Mock data reset to original state');
-  };
+  useEffect(() => {
+    // Simulate loading delay
+    setTimeout(() => {
+      setLeads(generateMockLeads());
+      setIsLoading(false);
+    }, 500);
+  }, []);
 
   return {
     leads,
-    activities,
-    calls,
-    importSessions,
-    aiInsights,
-    emailTemplates,
-    knowledgeBase,
-    getLeadById,
-    getActivitiesForLead,
-    getCallsForLead,
-    getLeadsByStatus,
-    getHighPriorityLeads,
-    getRecentActivities,
-    getLeadMetrics,
-    deleteLead,
-    deleteActivity,
-    deleteCall,
-    clearAllMockData,
-    resetMockData
+    isLoading
   };
 };

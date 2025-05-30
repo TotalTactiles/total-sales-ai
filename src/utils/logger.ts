@@ -1,50 +1,78 @@
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-export interface LogLevel {
-  DEBUG: 'debug';
-  INFO: 'info';
-  WARN: 'warn';
-  ERROR: 'error';
+interface LogEntry {
+  level: LogLevel;
+  message: string;
+  data?: any;
+  context?: string;
+  timestamp: Date;
 }
-
-export type LogCategory = 
-  | 'automation' 
-  | 'voice_ai' 
-  | 'crm' 
-  | 'system' 
-  | 'ui' 
-  | 'api'
-  | 'ai_brain'
-  | 'system_health'
-  | 'elevenlabs'
-  | 'speech_synthesis'
-  | 'retell_ai'
-  | 'security';
 
 class Logger {
-  private static instance: Logger;
-  
-  static getInstance(): Logger {
-    if (!Logger.instance) {
-      Logger.instance = new Logger();
+  private logs: LogEntry[] = [];
+  private maxLogs = 1000;
+
+  private log(level: LogLevel, message: string, data?: any, context?: string): void {
+    const entry: LogEntry = {
+      level,
+      message,
+      data,
+      context,
+      timestamp: new Date()
+    };
+
+    this.logs.push(entry);
+    
+    // Keep only the most recent logs
+    if (this.logs.length > this.maxLogs) {
+      this.logs = this.logs.slice(-this.maxLogs);
     }
-    return Logger.instance;
+
+    // Console output
+    const consoleMessage = `[${context || 'APP'}] ${message}`;
+    
+    switch (level) {
+      case 'debug':
+        console.debug(consoleMessage, data);
+        break;
+      case 'info':
+        console.info(consoleMessage, data);
+        break;
+      case 'warn':
+        console.warn(consoleMessage, data);
+        break;
+      case 'error':
+        console.error(consoleMessage, data);
+        break;
+    }
   }
 
-  info(message: string, data?: any, category: LogCategory = 'system') {
-    console.log(`[${category.toUpperCase()}] INFO: ${message}`, data);
+  debug(message: string, data?: any, context?: string): void {
+    this.log('debug', message, data, context);
   }
 
-  warn(message: string, data?: any, category: LogCategory = 'system') {
-    console.warn(`[${category.toUpperCase()}] WARN: ${message}`, data);
+  info(message: string, data?: any, context?: string): void {
+    this.log('info', message, data, context);
   }
 
-  error(message: string, error?: any, category: LogCategory = 'system') {
-    console.error(`[${category.toUpperCase()}] ERROR: ${message}`, error);
+  warn(message: string, data?: any, context?: string): void {
+    this.log('warn', message, data, context);
   }
 
-  debug(message: string, data?: any, category: LogCategory = 'system') {
-    console.debug(`[${category.toUpperCase()}] DEBUG: ${message}`, data);
+  error(message: string, data?: any, context?: string): void {
+    this.log('error', message, data, context);
+  }
+
+  getLogs(level?: LogLevel): LogEntry[] {
+    if (level) {
+      return this.logs.filter(log => log.level === level);
+    }
+    return this.logs;
+  }
+
+  clearLogs(): void {
+    this.logs = [];
   }
 }
 
-export const logger = Logger.getInstance();
+export const logger = new Logger();
