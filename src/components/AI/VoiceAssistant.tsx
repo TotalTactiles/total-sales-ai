@@ -1,12 +1,6 @@
 
 import React, { useState } from "react";
 
-declare global {
-  interface Window {
-    webkitSpeechRecognition: any;
-  }
-}
-
 const VoiceAssistant = () => {
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -17,7 +11,7 @@ const VoiceAssistant = () => {
       return;
     }
 
-    const recognition = new window.webkitSpeechRecognition();
+    const recognition = new (window as any).webkitSpeechRecognition();
     recognition.lang = "en-US";
     recognition.interimResults = false;
     recognition.continuous = false;

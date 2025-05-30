@@ -19,7 +19,7 @@ export interface VoiceInteractionOptions {
   workspaceData?: any;
 }
 
-// Type declarations for Web Speech API - using conditional types to avoid conflicts
+// Type declarations for Web Speech API
 declare global {
   interface Window {
     SpeechRecognition?: typeof SpeechRecognition;
