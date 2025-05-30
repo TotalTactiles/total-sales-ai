@@ -11,32 +11,37 @@ const VoiceAssistant = () => {
       return;
     }
 
-    const recognition = new (window as any).webkitSpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.continuous = false;
+    try {
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.continuous = false;
 
-    recognition.onresult = (event: any) => {
-      const speech = event.results[0][0].transcript;
-      setTranscript(speech);
-      console.log("User said:", speech);
-    };
+      recognition.onresult = (event: any) => {
+        const speech = event.results[0][0].transcript;
+        setTranscript(speech);
+        console.log("User said:", speech);
+      };
 
-    recognition.onerror = (event: any) => {
-      console.error("Speech recognition error:", event.error);
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
+        setListening(false);
+      };
+
+      recognition.onend = () => {
+        setListening(false);
+      };
+
+      if (listening) {
+        recognition.stop();
+        setListening(false);
+      } else {
+        recognition.start();
+        setListening(true);
+      }
+    } catch (error) {
+      console.error("Error with speech recognition:", error);
       setListening(false);
-    };
-
-    recognition.onend = () => {
-      setListening(false);
-    };
-
-    if (listening) {
-      recognition.stop();
-      setListening(false);
-    } else {
-      recognition.start();
-      setListening(true);
     }
   };
 

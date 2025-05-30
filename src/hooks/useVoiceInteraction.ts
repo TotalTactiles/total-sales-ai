@@ -3,7 +3,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSpeechRecognition } from './voice/useSpeechRecognition';
 import { useAudioProcessing } from './voice/useAudioProcessing';
 import { VoiceInteractionState, VoiceInteractionOptions } from './voice/types';
-import { toast } from 'sonner';
 
 export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
   const [state, setState] = useState<VoiceInteractionState>({
