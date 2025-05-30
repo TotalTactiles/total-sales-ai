@@ -84,6 +84,26 @@ export const useNotifications = () => {
     }
   };
 
+  const markAllAsRead = async () => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      if (error) throw error;
+
+      setNotifications(prev =>
+        prev.map(n => ({ ...n, is_read: true }))
+      );
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
   useEffect(() => {
     fetchNotifications();
   }, [user?.id, profile?.company_id]);
@@ -96,6 +116,7 @@ export const useNotifications = () => {
     unreadCount,
     fetchNotifications,
     createNotification,
-    markAsRead
+    markAsRead,
+    markAllAsRead
   };
 };

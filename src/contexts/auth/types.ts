@@ -12,6 +12,7 @@ export interface Profile {
   email_connected?: boolean;
   email_provider?: string;
   email_account?: string;
+  ai_assistant_name?: string;
   created_at?: string;
   updated_at?: string;
   last_login?: string;
@@ -26,4 +27,8 @@ export interface AuthContextType {
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error?: AuthError }>;
   signOut: () => Promise<void>;
   fetchProfile: (userId: string) => Promise<void>;
+  isDemoMode: () => boolean;
+  setLastSelectedRole: (role: Role) => void;
+  getLastSelectedRole: () => Role;
+  initializeDemoMode: (role: Role) => void;
 }

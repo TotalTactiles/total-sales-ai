@@ -58,7 +58,7 @@ export const useSystemHealth = () => {
       // Check Retell AI health
       const retellHealthy = retellAIService.isServiceReady();
 
-      // Check ElevenLabs health
+      // Check ElevenLabs health  
       const elevenLabsHealthy = elevenLabsService.isServiceReady();
 
       const totalTime = performance.now() - startTime;

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Lead } from '@/types/lead';
+import { Lead, MockLead } from '@/types/lead';
 
 const generateMockLeads = (): Lead[] => {
   const companies = ['TechCorp', 'InnovateCo', 'GlobalSoft', 'DataDriven', 'CloudFirst', 'AIVentures'];
@@ -25,7 +25,12 @@ const generateMockLeads = (): Lead[] => {
     createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date().toISOString(),
     companyId: 'demo-company',
-    isSensitive: Math.random() > 0.8
+    isSensitive: Math.random() > 0.8,
+    sentiment: ['positive', 'neutral', 'negative'][Math.floor(Math.random() * 3)],
+    objection: ['Price concern', 'Needs approval', 'Current provider', 'No budget'][Math.floor(Math.random() * 4)],
+    doNotCall: Math.random() > 0.9,
+    notes: 'Demo lead with sample data',
+    value: Math.floor(Math.random() * 100000) + 10000
   }));
 };
 
@@ -41,8 +46,13 @@ export const useMockData = () => {
     }, 500);
   }, []);
 
+  const getLeadById = (id: string): MockLead | undefined => {
+    return leads.find(lead => lead.id === id);
+  };
+
   return {
     leads,
-    isLoading
+    isLoading,
+    getLeadById
   };
 };

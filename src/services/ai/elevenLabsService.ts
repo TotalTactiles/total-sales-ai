@@ -2,7 +2,7 @@
 import { toast } from 'sonner';
 
 class ElevenLabsService {
-  private isServiceReady = false;
+  private serviceReady = false;
   private apiKey: string | null = null;
 
   async initialize(apiKey?: string): Promise<boolean> {
@@ -11,7 +11,7 @@ class ElevenLabsService {
       
       if (!this.apiKey) {
         console.warn('ElevenLabs API key not provided');
-        this.isServiceReady = false;
+        this.serviceReady = false;
         return false;
       }
 
@@ -22,24 +22,24 @@ class ElevenLabsService {
         }
       });
 
-      this.isServiceReady = response.ok;
+      this.serviceReady = response.ok;
       
-      if (this.isServiceReady) {
+      if (this.serviceReady) {
         console.log('ElevenLabs service initialized successfully');
       } else {
         console.error('ElevenLabs API key invalid');
       }
       
-      return this.isServiceReady;
+      return this.serviceReady;
     } catch (error) {
       console.error('Failed to initialize ElevenLabs service:', error);
-      this.isServiceReady = false;
+      this.serviceReady = false;
       return false;
     }
   }
 
-  async generateSpeech(text: string, voiceId: string = '9BWtsMINqrJLrRacOk9x'): Promise<ArrayBuffer | null> {
-    if (!this.isServiceReady || !this.apiKey) {
+  async generateSpeech(text: string, voiceId: string = '9BWtsMINqrJLrRacOk9x'): Promise<string | null> {
+    if (!this.serviceReady || !this.apiKey) {
       toast.error('ElevenLabs service not available');
       return null;
     }
@@ -66,7 +66,8 @@ class ElevenLabsService {
         throw new Error('Failed to generate speech');
       }
 
-      return await response.arrayBuffer();
+      const audioBlob = await response.blob();
+      return URL.createObjectURL(audioBlob);
     } catch (error) {
       console.error('Error generating speech:', error);
       toast.error('Failed to generate voice response');
@@ -75,7 +76,7 @@ class ElevenLabsService {
   }
 
   isServiceReady(): boolean {
-    return this.isServiceReady;
+    return this.serviceReady;
   }
 }
 

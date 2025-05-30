@@ -50,13 +50,12 @@ const VoiceSetupPanel: React.FC = () => {
     setIsTestingVoice(true);
     
     try {
-      const audioData = await elevenLabsService.generateSpeech({
-        text: "Hello! This is a test of the ElevenLabs voice generation system. Everything sounds great!",
-        voiceId: '9BWtsMINqrJLrRacOk9x' // Aria voice
-      });
+      const audioUrl = await elevenLabsService.generateSpeech(
+        "Hello! This is a test of the ElevenLabs voice generation system. Everything sounds great!"
+      );
 
-      if (audioData && audioData !== 'native_speech_used') {
-        const audio = new Audio(audioData);
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
         await audio.play();
         toast.success('ElevenLabs voice test completed successfully!');
       } else {

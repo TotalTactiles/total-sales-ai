@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { useNavigate } from 'react-router-dom';
-import { AuthContextType, Profile } from './types';
+import { AuthContextType, Profile, Role } from './types';
 import { toast } from 'sonner';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -167,6 +167,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const isDemoMode = (): boolean => {
+    return localStorage.getItem('demoMode') === 'true';
+  };
+
+  const setLastSelectedRole = (role: Role): void => {
+    localStorage.setItem('lastSelectedRole', role);
+  };
+
+  const getLastSelectedRole = (): Role => {
+    return (localStorage.getItem('lastSelectedRole') as Role) || 'sales_rep';
+  };
+
+  const initializeDemoMode = (role: Role): void => {
+    localStorage.setItem('demoMode', 'true');
+    localStorage.setItem('demoRole', role);
+    setLastSelectedRole(role);
+  };
+
   const value: AuthContextType = {
     user,
     profile,
@@ -175,7 +193,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signIn,
     signUp,
     signOut,
-    fetchProfile
+    fetchProfile,
+    isDemoMode,
+    setLastSelectedRole,
+    getLastSelectedRole,
+    initializeDemoMode
   };
 
   return (

@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Lead } from '@/types/lead';
-import { convertDatabaseLeadToLead, DatabaseLead } from '@/utils/leadUtils';
+import { Lead, DatabaseLead } from '@/types/lead';
+import { convertDatabaseLeadToLead } from '@/utils/leadUtils';
 
 export const useLeads = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -47,3 +47,5 @@ export const useLeads = () => {
     refetch: fetchLeads
   };
 };
+
+export type { DatabaseLead };
