@@ -17,7 +17,7 @@ const LeadWorkspace: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
   const { isDemoMode } = useAuth();
   const { getLeadById: getMockLead } = useMockData();
-  const { data: databaseLeads } = useLeads();
+  const { leads: databaseLeads } = useLeads();
   
   const [activeTab, setActiveTab] = useState('overview');
 

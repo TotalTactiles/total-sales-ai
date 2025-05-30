@@ -20,6 +20,8 @@ export interface DatabaseLead {
   conversion_likelihood: number;
   speed_to_lead: number;
   is_sensitive: boolean;
+  notes?: string;
+  value?: number;
   created_at: string;
   updated_at: string;
 }

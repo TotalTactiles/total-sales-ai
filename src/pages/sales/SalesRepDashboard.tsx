@@ -47,6 +47,49 @@ const SalesRepDashboard: React.FC = () => {
     deals: { current: 3, target: 5 }
   };
 
+  const mockUserStats = {
+    callCount: 156,
+    winCount: 23,
+    currentStreak: 5,
+    moodScore: 85
+  };
+
+  const pipelineLeads = leads.slice(0, 5).map(lead => ({
+    id: lead.id,
+    name: lead.name,
+    status: lead.status as 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed',
+    priority: lead.priority as 'high' | 'medium' | 'low',
+    lastContact: lead.lastContact || 'Never',
+    value: `$${Math.floor(Math.random() * 50000 + 10000).toLocaleString()}`
+  }));
+
+  const recommendedActions = [
+    {
+      id: '1',
+      description: 'Call Maria Rodriguez at TechCorp - warm lead ready to close',
+      suggestedTime: '2:30 PM',
+      urgency: 'high' as const,
+      type: 'call' as const,
+      impact: 'high' as const
+    },
+    {
+      id: '2',
+      description: 'Send follow-up email to Global Solutions with updated proposal',
+      suggestedTime: '3:15 PM',
+      urgency: 'medium' as const,
+      type: 'email' as const,
+      impact: 'medium' as const
+    }
+  ];
+
+  const handleLeadClick = (leadId: string) => {
+    console.log('Lead clicked:', leadId);
+  };
+
+  const handleActionClick = (actionId: string) => {
+    console.log('Action clicked:', actionId);
+  };
+
   const getProgressPercentage = (current: number, target: number) => {
     return Math.round((current / target) * 100);
   };
@@ -59,13 +102,10 @@ const SalesRepDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
-      <DashboardHeader 
-        title={`Welcome back, ${profile?.full_name || 'Sales Rep'}!`}
-        subtitle="Here's your sales performance overview"
-      />
+      <DashboardHeader />
 
       {/* AI Summary Banner */}
-      <AISummaryBanner />
+      <AISummaryBanner userStats={mockUserStats} enabled={true} />
 
       {/* Quick Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -119,7 +159,7 @@ const SalesRepDashboard: React.FC = () => {
       </div>
 
       {/* KPI Cards */}
-      <KPICards />
+      <KPICards userStats={mockUserStats} isFullUser={true} />
 
       {/* Weekly Goals */}
       <Card className="mb-8">
@@ -160,16 +200,19 @@ const SalesRepDashboard: React.FC = () => {
       </Card>
 
       {/* Pipeline Pulse */}
-      <PipelinePulse />
+      <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
 
       {/* AI Recommended Actions */}
-      <AIRecommendedActions />
+      <AIRecommendedActions 
+        actions={recommendedActions} 
+        onActionClick={handleActionClick} 
+        isFullUser={true} 
+      />
 
       {/* AI Assistant Button */}
       <Button
         onClick={() => setIsAIAssistantOpen(true)}
         className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
-        size="lg"
       >
         <Brain className="h-6 w-6" />
       </Button>
@@ -178,8 +221,6 @@ const SalesRepDashboard: React.FC = () => {
       <SalesRepAIAssistant
         isOpen={isAIAssistantOpen}
         onClose={() => setIsAIAssistantOpen(false)}
-        context="dashboard"
-        leadData={null}
       />
     </div>
   );

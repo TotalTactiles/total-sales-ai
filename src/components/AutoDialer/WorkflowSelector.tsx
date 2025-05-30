@@ -41,11 +41,12 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
       industry: 'Real Estate',
       aiOptimized: true,
       successRate: 73,
+      isActive: true,
       steps: [
-        { id: '1', type: 'email', timing: 'immediately', template: 'Thank you + property info', aiGenerated: true },
-        { id: '2', type: 'sms', timing: '2 hours', template: 'Quick check-in message', aiGenerated: true },
-        { id: '3', type: 'call', timing: '1 day', template: 'Follow-up call script', aiGenerated: false },
-        { id: '4', type: 'meeting', timing: '3 days', template: 'Property viewing invitation', aiGenerated: true }
+        { id: '1', action: 'email', timing: 'immediately', template: 'Thank you + property info', aiGenerated: true },
+        { id: '2', action: 'sms', timing: '2 hours', template: 'Quick check-in message', aiGenerated: true },
+        { id: '3', action: 'call', timing: '1 day', template: 'Follow-up call script', aiGenerated: false },
+        { id: '4', action: 'meeting', timing: '3 days', template: 'Property viewing invitation', aiGenerated: true }
       ]
     },
     {
@@ -54,11 +55,12 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
       industry: 'Technology',
       aiOptimized: true,
       successRate: 81,
+      isActive: true,
       steps: [
-        { id: '1', type: 'email', timing: 'immediately', template: 'Demo confirmation + calendar link', aiGenerated: true },
-        { id: '2', type: 'email', timing: '1 day', template: 'Demo preparation guide', aiGenerated: true },
-        { id: '3', type: 'sms', timing: '1 hour', template: 'Demo reminder', aiGenerated: true },
-        { id: '4', type: 'call', timing: '2 hours', template: 'Post-demo follow-up', aiGenerated: false }
+        { id: '1', action: 'email', timing: 'immediately', template: 'Demo confirmation + calendar link', aiGenerated: true },
+        { id: '2', action: 'email', timing: '1 day', template: 'Demo preparation guide', aiGenerated: true },
+        { id: '3', action: 'sms', timing: '1 hour', template: 'Demo reminder', aiGenerated: true },
+        { id: '4', action: 'call', timing: '2 hours', template: 'Post-demo follow-up', aiGenerated: false }
       ]
     },
     {
@@ -67,17 +69,18 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
       industry: 'Finance',
       aiOptimized: true,
       successRate: 45,
+      isActive: true,
       steps: [
-        { id: '1', type: 'email', timing: 'immediately', template: 'Voice message follow-up', aiGenerated: true },
-        { id: '2', type: 'wait', timing: '2 days', template: '', aiGenerated: false },
-        { id: '3', type: 'call', timing: '2 days', template: 'Second attempt call', aiGenerated: false },
-        { id: '4', type: 'sms', timing: '1 week', template: 'Alternative contact method', aiGenerated: true }
+        { id: '1', action: 'email', timing: 'immediately', template: 'Voice message follow-up', aiGenerated: true },
+        { id: '2', action: 'wait', timing: '2 days', template: '', aiGenerated: false },
+        { id: '3', action: 'call', timing: '2 days', template: 'Second attempt call', aiGenerated: false },
+        { id: '4', action: 'sms', timing: '1 week', template: 'Alternative contact method', aiGenerated: true }
       ]
     }
   ];
 
-  const getStepIcon = (type: string) => {
-    switch (type) {
+  const getStepIcon = (action: string) => {
+    switch (action) {
       case 'email': return <Mail className="h-4 w-4" />;
       case 'sms': return <MessageSquare className="h-4 w-4" />;
       case 'call': return <Phone className="h-4 w-4" />;
@@ -94,7 +97,7 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
   };
 
   const filteredWorkflows = workflows.filter(w => 
-    w.industry.toLowerCase().includes(leadIndustry.toLowerCase()) ||
+    w.industry?.toLowerCase().includes(leadIndustry.toLowerCase()) ||
     w.name.toLowerCase().includes(callOutcome.toLowerCase())
   );
 
@@ -138,7 +141,7 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
                     )}
                     <Badge variant="outline">
                       <TrendingUp className="h-3 w-3 mr-1" />
-                      <span className={getSuccessRateColor(workflow.successRate)}>
+                      <span className={getSuccessRateColor(workflow.successRate || 0)}>
                         {workflow.successRate}% Success
                       </span>
                     </Badge>
@@ -158,11 +161,11 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
                           {index + 1}
                         </div>
                         <div className="flex items-center gap-2 text-gray-600">
-                          {getStepIcon(step.type)}
+                          {getStepIcon(step.action)}
                         </div>
                         <div className="flex-1">
                           <div className="font-medium capitalize">
-                            {step.type} - {step.timing}
+                            {step.action} - {step.timing}
                           </div>
                           <div className="text-sm text-gray-600">{step.template}</div>
                         </div>

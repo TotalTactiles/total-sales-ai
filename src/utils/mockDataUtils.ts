@@ -10,13 +10,15 @@ export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
     source: mockLead.source,
     score: mockLead.score,
     priority: mockLead.priority,
-    lastContact: mockLead.last_contact ? new Date(mockLead.last_contact).toLocaleDateString() : undefined,
+    lastContact: mockLead.lastContact ? new Date(mockLead.lastContact).toLocaleDateString() : '',
     email: mockLead.email,
     phone: mockLead.phone,
     status: mockLead.status,
     tags: mockLead.tags,
-    isSensitive: mockLead.is_sensitive,
-    conversionLikelihood: mockLead.conversion_likelihood,
-    speedToLead: mockLead.speed_to_lead
+    isSensitive: mockLead.isSensitive || false,
+    conversionLikelihood: mockLead.conversionLikelihood || 0,
+    speedToLead: mockLead.speedToLead || 0,
+    notes: mockLead.notes || '',
+    value: mockLead.value || 0
   };
 };

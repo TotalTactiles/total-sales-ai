@@ -248,7 +248,7 @@ const ManagerLeadManagement = () => {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-500">{lead.score}%</span>
-                            <Badge size="sm" className={getStatusColor(lead.status)}>
+                            <Badge className={getStatusColor(lead.status)}>
                               {lead.status}
                             </Badge>
                           </div>
@@ -281,7 +281,7 @@ const ManagerLeadManagement = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="destructive">High Priority</Badge>
-                      <Button size="sm" variant="outline">Review</Button>
+                      <Button variant="outline">Review</Button>
                     </div>
                   </div>
                 ))}
@@ -309,7 +309,7 @@ const ManagerLeadManagement = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Stalled</Badge>
-                      <Button size="sm" variant="outline">Escalate</Button>
+                      <Button variant="outline">Escalate</Button>
                     </div>
                   </div>
                 ))}
