@@ -89,32 +89,51 @@ const LeadWorkspace: React.FC = () => {
     }
   };
 
+  // Convert Lead to DatabaseLead format for components that expect it
+  const leadAsDbLead: DatabaseLead = lead ? {
+    ...lead,
+    company_id: '', // Add required company_id field
+    last_contact: lead.lastContact || '',
+    conversion_likelihood: lead.conversionLikelihood || 0,
+    speed_to_lead: lead.speedToLead || 0,
+    is_sensitive: lead.isSensitive || false,
+    created_at: lead.created_at || new Date().toISOString(),
+    updated_at: lead.updated_at || new Date().toISOString(),
+    notes: lead.notes || '',
+    value: lead.value || 0
+  } as DatabaseLead : {} as DatabaseLead;
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="flex h-screen">
         {/* Left Sidebar - Lead Info & Actions */}
         <div className="w-80 border-r border-gray-200 bg-white">
           <LeadWorkspaceLeft 
-            lead={lead} 
-            getLeadProperty={getLeadProperty}
+            lead={leadAsDbLead} 
+            onQuickAction={(action: string) => console.log('Quick action:', action)}
+            collapsed={false}
+            onToggleCollapse={() => {}}
           />
         </div>
 
         {/* Center Content - Main Workspace */}
         <div className="flex-1">
           <LeadWorkspaceCenter 
-            lead={lead}
+            lead={leadAsDbLead}
             activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            getLeadProperty={getLeadProperty}
+            onTabChange={setActiveTab}
+            aiSummaryEnabled={true}
+            onAiSummaryToggle={() => {}}
           />
         </div>
 
         {/* Right Sidebar - AI Assistant & Tools */}
         <div className="w-80 border-l border-gray-200 bg-white">
           <LeadWorkspaceRight 
-            lead={lead} 
-            getLeadProperty={getLeadProperty}
+            lead={leadAsDbLead}
+            activeTab={activeTab}
+            collapsed={false}
+            onToggleCollapse={() => {}}
           />
         </div>
       </div>
