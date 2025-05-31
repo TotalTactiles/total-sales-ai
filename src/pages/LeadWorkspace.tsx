@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,7 +11,7 @@ import { mockLeadProfile } from '@/data/mockLeadProfile';
 import LeadWorkspaceLeft from '@/components/LeadWorkspace/LeadWorkspaceLeft';
 import LeadWorkspaceCenter from '@/components/LeadWorkspace/LeadWorkspaceCenter';
 import LeadWorkspaceRight from '@/components/LeadWorkspace/LeadWorkspaceRight';
-import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 
@@ -98,8 +97,7 @@ const LeadWorkspace: React.FC = () => {
 
   return (
     <Dialog open={true} onOpenChange={(open) => !open && handleClose()}>
-      <DialogOverlay className="bg-black/50" />
-      <DialogContent className="max-w-[80vw] w-[80vw] h-[80vh] max-h-[80vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-[80vw] w-[80vw] h-[80vh] max-h-[80vh] p-0 overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200 shadow-xl">
         {/* Close Button */}
         <Button
           variant="ghost"
