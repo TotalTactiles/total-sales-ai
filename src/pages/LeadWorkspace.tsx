@@ -23,14 +23,21 @@ const LeadWorkspace: React.FC = () => {
   
   const [activeTab, setActiveTab] = useState('overview');
 
+  console.log('LeadWorkspace rendering with leadId:', leadId);
+
   // Find the lead from either mock data or database
   const lead: Lead | null = useMemo(() => {
-    if (!leadId) return null;
+    if (!leadId) {
+      console.log('No leadId provided');
+      return null;
+    }
 
     const isDemo = isDemoMode();
+    console.log('LeadWorkspace: Demo mode:', isDemo);
     
     if (isDemo) {
       // For demo mode, always use the mock lead profile regardless of which lead was clicked
+      console.log('Using mock lead profile for demo mode');
       return {
         ...mockLeadProfile,
         id: leadId // Keep the original ID so routing works
@@ -40,10 +47,14 @@ const LeadWorkspace: React.FC = () => {
     // If not in demo mode, try to find from database leads
     if (databaseLeads && databaseLeads.length > 0) {
       const dbLead = databaseLeads.find((l) => l.id === leadId);
-      return dbLead ? convertDatabaseLeadToLead(dbLead) : null;
+      if (dbLead) {
+        console.log('Found database lead:', dbLead.name);
+        return convertDatabaseLeadToLead(dbLead);
+      }
     }
 
     // Fallback to mock profile for any lead when no database leads exist
+    console.log('Fallback to mock lead profile');
     return {
       ...mockLeadProfile,
       id: leadId

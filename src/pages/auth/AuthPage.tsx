@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Role } from '@/contexts/auth/types';
@@ -15,6 +15,7 @@ import AuthLoadingScreen from './components/AuthLoadingScreen';
 const AuthPage = () => {
   const { user, profile, loading, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -25,11 +26,11 @@ const AuthPage = () => {
   });
 
   // Show loading screen while auth state is being determined
-  if (loading) {
+  if (loading && !isTransitioning) {
     return (
       <AuthLoadingScreen 
         role={selectedRole} 
-        isDemoMode={false} 
+        isDemoMode={isDemoMode()} 
       />
     );
   }
@@ -39,7 +40,8 @@ const AuthPage = () => {
     if (!loading && user && profile) {
       console.log("AuthPage: User is logged in, redirecting based on role:", profile.role);
       const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
-      navigate(redirectPath, { replace: true });
+      const from = location.state?.from?.pathname || redirectPath;
+      navigate(from, { replace: true });
     } else if (!loading && isDemoMode()) {
       // Check if demo mode is active
       const demoRole = localStorage.getItem('demoRole') as Role | null;
@@ -49,7 +51,7 @@ const AuthPage = () => {
         navigate(redirectPath, { replace: true });
       }
     }
-  }, [user, profile, loading, navigate, isDemoMode]);
+  }, [user, profile, loading, navigate, isDemoMode, location]);
 
   const handleRoleChange = (role: Role) => {
     console.log("AuthPage: Role changed to", role);
@@ -64,6 +66,7 @@ const AuthPage = () => {
       const redirectPath = selectedRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
       console.log("AuthPage: Transitioning to", redirectPath);
       navigate(redirectPath, { replace: true });
+      setIsTransitioning(false);
     }, 1500);
   };
 
@@ -78,7 +81,7 @@ const AuthPage = () => {
   }
 
   // Don't show auth page if user is already authenticated
-  if (user && profile) {
+  if (!loading && user && profile) {
     return null;
   }
 

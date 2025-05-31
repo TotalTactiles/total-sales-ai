@@ -50,7 +50,7 @@ function App() {
                   <Route path="/" element={
                     <RequireAuth>
                       <OnboardingGuard>
-                        <Navigate to="/sales" replace />
+                        <Navigate to="/sales/dashboard" replace />
                       </OnboardingGuard>
                     </RequireAuth>
                   } />
@@ -83,7 +83,7 @@ function App() {
                   } />
                   
                   {/* Standalone lead workspace route */}
-                  <Route path="/lead-workspace/:id" element={
+                  <Route path="/lead-workspace/:leadId" element={
                     <RequireAuth>
                       <OnboardingGuard>
                         <LeadWorkspace />
@@ -91,8 +91,17 @@ function App() {
                     </RequireAuth>
                   } />
                   
+                  {/* Direct lead management access */}
+                  <Route path="/lead-management" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <Navigate to="/sales/lead-management" replace />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
                   {/* Fallback */}
-                  <Route path="*" element={<Navigate to="/sales" replace />} />
+                  <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
                 </Routes>
                 <Toaster />
               </AIContextProvider>
