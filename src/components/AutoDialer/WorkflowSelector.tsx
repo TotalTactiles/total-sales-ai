@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -51,7 +50,13 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
       createdAt: new Date().toISOString(),
       industry: 'Real Estate',
       aiOptimized: true,
-      successRate: 73
+      successRate: 73,
+      action: 'Real Estate - Connected Call Follow-up',
+      type: 'email',
+      timing: 'immediately',
+      template: 'Thank you + property info',
+      aiGenerated: true,
+      order: 1
     },
     {
       id: '2',
@@ -69,7 +74,13 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
       createdAt: new Date().toISOString(),
       industry: 'Technology',
       aiOptimized: true,
-      successRate: 81
+      successRate: 81,
+      action: 'Tech/SaaS - Demo Request Flow',
+      type: 'call',
+      timing: '1 day',
+      template: 'Demo confirmation + calendar link',
+      aiGenerated: true,
+      order: 2
     },
     {
       id: '3',
@@ -87,7 +98,13 @@ const WorkflowSelector: React.FC<WorkflowSelectorProps> = ({
       createdAt: new Date().toISOString(),
       industry: 'Finance',
       aiOptimized: true,
-      successRate: 45
+      successRate: 45,
+      action: 'Finance - Voicemail Recovery',
+      type: 'email',
+      timing: 'immediately',
+      template: 'Voice message follow-up',
+      aiGenerated: true,
+      order: 3
     }
   ];
 

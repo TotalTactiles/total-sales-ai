@@ -38,6 +38,16 @@ export interface LeadSortOptions {
   direction: 'asc' | 'desc';
 }
 
+export interface WorkflowStep {
+  id: string;
+  order: number;
+  type: 'call' | 'email' | 'wait' | 'condition' | 'sms' | 'meeting';
+  action: string;
+  timing: string;
+  template?: string;
+  aiGenerated?: boolean;
+}
+
 export interface CallWorkflow {
   id: string;
   name: string;
@@ -47,16 +57,12 @@ export interface CallWorkflow {
   industry?: string;
   aiOptimized?: boolean;
   successRate?: number;
-}
-
-export interface WorkflowStep {
-  id: string;
-  type: 'call' | 'email' | 'wait' | 'condition' | 'sms' | 'meeting';
   action: string;
+  type: 'call' | 'email' | 'wait' | 'condition' | 'sms' | 'meeting';
   timing: string;
   template?: string;
   aiGenerated?: boolean;
-  order: number;
+  order?: number;
 }
 
 export interface MockLead extends Lead {
