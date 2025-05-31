@@ -8,6 +8,7 @@ import { Lead, MockLead } from '@/types/lead';
 import { DatabaseLead } from '@/hooks/useLeads';
 import { convertMockLeadToLead } from '@/utils/mockDataUtils';
 import { convertDatabaseLeadToLead } from '@/utils/leadUtils';
+import { mockLeadProfile } from '@/data/mockLeadProfile';
 import LeadWorkspaceLeft from '@/components/LeadWorkspace/LeadWorkspaceLeft';
 import LeadWorkspaceCenter from '@/components/LeadWorkspace/LeadWorkspaceCenter';
 import LeadWorkspaceRight from '@/components/LeadWorkspace/LeadWorkspaceRight';
@@ -29,8 +30,11 @@ const LeadWorkspace: React.FC = () => {
     const isDemo = isDemoMode();
     
     if (isDemo) {
-      const mockLead = getMockLead(leadId);
-      return mockLead ? convertMockLeadToLead(mockLead) : null;
+      // For demo mode, always use the mock lead profile regardless of which lead was clicked
+      return {
+        ...mockLeadProfile,
+        id: leadId // Keep the original ID so routing works
+      };
     }
 
     // If not in demo mode, try to find from database leads
@@ -39,10 +43,12 @@ const LeadWorkspace: React.FC = () => {
       return dbLead ? convertDatabaseLeadToLead(dbLead) : null;
     }
 
-    // Fallback to mock data if no database leads
-    const mockLead = getMockLead(leadId);
-    return mockLead ? convertMockLeadToLead(mockLead) : null;
-  }, [leadId, isDemoMode, getMockLead, databaseLeads]);
+    // Fallback to mock profile for any lead when no database leads exist
+    return {
+      ...mockLeadProfile,
+      id: leadId
+    };
+  }, [leadId, isDemoMode, databaseLeads]);
 
   if (!leadId) {
     return (
@@ -69,7 +75,7 @@ const LeadWorkspace: React.FC = () => {
   }
 
   // Convert Lead to DatabaseLead format for components that expect it
-  const leadAsDbLead: DatabaseLead = lead ? {
+  const leadAsDbLead: DatabaseLead = {
     id: lead.id,
     name: lead.name,
     email: lead.email || '',
@@ -89,26 +95,6 @@ const LeadWorkspace: React.FC = () => {
     value: lead.value || 0,
     created_at: lead.createdAt || new Date().toISOString(),
     updated_at: lead.updatedAt || new Date().toISOString()
-  } : {
-    id: '',
-    name: '',
-    email: '',
-    phone: '',
-    company: '',
-    source: '',
-    status: 'new',
-    priority: 'medium',
-    score: 0,
-    tags: [],
-    company_id: '',
-    last_contact: '',
-    conversion_likelihood: 0,
-    speed_to_lead: 0,
-    is_sensitive: false,
-    notes: '',
-    value: 0,
-    created_at: '',
-    updated_at: ''
   };
 
   return (
