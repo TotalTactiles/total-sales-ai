@@ -32,8 +32,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const getSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
         
+        console.log('Initial session:', session?.user?.email || 'No session');
         setSession(session);
         setUser(session?.user || null);
         
@@ -58,7 +63,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(session?.user || null);
         
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+          }, 0);
         } else {
           setProfile(null);
         }
@@ -183,6 +190,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('demoMode', 'true');
     localStorage.setItem('demoRole', role);
     setLastSelectedRole(role);
+    setLoading(false); // Ensure loading is false for demo mode
   };
 
   const value: AuthContextType = {

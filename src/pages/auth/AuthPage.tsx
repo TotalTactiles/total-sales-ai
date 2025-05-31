@@ -13,7 +13,7 @@ import AuthDemoOptions from './components/AuthDemoOptions';
 import AuthLoadingScreen from './components/AuthLoadingScreen';
 
 const AuthPage = () => {
-  const { user, profile, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode } = useAuth();
+  const { user, profile, loading, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode } = useAuth();
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
@@ -24,26 +24,32 @@ const AuthPage = () => {
     fullName: '',
   });
 
-  // Redirect if already logged in or in demo mode
+  // Show loading screen while auth state is being determined
+  if (loading) {
+    return (
+      <AuthLoadingScreen 
+        role={selectedRole} 
+        isDemoMode={false} 
+      />
+    );
+  }
+
+  // Redirect if already logged in
   useEffect(() => {
-    console.log("AuthPage: Checking login status. User:", !!user, "Profile:", !!profile, "Demo mode:", isDemoMode());
-    
-    if (user && profile) {
-      console.log("AuthPage: User is logged in, redirecting to dashboard");
-      const redirectPath = profile.role === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
-      navigate(redirectPath);
-    } else if (isDemoMode()) {
-      // Check if demo mode is active but navigation didn't happen
+    if (!loading && user && profile) {
+      console.log("AuthPage: User is logged in, redirecting based on role:", profile.role);
+      const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+      navigate(redirectPath, { replace: true });
+    } else if (!loading && isDemoMode()) {
+      // Check if demo mode is active
       const demoRole = localStorage.getItem('demoRole') as Role | null;
-      console.log("AuthPage: Demo mode is active with role:", demoRole);
-      
       if (demoRole) {
-        const redirectPath = demoRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
-        console.log("AuthPage: Redirecting to", redirectPath);
-        navigate(redirectPath);
+        const redirectPath = demoRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+        console.log("AuthPage: Demo mode active, redirecting to", redirectPath);
+        navigate(redirectPath, { replace: true });
       }
     }
-  }, [user, profile, navigate, isDemoMode]);
+  }, [user, profile, loading, navigate, isDemoMode]);
 
   const handleRoleChange = (role: Role) => {
     console.log("AuthPage: Role changed to", role);
@@ -52,22 +58,28 @@ const AuthPage = () => {
   };
 
   const simulateLoginTransition = () => {
+    setIsTransitioning(true);
     // Simulate loading and transition to dashboard
     setTimeout(() => {
-      const redirectPath = selectedRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+      const redirectPath = selectedRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
       console.log("AuthPage: Transitioning to", redirectPath);
-      navigate(redirectPath);
+      navigate(redirectPath, { replace: true });
     }, 1500);
   };
 
-  // If already in demo mode or transitioning, show loading screen
-  if (isDemoMode() || isTransitioning) {
+  // If transitioning, show loading screen
+  if (isTransitioning) {
     return (
       <AuthLoadingScreen 
-        role={localStorage.getItem('demoRole') as Role || selectedRole} 
+        role={selectedRole} 
         isDemoMode={isDemoMode()} 
       />
     );
+  }
+
+  // Don't show auth page if user is already authenticated
+  if (user && profile) {
+    return null;
   }
 
   return (
