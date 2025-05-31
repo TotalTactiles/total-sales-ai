@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMockData } from '@/hooks/useMockData';
 import { useLeads } from '@/hooks/useLeads';
@@ -12,11 +12,13 @@ import { mockLeadProfile } from '@/data/mockLeadProfile';
 import LeadWorkspaceLeft from '@/components/LeadWorkspace/LeadWorkspaceLeft';
 import LeadWorkspaceCenter from '@/components/LeadWorkspace/LeadWorkspaceCenter';
 import LeadWorkspaceRight from '@/components/LeadWorkspace/LeadWorkspaceRight';
-import { Card } from '@/components/ui/card';
-import { AlertTriangle } from 'lucide-react';
+import { Dialog, DialogContent, DialogOverlay } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 const LeadWorkspace: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
+  const navigate = useNavigate();
   const { isDemoMode } = useAuth();
   const { getLeadById: getMockLead } = useMockData();
   const { leads: databaseLeads } = useLeads();
@@ -61,28 +63,14 @@ const LeadWorkspace: React.FC = () => {
     };
   }, [leadId, isDemoMode, databaseLeads]);
 
-  if (!leadId) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Lead Selected</h2>
-          <p className="text-gray-600">Please select a lead from the Lead Management page.</p>
-        </Card>
-      </div>
-    );
-  }
+  const handleClose = () => {
+    navigate('/lead-management');
+  };
 
-  if (!lead) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <AlertTriangle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Lead Not Found</h2>
-          <p className="text-gray-600">The requested lead could not be found.</p>
-        </Card>
-      </div>
-    );
+  if (!leadId || !lead) {
+    // If no lead, redirect back to lead management
+    navigate('/lead-management');
+    return null;
   }
 
   // Convert Lead to DatabaseLead format for components that expect it
@@ -109,40 +97,53 @@ const LeadWorkspace: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="flex h-screen">
-        {/* Left Sidebar - Lead Info & Actions */}
-        <div className="w-80 border-r border-gray-200 bg-white">
-          <LeadWorkspaceLeft 
-            lead={leadAsDbLead} 
-            onQuickAction={(action: string) => console.log('Quick action:', action)}
-            collapsed={false}
-            onToggleCollapse={() => {}}
-          />
-        </div>
+    <Dialog open={true} onOpenChange={(open) => !open && handleClose()}>
+      <DialogOverlay className="bg-black/50" />
+      <DialogContent className="max-w-[80vw] w-[80vw] h-[80vh] max-h-[80vh] p-0 overflow-hidden">
+        {/* Close Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClose}
+          className="absolute top-4 right-4 z-50 bg-white/90 hover:bg-white"
+        >
+          <X className="h-4 w-4" />
+        </Button>
 
-        {/* Center Content - Main Workspace */}
-        <div className="flex-1">
-          <LeadWorkspaceCenter 
-            lead={leadAsDbLead}
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            aiSummaryEnabled={true}
-            onAiSummaryToggle={() => {}}
-          />
-        </div>
+        <div className="h-full flex bg-slate-50">
+          {/* Left Sidebar - Lead Info & Actions */}
+          <div className="w-80 border-r border-gray-200 bg-white">
+            <LeadWorkspaceLeft 
+              lead={leadAsDbLead} 
+              onQuickAction={(action: string) => console.log('Quick action:', action)}
+              collapsed={false}
+              onToggleCollapse={() => {}}
+            />
+          </div>
 
-        {/* Right Sidebar - AI Assistant & Tools */}
-        <div className="w-80 border-l border-gray-200 bg-white">
-          <LeadWorkspaceRight 
-            lead={leadAsDbLead}
-            activeTab={activeTab}
-            collapsed={false}
-            onToggleCollapse={() => {}}
-          />
+          {/* Center Content - Main Workspace */}
+          <div className="flex-1">
+            <LeadWorkspaceCenter 
+              lead={leadAsDbLead}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+              aiSummaryEnabled={true}
+              onAiSummaryToggle={() => {}}
+            />
+          </div>
+
+          {/* Right Sidebar - AI Assistant & Tools */}
+          <div className="w-80 border-l border-gray-200 bg-white">
+            <LeadWorkspaceRight 
+              lead={leadAsDbLead}
+              activeTab={activeTab}
+              collapsed={false}
+              onToggleCollapse={() => {}}
+            />
+          </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

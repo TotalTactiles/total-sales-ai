@@ -55,20 +55,30 @@ function App() {
                     </RequireAuth>
                   } />
                   
-                  {/* Sales OS routes */}
+                  {/* Sales OS routes with nested lead workspace overlay */}
                   <Route path="/sales/*" element={
                     <RequireAuth>
                       <OnboardingGuard>
-                        <SalesLayout />
+                        <>
+                          <SalesLayout />
+                          <Routes>
+                            <Route path="/lead-workspace/:leadId" element={<LeadWorkspace />} />
+                          </Routes>
+                        </>
                       </OnboardingGuard>
                     </RequireAuth>
                   } />
                   
-                  {/* Manager OS routes */}
+                  {/* Manager OS routes with nested lead workspace overlay */}
                   <Route path="/manager/*" element={
                     <RequireAuth>
                       <OnboardingGuard>
-                        <ManagerLayout />
+                        <>
+                          <ManagerLayout />
+                          <Routes>
+                            <Route path="/lead-workspace/:leadId" element={<LeadWorkspace />} />
+                          </Routes>
+                        </>
                       </OnboardingGuard>
                     </RequireAuth>
                   } />
@@ -82,20 +92,20 @@ function App() {
                     </RequireAuth>
                   } />
                   
-                  {/* Standalone lead workspace route */}
-                  <Route path="/lead-workspace/:leadId" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
-                        <LeadWorkspace />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
-                  
                   {/* Direct lead management access */}
                   <Route path="/lead-management" element={
                     <RequireAuth>
                       <OnboardingGuard>
                         <Navigate to="/sales/lead-management" replace />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Standalone lead workspace route for direct access */}
+                  <Route path="/lead-workspace/:leadId" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <LeadWorkspace />
                       </OnboardingGuard>
                     </RequireAuth>
                   } />
