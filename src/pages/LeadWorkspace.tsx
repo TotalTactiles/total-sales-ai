@@ -12,7 +12,7 @@ import { mockLeadProfile } from '@/data/mockLeadProfile';
 import LeadWorkspaceLeft from '@/components/LeadWorkspace/LeadWorkspaceLeft';
 import LeadWorkspaceCenter from '@/components/LeadWorkspace/LeadWorkspaceCenter';
 import LeadWorkspaceRight from '@/components/LeadWorkspace/LeadWorkspaceRight';
-import { Dialog, DialogContent, DialogPortal } from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
@@ -98,66 +98,62 @@ const LeadWorkspace: React.FC = () => {
   };
 
   return (
-    <>
-      {/* Custom backdrop with blur effect */}
-      <div 
-        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
-        onClick={handleClose}
-      />
-      
-      {/* Lead workspace dialog without default overlay */}
-      <DialogPortal>
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="relative w-[80vw] h-[80vh] bg-white/95 backdrop-blur-sm border border-gray-200 shadow-xl rounded-lg overflow-hidden">
-            {/* Close Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="absolute top-4 right-4 z-50 bg-white/90 hover:bg-white"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+    <Dialog open={true} onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent 
+        className="max-w-[80vw] w-[80vw] h-[80vh] max-h-[80vh] p-0 overflow-hidden bg-white/95 backdrop-blur-sm border border-gray-200 shadow-xl"
+        style={{
+          // Override the default overlay to make it more transparent and blurred
+          '--radix-dialog-overlay-background': 'rgba(0, 0, 0, 0.2)',
+          '--radix-dialog-overlay-backdrop-filter': 'blur(4px)'
+        } as React.CSSProperties}
+      >
+        {/* Close Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClose}
+          className="absolute top-4 right-4 z-50 bg-white/90 hover:bg-white"
+        >
+          <X className="h-4 w-4" />
+        </Button>
 
-            {/* Scrollable content */}
-            <ScrollArea className="h-full">
-              <div className="h-full flex bg-slate-50">
-                {/* Left Sidebar - Lead Info & Actions */}
-                <div className="w-80 border-r border-gray-200 bg-white">
-                  <LeadWorkspaceLeft 
-                    lead={leadAsDbLead} 
-                    onQuickAction={(action: string) => console.log('Quick action:', action)}
-                    collapsed={false}
-                    onToggleCollapse={() => {}}
-                  />
-                </div>
+        {/* Scrollable content */}
+        <ScrollArea className="h-full">
+          <div className="h-full flex bg-slate-50">
+            {/* Left Sidebar - Lead Info & Actions */}
+            <div className="w-80 border-r border-gray-200 bg-white">
+              <LeadWorkspaceLeft 
+                lead={leadAsDbLead} 
+                onQuickAction={(action: string) => console.log('Quick action:', action)}
+                collapsed={false}
+                onToggleCollapse={() => {}}
+              />
+            </div>
 
-                {/* Center Content - Main Workspace */}
-                <div className="flex-1">
-                  <LeadWorkspaceCenter 
-                    lead={leadAsDbLead}
-                    activeTab={activeTab}
-                    onTabChange={setActiveTab}
-                    aiSummaryEnabled={true}
-                    onAiSummaryToggle={() => {}}
-                  />
-                </div>
+            {/* Center Content - Main Workspace */}
+            <div className="flex-1">
+              <LeadWorkspaceCenter 
+                lead={leadAsDbLead}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                aiSummaryEnabled={true}
+                onAiSummaryToggle={() => {}}
+              />
+            </div>
 
-                {/* Right Sidebar - AI Assistant & Tools */}
-                <div className="w-80 border-l border-gray-200 bg-white">
-                  <LeadWorkspaceRight 
-                    lead={leadAsDbLead}
-                    activeTab={activeTab}
-                    collapsed={false}
-                    onToggleCollapse={() => {}}
-                  />
-                </div>
-              </div>
-            </ScrollArea>
+            {/* Right Sidebar - AI Assistant & Tools */}
+            <div className="w-80 border-l border-gray-200 bg-white">
+              <LeadWorkspaceRight 
+                lead={leadAsDbLead}
+                activeTab={activeTab}
+                collapsed={false}
+                onToggleCollapse={() => {}}
+              />
+            </div>
           </div>
-        </div>
-      </DialogPortal>
-    </>
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
   );
 };
 
