@@ -146,31 +146,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async (): Promise<void> => {
     try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
+      console.log('Starting logout process...');
       
-      if (error) {
-        console.error('Sign out error:', error);
-        toast.error('Error signing out');
-        return;
-      }
-
-      // Clear local state
+      // Clear local state immediately
       setUser(null);
       setProfile(null);
       setSession(null);
       
-      // Clear any local storage
+      // Clear localStorage and sessionStorage
       localStorage.clear();
       sessionStorage.clear();
       
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Supabase sign out error:', error);
+        // Don't show error toast, just log it since we've already cleared local state
+      }
+      
+      console.log('Logout completed, redirecting to auth page...');
       toast.success('Signed out successfully');
-      navigate('/auth', { replace: true });
+      
+      // Force navigation to auth page
+      window.location.href = '/auth';
+      
     } catch (error) {
       console.error('Sign out error:', error);
-      toast.error('Error signing out');
-    } finally {
-      setLoading(false);
+      // Even if there's an error, clear state and redirect
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/auth';
     }
   };
 
