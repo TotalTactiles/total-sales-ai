@@ -1,33 +1,36 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 const LogoutHandler = () => {
   const { signOut } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const handleLogout = async () => {
       try {
         console.log('LogoutHandler: Starting logout process');
+        
+        // Clear all local storage first
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Sign out from auth
         await signOut();
         
-        // Small delay to ensure state is cleared
-        setTimeout(() => {
-          console.log('LogoutHandler: Redirecting to auth');
-          navigate('/auth', { replace: true });
-        }, 100);
+        // Force redirect to auth page
+        window.location.href = '/auth';
         
       } catch (error) {
         console.error('LogoutHandler error:', error);
         // Force redirect even on error
-        navigate('/auth', { replace: true });
+        localStorage.clear();
+        sessionStorage.clear();
+        window.location.href = '/auth';
       }
     };
 
     handleLogout();
-  }, [signOut, navigate]);
+  }, [signOut]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">

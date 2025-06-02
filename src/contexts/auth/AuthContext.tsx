@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session, AuthError } from '@supabase/supabase-js';
@@ -56,6 +55,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        
+        if (event === 'SIGNED_OUT') {
+          // Immediately clear state on sign out
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
         
         setSession(session);
         setUser(session?.user || null);
@@ -144,22 +152,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('Starting logout process...');
       
-      // Clear local storage first
+      // Clear state immediately to prevent any redirects
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      setLoading(false);
+      
+      // Clear local storage
       localStorage.clear();
       sessionStorage.clear();
       
-      // Sign out from Supabase
+      // Sign out from Supabase (this will trigger the SIGNED_OUT event)
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('Supabase sign out error:', error);
       }
-      
-      // Clear state immediately
-      setUser(null);
-      setProfile(null);
-      setSession(null);
-      setLoading(false);
       
       console.log('Logout completed');
       toast.success('Signed out successfully');

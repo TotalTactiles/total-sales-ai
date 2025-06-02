@@ -37,7 +37,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
   // If no user and not in demo mode, redirect to auth
   if (!user) {
     console.log('RequireAuth: No user, redirecting to auth');
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   // If user is authenticated but no profile, redirect to auth for completion
