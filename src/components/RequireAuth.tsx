@@ -19,6 +19,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
     pathname: location.pathname 
   });
 
+  // Show loading spinner while determining auth state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -33,6 +34,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
     return <>{children}</>;
   }
 
+  // If no user and not in demo mode, redirect to auth
   if (!user) {
     console.log('RequireAuth: No user, redirecting to auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;

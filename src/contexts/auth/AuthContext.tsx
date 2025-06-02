@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session, AuthError } from '@supabase/supabase-js';
@@ -24,6 +25,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -58,14 +60,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         
+        if (event === 'SIGNED_OUT') {
+          // Handle sign out event
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setIsSigningOut(false);
+          setLoading(false);
+          return;
+        }
+        
         setSession(session);
         setUser(session?.user || null);
         
-        if (session?.user) {
+        if (session?.user && !isSigningOut) {
           setTimeout(() => {
             fetchProfile(session.user.id);
           }, 0);
-        } else {
+        } else if (!session?.user) {
           setProfile(null);
         }
         
@@ -74,7 +86,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [isSigningOut]);
 
   const fetchProfile = async (userId: string): Promise<void> => {
     try {
@@ -146,13 +158,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async (): Promise<void> => {
     try {
       console.log('Starting logout process...');
+      setIsSigningOut(true);
+      setLoading(true);
       
-      // Clear local state first
-      setUser(null);
-      setProfile(null);
-      setSession(null);
-      
-      // Clear localStorage and sessionStorage
+      // Clear localStorage and sessionStorage first
       localStorage.clear();
       sessionStorage.clear();
       
@@ -163,11 +172,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error('Supabase sign out error:', error);
       }
       
+      // Clear state manually to ensure immediate cleanup
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      setLoading(false);
+      setIsSigningOut(false);
+      
       console.log('Logout completed, redirecting to auth page...');
       toast.success('Signed out successfully');
       
-      // Use window.location.replace for reliable redirect
-      window.location.replace('/auth');
+      // Small delay to ensure state is cleared before redirect
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
       
     } catch (error) {
       console.error('Sign out error:', error);
@@ -175,11 +193,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setProfile(null);
       setSession(null);
+      setLoading(false);
+      setIsSigningOut(false);
       localStorage.clear();
       sessionStorage.clear();
       
       // Force redirect even on error
-      window.location.replace('/auth');
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 100);
     }
   };
 

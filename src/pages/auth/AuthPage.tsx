@@ -19,14 +19,22 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [hasCheckedAuth, setHasCheckedAuth] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     fullName: '',
   });
 
+  // Wait for auth state to be determined before redirecting
+  useEffect(() => {
+    if (!loading) {
+      setHasCheckedAuth(true);
+    }
+  }, [loading]);
+
   // Show loading screen while auth state is being determined
-  if (loading && !isTransitioning) {
+  if (loading || !hasCheckedAuth) {
     return (
       <AuthLoadingScreen 
         role={selectedRole} 
@@ -35,14 +43,14 @@ const AuthPage = () => {
     );
   }
 
-  // Redirect if already logged in
+  // Redirect if already logged in - but only after we've checked auth state
   useEffect(() => {
-    if (!loading && user && profile) {
+    if (hasCheckedAuth && !loading && user && profile && !isTransitioning) {
       console.log("AuthPage: User is logged in, redirecting based on role:", profile.role);
       const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
       const from = location.state?.from?.pathname || redirectPath;
       navigate(from, { replace: true });
-    } else if (!loading && isDemoMode()) {
+    } else if (hasCheckedAuth && !loading && !user && isDemoMode()) {
       // Check if demo mode is active
       const demoRole = localStorage.getItem('demoRole') as Role | null;
       if (demoRole) {
@@ -51,7 +59,7 @@ const AuthPage = () => {
         navigate(redirectPath, { replace: true });
       }
     }
-  }, [user, profile, loading, navigate, isDemoMode, location]);
+  }, [user, profile, loading, navigate, isDemoMode, location, hasCheckedAuth, isTransitioning]);
 
   const handleRoleChange = (role: Role) => {
     console.log("AuthPage: Role changed to", role);
@@ -80,8 +88,8 @@ const AuthPage = () => {
     );
   }
 
-  // Don't show auth page if user is already authenticated
-  if (!loading && user && profile) {
+  // Don't show auth page if user is already authenticated (and we've verified this)
+  if (hasCheckedAuth && !loading && user && profile) {
     return null;
   }
 
