@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session, AuthError } from '@supabase/supabase-js';
@@ -147,8 +146,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async (): Promise<void> => {
     try {
       console.log('Starting logout process...');
+      setLoading(true);
       
-      // Clear local state immediately
+      // Clear local state first
       setUser(null);
       setProfile(null);
       setSession(null);
@@ -162,14 +162,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (error) {
         console.error('Supabase sign out error:', error);
-        // Don't show error toast, just log it since we've already cleared local state
       }
       
-      console.log('Logout completed, redirecting to auth page...');
+      console.log('Logout completed, navigating to auth page...');
       toast.success('Signed out successfully');
       
-      // Force navigation to auth page
-      window.location.href = '/auth';
+      // Use React Router navigation instead of window.location
+      setTimeout(() => {
+        navigate('/auth', { replace: true });
+        setLoading(false);
+      }, 100);
       
     } catch (error) {
       console.error('Sign out error:', error);
@@ -179,7 +181,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(null);
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = '/auth';
+      
+      setTimeout(() => {
+        navigate('/auth', { replace: true });
+        setLoading(false);
+      }, 100);
     }
   };
 
