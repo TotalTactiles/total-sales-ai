@@ -146,7 +146,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async (): Promise<void> => {
     try {
       console.log('Starting logout process...');
-      setLoading(true);
       
       // Clear local state first
       setUser(null);
@@ -164,14 +163,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error('Supabase sign out error:', error);
       }
       
-      console.log('Logout completed, navigating to auth page...');
+      console.log('Logout completed, redirecting to auth page...');
       toast.success('Signed out successfully');
       
-      // Use React Router navigation instead of window.location
-      setTimeout(() => {
-        navigate('/auth', { replace: true });
-        setLoading(false);
-      }, 100);
+      // Use window.location.replace for reliable redirect
+      window.location.replace('/auth');
       
     } catch (error) {
       console.error('Sign out error:', error);
@@ -182,10 +178,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.clear();
       sessionStorage.clear();
       
-      setTimeout(() => {
-        navigate('/auth', { replace: true });
-        setLoading(false);
-      }, 100);
+      // Force redirect even on error
+      window.location.replace('/auth');
     }
   };
 
