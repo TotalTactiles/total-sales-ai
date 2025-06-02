@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session, AuthError } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
 import { AuthContextType, Profile, Role } from './types';
 import { toast } from 'sonner';
 
@@ -25,8 +24,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Get initial session
@@ -60,24 +57,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
         
-        if (event === 'SIGNED_OUT') {
-          // Handle sign out event
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-          setIsSigningOut(false);
-          setLoading(false);
-          return;
-        }
-        
         setSession(session);
         setUser(session?.user || null);
         
-        if (session?.user && !isSigningOut) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-          }, 0);
-        } else if (!session?.user) {
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        } else {
           setProfile(null);
         }
         
@@ -86,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
 
     return () => subscription.unsubscribe();
-  }, [isSigningOut]);
+  }, []);
 
   const fetchProfile = async (userId: string): Promise<void> => {
     try {
@@ -158,10 +143,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async (): Promise<void> => {
     try {
       console.log('Starting logout process...');
-      setIsSigningOut(true);
-      setLoading(true);
       
-      // Clear localStorage and sessionStorage first
+      // Clear local storage first
       localStorage.clear();
       sessionStorage.clear();
       
@@ -172,36 +155,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.error('Supabase sign out error:', error);
       }
       
-      // Clear state manually to ensure immediate cleanup
+      // Clear state immediately
       setUser(null);
       setProfile(null);
       setSession(null);
       setLoading(false);
-      setIsSigningOut(false);
       
-      console.log('Logout completed, redirecting to auth page...');
+      console.log('Logout completed');
       toast.success('Signed out successfully');
-      
-      // Small delay to ensure state is cleared before redirect
-      setTimeout(() => {
-        window.location.href = '/auth';
-      }, 100);
       
     } catch (error) {
       console.error('Sign out error:', error);
-      // Even if there's an error, clear state and redirect
+      // Clear state even on error
       setUser(null);
       setProfile(null);
       setSession(null);
       setLoading(false);
-      setIsSigningOut(false);
       localStorage.clear();
       sessionStorage.clear();
-      
-      // Force redirect even on error
-      setTimeout(() => {
-        window.location.href = '/auth';
-      }, 100);
     }
   };
 
@@ -221,7 +192,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('demoMode', 'true');
     localStorage.setItem('demoRole', role);
     setLastSelectedRole(role);
-    setLoading(false); // Ensure loading is false for demo mode
+    setLoading(false);
   };
 
   const value: AuthContextType = {

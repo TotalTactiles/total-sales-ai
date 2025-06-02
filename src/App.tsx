@@ -17,6 +17,7 @@ import DeveloperLayout from '@/layouts/DeveloperLayout';
 
 // Auth pages
 import AuthPage from '@/pages/Auth';
+import Logout from '@/pages/Auth/Logout';
 
 // Standalone pages
 import LeadWorkspace from '@/pages/LeadWorkspace';
@@ -45,6 +46,7 @@ function App() {
                   <Route path="/login" element={<AuthPage />} />
                   <Route path="/signup" element={<AuthPage />} />
                   <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/logout" element={<Logout />} />
                   
                   {/* Root redirect */}
                   <Route path="/" element={
