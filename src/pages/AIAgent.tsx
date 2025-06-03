@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import AIAgentDashboard from '@/components/AIAgent/AIAgentDashboard';
@@ -6,17 +7,22 @@ import AIAgentHistory from '@/components/AIAgent/AIAgentHistory';
 import AIAgentVoiceConfig from '@/components/AIAgent/AIAgentVoiceConfig';
 import AIAgentFeedback from '@/components/AIAgent/AIAgentFeedback';
 import AIAgentLearningEngine from '@/components/AIAgent/AIAgentLearningEngine';
+import AIAgentAutomation from '@/components/AIAgent/AIAgentAutomation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Headphones, ClipboardList, Clock, Settings, LineChart, Brain } from 'lucide-react';
+import { Headphones, ClipboardList, Clock, Settings, LineChart, Brain, Zap } from 'lucide-react';
+
 interface AIAgentProps {
   hideNavigation?: boolean;
 }
+
 const AIAgent: React.FC<AIAgentProps> = ({
   hideNavigation = false
 }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  return <div className="min-h-screen flex flex-col bg-slate-50">
+
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50">
       {!hideNavigation && <Navigation />}
       
       <div className="flex-1 px-4 md:px-6 py-6">
@@ -29,7 +35,6 @@ const AIAgent: React.FC<AIAgentProps> = ({
                   <Headphones className="h-6 w-6" />
                   AI Calling Agent
                 </h1>
-                
               </div>
             </div>
             <p className="text-slate-500">Autonomous voice AI for cold lead outreach and qualification</p>
@@ -37,7 +42,7 @@ const AIAgent: React.FC<AIAgentProps> = ({
           
           {/* Main Content Area with Tabs */}
           <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-6 mb-6">
+            <TabsList className="grid grid-cols-7 mb-6">
               <TabsTrigger value="dashboard" className="flex items-center gap-2">
                 <LineChart className="h-4 w-4" />
                 <span>Dashboard</span>
@@ -53,6 +58,11 @@ const AIAgent: React.FC<AIAgentProps> = ({
               <TabsTrigger value="voice-config" className="flex items-center gap-2">
                 <Headphones className="h-4 w-4" />
                 <span>Voice Config</span>
+              </TabsTrigger>
+              <TabsTrigger value="automation" className="flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                <span>Automation</span>
+                <Badge variant="secondary" className="ml-1 text-xs">New</Badge>
               </TabsTrigger>
               <TabsTrigger value="learning-engine" className="flex items-center gap-2">
                 <Brain className="h-4 w-4" />
@@ -80,6 +90,10 @@ const AIAgent: React.FC<AIAgentProps> = ({
               <AIAgentVoiceConfig />
             </TabsContent>
             
+            <TabsContent value="automation">
+              <AIAgentAutomation />
+            </TabsContent>
+            
             <TabsContent value="learning-engine">
               <AIAgentLearningEngine />
             </TabsContent>
@@ -90,6 +104,8 @@ const AIAgent: React.FC<AIAgentProps> = ({
           </Tabs>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default AIAgent;
