@@ -20,20 +20,7 @@ const DesktopNavigation: React.FC<DesktopNavigationProps> = ({
       <div className="bg-sidebar text-sidebar-foreground shadow-lg border-r border-sidebar-border">
         
         
-        <nav className="px-3 py-4 space-y-1">
-          {filteredNavItems.map((item, index) => {
-          const isActive = location.pathname === item.href || item.href.includes('dashboard') && location.pathname === '/' || activeItem === item.label.toLowerCase().replace(/\s+/g, '-');
-          return <Link key={index} to={item.href} className={`nav-item flex items-center justify-between text-xs font-medium ${isActive ? 'active bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground'}`}>
-                <div className="flex items-center">
-                  {item.icon}
-                  <span className="ml-2 text-xs">{item.label}</span>
-                </div>
-                {item.badge && <span className="px-1.5 py-0.5 text-[10px] bg-red-500 text-white rounded-full font-medium">
-                    {item.badge}
-                  </span>}
-              </Link>;
-        })}
-        </nav>
+        
       </div>
     </div>;
 };
