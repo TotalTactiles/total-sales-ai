@@ -26,67 +26,96 @@ const AIAgentAutomation = () => {
   const [activeSubTab, setActiveSubTab] = useState('dashboard');
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Zap className="h-6 w-6 text-blue-600" />
-            Sales Automation Hub
-          </h2>
-          <p className="text-muted-foreground">
-            Streamline your sales process with intelligent automation
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-purple-50/20">
+      <div className="space-y-6 p-6">
+        {/* Futuristic Header */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 p-8">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-white/10 to-transparent"></div>
+          <div className="relative z-10 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-white mb-3 flex items-center gap-4">
+                <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm animate-pulse-glow">
+                  <Zap className="h-8 w-8" />
+                </div>
+                Sales Automation Hub
+              </h1>
+              <p className="text-blue-100 text-xl font-medium">
+                Streamline your sales process with intelligent automation
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Button 
+                variant="secondary" 
+                size="lg" 
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30 backdrop-blur-sm rounded-xl font-semibold transition-all duration-300 hover:scale-105"
+              >
+                <Filter className="h-5 w-5 mr-2" />
+                Filter
+              </Button>
+              <Button 
+                size="lg" 
+                className="futuristic-button rounded-xl"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                New Automation
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            New Automation
-          </Button>
-        </div>
+
+        {/* Modern Sub-tabs */}
+        <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-4 bg-white/90 backdrop-blur-md border border-slate-200/50 rounded-2xl p-2 shadow-lg">
+            <TabsTrigger 
+              value="dashboard" 
+              className="flex items-center gap-3 rounded-xl py-4 px-6 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <TrendingUp className="h-5 w-5" />
+              Dashboard
+            </TabsTrigger>
+            <TabsTrigger 
+              value="templates" 
+              className="flex items-center gap-3 rounded-xl py-4 px-6 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <Settings className="h-5 w-5" />
+              Templates
+            </TabsTrigger>
+            <TabsTrigger 
+              value="builder" 
+              className="flex items-center gap-3 rounded-xl py-4 px-6 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <Zap className="h-5 w-5" />
+              Builder
+            </TabsTrigger>
+            <TabsTrigger 
+              value="analytics" 
+              className="flex items-center gap-3 rounded-xl py-4 px-6 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
+            >
+              <TrendingUp className="h-5 w-5" />
+              Analytics
+            </TabsTrigger>
+          </TabsList>
+
+          <div className="mt-8">
+            <TabsContent value="dashboard" className="space-y-6 m-0">
+              <AutomationDashboard />
+            </TabsContent>
+
+            <TabsContent value="templates" className="space-y-6 m-0">
+              <AutomationTemplates />
+            </TabsContent>
+
+            <TabsContent value="builder" className="space-y-6 m-0">
+              <AutomationWorkflowBuilder />
+            </TabsContent>
+
+            <TabsContent value="analytics" className="space-y-6 m-0">
+              <AutomationAnalytics />
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
-
-      {/* Sub-tabs */}
-      <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="dashboard" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="templates" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Templates
-          </TabsTrigger>
-          <TabsTrigger value="builder" className="flex items-center gap-2">
-            <Zap className="h-4 w-4" />
-            Workflow Builder
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Analytics
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="dashboard" className="space-y-6">
-          <AutomationDashboard />
-        </TabsContent>
-
-        <TabsContent value="templates" className="space-y-6">
-          <AutomationTemplates />
-        </TabsContent>
-
-        <TabsContent value="builder" className="space-y-6">
-          <AutomationWorkflowBuilder />
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <AutomationAnalytics />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

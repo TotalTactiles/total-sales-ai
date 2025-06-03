@@ -33,27 +33,27 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
  
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Custom sidebar colors for light mode */
-    --sidebar-background: 215 50% 20%;
+    /* Futuristic sidebar colors */
+    --sidebar-background: 220 20% 8%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 215 45% 25%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 215 40% 30%;
-    --sidebar-ring: 215 40% 40%;
+    --sidebar-accent: 217 32% 15%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217 32% 20%;
+    --sidebar-ring: 215 20.2% 65.1%;
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 220 20% 4%;
     --foreground: 210 40% 98%;
  
-    --card: 222.2 84% 9.9%;
+    --card: 220 20% 6%;
     --card-foreground: 210 40% 98%;
  
-    --popover: 222.2 84% 5.9%;
+    --popover: 220 20% 6%;
     --popover-foreground: 210 40% 98%;
  
     --primary: 217 91% 60%;
@@ -75,112 +75,124 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
 
-    /* Custom sidebar colors for dark mode */
-    --sidebar-background: 220 15% 10%;
+    /* Futuristic dark sidebar */
+    --sidebar-background: 220 20% 3%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 32% 20%;
+    --sidebar-accent: 217 32% 12%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 32% 25%;
+    --sidebar-border: 217 32% 15%;
     --sidebar-ring: 215 20.2% 65.1%;
   }
 }
 
-/* Custom card styles */
+/* Futuristic card styles */
 @layer components {
-  .dashboard-card {
-    @apply rounded-xl border bg-card p-5 shadow transition-shadow hover:shadow-md;
+  .futuristic-card {
+    @apply rounded-2xl border border-slate-200/50 bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 p-6;
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 100%);
   }
 
-  .dashboard-card-title {
-    @apply text-sm font-medium text-muted-foreground mb-2;
+  .futuristic-card-dark {
+    @apply rounded-2xl border border-slate-700/50 bg-slate-900/90 backdrop-blur-sm shadow-2xl hover:shadow-blue-500/10 transition-all duration-300 p-6;
+    background: linear-gradient(135deg, rgba(15,23,42,0.95) 0%, rgba(30,41,59,0.9) 100%);
   }
 
-  .dashboard-card-value {
-    @apply text-3xl font-bold tracking-tight;
+  .futuristic-button {
+    @apply relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold px-6 py-3 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25;
   }
 
-  /* Mobile tab bar */
-  .mobile-tab-bar {
-    @apply fixed bottom-0 left-0 right-0 grid grid-cols-5 bg-card border-t border-border p-1 z-10;
+  .futuristic-button::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full transition-transform duration-700;
   }
 
-  .mobile-tab-item {
-    @apply flex flex-col items-center justify-center p-2 text-xs text-muted-foreground;
+  .futuristic-button:hover::before {
+    @apply translate-x-full;
   }
 
-  .mobile-tab-item.active {
-    @apply text-primary;
+  .glass-panel {
+    @apply bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl;
   }
 
-  /* Card action styles */
-  .card-action {
-    @apply flex items-center justify-between p-3 border-b last:border-b-0 hover:bg-accent/10 transition-colors;
+  .neon-glow {
+    @apply shadow-lg shadow-blue-500/25 border border-blue-500/30;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 bg-clip-text text-transparent;
+  }
+
+  /* Futuristic navigation */
+  .nav-item {
+    @apply relative px-4 py-3 rounded-xl transition-all duration-300 hover:bg-white/10 hover:backdrop-blur-sm;
+  }
+
+  .nav-item.active {
+    @apply bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    @apply absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-r-full;
+  }
+
+  /* Futuristic scrollbars */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-slate-100 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-gradient-to-b from-blue-500 to-purple-500 rounded-full;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply from-blue-600 to-purple-600;
   }
 }
 
-/* Stat Cards with color variants */
-.stat-card {
-  @apply dashboard-card flex flex-col justify-between;
+/* Enhanced animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
 }
 
-.stat-card.yellow {
-  @apply border-dashYellow/30 bg-gradient-to-br from-dashYellow/10 to-transparent;
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
 }
 
-.stat-card.yellow .dashboard-card-value {
-  @apply text-dashYellow-dark;
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
-.stat-card.green {
-  @apply border-dashGreen/30 bg-gradient-to-br from-dashGreen/10 to-transparent;
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
-.stat-card.green .dashboard-card-value {
-  @apply text-dashGreen-dark;
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.stat-card.blue {
-  @apply border-dashBlue/30 bg-gradient-to-br from-dashBlue/10 to-transparent;
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
 }
 
-.stat-card.blue .dashboard-card-value {
-  @apply text-dashBlue-dark;
+/* Futuristic gradients */
+.gradient-bg-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.stat-card.purple {
-  @apply border-dashPurple/30 bg-gradient-to-br from-dashPurple/10 to-transparent;
+.gradient-bg-secondary {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
-.stat-card.purple .dashboard-card-value {
-  @apply text-dashPurple-dark;
-}
-
-.stat-card.red {
-  @apply border-dashRed/30 bg-gradient-to-br from-dashRed/10 to-transparent;
-}
-
-.stat-card.red .dashboard-card-value {
-  @apply text-dashRed-dark;
-}
-
-.dark .stat-card.yellow .dashboard-card-value {
-  @apply text-dashYellow-light;
-}
-
-.dark .stat-card.green .dashboard-card-value {
-  @apply text-dashGreen-light;
-}
-
-.dark .stat-card.blue .dashboard-card-value {
-  @apply text-dashBlue-light;
-}
-
-.dark .stat-card.purple .dashboard-card-value {
-  @apply text-dashPurple-light;
-}
-
-.dark .stat-card.red .dashboard-card-value {
-  @apply text-dashRed-light;
+.gradient-bg-accent {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
