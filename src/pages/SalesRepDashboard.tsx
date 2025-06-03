@@ -121,7 +121,7 @@ const SalesRepDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-purple-50/10">
-      <div className="max-w-7xl mx-auto p-8 space-y-8">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
         <section>
           <AIDailySummary summary={dailySummary} isFullUser={isFullUser} />
         </section>
@@ -130,13 +130,13 @@ const SalesRepDashboard = () => {
           <PerformanceMetricsGrid userStats={userStats} isFullUser={isFullUser} />
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
             <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
             <AIOptimizedTimeBlocks isFullUser={isFullUser} />
           </div>
 
-          <div className="space-y-8">
+          <div className="space-y-6">
             <VictoryArchive victories={victories} isFullUser={isFullUser} />
             <AISummaryCard data={aiSummaryData} isFullUser={isFullUser} />
           </div>
