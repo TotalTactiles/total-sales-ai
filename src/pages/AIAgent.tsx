@@ -25,20 +25,20 @@ const AIAgent: React.FC<AIAgentProps> = ({
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-purple-50/10">
       {!hideNavigation && <Navigation />}
       
-      <div className="flex-1 px-6 py-8">
+      <div className="flex-1 px-4 py-6">
         <div className="max-w-7xl mx-auto">
-          {/* Modern AI Agent Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <div className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-lg animate-pulse-glow">
-                  <Headphones className="h-8 w-8 text-white" />
+          {/* Refined Header */}
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-sm">
+                  <Headphones className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold gradient-text">
+                  <h1 className="text-2xl font-semibold text-slate-900">
                     AI Calling Agent
                   </h1>
-                  <p className="text-slate-600 text-lg font-medium mt-1">
+                  <p className="text-sm text-slate-600 font-medium mt-0.5">
                     Autonomous voice AI for cold lead outreach and qualification
                   </p>
                 </div>
@@ -46,60 +46,62 @@ const AIAgent: React.FC<AIAgentProps> = ({
             </div>
           </div>
           
-          {/* Futuristic Tabs */}
+          {/* Refined Tabs with proper alignment */}
           <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid grid-cols-7 mb-8 bg-white/90 backdrop-blur-md border border-slate-200/50 rounded-2xl p-2 shadow-lg">
-              <TabsTrigger 
-                value="dashboard" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
-              >
-                <LineChart className="h-4 w-4" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="automation" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
-              >
-                <Zap className="h-4 w-4" />
-                <span className="hidden sm:inline">Automation</span>
-                <Badge variant="secondary" className="ml-1 text-xs bg-orange-100 text-orange-800 rounded-full px-2 py-0.5">New</Badge>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="call-queue" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
-              >
-                <ClipboardList className="h-4 w-4" />
-                <span className="hidden sm:inline">Queue</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="call-history" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
-              >
-                <Clock className="h-4 w-4" />
-                <span className="hidden sm:inline">History</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="voice-config" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
-              >
-                <Headphones className="h-4 w-4" />
-                <span className="hidden sm:inline">Voice</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="learning-engine" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
-              >
-                <Brain className="h-4 w-4" />
-                <span className="hidden sm:inline">Learning</span>
-              </TabsTrigger>
-              <TabsTrigger 
-                value="feedback" 
-                className="flex items-center gap-2 rounded-xl py-3 px-4 font-semibold transition-all duration-300 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg"
-              >
-                <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Training</span>
-              </TabsTrigger>
-            </TabsList>
+            <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-lg p-1 mb-6 shadow-sm">
+              <TabsList className="grid grid-cols-7 w-full bg-transparent gap-1">
+                <TabsTrigger 
+                  value="dashboard" 
+                  className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
+                >
+                  <LineChart className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Dashboard</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="automation" 
+                  className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
+                >
+                  <Zap className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Automation</span>
+                  <Badge variant="secondary" className="ml-1 text-[10px] bg-orange-100 text-orange-700 rounded-md px-1.5 py-0.5 font-medium">New</Badge>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="call-queue" 
+                  className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
+                >
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Queue</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="call-history" 
+                  className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
+                >
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">History</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="voice-config" 
+                  className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
+                >
+                  <Headphones className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Voice</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="learning-engine" 
+                  className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
+                >
+                  <Brain className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Learning</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="feedback" 
+                  className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
+                >
+                  <Settings className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Training</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <TabsContent value="dashboard">
               <AIAgentDashboard />
