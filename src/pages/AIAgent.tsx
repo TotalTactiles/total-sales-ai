@@ -24,16 +24,16 @@ const AIAgent: React.FC<AIAgentProps> = ({
         <div className="max-w-7xl mx-auto">
           {/* Compact Header */}
           <div className="mb-4">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center justify-between mb-3 mx-0 rounded-none">
               <div className="flex items-center gap-2">
-                <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg shadow-sm">
+                <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 shadow-sm rounded-lg">
                   <Headphones className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h1 className="flat-heading-lg">
+                  <h1 className="flat-heading-lg text-3xl font-bold">
                     AI Calling Agent
                   </h1>
-                  <p className="text-xs text-slate-600 mt-0.5">
+                  <p className="text-slate-600 mt-0.5 text-base">
                     Autonomous voice AI for cold lead outreach and qualification
                   </p>
                 </div>
