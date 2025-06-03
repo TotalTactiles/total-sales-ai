@@ -10,22 +10,33 @@ const LogoutHandler = () => {
       try {
         console.log('LogoutHandler: Starting logout process');
         
-        // Clear all local storage first
+        // Clear all local storage and session storage first
         localStorage.clear();
         sessionStorage.clear();
+        
+        // Clear any cached data
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            names.forEach(name => {
+              caches.delete(name);
+            });
+          });
+        }
         
         // Sign out from auth
         await signOut();
         
-        // Force redirect to auth page
-        window.location.href = '/auth';
+        console.log('LogoutHandler: Forcing redirect to auth');
+        
+        // Force a complete page reload to the auth page to clear all state
+        window.location.replace('/auth');
         
       } catch (error) {
         console.error('LogoutHandler error:', error);
         // Force redirect even on error
         localStorage.clear();
         sessionStorage.clear();
-        window.location.href = '/auth';
+        window.location.replace('/auth');
       }
     };
 

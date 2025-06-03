@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User, Session, AuthError } from '@supabase/supabase-js';
@@ -57,11 +58,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.log('Auth state changed:', event, session?.user?.email);
         
         if (event === 'SIGNED_OUT') {
-          // Immediately clear state on sign out
+          // Immediately clear all state on sign out
+          console.log('Clearing all auth state');
           setSession(null);
           setUser(null);
           setProfile(null);
           setLoading(false);
+          
+          // Clear all storage
+          localStorage.clear();
+          sessionStorage.clear();
+          
           return;
         }
         
@@ -150,27 +157,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async (): Promise<void> => {
     try {
-      console.log('Starting logout process...');
+      console.log('SignOut: Starting logout process...');
       
-      // Clear state immediately to prevent any redirects
+      // Clear state immediately to prevent any redirects during logout
       setUser(null);
       setProfile(null);
       setSession(null);
       setLoading(false);
       
-      // Clear local storage
+      // Clear all storage immediately
       localStorage.clear();
       sessionStorage.clear();
       
       // Sign out from Supabase (this will trigger the SIGNED_OUT event)
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
         console.error('Supabase sign out error:', error);
       }
       
-      console.log('Logout completed');
-      toast.success('Signed out successfully');
+      console.log('SignOut: Logout completed');
       
     } catch (error) {
       console.error('Sign out error:', error);
