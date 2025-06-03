@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import AIAgentDashboard from '@/components/AIAgent/AIAgentDashboard';
@@ -11,18 +10,14 @@ import AIAgentAutomation from '@/components/AIAgent/AIAgentAutomation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Headphones, ClipboardList, Clock, Settings, LineChart, Brain, Zap } from 'lucide-react';
-
 interface AIAgentProps {
   hideNavigation?: boolean;
 }
-
 const AIAgent: React.FC<AIAgentProps> = ({
   hideNavigation = false
 }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-purple-50/10">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-purple-50/10">
       {!hideNavigation && <Navigation />}
       
       <div className="flex-1 px-4 py-4">
@@ -50,53 +45,32 @@ const AIAgent: React.FC<AIAgentProps> = ({
           <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-lg p-1 mb-4 shadow-sm">
               <TabsList className="grid grid-cols-7 w-full bg-transparent gap-0.5">
-                <TabsTrigger 
-                  value="dashboard" 
-                  className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
-                >
+                <TabsTrigger value="dashboard" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <LineChart className="h-3 w-3" />
                   <span className="hidden sm:inline text-xs">Dashboard</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="automation" 
-                  className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
-                >
+                <TabsTrigger value="automation" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <Zap className="h-3 w-3" />
                   <span className="hidden sm:inline text-xs">Automation</span>
-                  <Badge variant="secondary" className="ml-1 text-[9px] bg-orange-100 text-orange-700 rounded-md px-1 py-0 font-medium">New</Badge>
+                  
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="call-queue" 
-                  className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
-                >
+                <TabsTrigger value="call-queue" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <ClipboardList className="h-3 w-3" />
                   <span className="hidden sm:inline text-xs">Queue</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="call-history" 
-                  className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
-                >
+                <TabsTrigger value="call-history" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <Clock className="h-3 w-3" />
                   <span className="hidden sm:inline text-xs">History</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="voice-config" 
-                  className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
-                >
+                <TabsTrigger value="voice-config" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <Headphones className="h-3 w-3" />
                   <span className="hidden sm:inline text-xs">Voice</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="learning-engine" 
-                  className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
-                >
+                <TabsTrigger value="learning-engine" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <Brain className="h-3 w-3" />
                   <span className="hidden sm:inline text-xs">Learning</span>
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="feedback" 
-                  className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80"
-                >
+                <TabsTrigger value="feedback" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <Settings className="h-3 w-3" />
                   <span className="hidden sm:inline text-xs">Training</span>
                 </TabsTrigger>
@@ -133,8 +107,6 @@ const AIAgent: React.FC<AIAgentProps> = ({
           </Tabs>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default AIAgent;
