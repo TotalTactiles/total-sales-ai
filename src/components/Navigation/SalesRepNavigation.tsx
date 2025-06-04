@@ -8,7 +8,8 @@ import {
   Brain, 
   Settings,
   Home,
-  UserCheck
+  UserCheck,
+  Phone
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import UserProfile from '@/components/UserProfile';
@@ -21,10 +22,11 @@ const SalesRepNavigation = () => {
 
   const navItems = [
     { label: 'Dashboard', href: '/sales/dashboard', icon: Home },
-    { label: 'Analytics', href: '/sales/analytics', icon: BarChart3 },
     { label: 'Lead Management', href: '/sales/leads', icon: Users },
-    { label: 'Academy', href: '/sales/academy', icon: GraduationCap },
     { label: 'AI Assistant', href: '/sales/ai', icon: Brain },
+    { label: 'Dialer', href: '/sales/dialer', icon: Phone },
+    { label: 'Analytics', href: '/sales/analytics', icon: BarChart3 },
+    { label: 'Academy', href: '/sales/academy', icon: GraduationCap },
     { label: 'Settings', href: '/sales/settings', icon: Settings },
   ];
 
