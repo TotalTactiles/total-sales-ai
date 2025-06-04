@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import { 
   Phone, 
   PhoneOff, 
@@ -19,7 +20,14 @@ import {
   Star,
   Clock,
   Send,
-  Save
+  Save,
+  PhoneForwarded,
+  Grid3X3,
+  Users,
+  Pause,
+  Play,
+  Hash,
+  X
 } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
@@ -40,6 +48,7 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
   const [smsMessage, setSmsMessage] = useState('');
   const [emailDraft, setEmailDraft] = useState('');
   const [activeTab, setActiveTab] = useState('notes');
+  const [showNumberpad, setShowNumberpad] = useState(false);
 
   // Mock call timer
   useEffect(() => {
@@ -61,6 +70,22 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
     onEndCall();
   };
 
+  const handleTransfer = () => {
+    toast.info('Call transfer initiated');
+  };
+
+  const handleAITransfer = () => {
+    toast.info('AI assistant taking over call');
+  };
+
+  const handleConferenceCall = () => {
+    toast.info('Conference call initiated');
+  };
+
+  const handleNumberpadClick = (number: string) => {
+    toast.info(`DTMF tone: ${number}`);
+  };
+
   const handleAIDraft = (type: 'sms' | 'email' | 'notes') => {
     switch (type) {
       case 'sms':
@@ -76,8 +101,36 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
     toast.success(`AI ${type} draft generated`);
   };
 
+  const NumberpadDialog = () => (
+    <div className="absolute top-4 right-4 bg-white border rounded-lg shadow-lg p-4 z-50">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="font-medium">Dial Pad</h4>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowNumberpad(false)}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((num) => (
+          <Button
+            key={num}
+            variant="outline"
+            size="sm"
+            className="h-12 w-12"
+            onClick={() => handleNumberpadClick(num)}
+          >
+            {num}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+
   return (
-    <div className="h-full bg-slate-50">
+    <div className="h-full bg-slate-50 relative">
       {/* Call Status Header */}
       <div className="bg-green-600 text-white p-4">
         <div className="flex items-center justify-between">
@@ -97,40 +150,75 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
       </div>
 
       <div className="flex h-[calc(100vh-160px)]">
-        {/* Left Panel - Lead Details & AI Assistant */}
+        {/* Left Panel - Lead Profile (matching LeadWorkspaceLeft) */}
         <div className="w-80 bg-white border-r overflow-y-auto">
-          {/* Lead Info */}
-          <div className="p-4 border-b">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <User className="h-6 w-6 text-blue-600" />
+          <div className="p-6 border-b">
+            <h2 className="text-lg font-semibold mb-4">Lead Details</h2>
+
+            {/* Avatar and Basic Info */}
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <User className="h-8 w-8 text-blue-600" />
               </div>
-              <div>
-                <h3 className="font-semibold text-lg">{lead.name}</h3>
-                <div className="flex items-center gap-1 text-sm text-gray-600">
-                  <Building className="h-3 w-3" />
-                  {lead.company}
+              <div className="flex-1">
+                <h3 className="text-xl font-bold">{lead.name}</h3>
+                <p className="text-slate-600">{lead.company}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge className={`${lead.status === 'qualified' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                    {lead.status}
+                  </Badge>
+                  <Badge variant="outline" className={`${lead.priority === 'high' ? 'text-red-600 bg-red-50' : 'text-slate-600 bg-slate-50'}`}>
+                    {lead.priority}
+                  </Badge>
                 </div>
               </div>
             </div>
-            
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <div className="text-center">
-                <div className="text-xl font-bold text-blue-600">{lead.score}%</div>
-                <div className="text-xs text-gray-500">Lead Score</div>
+
+            {/* Contact Info */}
+            <div className="space-y-2 mb-4">
+              <div className="flex items-center gap-2 text-sm">
+                <Mail className="h-4 w-4 text-slate-400" />
+                <span>{lead.email}</span>
               </div>
-              <div className="text-center">
-                <div className="text-xl font-bold text-green-600">{lead.conversionLikelihood}%</div>
-                <div className="text-xs text-gray-500">Conversion</div>
+              <div className="flex items-center gap-2 text-sm">
+                <Phone className="h-4 w-4 text-slate-400" />
+                <span>{lead.phone}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-500">
+                <Clock className="h-4 w-4" />
+                <span>Last contact: {new Date(lead.lastContact).toLocaleDateString()}</span>
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Badge variant={lead.priority === 'high' ? 'destructive' : 'secondary'}>
-                {lead.priority}
-              </Badge>
-              <Badge variant="outline">{lead.status}</Badge>
+            {/* Score and Metrics */}
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  {lead.score}%
+                </div>
+                <div className="text-xs text-slate-500">Lead Score</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  {lead.conversionLikelihood}%
+                </div>
+                <div className="text-xs text-slate-500">Conversion</div>
+              </div>
             </div>
+
+            {/* Tags */}
+            {lead.tags && lead.tags.length > 0 && (
+              <div className="mb-4">
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Tags</label>
+                <div className="flex flex-wrap gap-2">
+                  {lead.tags.map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* AI Assistant */}
@@ -157,31 +245,6 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
                   <strong>Next Step:</strong> Schedule demo within 48 hours for best conversion
                 </p>
               </div>
-            </div>
-          </div>
-
-          {/* Quick Communication */}
-          <div className="p-4">
-            <h4 className="font-medium mb-3">Quick Actions</h4>
-            <div className="space-y-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full justify-start"
-                onClick={() => setActiveTab('sms')}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Send SMS
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full justify-start"
-                onClick={() => setActiveTab('email')}
-              >
-                <Mail className="h-4 w-4 mr-2" />
-                Send Email
-              </Button>
             </div>
           </div>
         </div>
@@ -303,10 +366,10 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
         </div>
 
         {/* Right Panel - Call Controls */}
-        <div className="w-80 bg-white border-l p-4">
+        <div className="w-80 bg-white border-l p-4 relative">
           <h3 className="font-medium mb-4">Call Controls</h3>
           
-          {/* Primary Controls */}
+          {/* Primary Call Controls */}
           <div className="space-y-4 mb-6">
             <div className="grid grid-cols-2 gap-2">
               <Button
@@ -323,8 +386,49 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
                 onClick={() => setIsOnHold(!isOnHold)}
                 className="flex items-center gap-2"
               >
-                {isOnHold ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                {isOnHold ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
                 {isOnHold ? 'Resume' : 'Hold'}
+              </Button>
+            </div>
+
+            {/* Dialer Controls */}
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                onClick={handleTransfer}
+                className="flex items-center gap-2"
+              >
+                <PhoneForwarded className="h-4 w-4" />
+                Transfer
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={() => setShowNumberpad(true)}
+                className="flex items-center gap-2"
+              >
+                <Grid3X3 className="h-4 w-4" />
+                Keypad
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="outline"
+                onClick={handleAITransfer}
+                className="flex items-center gap-2"
+              >
+                <Brain className="h-4 w-4" />
+                AI Transfer
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={handleConferenceCall}
+                className="flex items-center gap-2"
+              >
+                <Users className="h-4 w-4" />
+                Conference
               </Button>
             </div>
 
@@ -370,6 +474,9 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Numberpad Dialog */}
+          {showNumberpad && <NumberpadDialog />}
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Brain, Save, Plus } from 'lucide-react';
+import { Brain, Save, Plus, Phone } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import UnifiedAIAssistant from '../../UnifiedAI/UnifiedAIAssistant';
@@ -19,19 +19,22 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
       id: 1,
       content: 'Discovery call went very well. Michael is the decision maker and has budget approved for Q1. Main pain point is manual processes taking 20+ hours per week. Interested in ROI calculator.',
       timestamp: '2 days ago',
-      author: 'You'
+      author: 'You',
+      source: 'call'
     },
     {
       id: 2,
       content: 'Follow-up email sent with pricing info. He mentioned they\'re also talking to CompetitorX but we have a good relationship advantage.',
       timestamp: '1 week ago',
-      author: 'You'
+      author: 'You',
+      source: 'email'
     },
     {
       id: 3,
-      content: 'Initial contact - very responsive and friendly. Seems like a good cultural fit. Company has 150 employees in manufacturing.',
+      content: 'Call with John Smith - 04/06/2025\n\nDuration: 27:30\nCompany: TechCorp Solutions\n\nKey Points:\n• Very interested in automation features\n• Current manual process taking 15+ hours/week\n• Budget range: $50k-100k\n• Decision timeline: Q1 2025\n\nNext Steps:\n• Send technical demo link\n• Schedule follow-up for next week\n• Prepare ROI calculator\n\nDecision Timeline: Q1 2025\nBudget: $50,000 - $100,000\nStakeholders: John (VP Sales), Mary (CFO)',
       timestamp: '2 weeks ago',
-      author: 'You'
+      author: 'You',
+      source: 'call'
     }
   ];
 
@@ -52,6 +55,17 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
         break;
       default:
         console.log('Notes AI Action:', action, data);
+    }
+  };
+
+  const getSourceIcon = (source: string) => {
+    switch (source) {
+      case 'call':
+        return <Phone className="h-3 w-3 text-green-600" />;
+      case 'email':
+        return <div className="h-3 w-3 bg-blue-600 rounded-full" />;
+      default:
+        return null;
     }
   };
 
@@ -83,6 +97,19 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
         </CardContent>
       </Card>
 
+      {/* Sync Notice */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2 text-blue-800">
+            <Phone className="h-4 w-4" />
+            <span className="text-sm font-medium">Call Notes Sync</span>
+          </div>
+          <p className="text-xs text-blue-700 mt-1">
+            Notes taken during live calls automatically appear here. All notes are synchronized across the dialer and lead management.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Existing Notes */}
       <Card>
         <CardHeader>
@@ -93,10 +120,13 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
             {mockNotes.map((note) => (
               <div key={note.id} className="border-l-4 border-blue-200 pl-4 py-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-slate-700">{note.author}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-700">{note.author}</span>
+                    {getSourceIcon(note.source)}
+                  </div>
                   <span className="text-xs text-slate-500">{note.timestamp}</span>
                 </div>
-                <p className="text-sm text-slate-600 leading-relaxed">{note.content}</p>
+                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{note.content}</p>
               </div>
             ))}
           </div>
