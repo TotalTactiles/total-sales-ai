@@ -1,36 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { 
-  Phone, 
-  PhoneCall, 
-  Pause, 
-  Play, 
-  SkipForward,
-  Clock,
-  Users,
-  Brain,
-  AlertTriangle,
-  CheckCircle,
-  Mic,
-  MicOff,
-  Settings,
-  BarChart3,
-  TestTube2,
-  ChevronRight,
-  Zap
-} from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
-import DialerQueue from './DialerQueue';
-import ActiveCallInterface from './ActiveCallInterface';
-import DialerControls from './DialerControls';
+import AutoDialerHeader from './AutoDialerHeader';
+import AutoDialerMainLayout from './AutoDialerMainLayout';
 import DialerCompliance from './DialerCompliance';
-import DialerStats from './DialerStats';
-import ABTestInterface from './ABTestInterface';
 import MockCallInterface from './MockCallInterface';
 
 interface AutoDialerSystemProps {
@@ -101,13 +75,11 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
       return;
     }
 
-    // DNC Compliance check
     if (!complianceStatus.dncChecked) {
       toast.error('Please verify DNC compliance before dialing');
       return;
     }
 
-    // Time compliance check
     if (!complianceStatus.timeCompliant) {
       toast.error('Calling outside permitted hours (9AM-8PM)');
       return;
@@ -124,7 +96,6 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
       setCurrentLead(nextLead);
       onLeadSelect(nextLead);
       
-      // Simulate dialing
       setTimeout(() => {
         setIsCallActive(true);
         toast.info(`Calling ${nextLead.name}...`);
@@ -140,8 +111,7 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
   const handleCallMissed = () => {
     setConsecutiveMissed(prev => prev + 1);
     
-    if (consecutiveMissed >= 9) { // Will be 10 after increment
-      // AI reorders queue
+    if (consecutiveMissed >= 9) {
       aiReorderQueue();
       toast.info('AI is reordering queue based on recent patterns');
     }
@@ -150,7 +120,6 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
   };
 
   const aiReorderQueue = () => {
-    // AI logic to reorder based on lead score, activity, urgency
     const reorderedQueue = [...repQueue].sort((a, b) => {
       const aScore = (a.score || 0) + (a.conversionLikelihood || 0);
       const bScore = (b.score || 0) + (b.conversionLikelihood || 0);
@@ -163,12 +132,10 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
     setIsCallActive(false);
     setCallDuration(0);
     
-    // Remove current lead from queue
     if (currentLead) {
       setRepQueue(prev => prev.filter(lead => lead.id !== currentLead.id));
     }
     
-    // Auto-advance to next lead if dialing
     if (isDialing && repQueue.length > 1) {
       setTimeout(() => {
         dialNextLead();
@@ -214,28 +181,14 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
   return (
     <div className="flex flex-col h-full space-y-4">
       {/* Header with Stats */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="flat-heading-xl">Auto-Dialer System</h1>
-          <p className="text-sm text-gray-600">AI-Augmented Legal Compliant Dialing</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button
-            onClick={handleStartMockCall}
-            disabled={repQueue.length === 0}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            <Zap className="h-4 w-4 mr-2" />
-            Demo Mock Call
-          </Button>
-          <DialerStats 
-            repQueueCount={repQueue.length}
-            aiQueueCount={aiQueue.length}
-            consecutiveMissed={consecutiveMissed}
-            isDialing={isDialing}
-          />
-        </div>
-      </div>
+      <AutoDialerHeader
+        repQueueCount={repQueue.length}
+        aiQueueCount={aiQueue.length}
+        consecutiveMissed={consecutiveMissed}
+        isDialing={isDialing}
+        onStartMockCall={handleStartMockCall}
+        canStartMockCall={repQueue.length > 0}
+      />
 
       {/* Compliance Panel */}
       <DialerCompliance 
@@ -243,71 +196,23 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
         onStatusChange={setComplianceStatus}
       />
 
-      <div className="flex gap-4 flex-1">
-        {/* Left Panel - Queue Management */}
-        <div className="w-1/3 space-y-4">
-          <DialerControls
-            isDialing={isDialing}
-            isCallActive={isCallActive}
-            onStartDialing={handleStartDialing}
-            onPauseDialing={handlePauseDialing}
-            onEndCall={handleEndCall}
-            canStart={repQueue.length > 0 && complianceStatus.dncChecked && complianceStatus.timeCompliant}
-          />
-          
-          <DialerQueue
-            repQueue={repQueue}
-            aiQueue={aiQueue}
-            currentLead={currentLead}
-            onMoveLeadBetweenQueues={moveLeadBetweenQueues}
-            onLeadSelect={onLeadSelect}
-          />
-        </div>
-
-        {/* Center Panel - Active Call Interface */}
-        <div className="flex-1">
-          <ActiveCallInterface
-            currentLead={currentLead}
-            isCallActive={isCallActive}
-            callDuration={callDuration}
-            onCallAnswered={handleCallAnswered}
-            onCallMissed={handleCallMissed}
-            onEndCall={handleEndCall}
-          />
-        </div>
-
-        {/* Right Panel - A/B Testing & Quick Tools */}
-        <div className="w-80 space-y-4">
-          <ABTestInterface currentLead={currentLead} isCallActive={isCallActive} />
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flat-heading-sm flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Call Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between text-xs">
-                <span>Connected Today</span>
-                <span className="font-bold">12/18</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span>Conversion Rate</span>
-                <span className="font-bold text-green-600">22%</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span>AI Assist Usage</span>
-                <span className="font-bold text-blue-600">85%</span>
-              </div>
-              <Button size="sm" variant="outline" className="w-full text-xs">
-                <ChevronRight className="h-3 w-3 mr-1" />
-                View Full Analytics
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Main Layout */}
+      <AutoDialerMainLayout
+        repQueue={repQueue}
+        aiQueue={aiQueue}
+        currentLead={currentLead}
+        isDialing={isDialing}
+        isCallActive={isCallActive}
+        callDuration={callDuration}
+        complianceStatus={complianceStatus}
+        onStartDialing={handleStartDialing}
+        onPauseDialing={handlePauseDialing}
+        onEndCall={handleEndCall}
+        onCallAnswered={handleCallAnswered}
+        onCallMissed={handleCallMissed}
+        onMoveLeadBetweenQueues={moveLeadBetweenQueues}
+        onLeadSelect={onLeadSelect}
+      />
     </div>
   );
 };
