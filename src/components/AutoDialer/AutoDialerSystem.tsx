@@ -20,7 +20,8 @@ import {
   Settings,
   BarChart3,
   TestTube2,
-  ChevronRight
+  ChevronRight,
+  Zap
 } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
@@ -30,6 +31,7 @@ import DialerControls from './DialerControls';
 import DialerCompliance from './DialerCompliance';
 import DialerStats from './DialerStats';
 import ABTestInterface from './ABTestInterface';
+import MockCallInterface from './MockCallInterface';
 
 interface AutoDialerSystemProps {
   leads: Lead[];
@@ -44,6 +46,7 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
   const [repQueue, setRepQueue] = useState<Lead[]>([]);
   const [aiQueue, setAiQueue] = useState<Lead[]>([]);
   const [consecutiveMissed, setConsecutiveMissed] = useState(0);
+  const [showMockCall, setShowMockCall] = useState(false);
   const [complianceStatus, setComplianceStatus] = useState({
     dncChecked: false,
     timeCompliant: true,
@@ -71,6 +74,26 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
     }
     return () => clearInterval(interval);
   }, [isCallActive]);
+
+  const handleStartMockCall = () => {
+    if (repQueue.length === 0) {
+      toast.error('No leads in queue for demo');
+      return;
+    }
+    
+    const demoLead = repQueue[0];
+    setCurrentLead(demoLead);
+    setShowMockCall(true);
+    setIsCallActive(true);
+    toast.success(`Starting mock call with ${demoLead.name}`);
+  };
+
+  const handleEndMockCall = () => {
+    setShowMockCall(false);
+    setIsCallActive(false);
+    setCurrentLead(null);
+    toast.info('Mock call ended');
+  };
 
   const handleStartDialing = () => {
     if (repQueue.length === 0) {
@@ -183,11 +206,10 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
     toast.success(`Moved ${lead.name} to ${toQueue} queue`);
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Show mock call interface if active
+  if (showMockCall && currentLead) {
+    return <MockCallInterface lead={currentLead} onEndCall={handleEndMockCall} />;
+  }
 
   return (
     <div className="flex flex-col h-full space-y-4">
@@ -198,6 +220,14 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
           <p className="text-sm text-gray-600">AI-Augmented Legal Compliant Dialing</p>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            onClick={handleStartMockCall}
+            disabled={repQueue.length === 0}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <Zap className="h-4 w-4 mr-2" />
+            Demo Mock Call
+          </Button>
           <DialerStats 
             repQueueCount={repQueue.length}
             aiQueueCount={aiQueue.length}
