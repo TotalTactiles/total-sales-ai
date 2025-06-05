@@ -90,6 +90,8 @@ For interactive development with automatic re-runs, use:
 npm run test:watch
 ```
 
+Vitest is configured to run in a Node environment for consistency.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/13606cdc-6b16-461d-b2be-0098b12e8f3a) and click on Share -> Publish.
