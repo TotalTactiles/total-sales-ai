@@ -14,7 +14,7 @@ function processBase64Chunks(base64String: string, chunkSize = 32768) {
   
   while (position < base64String.length) {
     const chunk = base64String.slice(position, position + chunkSize);
-    const binaryChunk = atob(chunk);
+    const binaryChunk = Buffer.from(chunk, 'base64').toString('utf-8');
     const bytes = new Uint8Array(binaryChunk.length);
     
     for (let i = 0; i < binaryChunk.length; i++) {

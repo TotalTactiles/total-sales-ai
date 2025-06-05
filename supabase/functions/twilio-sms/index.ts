@@ -42,7 +42,7 @@ serve(async (req) => {
 
     // Send SMS via Twilio
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`
-    const auth = btoa(`${accountSid}:${authToken}`)
+    const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
 
     const response = await fetch(twilioUrl, {
       method: 'POST',

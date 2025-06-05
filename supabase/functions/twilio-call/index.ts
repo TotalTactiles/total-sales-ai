@@ -43,7 +43,7 @@ serve(async (req) => {
 
     // Make Twilio API call
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Calls.json`
-    const auth = btoa(`${accountSid}:${authToken}`)
+    const auth = Buffer.from(`${accountSid}:${authToken}`).toString('base64')
 
     const response = await fetch(twilioUrl, {
       method: 'POST',

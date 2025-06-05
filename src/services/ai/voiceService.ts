@@ -1,5 +1,6 @@
 
 import { toast } from 'sonner';
+import { encodeBase64 } from '@/services/security/base64Service';
 
 class VoiceService {
   private mediaRecorderRef: MediaRecorder | null = null;
@@ -76,7 +77,7 @@ class VoiceService {
     try {
       // Convert audio to base64 for API
       const arrayBuffer = await audioBlob.arrayBuffer();
-      const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+      const base64Audio = encodeBase64(new Uint8Array(arrayBuffer));
 
       // Mock transcription for now - in production this would call Whisper API
       console.log('Processing audio command...');

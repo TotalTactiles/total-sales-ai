@@ -1,5 +1,6 @@
 
 import { logger } from '@/utils/logger';
+import { encodeBase64, decodeBase64 } from './base64Service';
 
 export class EncryptionService {
   private static instance: EncryptionService;
@@ -25,7 +26,7 @@ export class EncryptionService {
       combined.set(salt);
       combined.set(dataBytes, salt.length);
       
-      const encrypted = btoa(String.fromCharCode(...combined));
+      const encrypted = encodeBase64(String.fromCharCode(...combined));
       
       logger.info('Data encrypted successfully', { 
         dataSize: jsonString.length,
@@ -42,7 +43,7 @@ export class EncryptionService {
   async decryptSensitiveData(encryptedData: string): Promise<any> {
     try {
       const combined = new Uint8Array(
-        atob(encryptedData).split('').map(c => c.charCodeAt(0))
+        decodeBase64(encryptedData).split('').map(c => c.charCodeAt(0))
       );
       
       // Extract data after salt (first 16 bytes)
@@ -71,7 +72,7 @@ export class EncryptionService {
     // Simple hash for demo - use bcrypt or similar in production
     const encoder = new TextEncoder();
     const data = encoder.encode(value);
-    return btoa(String.fromCharCode(...data)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
+    return encodeBase64(String.fromCharCode(...data)).replace(/[^a-zA-Z0-9]/g, '').substring(0, 12);
   }
 }
 

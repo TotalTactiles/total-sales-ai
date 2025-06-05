@@ -100,7 +100,7 @@ serve(async (req) => {
     ].join('\r\n')
 
     // Encode email for Gmail API
-    const encodedEmail = btoa(email)
+    const encodedEmail = Buffer.from(email).toString('base64')
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '')

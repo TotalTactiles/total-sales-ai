@@ -1,11 +1,13 @@
 
+import { encodeBase64, decodeBase64 } from './base64Service';
+
 export class DataEncryptionService {
   private static instance: DataEncryptionService;
   private keyPromise: Promise<CryptoKey>;
 
   private constructor() {
     const DEFAULT_KEY_B64 = 'b4nhn4DvmRll8uXzYr5BJHVLFvyomHE4WJahSbv95Jk='; // 32-byte key
-    const keyBytes = Uint8Array.from(atob(DEFAULT_KEY_B64), c => c.charCodeAt(0));
+    const keyBytes = Uint8Array.from(decodeBase64(DEFAULT_KEY_B64), c => c.charCodeAt(0));
     this.keyPromise = crypto.subtle.importKey(
       'raw',
       keyBytes,
@@ -34,12 +36,12 @@ export class DataEncryptionService {
       combined.set(iv);
       combined.set(new Uint8Array(cipher), iv.byteLength);
 
-      return btoa(String.fromCharCode(...combined));
+      return encodeBase64(String.fromCharCode(...combined));
     } catch (error) {
       console.error('Encryption failed:', error);
       try {
         const jsonString = JSON.stringify(data);
-        return btoa(jsonString); // Fallback to basic encoding
+        return encodeBase64(jsonString); // Fallback to basic encoding
       } catch {
         return JSON.stringify(data);
       }
@@ -48,7 +50,7 @@ export class DataEncryptionService {
 
   async decryptSensitiveData(encryptedData: string): Promise<any> {
     try {
-      const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+      const combined = Uint8Array.from(decodeBase64(encryptedData), c => c.charCodeAt(0));
       if (combined.byteLength <= 12) throw new Error('Invalid encrypted payload');
 
       const iv = combined.slice(0, 12);
@@ -60,7 +62,7 @@ export class DataEncryptionService {
     } catch (error) {
       console.error('Decryption failed:', error);
       try {
-        const jsonString = atob(encryptedData);
+        const jsonString = decodeBase64(encryptedData);
         return JSON.parse(jsonString);
       } catch {
         try {

@@ -245,7 +245,7 @@ serve(async (req) => {
             method: 'POST',
             headers: { 
               'Content-Type': 'application/x-www-form-urlencoded',
-              'Authorization': `Basic ${btoa(Deno.env.get('TWITTER_CLIENT_ID') + ':' + Deno.env.get('TWITTER_CLIENT_SECRET'))}`
+              'Authorization': `Basic ${Buffer.from(Deno.env.get('TWITTER_CLIENT_ID') + ':' + Deno.env.get('TWITTER_CLIENT_SECRET')).toString('base64')}`
             },
             body: new URLSearchParams({
               code,
