@@ -243,11 +243,66 @@ export class ClickUpWebhooks {
   async setupWebhooks(listIds: string[]): Promise<boolean> {
     try {
       console.log('Setting up ClickUp webhooks for lists:', listIds);
-      
-      // TODO: Implement webhook setup via ClickUp API
-      // This would create webhooks for each list to monitor task changes
-      
-      return true;
+
+      const supabaseUrl = process.env.SUPABASE_URL;
+      const secret = process.env.CLICKUP_WEBHOOK_SECRET;
+
+      if (!supabaseUrl) {
+        throw new Error('SUPABASE_URL not configured');
+      }
+
+      const endpoint = `${supabaseUrl}/functions/v1/clickup-webhook`;
+      let allSuccess = true;
+
+      for (const listId of listIds) {
+        try {
+          const response = await clickUpAPI.makeRequest<any>(
+            `/list/${listId}/webhook`,
+            {
+              method: 'POST',
+              body: JSON.stringify({
+                endpoint,
+                events: [
+                  'taskCreated',
+                  'taskUpdated',
+                  'taskDeleted',
+                  'taskStatusUpdated'
+                ],
+                secret
+              })
+            }
+          );
+
+          console.log(`✅ Created ClickUp webhook for list ${listId}`, response);
+
+          await (supabase as any).from('integration_logs').insert({
+            provider: 'clickup',
+            event_type: 'webhook_setup',
+            operation: 'create',
+            resource_id: response?.id || listId,
+            status: 'success',
+            created_at: new Date().toISOString()
+          });
+        } catch (listError) {
+          allSuccess = false;
+          console.error(
+            `❌ Failed to create ClickUp webhook for list ${listId}:`,
+            listError
+          );
+
+          await (supabase as any).from('integration_logs').insert({
+            provider: 'clickup',
+            event_type: 'webhook_setup',
+            operation: 'create',
+            resource_id: listId,
+            status: 'failed',
+            error_message: (listError as Error).message,
+            created_at: new Date().toISOString()
+          });
+        }
+      }
+
+      return allSuccess;
     } catch (error) {
       await this.errorHandler.logError(error, 'Failed to setup ClickUp webhooks');
       return false;
