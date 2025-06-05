@@ -1,10 +1,13 @@
 
-import { Profile } from '@/contexts/auth/types';
+import { Profile, Role } from '@/contexts/auth/types';
 
-export const getDashboardUrl = (profile: Profile | null): string => {
-  if (!profile) return '/sales/dashboard';
-  
-  switch (profile.role) {
+export const getDashboardUrl = (
+  profileOrRole: Profile | { role: Role } | null
+): string => {
+  if (!profileOrRole) return '/sales/dashboard';
+
+  const role = profileOrRole.role;
+  switch (role) {
     case 'admin':
       return '/admin-dashboard';
     case 'manager':
