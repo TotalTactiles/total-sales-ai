@@ -2,6 +2,8 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
+import { Profile } from '@/contexts/auth/types';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -31,23 +33,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Role-based redirect logic
   if (roleBasedRedirect && profile?.role) {
     const currentPath = window.location.pathname;
-    
+    const dashboardUrl = getDashboardUrl(profile as Profile);
+
     if (profile.role === 'manager' && !currentPath.startsWith('/manager')) {
-      return <Navigate to="/manager/dashboard" replace />;
+      return <Navigate to={dashboardUrl} replace />;
     }
-    
+
     if (profile.role === 'sales_rep' && !currentPath.startsWith('/sales')) {
-      return <Navigate to="/sales/dashboard" replace />;
+      return <Navigate to={dashboardUrl} replace />;
     }
   }
 
   // Role requirement check
   if (requiredRole && profile?.role !== requiredRole) {
     // Redirect to appropriate dashboard based on role
-    if (profile?.role === 'manager') {
-      return <Navigate to="/manager/dashboard" replace />;
-    }
-    return <Navigate to="/sales/dashboard" replace />;
+    const dashboardUrl = getDashboardUrl(profile as Profile);
+    return <Navigate to={dashboardUrl} replace />;
   }
 
   return <>{children}</>;

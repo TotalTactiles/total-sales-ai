@@ -4,6 +4,8 @@ import { Role } from '@/contexts/auth/types';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
+import { Profile } from '@/contexts/auth/types';
 
 interface AuthDemoOptionsProps {
   selectedRole: Role;
@@ -35,10 +37,10 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
     initializeDemoMode(selectedRole);
     setIsTransitioning(true);
     
-    // Direct navigation based on role - using correct existing routes
-    const redirectPath = selectedRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+    // Direct navigation based on role
+    const redirectPath = getDashboardUrl({ role: selectedRole } as Profile);
     console.log("Redirecting to:", redirectPath);
-    
+
     setTimeout(() => {
       navigate(redirectPath);
     }, 1500);

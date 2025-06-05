@@ -21,9 +21,9 @@ const DashboardRouter = () => {
       case 'sales-rep':
         return <Navigate to="/" replace />;
       case 'manager':
-        return <Navigate to="/manager-dashboard" replace />;
+        return <Navigate to="/manager/dashboard" replace />;
       case 'admin':
-        return <Navigate to="/admin-dashboard" replace />;
+        return <Navigate to="/sales/dashboard" replace />;
       default:
         return <Navigate to="/" replace />;
     }
@@ -34,12 +34,9 @@ const DashboardRouter = () => {
   
   switch (role) {
     case 'manager':
-      return <Navigate to="/manager-dashboard" replace />;
-    case 'admin':
-      return <Navigate to="/admin-dashboard" replace />;
-    case 'sales_rep':
+      return <Navigate to="/manager/dashboard" replace />;
     default:
-      return <Navigate to="/" replace />;
+      return <Navigate to="/sales/dashboard" replace />;
   }
 };
 

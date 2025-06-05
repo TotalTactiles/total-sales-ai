@@ -8,6 +8,8 @@ import { LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
+import { Profile } from '@/contexts/auth/types';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
@@ -104,15 +106,19 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       // Direct navigation based on settings status
       setTimeout(() => {
         if (companyStatus) {
-          if (companyStatus.isManager && (!companyStatus.hasSettings || !companyStatus.onboardingCompleted)) {
+          if (
+            companyStatus.isManager &&
+            (!companyStatus.hasSettings || !companyStatus.onboardingCompleted)
+          ) {
             // Manager with no company settings or incomplete onboarding -> onboarding
             navigate('/onboarding');
           } else {
             // Regular navigation based on role
-            navigate('/sales-rep-dashboard');
+            const role = companyStatus.isManager ? 'manager' : 'sales_rep';
+            navigate(getDashboardUrl({ role } as Profile));
           }
         } else {
-          navigate('/sales-rep-dashboard');
+          navigate(getDashboardUrl(null));
         }
       }, 1500);
       
