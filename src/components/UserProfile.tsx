@@ -1,6 +1,7 @@
 import { logger } from '@/utils/logger';
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,11 +21,17 @@ export interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ name, role }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+=======
   const { signOut } = useAuth();
+}
 
   const handleLogout = async () => {
     try {
       logger.info('Logout requested');
+      navigate('/logout');
+=======
       await signOut();
       window.location.href = '/auth';
     } catch (error) {
