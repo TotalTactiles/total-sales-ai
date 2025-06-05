@@ -1,35 +1,24 @@
 
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 class ElevenLabsService {
   private serviceReady = false;
-  private apiKey: string | null = null;
 
-  async initialize(apiKey?: string): Promise<boolean> {
+  async initialize(): Promise<boolean> {
     try {
-      this.apiKey = apiKey || process.env.VITE_ELEVENLABS_API_KEY || null;
-      
-      if (!this.apiKey) {
-        console.warn('ElevenLabs API key not provided');
-        this.serviceReady = false;
-        return false;
-      }
-
-      // Test API connection
-      const response = await fetch('https://api.elevenlabs.io/v1/voices', {
-        headers: {
-          'xi-api-key': this.apiKey
-        }
+      const { error } = await supabase.functions.invoke('elevenlabs-speech', {
+        body: { test: true }
       });
 
-      this.serviceReady = response.ok;
-      
+      this.serviceReady = !error;
+
       if (this.serviceReady) {
         console.log('ElevenLabs service initialized successfully');
       } else {
-        console.error('ElevenLabs API key invalid');
+        console.error('ElevenLabs service initialization failed');
       }
-      
+
       return this.serviceReady;
     } catch (error) {
       console.error('Failed to initialize ElevenLabs service:', error);
@@ -39,35 +28,21 @@ class ElevenLabsService {
   }
 
   async generateSpeech(text: string, voiceId: string = '9BWtsMINqrJLrRacOk9x'): Promise<string | null> {
-    if (!this.serviceReady || !this.apiKey) {
+    if (!this.serviceReady) {
       toast.error('ElevenLabs service not available');
       return null;
     }
 
     try {
-      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': this.apiKey
-        },
-        body: JSON.stringify({
-          text,
-          model_id: 'eleven_multilingual_v2',
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5
-          }
-        })
+      const { data, error } = await supabase.functions.invoke('elevenlabs-speech', {
+        body: { text, voiceId }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to generate speech');
+      if (error) {
+        throw error;
       }
 
-      const audioBlob = await response.blob();
-      return URL.createObjectURL(audioBlob);
+      return data.url as string;
     } catch (error) {
       console.error('Error generating speech:', error);
       toast.error('Failed to generate voice response');
