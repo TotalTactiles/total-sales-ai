@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { voiceService } from './voiceService';
 import { hybridAIOrchestrator } from './hybridAIOrchestrator';
@@ -60,7 +61,7 @@ export class EnhancedVoiceService {
       
       return started;
     } catch (error) {
-      console.error('Failed to start voice listening:', error);
+      logger.error('Failed to start voice listening:', error);
       this.isListening = false;
       return false;
     }
@@ -86,7 +87,7 @@ export class EnhancedVoiceService {
       return command;
       
     } catch (error) {
-      console.error('Error processing voice command:', error);
+      logger.error('Error processing voice command:', error);
       return null;
     }
   }
@@ -200,14 +201,14 @@ export class EnhancedVoiceService {
       try {
         await voiceService.generateVoiceResponse(voiceResponse.text);
       } catch (error) {
-        console.error('Failed to generate voice response:', error);
+        logger.error('Failed to generate voice response:', error);
         // Continue without audio
       }
 
       return voiceResponse;
       
     } catch (error) {
-      console.error('Error processing voice command:', error);
+      logger.error('Error processing voice command:', error);
       
       return {
         text: "I'm sorry, I couldn't process that command. Could you please try again?",
@@ -223,7 +224,7 @@ export class EnhancedVoiceService {
     try {
       await voiceService.generateVoiceResponse(text);
     } catch (error) {
-      console.error('Failed to speak response:', error);
+      logger.error('Failed to speak response:', error);
     }
   }
 

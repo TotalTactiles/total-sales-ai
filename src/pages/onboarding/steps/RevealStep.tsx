@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -38,7 +39,7 @@ const RevealStep: React.FC<RevealStepProps> = ({ settings, completeOnboarding, i
         toast.success('Referral link generated successfully!');
       }
     } catch (error) {
-      console.error('Error generating referral:', error);
+      logger.error('Error generating referral:', error);
     } finally {
       setIsGeneratingReferral(false);
     }
@@ -68,7 +69,7 @@ const RevealStep: React.FC<RevealStepProps> = ({ settings, completeOnboarding, i
           url: referralUrl,
         });
       } catch (error) {
-        console.error('Error sharing:', error);
+        logger.error('Error sharing:', error);
         // Fallback to copying to clipboard
         copyReferralLink();
       }

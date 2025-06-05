@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
@@ -48,7 +49,7 @@ export function useCaseStudies(
       if (error) throw error;
       setCaseStudies(data as CaseStudy[]);
     } catch (err) {
-      console.error("Error fetching case studies:", err);
+      logger.error("Error fetching case studies:", err);
       toast.error("Failed to fetch case studies");
     } finally {
       setIsLoading(false);
@@ -74,7 +75,7 @@ export function useCaseStudies(
       
       setIndustries(uniqueIndustries);
     } catch (err) {
-      console.error("Error fetching industries:", err);
+      logger.error("Error fetching industries:", err);
     }
   };
 

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -140,13 +141,13 @@ const ContextAwareAIAssistant: React.FC<ContextAwareAIAssistantProps> = ({
             window.speechSynthesis.speak(utterance);
           }
         } catch (voiceError) {
-          console.warn('Voice response failed:', voiceError);
+          logger.warn('Voice response failed:', voiceError);
         }
       }
 
       toast.success(`AI response generated ${aiResponse.source ? `(${aiResponse.source})` : ''}`);
     } catch (error) {
-      console.error('Error processing AI command:', error);
+      logger.error('Error processing AI command:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to process AI command';
       
       toast.error(errorMessage);
@@ -196,7 +197,7 @@ const ContextAwareAIAssistant: React.FC<ContextAwareAIAssistantProps> = ({
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error('Speech recognition error:', event.error);
+      logger.error('Speech recognition error:', event.error);
       toast.error('Speech recognition failed');
     };
 

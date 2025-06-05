@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +47,7 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
           .single();
           
         if (error) {
-          console.error("Error fetching user's company_id:", error);
+          logger.error("Error fetching user's company_id:", error);
           return;
         }
         
@@ -54,7 +55,7 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
           setCompanyId(data.company_id);
         }
       } catch (err) {
-        console.error("Error in fetching company ID:", err);
+        logger.error("Error in fetching company ID:", err);
       }
     };
     
@@ -96,7 +97,7 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
       if (error) throw error;
       setEntries(data as KnowledgeEntry[]);
     } catch (err) {
-      console.error("Error fetching knowledge entries:", err);
+      logger.error("Error fetching knowledge entries:", err);
       toast.error("Failed to fetch knowledge entries");
     } finally {
       setIsLoading(false);
@@ -124,7 +125,7 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
         throw new Error(data.error || "Reindex failed");
       }
     } catch (err: any) {
-      console.error("Error reindexing:", err);
+      logger.error("Error reindexing:", err);
       toast.error(err.message || "Failed to reindex knowledge base");
     } finally {
       setIsReindexing(false);
@@ -153,7 +154,7 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
         // Refresh entries to update the list
         fetchEntries();
       } catch (err) {
-        console.error("Error deleting entry:", err);
+        logger.error("Error deleting entry:", err);
         toast.error("Failed to delete entry");
       }
     }
@@ -178,7 +179,7 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
       // Refresh entries to update the list
       fetchEntries();
     } catch (err) {
-      console.error("Error marking as case study:", err);
+      logger.error("Error marking as case study:", err);
       toast.error("Failed to mark as case study");
     }
   };

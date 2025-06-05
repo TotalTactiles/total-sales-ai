@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,7 +25,7 @@ export const useAIAgent = () => {
     setIsLoading(true);
     
     try {
-      console.log('Calling AI Agent with request:', request);
+      logger.info('Calling AI Agent with request:', request);
 
       // Mock AI response for now - in production this would call the AI service
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -37,11 +38,11 @@ export const useAIAgent = () => {
         }
       };
 
-      console.log('AI Agent response:', mockResponse);
+      logger.info('AI Agent response:', mockResponse);
       return mockResponse;
 
     } catch (error) {
-      console.error('AI Agent error:', error);
+      logger.error('AI Agent error:', error);
       toast.error('Failed to get AI response');
       return null;
     } finally {

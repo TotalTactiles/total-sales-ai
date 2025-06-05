@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -105,7 +106,7 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
         toast.info('📋 Opening objection handling scripts...');
         break;
       default:
-        console.log('Dialer AI Action:', action, data);
+        logger.info('Dialer AI Action:', action, data);
     }
   };
 

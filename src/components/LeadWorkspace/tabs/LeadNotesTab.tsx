@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -54,7 +55,7 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
         }
         break;
       default:
-        console.log('Notes AI Action:', action, data);
+        logger.info('Notes AI Action:', action, data);
     }
   };
 

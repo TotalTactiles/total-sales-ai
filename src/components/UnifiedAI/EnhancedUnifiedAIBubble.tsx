@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -183,7 +184,7 @@ const EnhancedUnifiedAIBubble: React.FC<EnhancedUnifiedAIBubbleProps> = ({
         break;
 
       default:
-        console.log('AI Action:', action, data);
+        logger.info('AI Action:', action, data);
     }
 
     // Log the interaction

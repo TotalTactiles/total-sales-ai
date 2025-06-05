@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { validateStringParam, ActionTypes } from '@/types/actions';
 
@@ -21,13 +22,13 @@ export class RuntimeValidator {
         if (expectedType === 'string' && typeof param !== 'string') {
           const error = `Function ${fn.name} parameter ${i} expected string but got ${typeof param}`;
           this.validationErrors.push(error);
-          console.warn(error);
+          logger.warn(error);
           return false;
         }
       }
       return true;
     } catch (error) {
-      console.error('Runtime validation error:', error);
+      logger.error('Runtime validation error:', error);
       return false;
     }
   }

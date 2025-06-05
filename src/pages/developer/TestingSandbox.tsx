@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,22 +14,22 @@ const TestingSandbox: React.FC = () => {
 
   const startSimulation = (role: 'manager' | 'sales_rep') => {
     setSimulationMode(role);
-    console.log(`Starting ${role} simulation mode`);
+    logger.info(`Starting ${role} simulation mode`);
   };
 
   const stopSimulation = () => {
     setSimulationMode('off');
-    console.log('Stopping simulation mode');
+    logger.info('Stopping simulation mode');
   };
 
   const loadTestData = () => {
     setTestDataLoaded(true);
-    console.log('Loading test data...');
+    logger.info('Loading test data...');
   };
 
   const clearTestData = () => {
     setTestDataLoaded(false);
-    console.log('Clearing test data...');
+    logger.info('Clearing test data...');
   };
 
   return (

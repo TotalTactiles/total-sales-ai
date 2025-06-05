@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +55,7 @@ const DeveloperDashboard: React.FC = () => {
       const companyImprovements = await aiLearningLayer.getCompanyImprovements(profile.company_id);
       setImprovements(companyImprovements);
     } catch (error) {
-      console.error('Failed to load system improvements:', error);
+      logger.error('Failed to load system improvements:', error);
     } finally {
       setIsLoading(false);
     }
@@ -65,7 +66,7 @@ const DeveloperDashboard: React.FC = () => {
       await aiLearningLayer.markImprovementAsImplemented(improvementId);
       setImprovements(prev => prev.filter(imp => imp.id !== improvementId));
     } catch (error) {
-      console.error('Failed to mark improvement as implemented:', error);
+      logger.error('Failed to mark improvement as implemented:', error);
     }
   };
 

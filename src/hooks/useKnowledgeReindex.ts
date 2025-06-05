@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +29,7 @@ export function useKnowledgeReindex() {
       const { data, error } = await supabase.functions.invoke('ai-brain-reindex');
 
       if (error) {
-        console.error("Error reindexing AI Brain:", error);
+        logger.error("Error reindexing AI Brain:", error);
         setError(error.message || "Error reindexing AI Brain data");
         toast.error("Failed to reindex AI Brain data");
         return null;
@@ -44,7 +45,7 @@ export function useKnowledgeReindex() {
       return data;
       
     } catch (err: any) {
-      console.error("Exception when reindexing AI Brain:", err);
+      logger.error("Exception when reindexing AI Brain:", err);
       setError(err.message || "Unknown error occurred");
       toast.error("Failed to reindex data");
       return null;

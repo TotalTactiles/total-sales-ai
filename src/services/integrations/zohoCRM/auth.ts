@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 
@@ -41,7 +42,7 @@ export class ZohoAuth {
       this.authConfig.clientId = 'placeholder_client_id';
       this.authConfig.clientSecret = 'placeholder_client_secret';
     } catch (error) {
-      console.warn('Failed to load Zoho configuration:', error);
+      logger.warn('Failed to load Zoho configuration:', error);
     }
   }
 
@@ -94,7 +95,7 @@ export class ZohoAuth {
       await this.storeTokens(tokens);
       return tokens;
     } catch (error) {
-      console.error('Zoho token exchange failed:', error);
+      logger.error('Zoho token exchange failed:', error);
       throw error;
     }
   }
@@ -136,7 +137,7 @@ export class ZohoAuth {
       await this.storeTokens(tokens);
       return tokens;
     } catch (error) {
-      console.error('Zoho token refresh failed:', error);
+      logger.error('Zoho token refresh failed:', error);
       throw error;
     }
   }
@@ -159,7 +160,7 @@ export class ZohoAuth {
 
       return tokens.accessToken;
     } catch (error) {
-      console.error('Failed to get valid access token:', error);
+      logger.error('Failed to get valid access token:', error);
       throw error;
     }
   }
@@ -181,7 +182,7 @@ export class ZohoAuth {
           is_active: true
         });
     } catch (error) {
-      console.error('Failed to store Zoho tokens:', error);
+      logger.error('Failed to store Zoho tokens:', error);
       throw error;
     }
   }
@@ -208,7 +209,7 @@ export class ZohoAuth {
         expiresAt: new Date(data.expires_at).getTime()
       };
     } catch (error) {
-      console.error('Failed to get stored tokens:', error);
+      logger.error('Failed to get stored tokens:', error);
       return null;
     }
   }
@@ -234,7 +235,7 @@ export class ZohoAuth {
         .eq('user_id', user.id)
         .eq('provider', 'zoho');
     } catch (error) {
-      console.error('Failed to disconnect Zoho:', error);
+      logger.error('Failed to disconnect Zoho:', error);
       throw error;
     }
   }

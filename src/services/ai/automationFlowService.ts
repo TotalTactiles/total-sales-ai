@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { SimpleAutomationFlow, FlowExecutionContext } from './types/automationFlowTypes';
@@ -30,7 +31,7 @@ export class AutomationFlowService {
         }
       }
     } catch (error) {
-      console.error('Error evaluating flow triggers:', error);
+      logger.error('Error evaluating flow triggers:', error);
     }
   }
 
@@ -107,7 +108,7 @@ export class AutomationFlowService {
           visibility: 'admin_only'
         });
     } catch (error) {
-      console.error('Error logging flow execution:', error);
+      logger.error('Error logging flow execution:', error);
     }
   }
 }

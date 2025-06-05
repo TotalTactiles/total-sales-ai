@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,7 +36,7 @@ export class EmailSchedulingService {
 
       return data.id;
     } catch (error) {
-      console.error('Error scheduling email:', error);
+      logger.error('Error scheduling email:', error);
       throw error;
     }
   }
@@ -84,7 +85,7 @@ export class EmailSchedulingService {
             .eq('id', emailLog.id);
 
         } catch (error) {
-          console.error('Error processing scheduled email:', error);
+          logger.error('Error processing scheduled email:', error);
           
           const payload = this.safeExtractEmailPayload(emailLog.payload);
           const failedPayload = {
@@ -100,7 +101,7 @@ export class EmailSchedulingService {
         }
       }
     } catch (error) {
-      console.error('Error processing scheduled emails:', error);
+      logger.error('Error processing scheduled emails:', error);
     }
   }
 

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,14 +41,14 @@ export class RealTimeLeadSync {
     let duplicateCount = 0;
 
     try {
-      console.log(`Starting sync of ${leads.length} leads for company ${companyId}`);
+      logger.info(`Starting sync of ${leads.length} leads for company ${companyId}`);
 
       for (const leadData of leads) {
         try {
           // Validate lead data
           const validation = this.mapper.validateMappedLead(leadData);
           if (!validation.isValid) {
-            console.warn(`Invalid lead data for ${leadData.sourceId}:`, validation.errors);
+            logger.warn(`Invalid lead data for ${leadData.sourceId}:`, validation.errors);
             errorCount++;
             continue;
           }
@@ -80,7 +81,7 @@ export class RealTimeLeadSync {
           }
 
         } catch (leadError) {
-          console.error(`Error processing lead ${leadData.sourceId}:`, leadError);
+          logger.error(`Error processing lead ${leadData.sourceId}:`, leadError);
           errorCount++;
         }
       }
@@ -88,7 +89,7 @@ export class RealTimeLeadSync {
       // Log sync summary
       await this.logSyncSummary(companyId, syncedCount, errorCount, duplicateCount);
 
-      console.log(`Sync completed: ${syncedCount} new, ${duplicateCount} updated, ${errorCount} errors`);
+      logger.info(`Sync completed: ${syncedCount} new, ${duplicateCount} updated, ${errorCount} errors`);
 
       return {
         success: true,
@@ -99,7 +100,7 @@ export class RealTimeLeadSync {
       };
 
     } catch (error) {
-      console.error('Lead sync failed:', error);
+      logger.error('Lead sync failed:', error);
       return {
         success: false,
         synced: syncedCount,
@@ -152,12 +153,12 @@ export class RealTimeLeadSync {
       const { data, error } = await query.single();
       
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('Error finding existing lead:', error);
+        logger.error('Error finding existing lead:', error);
       }
 
       return data;
     } catch (error) {
-      console.error('Error in findExistingLead:', error);
+      logger.error('Error in findExistingLead:', error);
       return null;
     }
   }
@@ -183,13 +184,13 @@ export class RealTimeLeadSync {
         });
 
       if (error) {
-        console.error('Error creating lead:', error);
+        logger.error('Error creating lead:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error in createNewLead:', error);
+      logger.error('Error in createNewLead:', error);
       return false;
     }
   }
@@ -213,13 +214,13 @@ export class RealTimeLeadSync {
         .eq('id', leadId);
 
       if (error) {
-        console.error('Error updating lead:', error);
+        logger.error('Error updating lead:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error in updateExistingLead:', error);
+      logger.error('Error in updateExistingLead:', error);
       return false;
     }
   }
@@ -237,7 +238,7 @@ export class RealTimeLeadSync {
         });
       }
     } catch (error) {
-      console.error('Error logging AI feedback:', error);
+      logger.error('Error logging AI feedback:', error);
     }
   }
 
@@ -257,7 +258,7 @@ export class RealTimeLeadSync {
         visibility: 'manager'
       });
     } catch (error) {
-      console.error('Error logging sync summary:', error);
+      logger.error('Error logging sync summary:', error);
     }
   }
 
@@ -275,7 +276,7 @@ export class RealTimeLeadSync {
             filter: `company_id=eq.${companyId}`
           },
           (payload) => {
-            console.log('Real-time lead change detected:', payload);
+            logger.info('Real-time lead change detected:', payload);
             
             // Show toast notification for lead changes
             if (payload.eventType === 'INSERT') {
@@ -287,9 +288,9 @@ export class RealTimeLeadSync {
         )
         .subscribe();
 
-      console.log('Real-time sync enabled for company:', companyId);
+      logger.info('Real-time sync enabled for company:', companyId);
     } catch (error) {
-      console.error('Error enabling real-time sync:', error);
+      logger.error('Error enabling real-time sync:', error);
     }
   }
 }

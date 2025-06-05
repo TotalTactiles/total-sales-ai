@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -112,7 +113,7 @@ export const useNativeAutomation = () => {
 
       await emailAutomationService.evaluateAutomationTriggers(trigger, enrichedEventData);
     } catch (error) {
-      console.error('Error triggering automation:', error);
+      logger.error('Error triggering automation:', error);
     }
   }, [user?.id, profile?.company_id]);
 

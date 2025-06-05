@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,7 +30,7 @@ export const useLeads = () => {
       const convertedLeads = data?.map(convertDatabaseLeadToLead) || [];
       setLeads(convertedLeads);
     } catch (err) {
-      console.error('Error fetching leads:', err);
+      logger.error('Error fetching leads:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch leads');
     } finally {
       setIsLoading(false);

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,7 +34,7 @@ export const useUnusedFeatures = () => {
       setUnusedFeatures(data || []);
       
     } catch (error) {
-      console.error('Error fetching unused features:', error);
+      logger.error('Error fetching unused features:', error);
     } finally {
       setIsLoading(false);
     }
@@ -73,7 +74,7 @@ export const useUnusedFeatures = () => {
       }
       
     } catch (error) {
-      console.error('Error updating feature usage:', error);
+      logger.error('Error updating feature usage:', error);
     }
   };
 
@@ -89,7 +90,7 @@ export const useUnusedFeatures = () => {
       fetchUnusedFeatures();
       
     } catch (error) {
-      console.error('Error flagging feature:', error);
+      logger.error('Error flagging feature:', error);
     }
   };
 

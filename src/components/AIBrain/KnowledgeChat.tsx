@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -83,7 +84,7 @@ const KnowledgeChat = () => {
         }]);
       }
     } catch (error) {
-      console.error("Error querying knowledge:", error);
+      logger.error("Error querying knowledge:", error);
       toast.error("Failed to query knowledge");
     } finally {
       setIsLoading(false);

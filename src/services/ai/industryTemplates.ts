@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { AutomationFlow, EmailTemplate } from './types/automationTypes';
 
@@ -216,11 +217,11 @@ export class IndustryTemplateService {
       const automationFlows = INDUSTRY_AUTOMATION_FLOWS[industry] || [];
       for (const flow of automationFlows) {
         // Create flow logic would go here
-        console.log(`Setting up flow: ${flow.name} for industry: ${industry}`);
+        logger.info(`Setting up flow: ${flow.name} for industry: ${industry}`);
       }
 
     } catch (error) {
-      console.error('Error setting up industry templates:', error);
+      logger.error('Error setting up industry templates:', error);
     }
   }
 

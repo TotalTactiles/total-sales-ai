@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -9,7 +10,7 @@ import { optimizeForMobile } from './utils/mobileOptimization';
 try {
   optimizeForMobile();
 } catch (error) {
-  console.warn('Mobile optimization failed:', error);
+  logger.warn('Mobile optimization failed:', error);
 }
 
 // Performance monitoring
@@ -17,12 +18,12 @@ if (process.env.NODE_ENV === 'development') {
   try {
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
-        console.log(`Performance: ${entry.name} - ${entry.duration}ms`);
+        logger.info(`Performance: ${entry.name} - ${entry.duration}ms`);
       });
     });
     observer.observe({ entryTypes: ['measure', 'navigation'] });
   } catch (error) {
-    console.warn('Performance monitoring failed:', error);
+    logger.warn('Performance monitoring failed:', error);
   }
 }
 
@@ -40,9 +41,9 @@ try {
       <App />
     </React.StrictMode>
   );
-  console.log('App rendered successfully');
+  logger.info('App rendered successfully');
 } catch (error) {
-  console.error('Failed to render app:', error);
+  logger.error('Failed to render app:', error);
   // Render a simple error message
   root.render(
     <div style={{ padding: '20px', textAlign: 'center' }}>
@@ -61,10 +62,10 @@ if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
-        console.log('SW registered: ', registration);
+        logger.info('SW registered: ', registration);
       })
       .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
+        logger.info('SW registration failed: ', registrationError);
       });
   });
 }

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,7 +37,7 @@ export const useCallLogs = () => {
       if (error) throw error;
       setCallLogs(data || []);
     } catch (error) {
-      console.error('Error fetching call logs:', error);
+      logger.error('Error fetching call logs:', error);
     } finally {
       setIsLoading(false);
     }
@@ -61,7 +62,7 @@ export const useCallLogs = () => {
       setCallLogs(prev => [data, ...prev]);
       return data;
     } catch (error) {
-      console.error('Error creating call log:', error);
+      logger.error('Error creating call log:', error);
       toast.error('Failed to log call');
       return null;
     }
@@ -81,7 +82,7 @@ export const useCallLogs = () => {
       setCallLogs(prev => prev.map(log => log.id === id ? data : log));
       return data;
     } catch (error) {
-      console.error('Error updating call log:', error);
+      logger.error('Error updating call log:', error);
       return null;
     }
   };

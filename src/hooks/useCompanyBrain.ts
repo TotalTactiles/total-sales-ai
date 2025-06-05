@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,7 +51,7 @@ export const useCompanyBrain = () => {
       setInsights(aiInsights);
       setDataStatus(status);
     } catch (error) {
-      console.error('Error loading company brain data:', error);
+      logger.error('Error loading company brain data:', error);
       toast.error('Failed to load company brain data');
     } finally {
       setIsLoading(false);
@@ -72,7 +73,7 @@ export const useCompanyBrain = () => {
       }
       return success;
     } catch (error) {
-      console.error('Error connecting social media:', error);
+      logger.error('Error connecting social media:', error);
       toast.error(`Failed to connect ${platform}`);
       return false;
     }
@@ -86,7 +87,7 @@ export const useCompanyBrain = () => {
       await loadData(); // Refresh data
       toast.success(`${platform} data synced successfully`);
     } catch (error) {
-      console.error('Error syncing social media:', error);
+      logger.error('Error syncing social media:', error);
       toast.error(`Failed to sync ${platform} data`);
     }
   }, [companyId, loadData]);
@@ -100,7 +101,7 @@ export const useCompanyBrain = () => {
       await loadData(); // Refresh data
       return uploaded;
     } catch (error) {
-      console.error('Error uploading files:', error);
+      logger.error('Error uploading files:', error);
       toast.error('Failed to upload files');
       return [];
     }
@@ -117,7 +118,7 @@ export const useCompanyBrain = () => {
       toast.success('Website crawled successfully');
       return data;
     } catch (error) {
-      console.error('Error crawling website:', error);
+      logger.error('Error crawling website:', error);
       toast.error('Failed to crawl website');
       return null;
     } finally {
@@ -134,7 +135,7 @@ export const useCompanyBrain = () => {
       setInsights(newInsights);
       toast.success('Insights refreshed');
     } catch (error) {
-      console.error('Error refreshing insights:', error);
+      logger.error('Error refreshing insights:', error);
       toast.error('Failed to refresh insights');
     }
   }, [companyId]);
@@ -147,7 +148,7 @@ export const useCompanyBrain = () => {
       toast.success('Campaign brief created');
       return brief;
     } catch (error) {
-      console.error('Error creating campaign brief:', error);
+      logger.error('Error creating campaign brief:', error);
       toast.error('Failed to create campaign brief');
       return '';
     }
@@ -172,7 +173,7 @@ Generated: ${insight.createdAt.toLocaleDateString()}
       navigator.clipboard.writeText(emailBody);
       toast.success('Email content copied to clipboard');
     } catch (error) {
-      console.error('Error preparing email:', error);
+      logger.error('Error preparing email:', error);
       toast.error('Failed to prepare email');
     }
   }, []);
