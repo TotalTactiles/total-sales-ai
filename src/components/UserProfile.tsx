@@ -1,6 +1,7 @@
 import { logger } from '@/utils/logger';
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,13 +22,12 @@ export interface UserProfileProps {
 
 const UserProfile: React.FC<UserProfileProps> = ({ name, role }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
-      // For now, we'll just redirect to auth page
-      // The AuthContext might not have a logout method yet
       logger.info('Logout requested');
-      window.location.href = '/auth';
+      navigate('/logout');
     } catch (error) {
       logger.error('Logout failed:', error);
     }
