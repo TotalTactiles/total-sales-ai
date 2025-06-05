@@ -20,6 +20,7 @@ import {
   Building,
   Brain,
   Download,
+  HardDrive,
   X
 } from 'lucide-react';
 import { useLeadImport } from '@/hooks/useLeadImport';
@@ -40,7 +41,7 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
   onImportComplete
 }) => {
   const [currentStep, setCurrentStep] = useState<'upload' | 'mapping' | 'review' | 'importing' | 'complete'>('upload');
-  const [selectedImportType, setSelectedImportType] = useState<'csv' | 'zoho' | 'clickup' | 'gohighlevel'>('csv');
+  const [selectedImportType, setSelectedImportType] = useState<'csv' | 'zoho' | 'clickup' | 'gohighlevel' | 'drive'>('csv');
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -161,11 +162,12 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
       </div>
 
       <Tabs value={selectedImportType} onValueChange={(value: any) => setSelectedImportType(value)}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="csv">CSV/Excel</TabsTrigger>
           <TabsTrigger value="zoho">Zoho CRM</TabsTrigger>
           <TabsTrigger value="clickup">ClickUp</TabsTrigger>
           <TabsTrigger value="gohighlevel">GoHighLevel</TabsTrigger>
+          <TabsTrigger value="drive">Google Drive</TabsTrigger>
         </TabsList>
 
         <TabsContent value="csv" className="space-y-4">
@@ -269,6 +271,26 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
                   GoHighLevel integration coming soon. For now, export your leads as CSV and use the CSV upload option.
                 </AlertDescription>
               </Alert>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="drive" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HardDrive className="h-5 w-5" />
+                Import from Google Drive
+              </CardTitle>
+              <CardDescription>
+                Choose a CSV or Excel file stored in your Drive.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button variant="outline" onClick={() => alert('Google Drive import coming soon. Download your file and use the CSV/Excel option.') } className="flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Browse Drive
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
