@@ -1,5 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { masterAIBrain } from '@/services/masterAIBrain';
+import { zohoAPI } from './api';
 import { ZohoErrorHandler } from './errorHandler';
 import { ZohoHelpers } from './helpers';
 
@@ -82,16 +84,77 @@ export class ZohoWebhooks {
 
   private async syncLeadFromZoho(leadId: string, operation: string): Promise<void> {
     try {
-      // This would typically fetch the lead from Zoho API and sync to our database
-      // For now, we'll log the sync operation
       console.log(`Syncing Zoho lead ${leadId} (${operation})`);
-      
-      // TODO: Implement actual lead sync logic
-      // 1. Fetch lead from Zoho API
-      // 2. Transform to our lead format
-      // 3. Upsert to our leads table
-      // 4. Trigger AI processing
-      
+
+      const zohoLead = await zohoAPI.getLead(leadId);
+      if (!zohoLead) {
+        throw new Error('Lead not found');
+      }
+
+      if (!this.helpers.validateZohoLead(zohoLead)) {
+        throw new Error('Invalid lead data');
+      }
+
+      // Determine company and user from active integration
+      const { data: integration } = await (supabase as any)
+        .from('crm_integrations')
+        .select('user_id')
+        .eq('provider', 'zoho')
+        .eq('is_active', true)
+        .single();
+
+      if (!integration?.user_id) {
+        throw new Error('No active Zoho integration');
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', integration.user_id)
+        .single();
+
+      const companyId = profile?.company_id;
+      if (!companyId) {
+        throw new Error('Company not found');
+      }
+
+      const transformedLead = this.helpers.transformZohoLeadToOSLead(zohoLead, companyId);
+
+      const { data: existing } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('source', 'zoho')
+        .like('tags', `%zoho_lead_${leadId}%`)
+        .single();
+
+      if (existing) {
+        await supabase
+          .from('leads')
+          .update({
+            ...transformedLead,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('leads')
+          .insert({
+            ...transformedLead,
+            source: 'zoho',
+            tags: [...(transformedLead.tags || []), `zoho_lead_${leadId}`],
+            created_at: new Date().toISOString(),
+          });
+      }
+
+      await masterAIBrain.ingestEvent({
+        user_id: integration.user_id,
+        company_id: companyId,
+        event_type: 'crm_sync',
+        source: 'zoho',
+        data: zohoLead,
+        context: { operation, leadId },
+      });
+
       await this.logWebhookActivity(leadId, operation, 'success');
     } catch (error) {
       await this.logWebhookActivity(leadId, operation, 'failed', error.message);
