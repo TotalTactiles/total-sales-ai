@@ -71,3 +71,25 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+
+## Claude improvement suggestion format
+
+Responses from the Claude service now return a structured JSON payload. The `improvements` array contains objects describing each recommendation:
+
+```json
+{
+  "improvements": [
+    {
+      "category": "ux_ui",
+      "suggestion": "Improve onboarding flow",
+      "impact": "high",
+      "implementationComplexity": "moderate",
+      "estimatedValue": 80,
+      "confidence": 0.9
+    }
+  ]
+}
+```
+
+The `aiLearningLayer.parseImprovementSuggestions` method parses this JSON. The JSON can be wrapped in ```json fences and may include either an array or an object with an `improvements` field.

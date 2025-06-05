@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { dataEncryptionService } from '../security/dataEncryptionService';
+import { parseImprovementSuggestions as parseClaudeSuggestions } from './improvementParser.js';
 
 interface LearningData {
   id: string;
@@ -153,51 +154,19 @@ export class AILearningLayer {
   }
 
   private parseImprovementSuggestions(response: string, companyId: string): AIImprovement[] {
-    // Parse Claude's response to extract structured improvement suggestions
-    const improvements: AIImprovement[] = [];
-    
-    try {
-      // Look for structured patterns in Claude's response
-      const lines = response.split('\n');
-      let currentCategory: any = null;
-      let currentSuggestion = '';
-      
-      for (const line of lines) {
-        if (line.includes('UX/UI') || line.includes('User Experience')) {
-          currentCategory = 'ux_ui';
-        } else if (line.includes('Feature') || line.includes('Priority')) {
-          currentCategory = 'feature_priority';
-        } else if (line.includes('Automation') || line.includes('Workflow')) {
-          currentCategory = 'automation_flow';
-        } else if (line.includes('Performance') || line.includes('System')) {
-          currentCategory = 'system_performance';
-        } else if (line.trim() && currentCategory) {
-          currentSuggestion += line.trim() + ' ';
-          
-          // If we have enough content, create an improvement
-          if (currentSuggestion.length > 50) {
-            improvements.push({
-              id: crypto.randomUUID(),
-              category: currentCategory,
-              suggestion: currentSuggestion.trim(),
-              impact: this.estimateImpact(currentSuggestion),
-              implementationComplexity: this.estimateComplexity(currentSuggestion),
-              estimatedValue: this.estimateValue(currentSuggestion),
-              confidence: 0.75,
-              generatedBy: 'claude',
-              companyId,
-              timestamp: new Date()
-            });
-            
-            currentSuggestion = '';
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing improvement suggestions:', error);
-    }
-    
-    return improvements;
+    const parsed = parseClaudeSuggestions(response);
+    return parsed.map(p => ({
+      id: crypto.randomUUID(),
+      category: (p.category || 'system_performance') as AIImprovement['category'],
+      suggestion: p.suggestion,
+      impact: (p.impact as AIImprovement['impact']) || this.estimateImpact(p.suggestion),
+      implementationComplexity: (p.implementationComplexity as AIImprovement['implementationComplexity']) || this.estimateComplexity(p.suggestion),
+      estimatedValue: p.estimatedValue ?? this.estimateValue(p.suggestion),
+      confidence: p.confidence ?? 0.75,
+      generatedBy: 'claude',
+      companyId,
+      timestamp: new Date()
+    }));
   }
 
   private estimateImpact(suggestion: string): 'low' | 'medium' | 'high' | 'critical' {
