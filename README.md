@@ -111,6 +111,12 @@ The client now uses this function for speech synthesis instead of reading `VITE_
 
 ## Running tests
 
+Make sure the dependencies are installed first:
+
+```sh
+npm install
+```
+
 To execute the unit tests once, run:
 
 ```sh
@@ -121,4 +127,18 @@ For interactive development with automatic re-runs, use:
 
 ```sh
 npm run test:watch
+```
+
+## Linting
+
+Install the dependencies if you haven't already:
+
+```sh
+npm install
+```
+
+Then check the code style with:
+
+```sh
+npm run lint
 ```
