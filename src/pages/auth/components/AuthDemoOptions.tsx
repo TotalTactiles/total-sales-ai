@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React from 'react';
 import { Role } from '@/contexts/auth/types';
@@ -31,13 +32,13 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
   
   const handleDirectDemoLogin = () => {
     // Skip the form and directly log in with demo mode
-    console.log("Direct demo login with role:", selectedRole);
+    logger.info("Direct demo login with role:", selectedRole);
     initializeDemoMode(selectedRole);
     setIsTransitioning(true);
     
     // Direct navigation based on role - using correct existing routes
     const redirectPath = selectedRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
-    console.log("Redirecting to:", redirectPath);
+    logger.info("Redirecting to:", redirectPath);
     
     setTimeout(() => {
       navigate(redirectPath);

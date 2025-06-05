@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,7 +53,7 @@ export const useGmailIntegration = () => {
       setConnectionStatus(status);
       return status;
     } catch (error) {
-      console.error('Failed to check Gmail connection:', error);
+      logger.error('Failed to check Gmail connection:', error);
       const status = {
         connected: false,
         message: 'Failed to check connection status',
@@ -119,7 +120,7 @@ export const useGmailIntegration = () => {
 
       return { success: false };
     } catch (error) {
-      console.error('Failed to connect Gmail:', error);
+      logger.error('Failed to connect Gmail:', error);
       toast.error('Failed to initiate Gmail connection');
       return { success: false };
     } finally {
@@ -159,7 +160,7 @@ export const useGmailIntegration = () => {
 
       throw new Error(data.error || 'Failed to send email');
     } catch (error: any) {
-      console.error('Failed to send email:', error);
+      logger.error('Failed to send email:', error);
       toast.error(error.message || 'Failed to send email');
       return { success: false, error: error.message };
     } finally {
@@ -200,7 +201,7 @@ export const useGmailIntegration = () => {
       toast.success('Gmail disconnected successfully');
       return { success: true };
     } catch (error) {
-      console.error('Failed to disconnect Gmail:', error);
+      logger.error('Failed to disconnect Gmail:', error);
       toast.error('Failed to disconnect Gmail');
       return { success: false };
     }

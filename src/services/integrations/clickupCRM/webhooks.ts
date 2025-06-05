@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { masterAIBrain } from '@/services/masterAIBrain';
@@ -41,7 +42,7 @@ export class ClickUpWebhooks {
 
   async handleWebhook(payload: ClickUpWebhookPayload): Promise<void> {
     try {
-      console.log('Processing ClickUp webhook:', payload);
+      logger.info('Processing ClickUp webhook:', payload);
 
       switch (payload.event) {
         case 'taskCreated':
@@ -57,7 +58,7 @@ export class ClickUpWebhooks {
           await this.handleTaskStatusUpdated(payload.task_id, payload.history_items);
           break;
         default:
-          console.log(`Unhandled ClickUp event: ${payload.event}`);
+          logger.info(`Unhandled ClickUp event: ${payload.event}`);
       }
     } catch (error) {
       await this.errorHandler.logError(error, 'Webhook processing failed');
@@ -68,7 +69,7 @@ export class ClickUpWebhooks {
     try {
       if (!taskId) return;
       
-      console.log(`Handling ClickUp task creation: ${taskId}`);
+      logger.info(`Handling ClickUp task creation: ${taskId}`);
       await this.syncTaskFromClickUp(taskId, 'created');
     } catch (error) {
       await this.errorHandler.logError(error, 'Failed to handle task creation webhook');
@@ -79,13 +80,13 @@ export class ClickUpWebhooks {
     try {
       if (!taskId) return;
       
-      console.log(`Handling ClickUp task update: ${taskId}`);
+      logger.info(`Handling ClickUp task update: ${taskId}`);
       await this.syncTaskFromClickUp(taskId, 'updated');
       
       // Log specific field changes
       if (historyItems) {
         for (const item of historyItems) {
-          console.log(`Field ${item.field} changed:`, item.data);
+          logger.info(`Field ${item.field} changed:`, item.data);
         }
       }
     } catch (error) {
@@ -97,7 +98,7 @@ export class ClickUpWebhooks {
     try {
       if (!taskId) return;
       
-      console.log(`Handling ClickUp task deletion: ${taskId}`);
+      logger.info(`Handling ClickUp task deletion: ${taskId}`);
       await this.markTaskAsDeleted(taskId);
     } catch (error) {
       await this.errorHandler.logError(error, 'Failed to handle task deletion webhook');
@@ -108,12 +109,12 @@ export class ClickUpWebhooks {
     try {
       if (!taskId) return;
       
-      console.log(`Handling ClickUp task status update: ${taskId}`);
+      logger.info(`Handling ClickUp task status update: ${taskId}`);
       
       // Find status change in history
       const statusChange = historyItems?.find(item => item.field === 'status');
       if (statusChange) {
-        console.log(`Status changed to: ${statusChange.data?.status?.status}`);
+        logger.info(`Status changed to: ${statusChange.data?.status?.status}`);
       }
       
       await this.syncTaskFromClickUp(taskId, 'status_updated');
@@ -124,7 +125,7 @@ export class ClickUpWebhooks {
 
   private async syncTaskFromClickUp(taskId: string, operation: string): Promise<void> {
     try {
-      console.log(`Syncing ClickUp task ${taskId} (${operation})`);
+      logger.info(`Syncing ClickUp task ${taskId} (${operation})`);
 
       const task = await clickUpAPI.getTask(taskId);
       if (!task) {
@@ -236,13 +237,13 @@ export class ClickUpWebhooks {
           created_at: new Date().toISOString()
         });
     } catch (logError) {
-      console.error('Failed to log webhook activity:', logError);
+      logger.error('Failed to log webhook activity:', logError);
     }
   }
 
   async setupWebhooks(listIds: string[]): Promise<boolean> {
     try {
-      console.log('Setting up ClickUp webhooks for lists:', listIds);
+      logger.info('Setting up ClickUp webhooks for lists:', listIds);
       
       // TODO: Implement webhook setup via ClickUp API
       // This would create webhooks for each list to monitor task changes
@@ -266,7 +267,7 @@ export class ClickUpWebhooks {
 
       return computed === signature;
     } catch (error) {
-      console.error('Webhook signature validation failed:', error);
+      logger.error('Webhook signature validation failed:', error);
       return false;
     }
   }

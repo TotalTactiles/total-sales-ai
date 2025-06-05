@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
@@ -46,14 +47,14 @@ const DeveloperNavigation: React.FC = () => {
     setTestMode(nextMode);
     
     // In Developer OS, we can simulate different OS views for testing
-    console.log(`Developer Testing: Simulating ${nextMode} experience`);
+    logger.info(`Developer Testing: Simulating ${nextMode} experience`);
   };
 
   const handleLogout = async () => {
     try {
       await signOut();
     } catch (error) {
-      console.error('Logout failed:', error);
+      logger.error('Logout failed:', error);
     }
   };
 

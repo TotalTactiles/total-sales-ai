@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { encryptionService } from '@/services/security/encryptionService';
@@ -58,7 +59,7 @@ export class AuditLoggingService {
       }
 
     } catch (error) {
-      console.error('Failed to log audit event:', error);
+      logger.error('Failed to log audit event:', error);
       accessControlService.logSecurityEvent(
         'Audit logging failure',
         { action, resource, error: error instanceof Error ? error.message : 'Unknown error' },

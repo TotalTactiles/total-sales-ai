@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +9,7 @@ const LogoutHandler = () => {
   useEffect(() => {
     const handleLogout = async () => {
       try {
-        console.log('LogoutHandler: Starting logout process');
+        logger.info('LogoutHandler: Starting logout process');
         
         // Clear all local storage and session storage first
         localStorage.clear();
@@ -26,13 +27,13 @@ const LogoutHandler = () => {
         // Sign out from auth
         await signOut();
         
-        console.log('LogoutHandler: Forcing redirect to auth');
+        logger.info('LogoutHandler: Forcing redirect to auth');
         
         // Force a complete page reload to the auth page to clear all state
         window.location.replace('/auth');
         
       } catch (error) {
-        console.error('LogoutHandler error:', error);
+        logger.error('LogoutHandler error:', error);
         // Force redirect even on error
         localStorage.clear();
         sessionStorage.clear();

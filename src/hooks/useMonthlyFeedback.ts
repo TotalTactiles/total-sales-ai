@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,7 +56,7 @@ export const useMonthlyFeedback = () => {
         await generateMonthlyFeedback(settings.original_goal);
       }
     } catch (error) {
-      console.error('Error checking feedback schedule:', error);
+      logger.error('Error checking feedback schedule:', error);
     } finally {
       setIsLoading(false);
     }
@@ -172,7 +173,7 @@ export const useMonthlyFeedback = () => {
       });
       
     } catch (error) {
-      console.error('Error generating monthly feedback:', error);
+      logger.error('Error generating monthly feedback:', error);
     } finally {
       setIsLoading(false);
     }
@@ -214,7 +215,7 @@ export const useMonthlyFeedback = () => {
       setFeedbackReady(false);
       
     } catch (error) {
-      console.error('Error accepting suggestions:', error);
+      logger.error('Error accepting suggestions:', error);
       toast.error('Failed to process feedback suggestions');
     } finally {
       setIsLoading(false);

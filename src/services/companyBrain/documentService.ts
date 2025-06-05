@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { UploadedFile } from './types';
@@ -41,7 +42,7 @@ export class DocumentService {
         uploadedFiles.push(uploadedFile);
         toast.success(`${file.name} uploaded successfully`);
       } catch (error) {
-        console.error('Error uploading file:', error);
+        logger.error('Error uploading file:', error);
         toast.error(`Failed to upload ${file.name}`);
       }
     }
@@ -75,7 +76,7 @@ export class DocumentService {
         };
       });
     } catch (error) {
-      console.error('Error getting uploaded files:', error);
+      logger.error('Error getting uploaded files:', error);
       return [];
     }
   }
@@ -96,7 +97,7 @@ export class DocumentService {
           visibility: 'admin_only'
         });
     } catch (error) {
-      console.error('Error categorizing file:', error);
+      logger.error('Error categorizing file:', error);
     }
   }
 

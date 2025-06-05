@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -67,7 +68,7 @@ export const useAISecurityPosture = () => {
         }
 
       } catch (error) {
-        console.error('Security posture check failed:', error);
+        logger.error('Security posture check failed:', error);
         addSecurityEvent({
           type: 'api_misuse',
           severity: 'low',
@@ -93,7 +94,7 @@ export const useAISecurityPosture = () => {
     setSecurityEvents(prev => [newEvent, ...prev.slice(0, 49)]); // Keep last 50 events
 
     // Log to console for debugging
-    console.log('Security Event:', newEvent);
+    logger.info('Security Event:', newEvent);
   };
 
   const encryptSensitiveData = (data: any): string => {

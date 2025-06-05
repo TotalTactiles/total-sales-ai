@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { DatabaseLead } from '@/hooks/useLeads';
 
@@ -64,7 +65,7 @@ export class ClickUpHelpers {
         is_sensitive: this.checkIfSensitiveTask(task)
       };
     } catch (error) {
-      console.error('Error transforming ClickUp task:', error);
+      logger.error('Error transforming ClickUp task:', error);
       throw new Error(`Failed to transform ClickUp task ${task.id}: ${error.message}`);
     }
   }
@@ -296,7 +297,7 @@ export class ClickUpHelpers {
       
       return Math.floor(diffMinutes / 60);
     } catch (error) {
-      console.error('Error calculating speed to lead:', error);
+      logger.error('Error calculating speed to lead:', error);
       return 0;
     }
   }
@@ -326,7 +327,7 @@ export class ClickUpHelpers {
     try {
       return new Date(dateString);
     } catch (error) {
-      console.error('Invalid date format from ClickUp:', dateString);
+      logger.error('Invalid date format from ClickUp:', dateString);
       return null;
     }
   }

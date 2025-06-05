@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({
     if (isPlaying) return;
     try {
       setIsPlaying(true);
-      console.log('Starting audio playback for summary');
+      logger.info('Starting audio playback for summary');
       toast.info('Generating voice summary... (Test Mode)');
 
       // Validate summary before playing
@@ -36,7 +37,7 @@ const AIDailySummary: React.FC<AIDailySummaryProps> = ({
       await voiceService.generateVoiceResponse(voiceText);
       toast.success('Summary played successfully (Test Mode)');
     } catch (error) {
-      console.error('Error playing audio summary:', error);
+      logger.error('Error playing audio summary:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to play audio summary';
       const safeErrorMessage = validateStringParam(errorMessage, 'Audio playback failed');
       toast.error(safeErrorMessage);

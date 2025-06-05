@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { masterAIBrain, AIRecommendation } from '@/services/masterAIBrain';
@@ -74,7 +75,7 @@ export const useManagerAI = () => {
       });
 
     } catch (error) {
-      console.error('Error getting contextual insights:', error);
+      logger.error('Error getting contextual insights:', error);
       toast.error('Failed to generate insights');
     } finally {
       setIsGenerating(false);
@@ -219,7 +220,7 @@ export const useManagerAI = () => {
       return data.response;
 
     } catch (error) {
-      console.error('Error generating manager report:', error);
+      logger.error('Error generating manager report:', error);
       toast.error('Failed to generate report');
       return null;
     } finally {
@@ -243,7 +244,7 @@ export const useManagerAI = () => {
         timestamp: new Date().toISOString()
       };
     } catch (error) {
-      console.error('Error gathering report data:', error);
+      logger.error('Error gathering report data:', error);
       return {};
     }
   };
@@ -298,7 +299,7 @@ export const useManagerAI = () => {
       return newSequence;
 
     } catch (error) {
-      console.error('Error creating automation sequence:', error);
+      logger.error('Error creating automation sequence:', error);
       toast.error('Failed to create automation sequence');
       return null;
     }
@@ -341,7 +342,7 @@ export const useManagerAI = () => {
       return data.response;
 
     } catch (error) {
-      console.error('Error asking Jarvis:', error);
+      logger.error('Error asking Jarvis:', error);
       toast.error('Failed to get response from Jarvis');
       return null;
     } finally {
@@ -364,7 +365,7 @@ export const useManagerAI = () => {
         timestamp: new Date().toISOString()
       };
     } catch (error) {
-      console.error('Error getting manager context:', error);
+      logger.error('Error getting manager context:', error);
       return {};
     }
   };
@@ -378,7 +379,7 @@ export const useManagerAI = () => {
 
       return data || [];
     } catch (error) {
-      console.error('Error getting team stats:', error);
+      logger.error('Error getting team stats:', error);
       return [];
     }
   };
@@ -394,7 +395,7 @@ export const useManagerAI = () => {
 
       return data || [];
     } catch (error) {
-      console.error('Error getting recent insights:', error);
+      logger.error('Error getting recent insights:', error);
       return [];
     }
   };
@@ -414,7 +415,7 @@ export const useManagerAI = () => {
 
       return metrics;
     } catch (error) {
-      console.error('Error getting company metrics:', error);
+      logger.error('Error getting company metrics:', error);
       return {};
     }
   };

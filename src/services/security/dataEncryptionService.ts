@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 export class DataEncryptionService {
   private static instance: DataEncryptionService;
@@ -36,7 +37,7 @@ export class DataEncryptionService {
 
       return btoa(String.fromCharCode(...combined));
     } catch (error) {
-      console.error('Encryption failed:', error);
+      logger.error('Encryption failed:', error);
       try {
         const jsonString = JSON.stringify(data);
         return btoa(jsonString); // Fallback to basic encoding
@@ -58,7 +59,7 @@ export class DataEncryptionService {
       const jsonString = new TextDecoder().decode(plainBuffer);
       return JSON.parse(jsonString);
     } catch (error) {
-      console.error('Decryption failed:', error);
+      logger.error('Decryption failed:', error);
       try {
         const jsonString = atob(encryptedData);
         return JSON.parse(jsonString);

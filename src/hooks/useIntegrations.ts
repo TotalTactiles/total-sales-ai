@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,7 +27,7 @@ export const useIntegrations = () => {
 
       return { success: false, error: 'No auth URL received' };
     } catch (error) {
-      console.error('Gmail connection error:', error);
+      logger.error('Gmail connection error:', error);
       toast.error('Failed to connect Gmail');
       return { success: false, error };
     } finally {
@@ -68,7 +69,7 @@ export const useIntegrations = () => {
         emailId: data?.emailId 
       };
     } catch (error) {
-      console.error('Email send error:', error);
+      logger.error('Email send error:', error);
       toast.error('Failed to send email');
       return { success: false, error };
     } finally {
@@ -87,7 +88,7 @@ export const useIntegrations = () => {
     try {
       // For now, we'll simulate a call initiation
       // In a real implementation, this would connect to Twilio or similar service
-      console.log(`Initiating call to ${phoneNumber} for lead ${leadName}`);
+      logger.info(`Initiating call to ${phoneNumber} for lead ${leadName}`);
       
       // Log the call attempt
       await supabase.from('usage_events').insert({
@@ -107,7 +108,7 @@ export const useIntegrations = () => {
         callSid 
       };
     } catch (error) {
-      console.error('Call initiation error:', error);
+      logger.error('Call initiation error:', error);
       toast.error('Failed to initiate call');
       return { success: false, error };
     } finally {
@@ -126,7 +127,7 @@ export const useIntegrations = () => {
     try {
       // For now, we'll simulate SMS sending
       // In a real implementation, this would connect to Twilio SMS service
-      console.log(`Sending SMS to ${phoneNumber}: ${message}`);
+      logger.info(`Sending SMS to ${phoneNumber}: ${message}`);
       
       // Log the SMS attempt
       await supabase.from('usage_events').insert({
@@ -146,7 +147,7 @@ export const useIntegrations = () => {
         messageSid 
       };
     } catch (error) {
-      console.error('SMS send error:', error);
+      logger.error('SMS send error:', error);
       toast.error('Failed to send SMS');
       return { success: false, error };
     } finally {
@@ -165,7 +166,7 @@ export const useIntegrations = () => {
     try {
       // For now, we'll simulate calendar event creation
       // In a real implementation, this would connect to Google Calendar API
-      console.log(`Scheduling calendar event for ${leadName}:`, eventDetails);
+      logger.info(`Scheduling calendar event for ${leadName}:`, eventDetails);
       
       // Log the calendar event attempt
       await supabase.from('usage_events').insert({
@@ -185,7 +186,7 @@ export const useIntegrations = () => {
         eventId 
       };
     } catch (error) {
-      console.error('Calendar event error:', error);
+      logger.error('Calendar event error:', error);
       toast.error('Failed to schedule meeting');
       return { success: false, error };
     } finally {

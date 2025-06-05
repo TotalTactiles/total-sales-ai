@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -28,7 +29,7 @@ const RoleToggle: React.FC = () => {
       const redirectPath = newRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
       window.location.href = redirectPath;
     } catch (error) {
-      console.error('Error toggling role:', error);
+      logger.error('Error toggling role:', error);
       toast.error('Failed to switch role');
     }
   };

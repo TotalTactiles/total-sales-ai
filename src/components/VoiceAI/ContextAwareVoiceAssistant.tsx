@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -70,7 +71,7 @@ const ContextAwareVoiceAssistant: React.FC<ContextAwareVoiceAssistantProps> = ({
   };
 
   const handleAction = (action: string, data?: any) => {
-    console.log('AI Action:', action, data);
+    logger.info('AI Action:', action, data);
     // Handle various AI actions based on the action type
     switch (action) {
       case 'initiate_call':
@@ -83,7 +84,7 @@ const ContextAwareVoiceAssistant: React.FC<ContextAwareVoiceAssistantProps> = ({
         // Show objection handling scripts
         break;
       default:
-        console.log('Unhandled action:', action);
+        logger.info('Unhandled action:', action);
     }
   };
 

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { useNotifications } from './useNotifications';
@@ -26,8 +27,8 @@ export const useErrorBoundary = () => {
 
     // Log to console in development
     if (import.meta.env.DEV) {
-      console.error('Application Error:', error);
-      console.error('Error Info:', errorInfo);
+      logger.error('Application Error:', error);
+      logger.error('Error Info:', errorInfo);
     }
 
     // Create user notification for critical errors

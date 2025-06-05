@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,7 +27,7 @@ export const useAudioProcessing = () => {
       return true;
 
     } catch (error: any) {
-      console.error('Error starting audio recording:', error);
+      logger.error('Error starting audio recording:', error);
       
       if (error.name === 'NotAllowedError') {
         toast.error('Microphone access denied. Please allow microphone access and try again.');
@@ -72,7 +73,7 @@ export const useAudioProcessing = () => {
 
       return transcriptionData.text;
     } catch (error) {
-      console.error('Error processing audio command:', error);
+      logger.error('Error processing audio command:', error);
       throw error;
     }
   }, []);
@@ -89,7 +90,7 @@ export const useAudioProcessing = () => {
         });
       }
     } catch (error) {
-      console.error('Error generating voice response:', error);
+      logger.error('Error generating voice response:', error);
     }
   }, []);
 

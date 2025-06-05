@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,7 +52,7 @@ const DeveloperLogs: React.FC = () => {
       if (error) throw error;
       setLogs(data || []);
     } catch (error) {
-      console.error('Error fetching logs:', error);
+      logger.error('Error fetching logs:', error);
     } finally {
       setLoading(false);
     }

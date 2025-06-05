@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 export const optimizeForMobile = (): void => {
   try {
@@ -36,8 +37,8 @@ export const optimizeForMobile = (): void => {
     // Prevent pull-to-refresh on mobile
     document.body.style.overscrollBehavior = 'none';
 
-    console.log('Mobile optimizations applied successfully');
+    logger.info('Mobile optimizations applied successfully');
   } catch (error) {
-    console.warn('Failed to apply mobile optimizations:', error);
+    logger.warn('Failed to apply mobile optimizations:', error);
   }
 };

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { dataEncryptionService } from '../security/dataEncryptionService';
@@ -74,7 +75,7 @@ export class AILearningLayer {
         visibility: 'admin_only'
       });
     } catch (error) {
-      console.error('Failed to store learning data:', error);
+      logger.error('Failed to store learning data:', error);
     }
   }
 
@@ -91,7 +92,7 @@ export class AILearningLayer {
         await this.generateImprovements(companyId, companyData);
       }
     } catch (error) {
-      console.error('Error processing learning buffer:', error);
+      logger.error('Error processing learning buffer:', error);
     }
   }
 
@@ -148,7 +149,7 @@ export class AILearningLayer {
         });
       }
     } catch (error) {
-      console.error('Failed to generate improvements for company:', companyId, error);
+      logger.error('Failed to generate improvements for company:', companyId, error);
     }
   }
 
@@ -194,7 +195,7 @@ export class AILearningLayer {
         }
       }
     } catch (error) {
-      console.error('Error parsing improvement suggestions:', error);
+      logger.error('Error parsing improvement suggestions:', error);
     }
     
     return improvements;
@@ -272,7 +273,7 @@ export class AILearningLayer {
         .update({ accepted: true })
         .eq('id', improvementId);
     } catch (error) {
-      console.error('Failed to mark improvement as implemented:', error);
+      logger.error('Failed to mark improvement as implemented:', error);
     }
   }
 }

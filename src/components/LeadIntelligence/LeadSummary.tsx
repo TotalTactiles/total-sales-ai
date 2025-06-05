@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,7 +64,7 @@ const LeadSummary: React.FC<LeadSummaryProps> = ({
       }, 2000);
     } catch (error) {
       setIsGenerating(false);
-      console.error('Error generating AI summary:', error);
+      logger.error('Error generating AI summary:', error);
     }
   };
 

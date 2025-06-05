@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { User } from '@supabase/supabase-js';
 import { Role, Profile } from './types';
@@ -6,7 +7,7 @@ export const initializeDemoUser = (role: Role): {
   demoUser: User;
   demoProfile: Profile;
 } => {
-  console.log("Initializing demo user with role:", role);
+  logger.info("Initializing demo user with role:", role);
   
   // Create a mock user for demo purposes with safe type casting
   const demoUser = {
@@ -26,8 +27,8 @@ export const initializeDemoUser = (role: Role): {
     role: role,
   };
 
-  console.log("Setting demo user:", demoUser);
-  console.log("Setting demo profile:", demoProfile);
+  logger.info("Setting demo user:", demoUser);
+  logger.info("Setting demo profile:", demoProfile);
   
   return { demoUser, demoProfile };
 };

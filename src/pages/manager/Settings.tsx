@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,7 +53,7 @@ const ManagerSettings = () => {
   });
 
   const handleSave = () => {
-    console.log('Saving settings:', settings);
+    logger.info('Saving settings:', settings);
     // In a real app, this would save to the backend
   };
 

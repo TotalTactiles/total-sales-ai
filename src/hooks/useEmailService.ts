@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -45,7 +46,7 @@ export const useEmailService = () => {
       toast.success('Email sent successfully');
       return { success: true, data };
     } catch (error) {
-      console.error('Email send error:', error);
+      logger.error('Email send error:', error);
       toast.error('Failed to send email');
       return { success: false, error };
     } finally {
@@ -79,7 +80,7 @@ export const useEmailService = () => {
       toast.success('Email sequence started');
       return { success: true, data };
     } catch (error) {
-      console.error('Email sequence error:', error);
+      logger.error('Email sequence error:', error);
       toast.error('Failed to start email sequence');
       return { success: false, error };
     } finally {

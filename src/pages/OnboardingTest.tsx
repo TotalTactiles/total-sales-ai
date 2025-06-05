@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +18,7 @@ const OnboardingTest: React.FC = () => {
       <OnboardingProvider
         initialCompanyId="test-company-id"
         completeOnboardingFn={async (settings) => {
-          console.log('Test onboarding completed:', settings);
+          logger.info('Test onboarding completed:', settings);
           alert('Test onboarding completed! Check console for details.');
           setShowOnboarding(false);
         }}

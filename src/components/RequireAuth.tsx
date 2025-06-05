@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
@@ -11,7 +12,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
   const { user, profile, loading, isDemoMode } = useAuth();
   const location = useLocation();
 
-  console.log('RequireAuth check:', { 
+  logger.info('RequireAuth check:', { 
     loading, 
     user: !!user, 
     profile: !!profile, 
@@ -30,13 +31,13 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
 
   // Allow demo mode access
   if (isDemoMode()) {
-    console.log('RequireAuth: Demo mode active, allowing access');
+    logger.info('RequireAuth: Demo mode active, allowing access');
     return <>{children}</>;
   }
 
   // If no user and not in demo mode, redirect to auth
   if (!user) {
-    console.log('RequireAuth: No user, redirecting to auth');
+    logger.info('RequireAuth: No user, redirecting to auth');
     // Force a complete redirect to clear any cached state
     window.location.replace('/auth');
     return null;
@@ -44,11 +45,11 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
 
   // If user is authenticated but no profile, redirect to auth for completion
   if (!profile) {
-    console.log('RequireAuth: User but no profile, redirecting to auth');
+    logger.info('RequireAuth: User but no profile, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 
-  console.log('RequireAuth: Access granted');
+  logger.info('RequireAuth: Access granted');
   return <>{children}</>;
 };
 

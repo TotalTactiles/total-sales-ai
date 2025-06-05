@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -67,7 +68,7 @@ const LeadCard: React.FC<LeadCardProps> = ({
   };
 
   const handleCardClick = () => {
-    console.log('LeadCard clicked - Lead ID:', lead.id, 'Lead Name:', lead.name);
+    logger.info('LeadCard clicked - Lead ID:', lead.id, 'Lead Name:', lead.name);
     onCardClick(lead);
   };
 

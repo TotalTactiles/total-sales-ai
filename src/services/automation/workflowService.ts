@@ -173,7 +173,7 @@ export class WorkflowService {
   private async sendEmail(parameters: any, triggerData?: any): Promise<boolean> {
     try {
       // Simulate email sending for now
-      console.log('Sending email:', { parameters, triggerData });
+      logger.info('Sending email:', { parameters, triggerData });
       return true;
     } catch (error) {
       logger.error('Email sending failed', error, 'automation');
@@ -184,7 +184,7 @@ export class WorkflowService {
   private async makeCall(parameters: any, triggerData?: any): Promise<boolean> {
     try {
       // Simulate call making for now
-      console.log('Making call:', { parameters, triggerData });
+      logger.info('Making call:', { parameters, triggerData });
       return true;
     } catch (error) {
       logger.error('Call initiation failed', error, 'automation');
@@ -209,7 +209,7 @@ export class WorkflowService {
   private async createTask(parameters: any, triggerData?: any): Promise<boolean> {
     try {
       // For now, simulate task creation since tasks table may not exist
-      console.log('Creating task:', { parameters, triggerData });
+      logger.info('Creating task:', { parameters, triggerData });
       return true;
     } catch (error) {
       logger.error('Task creation failed', error, 'automation');
@@ -220,7 +220,7 @@ export class WorkflowService {
   private async sendSMS(parameters: any, triggerData?: any): Promise<boolean> {
     try {
       // Simulate SMS sending for now
-      console.log('Sending SMS:', { parameters, triggerData });
+      logger.info('Sending SMS:', { parameters, triggerData });
       return true;
     } catch (error) {
       logger.error('SMS sending failed', error, 'automation');
@@ -236,7 +236,7 @@ export class WorkflowService {
       const response = await unifiedAIService.generateResponse(prompt, undefined, context);
       
       // Log the analysis result instead of storing in non-existent table
-      console.log('AI Analysis completed:', response);
+      logger.info('AI Analysis completed:', response);
 
       return true;
     } catch (error) {

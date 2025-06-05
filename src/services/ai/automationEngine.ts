@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -79,7 +80,7 @@ export class NativeAutomationEngine {
       };
 
     } catch (error) {
-      console.error('Error creating automation flow:', error);
+      logger.error('Error creating automation flow:', error);
       return {
         success: false,
         message: 'Failed to create automation flow'
@@ -128,7 +129,7 @@ export class NativeAutomationEngine {
       return result;
 
     } catch (error) {
-      console.error('Error executing flow:', error);
+      logger.error('Error executing flow:', error);
       return {
         success: false,
         message: 'Flow execution failed'
@@ -155,7 +156,7 @@ export class NativeAutomationEngine {
       return null;
 
     } catch (error) {
-      console.error('Error getting flow:', error);
+      logger.error('Error getting flow:', error);
       return null;
     }
   }

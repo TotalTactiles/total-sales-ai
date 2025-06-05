@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -32,7 +33,7 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  console.log('App component rendering');
+  logger.info('App component rendering');
   
   return (
     <QueryClientProvider client={queryClient}>
