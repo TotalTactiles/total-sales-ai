@@ -22,6 +22,44 @@ class MasterAIBrain {
   private recommendationService = new RecommendationService();
   private learningEngine = new LearningEngine();
 
+  // Load any unprocessed events from the database on startup
+  async reloadUnprocessedEvents(): Promise<void> {
+    try {
+      const { data, error } = await supabase
+        .from('ai_brain_logs')
+        .select('id, company_id, payload, timestamp')
+        .eq('type', 'ingestion')
+        .eq('processed', false);
+
+      if (error) throw error;
+
+      for (const row of data || []) {
+        const payload = row.payload as any;
+        if (!payload) continue;
+
+        const event: AIIngestionEvent = {
+          id: row.id,
+          timestamp: new Date(payload.timestamp || row.timestamp || Date.now()),
+          processed: false,
+          user_id: payload.user_id,
+          company_id: row.company_id || payload.company_id,
+          event_type: payload.event_type,
+          source: payload.source,
+          data: payload.data,
+          context: payload.context
+        };
+
+        this.ingestionQueue.push(event);
+      }
+
+      if (!this.isProcessing && this.ingestionQueue.length > 0) {
+        this.processIngestionQueue();
+      }
+    } catch (error) {
+      console.error('Error reloading unprocessed events:', error);
+    }
+  }
+
   static getInstance(): MasterAIBrain {
     if (!MasterAIBrain.instance) {
       MasterAIBrain.instance = new MasterAIBrain();
@@ -50,6 +88,7 @@ class MasterAIBrain {
       const { error } = await supabase
         .from('ai_brain_logs')
         .insert({
+          id: enrichedEvent.id,
           company_id: event.company_id,
           type: 'ingestion',
           event_summary: `${event.event_type}: ${event.source}`,
@@ -61,6 +100,7 @@ class MasterAIBrain {
             context: event.context,
             timestamp: enrichedEvent.timestamp.toISOString()
           },
+          processed: false,
           visibility: 'admin_only'
         });
 
@@ -158,7 +198,13 @@ class MasterAIBrain {
         
         // Check for automation triggers using new native engine
         await this.checkNativeAutomationTriggers(event);
-        
+
+        // Mark event as processed in the database
+        await supabase
+          .from('ai_brain_logs')
+          .update({ processed: true })
+          .eq('id', event.id);
+
       } catch (error) {
         console.error('Error processing event:', event, error);
       }
@@ -382,3 +428,5 @@ export const masterAIBrain = MasterAIBrain.getInstance();
 
 // Initialize automation when the module loads
 masterAIBrain.initializeAutomation();
+// Reload any unprocessed ingestion events
+masterAIBrain.reloadUnprocessedEvents();
