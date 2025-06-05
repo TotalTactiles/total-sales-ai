@@ -64,6 +64,10 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/13606cdc-6b16-461d-b2be-0098b12e8f3a) and click on Share -> Publish.
 
+When deploying the Supabase functions, set the `CORS_ALLOWED_ORIGINS` environment
+variable with a comma-separated list of domains allowed to call the functions.
+Only requests from these origins will be permitted.
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
