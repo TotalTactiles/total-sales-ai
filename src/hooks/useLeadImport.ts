@@ -385,6 +385,7 @@ export const useLeadImport = () => {
 
       let successCount = 0;
       let errorCount = 0;
+      let duplicateCount = 0;
 
       // Process each record
       for (const record of rawData) {
@@ -394,7 +395,23 @@ export const useLeadImport = () => {
             ? record.raw_data as Record<string, any>
             : {};
             
-          const mappedData = mapRawDataToLead(rawDataObj, session.field_mapping as Record<string, string>);
+          const mappedData = mapRawDataToLead(
+            rawDataObj,
+            session.field_mapping as Record<string, string>
+          );
+
+          // Check for existing lead by email or phone
+          const existingLead = await findExistingLead(mappedData.email, mappedData.phone);
+
+          if (existingLead) {
+            await supabase
+              .from('import_raw_data')
+              .update({ status: 'duplicate' })
+              .eq('id', record.id);
+
+            duplicateCount++;
+            continue;
+          }
           
           // Ensure name is provided (required field)
           if (!mappedData.name) {
@@ -450,8 +467,8 @@ export const useLeadImport = () => {
         totalLeads: rawData.length,
         readyToImport: successCount,
         flaggedForAttention: errorCount,
-        duplicatesFound: 0, // TODO: Implement duplicate detection
-        skippedRecords: 0,
+        duplicatesFound: duplicateCount,
+        skippedRecords: duplicateCount + errorCount,
         dataQuality: {
           hasEmail: rawData.filter(r => {
             const data = r.raw_data as Record<string, any>;
@@ -486,10 +503,11 @@ export const useLeadImport = () => {
 
       await supabase
         .from('import_sessions')
-        .update({ 
+        .update({
           status: 'completed',
           successful_imports: successCount,
           failed_imports: errorCount,
+          duplicate_records: duplicateCount,
           import_summary: summaryJson,
           completed_at: new Date().toISOString()
         })
@@ -561,6 +579,47 @@ export const useLeadImport = () => {
 
     return mappedData;
   };
+
+  const findExistingLead = async (email?: string, phone?: string) => {
+    if (!profile?.company_id) return null;
+
+    if (email) {
+      const { data } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('email', email)
+        .maybeSingle();
+
+      if (data) return data;
+    }
+
+    if (phone) {
+      const { data } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('company_id', profile.company_id)
+        .eq('phone', phone)
+        .maybeSingle();
+
+      if (data) return data;
+    }
+
+    return null;
+  };
+
+  const checkExistingLeads = useCallback(
+    async (rows: Record<string, any>[], fieldMapping: Record<string, string>): Promise<number> => {
+      let count = 0;
+      for (const row of rows) {
+        const mapped = mapRawDataToLead(row, fieldMapping);
+        const exists = await findExistingLead(mapped.email, mapped.phone);
+        if (exists) count++;
+      }
+      return count;
+    },
+    [profile?.company_id]
+  );
 
   const fetchImportSessions = useCallback(async () => {
     if (!profile?.company_id) return;
@@ -662,6 +721,7 @@ export const useLeadImport = () => {
     saveFieldMapping,
     generateAIRecommendations,
     processImport,
+    checkExistingLeads,
     fetchImportSessions,
     setCurrentSession
   };
