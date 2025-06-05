@@ -1,3 +1,4 @@
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogEntry {
@@ -28,7 +29,7 @@ class Logger {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
-    // Console output
+    // Console output - use console methods directly to avoid recursion
     const consoleMessage = `[${context || 'APP'}] ${message}`;
     
     switch (level) {
@@ -39,10 +40,10 @@ class Logger {
         console.info(consoleMessage, data);
         break;
       case 'warn':
-        logger.warn(consoleMessage, data);
+        console.warn(consoleMessage, data);
         break;
       case 'error':
-        logger.error(consoleMessage, data);
+        console.error(consoleMessage, data);
         break;
     }
   }

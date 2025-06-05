@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
@@ -151,7 +150,7 @@ const ManagerDashboard = () => {
           .single();
           
         if (statsError && statsError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
-          logger.error('Error fetching stats for user', profile.id, statsError.message);
+          logger.error('Error fetching stats for user', { userId: profile.id, error: statsError.message });
           continue;
         }
         
@@ -178,7 +177,7 @@ const ManagerDashboard = () => {
       setRecommendations([]);
       
     } catch (error) {
-      logger.error('Error fetching data:', error);
+      logger.error('Error fetching data:', { error });
     } finally {
       setLoading(false);
     }

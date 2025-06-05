@@ -2,35 +2,13 @@ import { logger } from '@/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { toast } from 'sonner';
-import DashboardNavigation from '@/components/Dashboard/DashboardNavigation';
+import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
+import ManagerOverviewCards from '@/components/Manager/ManagerOverviewCards';
+import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
 import ManagerAIAssistant from '@/components/ManagerAI/ManagerAIAssistant';
-import { 
-  Users, 
-  Brain, 
-  LineChart, 
-  Calendar, 
-  Award, 
-  Heart, 
-  AlertCircle, 
-  CheckCircle, 
-  Clock, 
-  UserPlus, 
-  MessageCircle, 
-  Video,
-  BarChart,
-  Bell,
-  AlertTriangle,
-  Trophy
-} from 'lucide-react';
+import ManagerRecognitionEngine from '@/components/Manager/ManagerRecognitionEngine';
+import ManagerEscalationCenter from '@/components/Manager/ManagerEscalationCenter';
+import ManagerBookingSystem from '@/components/Manager/ManagerBookingSystem';
 
 type TeamMember = {
   id: string;
@@ -218,7 +196,7 @@ const ManagerDashboard = () => {
           .single();
           
         if (statsError && statsError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
-          logger.error('Error fetching stats for user', profile.id, statsError);
+          logger.error('Error fetching stats for user', { userId: profile.id, error: statsError.message });
           continue;
         }
         
@@ -335,7 +313,7 @@ const ManagerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardNavigation />
+      <ManagerNavigation />
       
       <main className="pt-[60px]">
         <div className="flex-1 px-4 md:px-6 py-6">
