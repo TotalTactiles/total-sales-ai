@@ -131,7 +131,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
 
   if (isMinimized) {
     return (
-      <div className={`fixed ${getBubblePosition()} z-50 ${className}`}>
+      <div className={`fixed ${getBubblePosition()} z-[9999] ${className}`}>
         <motion.div
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -140,11 +140,11 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
         >
           <Button
             onClick={() => setIsMinimized(false)}
-            className="rounded-full w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg border-2 border-white relative"
+            className="rounded-full w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl border-2 border-white relative backdrop-blur-sm"
           >
             <Brain className="h-7 w-7 text-white" />
             {suggestions.length > 0 && (
-              <Badge className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center text-xs p-0 text-white">
+              <Badge className="absolute -top-2 -right-2 bg-red-500 rounded-full w-6 h-6 flex items-center justify-center text-xs p-0 text-white border-2 border-white">
                 {suggestions.length}
               </Badge>
             )}
@@ -158,7 +158,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
   }
 
   return (
-    <div className={`fixed ${getBubblePosition()} z-50 ${className}`}>
+    <div className={`fixed ${getBubblePosition()} z-[9999] ${className}`}>
       {/* Floating Suggestions */}
       <AnimatePresence>
         {suggestions.length > 0 && !isExpanded && (
@@ -186,9 +186,9 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
       >
-        <Card className={`shadow-2xl border-blue-200 transition-all duration-300 ${
+        <Card className={`shadow-2xl border-blue-200 transition-all duration-300 bg-white backdrop-blur-sm ${
           isExpanded ? 'w-96 h-[600px]' : 'w-80 h-[400px]'
-        }`}>
+        }`} style={{ backgroundColor: 'rgba(255, 255, 255, 0.98)' }}>
           <AIBubbleHeader
             workspace={context.workspace}
             currentLead={context.currentLead}
@@ -201,11 +201,11 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
             onMinimize={() => setIsMinimized(true)}
           />
 
-          <CardContent className="p-4 flex-1 flex flex-col overflow-hidden">
+          <CardContent className="p-4 flex-1 flex flex-col overflow-hidden bg-white">
             {/* Chat History */}
-            <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+            <div className="flex-1 overflow-y-auto mb-4 space-y-2 bg-white">
               {chatHistory.length === 0 && (
-                <div className="text-center text-gray-500 text-sm mt-8">
+                <div className="text-center text-gray-500 text-sm mt-8 bg-white">
                   <Brain className="h-8 w-8 mx-auto mb-2 text-blue-600" />
                   {context.workspace === 'company_brain' 
                     ? "I'm your learning companion! Ask about content, progress, or get personalized recommendations."
@@ -217,7 +217,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
               {chatHistory.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} bg-white`}
                 >
                   <div
                     className={`max-w-[80%] p-3 rounded-lg ${
@@ -233,7 +233,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
             </div>
 
             {/* Input Area */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 bg-white">
               <Input
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
@@ -242,15 +242,16 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
                   ? "Ask about learning progress, content, or get recommendations..."
                   : `Ask about ${context.workspace === 'dialer' && context.currentLead ? context.currentLead.name : 'anything'}...`
                 }
-                className="flex-1"
+                className="flex-1 bg-white border border-gray-300"
               />
-              <Button onClick={handleChatSubmit} size="sm">
+              <Button onClick={handleChatSubmit} size="sm" className="bg-blue-600 hover:bg-blue-700">
                 <Send className="h-4 w-4" />
               </Button>
               <Button
                 onClick={() => setVoiceEnabled(!voiceEnabled)}
                 variant={voiceEnabled ? "destructive" : "outline"}
                 size="sm"
+                className="bg-white border border-gray-300"
               >
                 <Mic className="h-4 w-4" />
               </Button>
