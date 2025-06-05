@@ -6,8 +6,12 @@ export class DataEncryptionService {
   private keyPromise: Promise<CryptoKey>;
 
   private constructor() {
-    const DEFAULT_KEY_B64 = 'b4nhn4DvmRll8uXzYr5BJHVLFvyomHE4WJahSbv95Jk='; // 32-byte key
-    const keyBytes = Uint8Array.from(decodeBase64(DEFAULT_KEY_B64), c => c.charCodeAt(0));
+    const envKey =
+      (typeof process !== 'undefined' && process.env.DATA_ENCRYPTION_KEY_B64) ||
+      (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_DATA_ENCRYPTION_KEY_B64);
+
+    const keyB64 = envKey || 'b4nhn4DvmRll8uXzYr5BJHVLFvyomHE4WJahSbv95Jk='; // demo key
+    const keyBytes = Uint8Array.from(decodeBase64(keyB64), c => c.charCodeAt(0));
     this.keyPromise = crypto.subtle.importKey(
       'raw',
       keyBytes,
