@@ -12,3 +12,6 @@ verify_jwt = true
 
 [functions.ai-brain-reindex]
 verify_jwt = true
+
+[functions.elevenlabs-speech]
+verify_jwt = true
