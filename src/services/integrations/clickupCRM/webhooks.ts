@@ -1,6 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { masterAIBrain } from '@/services/masterAIBrain';
+import { clickUpAPI } from './api';
 import { ClickUpErrorHandler } from './errorHandler';
+import { ClickUpHelpers } from './helpers';
+import crypto from 'crypto';
 
 export interface ClickUpWebhookPayload {
   event: string;
@@ -26,6 +30,7 @@ export interface ClickUpWebhookPayload {
 export class ClickUpWebhooks {
   private static instance: ClickUpWebhooks;
   private errorHandler = new ClickUpErrorHandler();
+  private helpers = new ClickUpHelpers();
 
   static getInstance(): ClickUpWebhooks {
     if (!ClickUpWebhooks.instance) {
@@ -120,13 +125,72 @@ export class ClickUpWebhooks {
   private async syncTaskFromClickUp(taskId: string, operation: string): Promise<void> {
     try {
       console.log(`Syncing ClickUp task ${taskId} (${operation})`);
-      
-      // TODO: Implement actual task sync logic
-      // 1. Fetch task from ClickUp API
-      // 2. Transform to our lead format
-      // 3. Upsert to our leads table
-      // 4. Trigger AI processing
-      
+
+      const task = await clickUpAPI.getTask(taskId);
+      if (!task) {
+        throw new Error('Task not found');
+      }
+
+      // Determine integration user/company
+      const { data: integration } = await (supabase as any)
+        .from('crm_integrations')
+        .select('user_id')
+        .eq('provider', 'clickup')
+        .eq('is_active', true)
+        .single();
+
+      if (!integration?.user_id) {
+        throw new Error('No active ClickUp integration');
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', integration.user_id)
+        .single();
+
+      const companyId = profile?.company_id;
+      if (!companyId) {
+        throw new Error('Company not found');
+      }
+
+      const transformedLead = this.helpers.transformClickUpTaskToOSLead(task, companyId);
+
+      const { data: existing } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('source', 'clickup')
+        .like('tags', `%clickup_task_${taskId}%`)
+        .single();
+
+      if (existing) {
+        await supabase
+          .from('leads')
+          .update({
+            ...transformedLead,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id);
+      } else {
+        await supabase
+          .from('leads')
+          .insert({
+            ...transformedLead,
+            source: 'clickup',
+            tags: [...(transformedLead.tags || []), `clickup_task_${taskId}`],
+            created_at: new Date().toISOString(),
+          });
+      }
+
+      await masterAIBrain.ingestEvent({
+        user_id: integration.user_id,
+        company_id: companyId,
+        event_type: 'crm_sync',
+        source: 'clickup',
+        data: task,
+        context: { operation, taskId },
+      });
+
       await this.logWebhookActivity(taskId, operation, 'success');
     } catch (error) {
       await this.logWebhookActivity(taskId, operation, 'failed', error.message);
@@ -192,9 +256,15 @@ export class ClickUpWebhooks {
 
   async validateWebhookSignature(payload: string, signature: string): Promise<boolean> {
     try {
-      // TODO: Implement webhook signature validation
-      // ClickUp includes a signature header for security
-      return true;
+      const secret = process.env.CLICKUP_WEBHOOK_SECRET;
+      if (!secret || !signature) return false;
+
+      const computed = crypto
+        .createHmac('sha256', secret)
+        .update(payload)
+        .digest('hex');
+
+      return computed === signature;
     } catch (error) {
       console.error('Webhook signature validation failed:', error);
       return false;
