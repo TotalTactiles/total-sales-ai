@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const DashboardRouter = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isDemoMode, getLastSelectedRole } = useAuth();
   
   // If not authenticated, redirect to auth
   if (!user) {
@@ -12,11 +12,10 @@ const DashboardRouter = () => {
   }
   
   // Route based on user role or demo mode
-  const userStatus = localStorage.getItem('userStatus');
-  const demoRole = localStorage.getItem('demoRole');
-  
+
   // Handle demo mode
-  if (userStatus === 'demo' && demoRole) {
+  if (isDemoMode()) {
+    const demoRole = getLastSelectedRole();
     switch (demoRole) {
       case 'sales_rep':
         return <Navigate to="/" replace />;

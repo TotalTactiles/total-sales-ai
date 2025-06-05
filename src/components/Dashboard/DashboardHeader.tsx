@@ -73,7 +73,6 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               onClick={() => {
                 localStorage.removeItem('demoMode');
                 localStorage.removeItem('demoRole');
-                localStorage.removeItem('userStatus');
                 localStorage.removeItem('planType');
                 window.location.href = '/auth';
               }}

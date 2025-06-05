@@ -89,8 +89,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       // Simulate full user authentication with all features unlocked
       initializeDemoMode('sales_rep');
       
-      // Set full user status in localStorage
-      localStorage.setItem('userStatus', 'full');
+      // Store the plan type and email for demo purposes
       localStorage.setItem('planType', 'pro');
       localStorage.setItem('userEmail', formData.email);
       
