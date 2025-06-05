@@ -6,11 +6,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
 
-// Configure CORS headers
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Configure CORS allowed origins via env variable
+const allowedOrigins = (Deno.env.get('CORS_ALLOWED_ORIGINS') ?? '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 // Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
@@ -234,6 +234,14 @@ async function callAIWithFallback(systemPrompt: string, userPrompt: string, pref
 
 // Main function to handle requests
 serve(async (req) => {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin':
+      allowedOrigins.includes(req.headers.get('origin') ?? '')
+        ? req.headers.get('origin') ?? ''
+        : allowedOrigins[0] ?? '',
+    'Access-Control-Allow-Headers':
+      'authorization, x-client-info, apikey, content-type',
+  };
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
