@@ -108,3 +108,17 @@ const { data, error } = await supabase.functions.invoke('elevenlabs-speech', {
 ```
 
 The client now uses this function for speech synthesis instead of reading `VITE_ELEVENLABS_API_KEY` directly.
+
+## Running tests
+
+To execute the unit tests once, run:
+
+```sh
+npm test
+```
+
+For interactive development with automatic re-runs, use:
+
+```sh
+npm run test:watch
+```
