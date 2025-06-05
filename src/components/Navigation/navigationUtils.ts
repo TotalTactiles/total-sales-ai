@@ -2,16 +2,16 @@
 import { Profile } from '@/contexts/auth/types';
 
 export const getDashboardUrl = (profile: Profile | null): string => {
-  if (!profile) return '/sales-rep-dashboard';
+  if (!profile) return '/sales/dashboard';
   
   switch (profile.role) {
     case 'admin':
       return '/admin-dashboard';
     case 'manager':
-      return '/manager-dashboard';
+      return '/manager/dashboard';
     case 'sales_rep':
     default:
-      return '/sales-rep-dashboard';
+      return '/sales/dashboard';
   }
 };
 

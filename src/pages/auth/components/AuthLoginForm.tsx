@@ -109,10 +109,10 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             navigate('/onboarding');
           } else {
             // Regular navigation based on role
-            navigate('/sales-rep-dashboard');
+            navigate('/sales/dashboard');
           }
         } else {
-          navigate('/sales-rep-dashboard');
+          navigate('/sales/dashboard');
         }
       }, 1500);
       
