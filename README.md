@@ -72,8 +72,7 @@ npm run lint
 
 ## Running tests
 
-This project uses [Vitest](https://vitest.dev/) for unit testing. Install
-dependencies first:
+This project uses [Vitest](https://vitest.dev/) for unit testing. Make sure the dependencies are installed first:
 
 ```sh
 npm install
