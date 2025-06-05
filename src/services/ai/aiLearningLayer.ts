@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { dataEncryptionService } from '../security/dataEncryptionService';
+import { parseImprovementSuggestions } from './improvementParser';
 
 interface LearningData {
   id: string;
@@ -126,7 +127,14 @@ export class AILearningLayer {
       );
 
       // Parse Claude's response to extract structured improvements
-      const improvements = this.parseImprovementSuggestions(response.response, companyId);
+      const parsed = parseImprovementSuggestions(response.response);
+      const improvements: AIImprovement[] = parsed.map((imp) => ({
+        id: crypto.randomUUID(),
+        generatedBy: 'claude',
+        companyId,
+        timestamp: new Date(),
+        ...imp
+      }));
       
       this.improvementCache.push(...improvements);
       
@@ -152,107 +160,6 @@ export class AILearningLayer {
     }
   }
 
-  private parseImprovementSuggestions(response: string, companyId: string): AIImprovement[] {
-    // Parse Claude's response to extract structured improvement suggestions
-    const improvements: AIImprovement[] = [];
-    
-    try {
-      // Look for structured patterns in Claude's response
-      const lines = response.split('\n');
-      let currentCategory: any = null;
-      let currentSuggestion = '';
-      
-      for (const line of lines) {
-        if (line.includes('UX/UI') || line.includes('User Experience')) {
-          currentCategory = 'ux_ui';
-        } else if (line.includes('Feature') || line.includes('Priority')) {
-          currentCategory = 'feature_priority';
-        } else if (line.includes('Automation') || line.includes('Workflow')) {
-          currentCategory = 'automation_flow';
-        } else if (line.includes('Performance') || line.includes('System')) {
-          currentCategory = 'system_performance';
-        } else if (line.trim() && currentCategory) {
-          currentSuggestion += line.trim() + ' ';
-          
-          // If we have enough content, create an improvement
-          if (currentSuggestion.length > 50) {
-            improvements.push({
-              id: crypto.randomUUID(),
-              category: currentCategory,
-              suggestion: currentSuggestion.trim(),
-              impact: this.estimateImpact(currentSuggestion),
-              implementationComplexity: this.estimateComplexity(currentSuggestion),
-              estimatedValue: this.estimateValue(currentSuggestion),
-              confidence: 0.75,
-              generatedBy: 'claude',
-              companyId,
-              timestamp: new Date()
-            });
-            
-            currentSuggestion = '';
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error parsing improvement suggestions:', error);
-    }
-    
-    return improvements;
-  }
-
-  private estimateImpact(suggestion: string): 'low' | 'medium' | 'high' | 'critical' {
-    const highImpactKeywords = ['conversion', 'revenue', 'critical', 'major', 'significant'];
-    const mediumImpactKeywords = ['improve', 'enhance', 'optimize', 'better'];
-    
-    const lowerSuggestion = suggestion.toLowerCase();
-    
-    if (highImpactKeywords.some(keyword => lowerSuggestion.includes(keyword))) {
-      return 'high';
-    } else if (mediumImpactKeywords.some(keyword => lowerSuggestion.includes(keyword))) {
-      return 'medium';
-    } else {
-      return 'low';
-    }
-  }
-
-  private estimateComplexity(suggestion: string): 'simple' | 'moderate' | 'complex' {
-    const complexKeywords = ['architecture', 'rebuild', 'major refactor', 'database'];
-    const moderateKeywords = ['integrate', 'implement', 'add feature', 'modify'];
-    
-    const lowerSuggestion = suggestion.toLowerCase();
-    
-    if (complexKeywords.some(keyword => lowerSuggestion.includes(keyword))) {
-      return 'complex';
-    } else if (moderateKeywords.some(keyword => lowerSuggestion.includes(keyword))) {
-      return 'moderate';
-    } else {
-      return 'simple';
-    }
-  }
-
-  private estimateValue(suggestion: string): number {
-    // Simple heuristic to estimate value (0-100)
-    let value = 50; // Base value
-    
-    const valueKeywords = {
-      'conversion': 30,
-      'revenue': 35,
-      'efficiency': 20,
-      'user experience': 25,
-      'automation': 25,
-      'performance': 15
-    };
-    
-    const lowerSuggestion = suggestion.toLowerCase();
-    
-    for (const [keyword, points] of Object.entries(valueKeywords)) {
-      if (lowerSuggestion.includes(keyword)) {
-        value += points;
-      }
-    }
-    
-    return Math.min(value, 100);
-  }
 
   async getCompanyImprovements(companyId: string): Promise<AIImprovement[]> {
     return this.improvementCache.filter(improvement => 
