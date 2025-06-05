@@ -58,4 +58,12 @@ describe('ExecutionManager', () => {
     expect(emailMock).toHaveBeenCalled();
     expect(result.success).toBe(true);
   });
+
+  it('executeAction returns failure for unknown type', async () => {
+    // @ts-ignore
+    const res = await manager['executeAction']({ id: 'x', type: 'weird' } as any, context, 'u1', 'c1');
+    expect(res.success).toBe(false);
+    expect(res.message).toContain('Unknown action type');
+    expect(emailMock).not.toHaveBeenCalled();
+  });
 });

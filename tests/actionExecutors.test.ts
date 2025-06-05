@@ -44,4 +44,62 @@ describe('ActionExecutors', () => {
     expect(insertMock).toHaveBeenCalled();
     expect(result.success).toBe(true);
   });
+
+  it('executeSmsAction skips when no phone', async () => {
+    const smsAction = { id: '3', type: 'sms', content: 'Ping' } as any;
+    const res = await executors.executeSmsAction(smsAction, {}, 'u1', 'c1');
+    expect(res.success).toBe(false);
+    expect(res.message).toContain('No phone');
+  });
+
+  it('executeSmsAction sends sms on success', async () => {
+    invokeMock.mockResolvedValue({ data: { messageId: 's1' } });
+    const smsAction = { id: '3', type: 'sms', content: 'Ping' } as any;
+    const res = await executors.executeSmsAction(smsAction, { ...context, phone: '+123' }, 'u1', 'c1');
+    expect(invokeMock).toHaveBeenCalledWith('twilio-sms', expect.anything());
+    expect(res.success).toBe(true);
+  });
+
+  it('executeNoteAction succeeds', async () => {
+    insertMock.mockResolvedValue({ error: null });
+    const noteAction = { id: '4', type: 'note', content: 'note' } as any;
+    const res = await executors.executeNoteAction(noteAction, context, 'u1', 'c1');
+    expect(fromMock).toHaveBeenCalledWith('ai_brain_logs');
+    expect(res.success).toBe(true);
+  });
+
+  it('executeNoteAction handles failure', async () => {
+    insertMock.mockResolvedValue({ error: new Error('fail') });
+    const noteAction = { id: '4', type: 'note', content: 'note' } as any;
+    const res = await executors.executeNoteAction(noteAction, context, 'u1', 'c1');
+    expect(res.success).toBe(false);
+  });
+
+  it('executeCallAction skips when no phone', async () => {
+    const callAction = { id: '5', type: 'call', content: 'call' } as any;
+    const res = await executors.executeCallAction(callAction, context, 'u1', 'c1');
+    expect(res.success).toBe(false);
+  });
+
+  it('executeCallAction creates reminder', async () => {
+    insertMock.mockResolvedValue({ error: null });
+    const callAction = { id: '5', type: 'call', content: 'call' } as any;
+    const res = await executors.executeCallAction(callAction, { ...context, phone: '+123' }, 'u1', 'c1');
+    expect(res.success).toBe(true);
+  });
+
+  it('executeCalendarAction succeeds', async () => {
+    invokeMock.mockResolvedValue({ data: { eventId: 'e1' } });
+    const calAction = { id: '6', type: 'calendar', content: 'meet' } as any;
+    const res = await executors.executeCalendarAction(calAction, context, 'u1', 'c1');
+    expect(invokeMock).toHaveBeenCalledWith('google-calendar', expect.anything());
+    expect(res.success).toBe(true);
+  });
+
+  it('executeCalendarAction handles errors', async () => {
+    invokeMock.mockRejectedValue(new Error('fail'));
+    const calAction = { id: '6', type: 'calendar', content: 'meet' } as any;
+    const res = await executors.executeCalendarAction(calAction, context, 'u1', 'c1');
+    expect(res.success).toBe(false);
+  });
 });
