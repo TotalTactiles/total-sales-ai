@@ -26,7 +26,7 @@ const RoleToggle: React.FC = () => {
       toast.success(`Switched to ${newRole.replace('_', ' ')} role`);
 
       // Redirect to appropriate dashboard
-      const redirectPath = newRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+      const redirectPath = newRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
       window.location.href = redirectPath;
     } catch (error) {
       console.error('Error toggling role:', error);
