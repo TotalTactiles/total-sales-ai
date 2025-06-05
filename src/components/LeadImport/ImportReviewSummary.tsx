@@ -39,7 +39,8 @@ const ImportReviewSummary: React.FC<ImportReviewSummaryProps> = ({
   isLoading
 }) => {
   const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[]>([]);
-  const { generateAIRecommendations } = useLeadImport();
+  const [duplicateCount, setDuplicateCount] = useState(0);
+  const { generateAIRecommendations, checkExistingLeads } = useLeadImport();
 
   // Generate AI recommendations on component mount
   useEffect(() => {
@@ -50,21 +51,30 @@ const ImportReviewSummary: React.FC<ImportReviewSummaryProps> = ({
     loadRecommendations();
   }, [session.id, preview, generateAIRecommendations]);
 
+  useEffect(() => {
+    const detectDuplicates = async () => {
+      const count = await checkExistingLeads(preview.rows, fieldMapping);
+      setDuplicateCount(count);
+    };
+    detectDuplicates();
+  }, [preview.rows, fieldMapping, checkExistingLeads]);
+
   // Calculate import summary statistics
   const importStats = React.useMemo(() => {
     const mappedFields = Object.values(fieldMapping).filter(Boolean);
     const hasEmail = mappedFields.includes('email');
     const hasPhone = mappedFields.includes('phone');
     const hasCompany = mappedFields.includes('company');
-    
-    const readyToImport = preview.rows.filter(row => {
+
+    const baseReady = preview.rows.filter(row => {
       const nameField = Object.keys(fieldMapping).find(key => fieldMapping[key] === 'name');
       return nameField && row[nameField];
     }).length;
 
     const flaggedForAttention = preview.detectedIssues.length;
-    const duplicatesFound = 0; // TODO: Implement duplicate detection
-    const skippedRecords = preview.totalRows - readyToImport - flaggedForAttention;
+    const duplicatesFound = duplicateCount;
+    const readyToImport = Math.max(0, baseReady - duplicatesFound);
+    const skippedRecords = preview.totalRows - readyToImport - flaggedForAttention - duplicatesFound;
 
     return {
       totalLeads: preview.totalRows,
@@ -88,7 +98,7 @@ const ImportReviewSummary: React.FC<ImportReviewSummaryProps> = ({
         missingCriticalData: flaggedForAttention
       }
     };
-  }, [preview, fieldMapping]);
+  }, [preview, fieldMapping, duplicateCount]);
 
   const getSuccessRate = () => {
     return Math.round((importStats.readyToImport / importStats.totalLeads) * 100);
