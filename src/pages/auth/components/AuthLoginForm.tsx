@@ -119,9 +119,10 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       toast.success('Welcome back! Logged in as full user with Pro features.');
       return;
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Authentication error:', error);
-      toast.error(error.message || 'Login failed');
+      const errMsg = error instanceof Error ? error.message : 'Login failed';
+      toast.error(errMsg);
     } finally {
       setIsLoading(false);
     }
