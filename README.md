@@ -71,3 +71,36 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+## Environment setup
+
+Create a `.env` file in the project root and define the following variables used by the Supabase functions:
+
+```sh
+ELEVENLABS_API_KEY=<your-elevenlabs-key>
+SUPABASE_URL=<your-supabase-url>
+SUPABASE_SERVICE_ROLE_KEY=<your-supabase-service-role-key>
+```
+
+These keys should be kept private and are required for the `elevenlabs-speech` function.
+
+## Deploying the `elevenlabs-speech` function
+
+Deploy the text-to-speech function with the Supabase CLI and set the secrets:
+
+```sh
+supabase functions deploy elevenlabs-speech --project-ref <project-id>
+supabase secrets set ELEVENLABS_API_KEY=<your-elevenlabs-key> \
+  SUPABASE_URL=<your-supabase-url> \
+  SUPABASE_SERVICE_ROLE_KEY=<your-supabase-service-role-key>
+```
+
+After deployment, invoke the function from your client code:
+
+```ts
+const { data, error } = await supabase.functions.invoke('elevenlabs-speech', {
+  body: { text: 'Hello world' }
+});
+```
+
+The client now uses this function for speech synthesis instead of reading `VITE_ELEVENLABS_API_KEY` directly.
