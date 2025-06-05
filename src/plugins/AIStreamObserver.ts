@@ -5,7 +5,7 @@ export interface AIStreamObserver {
   onError?: (err: unknown) => void;
 }
 
-export const AIStreamObserver: AIStreamObserver = {
+export const noopAIStreamObserver: AIStreamObserver = {
   onStart: undefined,
   onUpdate: undefined,
   onComplete: undefined,
