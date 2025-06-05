@@ -18,7 +18,7 @@ const DashboardRouter = () => {
   // Handle demo mode
   if (userStatus === 'demo' && demoRole) {
     switch (demoRole) {
-      case 'sales-rep':
+      case 'sales_rep':
         return <Navigate to="/" replace />;
       case 'manager':
         return <Navigate to="/manager/dashboard" replace />;
