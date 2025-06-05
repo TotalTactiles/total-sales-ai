@@ -26,7 +26,7 @@ const LeadManagementTabs: React.FC<LeadManagementTabsProps> = ({
   const qualifiedLeads = leads.filter(lead => lead.status === 'qualified');
 
   const handleQuickAction = (action: string, lead: Lead) => {
-    logger.info('Quick action:', action, 'for lead:', lead.id);
+    logger.info('Quick action executed', { action, leadId: lead.id });
     // Handle quick actions here
   };
 
