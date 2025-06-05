@@ -155,8 +155,37 @@ export class AILearningLayer {
   private parseImprovementSuggestions(response: string, companyId: string): AIImprovement[] {
     // Parse Claude's response to extract structured improvement suggestions
     const improvements: AIImprovement[] = [];
-    
+
     try {
+      // First try to parse JSON directly
+      const jsonMatch = response.match(/```json\s*([\s\S]*?)```|\{[\s\S]*\}|\[[\s\S]*\]/);
+      if (jsonMatch) {
+        const jsonString = jsonMatch[1] || jsonMatch[0];
+        try {
+          const parsed = JSON.parse(jsonString);
+          const arr = Array.isArray(parsed) ? parsed : parsed.improvements;
+          if (Array.isArray(arr)) {
+            for (const imp of arr) {
+              improvements.push({
+                id: crypto.randomUUID(),
+                category: imp.category,
+                suggestion: imp.suggestion,
+                impact: imp.impact ?? this.estimateImpact(imp.suggestion),
+                implementationComplexity: imp.implementationComplexity ?? this.estimateComplexity(imp.suggestion),
+                estimatedValue: imp.estimatedValue ?? this.estimateValue(imp.suggestion),
+                confidence: imp.confidence ?? 0.75,
+                generatedBy: 'claude',
+                companyId,
+                timestamp: new Date()
+              });
+            }
+            return improvements;
+          }
+        } catch (_) {
+          // fall back to heuristic parsing
+        }
+      }
+
       // Look for structured patterns in Claude's response
       const lines = response.split('\n');
       let currentCategory: any = null;
