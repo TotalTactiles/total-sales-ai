@@ -1,6 +1,5 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { AIIngestionEvent, AIRecommendation } from './ai/types';
 import { InsightGenerator } from './ai/insightGenerator';
 import { nativeAutomationEngine } from './ai/automationEngine';
@@ -21,6 +20,19 @@ class MasterAIBrain {
   private insightGenerator = new InsightGenerator();
   private recommendationService = new RecommendationService();
   private learningEngine = new LearningEngine();
+  private eventTarget = new EventTarget();
+
+  on(eventName: string, listener: EventListenerOrEventListenerObject): void {
+    this.eventTarget.addEventListener(eventName, listener);
+  }
+
+  off(eventName: string, listener: EventListenerOrEventListenerObject): void {
+    this.eventTarget.removeEventListener(eventName, listener);
+  }
+
+  private emit(eventName: string, detail?: unknown): void {
+    this.eventTarget.dispatchEvent(new CustomEvent(eventName, { detail }));
+  }
 
   static getInstance(): MasterAIBrain {
     if (!MasterAIBrain.instance) {
@@ -86,7 +98,8 @@ class MasterAIBrain {
 
     } catch (error) {
       console.error('Error ingesting AI event:', error);
-      toast.error('Failed to ingest AI data');
+      this.emit('ingest-error', error);
+      throw error;
     }
   }
 
