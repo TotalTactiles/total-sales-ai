@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import { zohoAuth } from './auth';
 import { zohoAPI } from './api';
 import { zohoWebhooks } from './webhooks';
@@ -57,7 +58,7 @@ export class ZohoCRMIntegration {
           lastSync = new Date(syncResult.data[0].created_at);
         }
       } catch (err) {
-        console.warn('Could not fetch sync data:', err);
+        logger.warn('Could not fetch sync data:', err);
       }
 
       try {
@@ -68,7 +69,7 @@ export class ZohoCRMIntegration {
         
         syncErrors = errorResult.count || 0;
       } catch (err) {
-        console.warn('Could not fetch error data:', err);
+        logger.warn('Could not fetch error data:', err);
       }
 
       try {
@@ -79,7 +80,7 @@ export class ZohoCRMIntegration {
         
         totalLeads = leadsResult.count || 0;
       } catch (err) {
-        console.warn('Could not fetch leads data:', err);
+        logger.warn('Could not fetch leads data:', err);
       }
 
       return {
@@ -89,7 +90,7 @@ export class ZohoCRMIntegration {
         syncErrors
       };
     } catch (error) {
-      console.error('Error getting Zoho integration status:', error);
+      logger.error('Error getting Zoho integration status:', error);
       return {
         connected: false,
         totalLeads: 0,
@@ -157,7 +158,7 @@ export class ZohoCRMIntegration {
 
   async syncLeads(fullSync: boolean = false): Promise<{ success: boolean; synced: number; errors: number }> {
     try {
-      console.log('Starting Zoho lead sync...');
+      logger.info('Starting Zoho lead sync...');
       
       let syncedCount = 0;
       let errorCount = 0;
@@ -168,7 +169,7 @@ export class ZohoCRMIntegration {
       // Fetch leads from Zoho
       const leads = await zohoAPI.getRecentLeads(lastSyncTime);
       
-      console.log(`Found ${leads.length} leads to sync from Zoho`);
+      logger.info(`Found ${leads.length} leads to sync from Zoho`);
       
       // Get current user's company ID
       const { data: { user } } = await supabase.auth.getUser();
@@ -191,7 +192,7 @@ export class ZohoCRMIntegration {
         try {
           // Validate and transform the lead
           if (!this.helpers.validateZohoLead(zohoLead)) {
-            console.warn('Invalid Zoho lead data:', zohoLead);
+            logger.warn('Invalid Zoho lead data:', zohoLead);
             errorCount++;
             continue;
           }
@@ -235,7 +236,7 @@ export class ZohoCRMIntegration {
 
           syncedCount++;
         } catch (leadError: any) {
-          console.error(`Error syncing lead ${zohoLead.id}:`, leadError);
+          logger.error(`Error syncing lead ${zohoLead.id}:`, leadError);
           await this.errorHandler.handleSyncError(zohoLead.id, leadError);
           errorCount++;
         }
@@ -244,7 +245,7 @@ export class ZohoCRMIntegration {
       // Update last sync time
       await this.updateLastSyncTime();
 
-      console.log(`Zoho sync completed: ${syncedCount} synced, ${errorCount} errors`);
+      logger.info(`Zoho sync completed: ${syncedCount} synced, ${errorCount} errors`);
 
       return {
         success: true,
@@ -252,7 +253,7 @@ export class ZohoCRMIntegration {
         errors: errorCount
       };
     } catch (error: any) {
-      console.error('Zoho sync failed:', error);
+      logger.error('Zoho sync failed:', error);
       await this.errorHandler.logError(error, 'Lead sync');
       return {
         success: false,
@@ -286,7 +287,7 @@ export class ZohoCRMIntegration {
           updated_at: new Date().toISOString()
         });
     } catch (error) {
-      console.error('Failed to update last sync time:', error);
+      logger.error('Failed to update last sync time:', error);
     }
   }
 
@@ -294,18 +295,18 @@ export class ZohoCRMIntegration {
     this.stopAutoSync(); // Clear any existing interval
     
     this.syncInterval = setInterval(async () => {
-      console.log('Running automated Zoho sync...');
+      logger.info('Running automated Zoho sync...');
       await this.syncLeads(false);
     }, intervalMinutes * 60 * 1000);
 
-    console.log(`Zoho auto-sync started with ${intervalMinutes}-minute intervals`);
+    logger.info(`Zoho auto-sync started with ${intervalMinutes}-minute intervals`);
   }
 
   stopAutoSync(): void {
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
       this.syncInterval = undefined;
-      console.log('Zoho auto-sync stopped');
+      logger.info('Zoho auto-sync stopped');
     }
   }
 

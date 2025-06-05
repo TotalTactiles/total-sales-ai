@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,7 +71,7 @@ const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
         toast.success('Jarvis response generated');
       }
     } catch (error) {
-      console.error('Error asking Jarvis:', error);
+      logger.error('Error asking Jarvis:', error);
       toast.error('Failed to get response from Jarvis');
     } finally {
       setIsProcessing(false);
@@ -101,7 +102,7 @@ const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
         toast.success('Executive report generated');
       }
     } catch (error) {
-      console.error('Error generating report:', error);
+      logger.error('Error generating report:', error);
       toast.error('Failed to generate report');
     } finally {
       setIsProcessing(false);

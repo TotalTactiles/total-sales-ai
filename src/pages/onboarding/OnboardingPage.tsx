@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -74,7 +75,7 @@ const OnboardingPage: React.FC = () => {
           navigate(redirectPath);
         }
       } catch (err) {
-        console.error('Error checking onboarding status:', err);
+        logger.error('Error checking onboarding status:', err);
       }
     };
     
@@ -125,7 +126,7 @@ const OnboardingPage: React.FC = () => {
       }, 3000);
       
     } catch (error: any) {
-      console.error('Error saving onboarding settings:', error);
+      logger.error('Error saving onboarding settings:', error);
       toast.error('Failed to save settings: ' + error.message);
       setIsSubmitting(false);
     }

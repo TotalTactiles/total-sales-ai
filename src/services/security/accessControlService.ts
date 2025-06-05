@@ -103,7 +103,7 @@ export class AccessControlService {
     
     // In production, also send to security monitoring service
     if (severity === 'critical' || severity === 'high') {
-      console.warn(`🚨 Security Alert [${severity.toUpperCase()}]: ${event}`, details);
+      logger.warn(`🚨 Security Alert [${severity.toUpperCase()}]: ${event}`, details);
     }
   }
 

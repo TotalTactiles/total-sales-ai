@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { useEnhancedUsageTracking } from './useEnhancedUsageTracking';
@@ -60,7 +61,7 @@ export const useAILearningInsights = () => {
       });
       
     } catch (error) {
-      console.error('Error analyzing learning patterns:', error);
+      logger.error('Error analyzing learning patterns:', error);
     } finally {
       setIsAnalyzing(false);
     }

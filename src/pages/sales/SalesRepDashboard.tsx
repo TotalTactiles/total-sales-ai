@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMockData } from '@/hooks/useMockData';
@@ -83,11 +84,11 @@ const SalesRepDashboard: React.FC = () => {
   ];
 
   const handleLeadClick = (leadId: string) => {
-    console.log('Lead clicked:', leadId);
+    logger.info('Lead clicked:', leadId);
   };
 
   const handleActionClick = (actionId: string) => {
-    console.log('Action clicked:', actionId);
+    logger.info('Action clicked:', actionId);
   };
 
   const getProgressPercentage = (current: number, target: number) => {

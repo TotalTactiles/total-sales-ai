@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -32,7 +33,7 @@ const SalesDashboard = () => {
           .single();
         setUserStats(data);
       } catch (error) {
-        console.log('No user stats found, using defaults');
+        logger.info('No user stats found, using defaults');
       }
     };
 
@@ -101,7 +102,7 @@ const SalesDashboard = () => {
   ];
 
   const handleActionClick = (actionId: string) => {
-    console.log('Action clicked:', actionId);
+    logger.info('Action clicked:', actionId);
   };
 
   return (

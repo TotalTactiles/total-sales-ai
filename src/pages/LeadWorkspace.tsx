@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -24,21 +25,21 @@ const LeadWorkspace: React.FC = () => {
   
   const [activeTab, setActiveTab] = useState('overview');
 
-  console.log('LeadWorkspace rendering with leadId:', leadId);
+  logger.info('LeadWorkspace rendering with leadId:', leadId);
 
   // Find the lead from either mock data or database
   const lead: Lead | null = useMemo(() => {
     if (!leadId) {
-      console.log('No leadId provided');
+      logger.info('No leadId provided');
       return null;
     }
 
     const isDemo = isDemoMode();
-    console.log('LeadWorkspace: Demo mode:', isDemo);
+    logger.info('LeadWorkspace: Demo mode:', isDemo);
     
     if (isDemo) {
       // For demo mode, always use the mock lead profile regardless of which lead was clicked
-      console.log('Using mock lead profile for demo mode');
+      logger.info('Using mock lead profile for demo mode');
       return {
         ...mockLeadProfile,
         id: leadId // Keep the original ID so routing works
@@ -49,13 +50,13 @@ const LeadWorkspace: React.FC = () => {
     if (databaseLeads && databaseLeads.length > 0) {
       const dbLead = databaseLeads.find((l) => l.id === leadId);
       if (dbLead) {
-        console.log('Found database lead:', dbLead.name);
+        logger.info('Found database lead:', dbLead.name);
         return convertDatabaseLeadToLead(dbLead);
       }
     }
 
     // Fallback to mock profile for any lead when no database leads exist
-    console.log('Fallback to mock lead profile');
+    logger.info('Fallback to mock lead profile');
     return {
       ...mockLeadProfile,
       id: leadId
@@ -123,7 +124,7 @@ const LeadWorkspace: React.FC = () => {
               <div className="w-80 border-r border-gray-200 bg-white">
                 <LeadWorkspaceLeft 
                   lead={leadAsDbLead} 
-                  onQuickAction={(action: string) => console.log('Quick action:', action)}
+                  onQuickAction={(action: string) => logger.info('Quick action:', action)}
                   collapsed={false}
                   onToggleCollapse={() => {}}
                 />

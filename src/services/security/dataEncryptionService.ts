@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { encodeBase64, decodeBase64 } from './base64Service';
 
@@ -42,7 +43,7 @@ export class DataEncryptionService {
 
       return encodeBase64(String.fromCharCode(...combined));
     } catch (error) {
-      console.error('Encryption failed:', error);
+      logger.error('Encryption failed:', error);
       try {
         const jsonString = JSON.stringify(data);
         return encodeBase64(jsonString); // Fallback to basic encoding
@@ -64,7 +65,7 @@ export class DataEncryptionService {
       const jsonString = new TextDecoder().decode(plainBuffer);
       return JSON.parse(jsonString);
     } catch (error) {
-      console.error('Decryption failed:', error);
+      logger.error('Decryption failed:', error);
       try {
         const jsonString = decodeBase64(encryptedData);
         return JSON.parse(jsonString);

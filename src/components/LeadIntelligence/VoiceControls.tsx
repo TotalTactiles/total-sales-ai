@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -32,7 +33,7 @@ const VoiceControls: React.FC<VoiceControlsProps> = ({
         const permitted = await voiceService.requestMicrophonePermission();
         setHasPermission(permitted);
       } catch (error) {
-        console.error('Permission check failed:', error);
+        logger.error('Permission check failed:', error);
         setHasPermission(false);
       }
     };
@@ -74,10 +75,10 @@ const VoiceControls: React.FC<VoiceControlsProps> = ({
       }
 
       toast.info(`Listening for voice commands about ${leadName}...`);
-      console.log('Voice recording started successfully');
+      logger.info('Voice recording started successfully');
 
     } catch (error) {
-      console.error('Failed to start listening:', error);
+      logger.error('Failed to start listening:', error);
       setIsListening(false);
       toast.error('Failed to start voice recording');
     }
@@ -89,7 +90,7 @@ const VoiceControls: React.FC<VoiceControlsProps> = ({
       setIsProcessing(true);
       trackClick('voice_command', 'stop');
 
-      console.log('Stopping voice recording...');
+      logger.info('Stopping voice recording...');
       const audioBlob = await voiceService.stopRecording();
       
       if (!audioBlob || audioBlob.size === 0) {
@@ -98,14 +99,14 @@ const VoiceControls: React.FC<VoiceControlsProps> = ({
         return;
       }
 
-      console.log('Processing voice command...');
+      logger.info('Processing voice command...');
       toast.info('Processing your voice command...');
 
       // Process the audio
       const transcription = await voiceService.processAudioCommand(audioBlob, 'current-user');
       
       if (transcription && transcription.trim()) {
-        console.log('Voice command transcribed:', transcription);
+        logger.info('Voice command transcribed:', transcription);
         toast.success('Voice command processed successfully!');
         
         // Call the callback with the transcribed text
@@ -121,7 +122,7 @@ const VoiceControls: React.FC<VoiceControlsProps> = ({
       }
 
     } catch (error) {
-      console.error('Voice command processing failed:', error);
+      logger.error('Voice command processing failed:', error);
       toast.error(error.message || 'Failed to process voice command');
     } finally {
       setIsProcessing(false);

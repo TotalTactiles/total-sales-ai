@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { zohoAuth } from './auth';
 import { ZohoErrorHandler } from './errorHandler';
@@ -154,7 +155,7 @@ export class ZohoAPI {
     const retryAfter = response.headers.get('Retry-After');
     const delayMs = retryAfter ? parseInt(retryAfter) * 1000 : 60000; // Default 1 minute
     
-    console.warn(`Zoho API rate limit hit. Retrying after ${delayMs}ms`);
+    logger.warn(`Zoho API rate limit hit. Retrying after ${delayMs}ms`);
     await new Promise(resolve => setTimeout(resolve, delayMs));
   }
 
@@ -163,7 +164,7 @@ export class ZohoAPI {
       await this.makeRequest('/org');
       return true;
     } catch (error) {
-      console.error('Zoho connection test failed:', error);
+      logger.error('Zoho connection test failed:', error);
       return false;
     }
   }

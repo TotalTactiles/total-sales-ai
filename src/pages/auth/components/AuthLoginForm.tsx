@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -74,7 +75,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         companyId: profileData.company_id
       };
     } catch (error) {
-      console.error('Error checking company settings:', error);
+      logger.error('Error checking company settings:', error);
       return null;
     }
   };
@@ -84,7 +85,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     setIsLoading(true);
     
     try {
-      console.log('Logging in as full paying user');
+      logger.info('Logging in as full paying user');
       
       // Simulate full user authentication with all features unlocked
       initializeDemoMode('sales_rep');
@@ -119,7 +120,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       return;
       
     } catch (error: any) {
-      console.error('Authentication error:', error);
+      logger.error('Authentication error:', error);
       toast.error(error.message || 'Login failed');
     } finally {
       setIsLoading(false);

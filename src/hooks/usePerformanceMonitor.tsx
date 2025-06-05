@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useEffect, useRef } from 'react';
 import { useUsageTracking } from './useUsageTracking';
@@ -40,7 +41,7 @@ export const usePerformanceMonitor = (componentName: string) => {
 
     // Monitor for performance issues
     if (loadTime > 2000) {
-      console.warn(`Slow component load detected: ${componentName} took ${loadTime}ms`);
+      logger.warn(`Slow component load detected: ${componentName} took ${loadTime}ms`);
       trackEvent({
         feature: 'performance_issue',
         action: 'slow_load',
@@ -50,7 +51,7 @@ export const usePerformanceMonitor = (componentName: string) => {
     }
 
     if (renderTime > 500) {
-      console.warn(`Slow component render detected: ${componentName} took ${renderTime}ms`);
+      logger.warn(`Slow component render detected: ${componentName} took ${renderTime}ms`);
       trackEvent({
         feature: 'performance_issue',
         action: 'slow_render',

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 // Central action type definitions with string enforcement
 export const ActionTypes = {
@@ -47,7 +48,7 @@ export function validateStringParam(param: any, fallback: string): string {
   if (typeof param === 'string' && param.trim().length > 0) {
     return param;
   }
-  console.warn(`Invalid string parameter, using fallback: ${fallback}`);
+  logger.warn(`Invalid string parameter, using fallback: ${fallback}`);
   return fallback;
 }
 
@@ -55,7 +56,7 @@ export function validateAction(action: any): ActionType {
   if (typeof action === 'string' && Object.values(ActionTypes).includes(action as ActionType)) {
     return action as ActionType;
   }
-  console.warn(`Invalid action type, using default: ${ActionTypes.DEFAULT_ACTION}`);
+  logger.warn(`Invalid action type, using default: ${ActionTypes.DEFAULT_ACTION}`);
   return ActionTypes.DEFAULT_ACTION;
 }
 

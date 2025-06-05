@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -54,7 +55,7 @@ export const useEmailConnection = () => {
         })));
       }
     } catch (error) {
-      console.error('Failed to fetch connection status:', error);
+      logger.error('Failed to fetch connection status:', error);
     }
   };
 
@@ -94,7 +95,7 @@ export const useEmailConnection = () => {
 
       // For demo purposes, we'll simulate a successful connection
       // In a real implementation, you would open the OAuth URL
-      console.log('OAuth URL:', authUrl);
+      logger.info('OAuth URL:', authUrl);
       
       // Simulate OAuth success
       setTimeout(() => {
@@ -109,7 +110,7 @@ export const useEmailConnection = () => {
       }, 2000);
 
     } catch (error) {
-      console.error('Failed to connect provider:', error);
+      logger.error('Failed to connect provider:', error);
       toast.error('Failed to connect email provider');
       setLoading(false);
     }
@@ -140,7 +141,7 @@ export const useEmailConnection = () => {
 
       toast.success('Email provider disconnected');
     } catch (error) {
-      console.error('Failed to disconnect provider:', error);
+      logger.error('Failed to disconnect provider:', error);
       toast.error('Failed to disconnect email provider');
     }
   };
@@ -160,7 +161,7 @@ export const useEmailConnection = () => {
       
       setEmails(data.emails || []);
     } catch (error) {
-      console.error('Failed to fetch emails:', error);
+      logger.error('Failed to fetch emails:', error);
       toast.error('Failed to fetch emails');
       
       // For demo purposes, provide mock emails

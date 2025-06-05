@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -146,7 +147,7 @@ const AutoDialerInterface: React.FC<AutoDialerInterfaceProps> = ({
   };
 
   const handleFeedbackSubmit = (feedback: any) => {
-    console.log('Call feedback:', feedback);
+    logger.info('Call feedback:', feedback);
     toast.success('Feedback submitted successfully');
   };
 

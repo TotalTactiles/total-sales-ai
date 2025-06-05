@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -83,7 +84,7 @@ export const useSalesRepAI = () => {
       });
 
     } catch (error) {
-      console.error('Error getting personalized recommendations:', error);
+      logger.error('Error getting personalized recommendations:', error);
       toast.error('Failed to generate recommendations');
     } finally {
       setIsGenerating(false);
@@ -152,7 +153,7 @@ export const useSalesRepAI = () => {
       return recommendations;
 
     } catch (error) {
-      console.error('Error generating task recommendations:', error);
+      logger.error('Error generating task recommendations:', error);
       return [];
     }
   };
@@ -217,7 +218,7 @@ export const useSalesRepAI = () => {
       return coaching;
 
     } catch (error) {
-      console.error('Error generating coaching recommendations:', error);
+      logger.error('Error generating coaching recommendations:', error);
       return [];
     }
   };
@@ -268,7 +269,7 @@ export const useSalesRepAI = () => {
       return insights;
 
     } catch (error) {
-      console.error('Error generating performance insights:', error);
+      logger.error('Error generating performance insights:', error);
       return [];
     }
   };
@@ -285,7 +286,7 @@ export const useSalesRepAI = () => {
 
       return data || [];
     } catch (error) {
-      console.error('Error getting user leads:', error);
+      logger.error('Error getting user leads:', error);
       return [];
     }
   };
@@ -301,7 +302,7 @@ export const useSalesRepAI = () => {
 
       return data || [];
     } catch (error) {
-      console.error('Error getting call history:', error);
+      logger.error('Error getting call history:', error);
       return [];
     }
   };
@@ -316,7 +317,7 @@ export const useSalesRepAI = () => {
 
       return data;
     } catch (error) {
-      console.error('Error getting user stats:', error);
+      logger.error('Error getting user stats:', error);
       return null;
     }
   };
@@ -383,7 +384,7 @@ export const useSalesRepAI = () => {
       return data.response;
 
     } catch (error) {
-      console.error('Error asking coach:', error);
+      logger.error('Error asking coach:', error);
       toast.error('Failed to get response from coach');
       return null;
     } finally {
@@ -407,7 +408,7 @@ export const useSalesRepAI = () => {
         timestamp: new Date().toISOString()
       };
     } catch (error) {
-      console.error('Error getting rep context:', error);
+      logger.error('Error getting rep context:', error);
       return {};
     }
   };

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { WebsiteData } from './types';
@@ -45,7 +46,7 @@ export class WebsiteService {
         }
       };
     } catch (error) {
-      console.error('Error crawling website:', error);
+      logger.error('Error crawling website:', error);
       throw error;
     }
   }
@@ -77,7 +78,7 @@ export class WebsiteService {
         }
       };
     } catch (error) {
-      console.error('Error getting website data:', error);
+      logger.error('Error getting website data:', error);
       return null;
     }
   }

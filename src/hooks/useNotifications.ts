@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,7 +36,7 @@ export const useNotifications = () => {
       if (error) throw error;
       setNotifications(data || []);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      logger.error('Error fetching notifications:', error);
     } finally {
       setIsLoading(false);
     }
@@ -63,7 +64,7 @@ export const useNotifications = () => {
       setNotifications(prev => [data, ...prev]);
       toast.info(notification.title, { description: notification.message });
     } catch (error) {
-      console.error('Error creating notification:', error);
+      logger.error('Error creating notification:', error);
     }
   };
 
@@ -80,7 +81,7 @@ export const useNotifications = () => {
         prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
       );
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      logger.error('Error marking notification as read:', error);
     }
   };
 
@@ -100,7 +101,7 @@ export const useNotifications = () => {
         prev.map(n => ({ ...n, is_read: true }))
       );
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      logger.error('Error marking all notifications as read:', error);
     }
   };
 

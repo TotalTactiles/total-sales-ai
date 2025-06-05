@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
@@ -41,7 +42,7 @@ export function useAIBrainStats() {
           .single();
           
         if (profileError) {
-          console.error("Error fetching user's company_id:", profileError);
+          logger.error("Error fetching user's company_id:", profileError);
         } else if (profileData) {
           companyId = profileData.company_id;
         }
@@ -128,7 +129,7 @@ export function useAIBrainStats() {
         trends
       });
     } catch (error) {
-      console.error("Error fetching brain stats:", error);
+      logger.error("Error fetching brain stats:", error);
       setStats(prev => ({ ...prev, isLoading: false }));
     }
   };

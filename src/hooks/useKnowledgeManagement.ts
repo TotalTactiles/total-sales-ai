@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,7 @@ export function useKnowledgeManagement() {
         .eq('id', id);
 
       if (error) {
-        console.error("Error deleting knowledge entry:", error);
+        logger.error("Error deleting knowledge entry:", error);
         toast.error("Failed to delete knowledge entry");
         return false;
       }
@@ -33,7 +34,7 @@ export function useKnowledgeManagement() {
       return true;
       
     } catch (err: any) {
-      console.error("Exception when deleting knowledge entry:", err);
+      logger.error("Exception when deleting knowledge entry:", err);
       toast.error("Failed to delete knowledge entry");
       return false;
     }
@@ -65,7 +66,7 @@ export function useKnowledgeManagement() {
         .eq('id', id);
 
       if (error) {
-        console.error("Error marking as case study:", error);
+        logger.error("Error marking as case study:", error);
         toast.error("Failed to mark as case study");
         return false;
       }
@@ -74,7 +75,7 @@ export function useKnowledgeManagement() {
       return true;
       
     } catch (err: any) {
-      console.error("Exception when marking as case study:", err);
+      logger.error("Exception when marking as case study:", err);
       toast.error("Failed to mark as case study");
       return false;
     }

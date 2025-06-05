@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -80,7 +81,7 @@ export const useEnhancedUsageTracking = () => {
       if (error) throw error;
       
     } catch (error) {
-      console.error('Error tracking enhanced usage event:', error);
+      logger.error('Error tracking enhanced usage event:', error);
     } finally {
       setIsLogging(false);
     }
@@ -162,7 +163,7 @@ export const useEnhancedUsageTracking = () => {
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error logging AI learning data:', error);
+      logger.error('Error logging AI learning data:', error);
     }
   };
 

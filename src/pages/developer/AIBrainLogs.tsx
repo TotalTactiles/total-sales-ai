@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,7 +66,7 @@ const AIBrainLogs: React.FC = () => {
       ];
       setLogs(mockLogs);
     } catch (error) {
-      console.error('Error fetching AI logs:', error);
+      logger.error('Error fetching AI logs:', error);
     } finally {
       setLoading(false);
     }

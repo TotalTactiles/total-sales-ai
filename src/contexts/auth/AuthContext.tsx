@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -31,12 +32,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
-          console.error('Error getting session:', error);
+          logger.error('Error getting session:', error);
           setLoading(false);
           return;
         }
         
-        console.log('Initial session:', session?.user?.email || 'No session');
+        logger.info('Initial session:', session?.user?.email || 'No session');
         setSession(session);
         setUser(session?.user || null);
         
@@ -44,7 +45,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           await fetchProfile(session.user.id);
         }
       } catch (error) {
-        console.error('Error getting session:', error);
+        logger.error('Error getting session:', error);
       } finally {
         setLoading(false);
       }
@@ -55,11 +56,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        logger.info('Auth state changed:', event, session?.user?.email);
         
         if (event === 'SIGNED_OUT') {
           // Immediately clear all state on sign out
-          console.log('Clearing all auth state');
+          logger.info('Clearing all auth state');
           setSession(null);
           setUser(null);
           setProfile(null);
@@ -97,13 +98,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (error) {
-        console.error('Error fetching profile:', error);
+        logger.error('Error fetching profile:', error);
         return;
       }
 
       setProfile(data);
     } catch (error) {
-      console.error('Error in fetchProfile:', error);
+      logger.error('Error in fetchProfile:', error);
     }
   };
 
@@ -120,7 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       toast.success('Signed in successfully');
       return {};
     } catch (error) {
-      console.error('Sign in error:', error);
+      logger.error('Sign in error:', error);
       toast.error('An unexpected error occurred');
       return { error: error as AuthError };
     } finally {
@@ -147,7 +148,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       toast.success('Check your email for verification link');
       return {};
     } catch (error) {
-      console.error('Sign up error:', error);
+      logger.error('Sign up error:', error);
       toast.error('An unexpected error occurred');
       return { error: error as AuthError };
     } finally {
@@ -157,7 +158,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async (): Promise<void> => {
     try {
-      console.log('SignOut: Starting logout process...');
+      logger.info('SignOut: Starting logout process...');
       
       // Clear state immediately to prevent any redirects during logout
       setUser(null);
@@ -173,13 +174,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
-        console.error('Supabase sign out error:', error);
+        logger.error('Supabase sign out error:', error);
       }
       
-      console.log('SignOut: Logout completed');
+      logger.info('SignOut: Logout completed');
       
     } catch (error) {
-      console.error('Sign out error:', error);
+      logger.error('Sign out error:', error);
       // Clear state even on error
       setUser(null);
       setProfile(null);

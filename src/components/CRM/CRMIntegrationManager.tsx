@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -70,7 +71,7 @@ const CRMIntegrationManager: React.FC = () => {
               syncErrors: status.syncErrors
             });
           } catch (error) {
-            console.error(`Failed to get ${config.name} status:`, error);
+            logger.error(`Failed to get ${config.name} status:`, error);
             statuses.push({
               name: config.name,
               icon: config.icon,
@@ -94,7 +95,7 @@ const CRMIntegrationManager: React.FC = () => {
 
       setCrmStatuses(statuses);
     } catch (error) {
-      console.error('Failed to fetch CRM statuses:', error);
+      logger.error('Failed to fetch CRM statuses:', error);
       toast.error('Failed to refresh CRM statuses');
     } finally {
       setIsRefreshing(false);
@@ -127,7 +128,7 @@ const CRMIntegrationManager: React.FC = () => {
         toast.error(result?.error || `Failed to connect ${crmName}`);
       }
     } catch (error) {
-      console.error(`Failed to connect ${crmName}:`, error);
+      logger.error(`Failed to connect ${crmName}:`, error);
       toast.error(`Failed to connect ${crmName}`);
     }
   };
@@ -145,7 +146,7 @@ const CRMIntegrationManager: React.FC = () => {
         toast.error(result.error || `Failed to disconnect ${crmName}`);
       }
     } catch (error) {
-      console.error(`Failed to disconnect ${crmName}:`, error);
+      logger.error(`Failed to disconnect ${crmName}:`, error);
       toast.error(`Failed to disconnect ${crmName}`);
     }
   };
@@ -178,7 +179,7 @@ const CRMIntegrationManager: React.FC = () => {
         toast.error(`${crmName} sync failed`);
       }
     } catch (error) {
-      console.error(`Failed to sync ${crmName}:`, error);
+      logger.error(`Failed to sync ${crmName}:`, error);
       toast.error(`Failed to sync ${crmName}`);
     } finally {
       await fetchCRMStatuses();

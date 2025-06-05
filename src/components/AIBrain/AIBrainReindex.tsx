@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,7 +42,7 @@ const AIBrainReindex: React.FC = () => {
         }
       }
     } catch (err: any) {
-      console.error("Error fetching reindex job info:", err);
+      logger.error("Error fetching reindex job info:", err);
     }
   };
 
@@ -60,7 +61,7 @@ const AIBrainReindex: React.FC = () => {
       const { data, error } = await supabase.functions.invoke('ai-brain-reindex');
 
       if (error) {
-        console.error("Error reindexing AI Brain data:", error);
+        logger.error("Error reindexing AI Brain data:", error);
         setError(error.message || "Error reindexing data");
         toast.error("Failed to reindex AI Brain data");
         return;
@@ -79,7 +80,7 @@ const AIBrainReindex: React.FC = () => {
       }
       
     } catch (err: any) {
-      console.error("Exception when reindexing AI Brain data:", err);
+      logger.error("Exception when reindexing AI Brain data:", err);
       setError(err.message || "Unknown error occurred");
       toast.error("Failed to reindex data");
     } finally {

@@ -39,10 +39,10 @@ class Logger {
         console.info(consoleMessage, data);
         break;
       case 'warn':
-        console.warn(consoleMessage, data);
+        logger.warn(consoleMessage, data);
         break;
       case 'error':
-        console.error(consoleMessage, data);
+        logger.error(consoleMessage, data);
         break;
     }
   }

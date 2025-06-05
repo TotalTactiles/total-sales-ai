@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { DatabaseLead } from '@/hooks/useLeads';
 
@@ -45,7 +46,7 @@ export class ZohoHelpers {
         is_sensitive: this.checkIfSensitiveLead(zohoLead)
       };
     } catch (error) {
-      console.error('Error transforming Zoho lead:', error);
+      logger.error('Error transforming Zoho lead:', error);
       throw new Error(`Failed to transform Zoho lead ${zohoLead.id}: ${error.message}`);
     }
   }
@@ -186,7 +187,7 @@ export class ZohoHelpers {
       // Return hours since creation
       return Math.floor(diffMinutes / 60);
     } catch (error) {
-      console.error('Error calculating speed to lead:', error);
+      logger.error('Error calculating speed to lead:', error);
       return 0;
     }
   }
@@ -209,7 +210,7 @@ export class ZohoHelpers {
     try {
       return new Date(dateString);
     } catch (error) {
-      console.error('Invalid date format from Zoho:', dateString);
+      logger.error('Invalid date format from Zoho:', dateString);
       return null;
     }
   }

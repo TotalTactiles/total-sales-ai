@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { ActionType, ActionTypes, ActionPayload, validateStringParam, validateAction, createSafeAction } from '@/types/actions';
 import { toast } from 'sonner';
@@ -15,7 +16,7 @@ export class SafeActionHandler {
   executeAction(action: any, data?: any, context?: string): Promise<any> {
     try {
       const safeAction = createSafeAction(action, data, context);
-      console.log('Executing safe action:', safeAction);
+      logger.info('Executing safe action:', safeAction);
 
       switch (safeAction.type) {
         case ActionTypes.AI_COMMAND:
@@ -36,7 +37,7 @@ export class SafeActionHandler {
           return this.handleDefaultAction(safeAction);
       }
     } catch (error) {
-      console.error('Action execution failed:', error);
+      logger.error('Action execution failed:', error);
       toast.error('Action failed. Please try again.');
       return Promise.resolve({ success: false, error: error.message });
     }
@@ -46,7 +47,7 @@ export class SafeActionHandler {
     const command = validateStringParam(action.data?.command, 'help');
     const context = validateStringParam(action.context, 'general');
     
-    console.log('Processing AI command:', command);
+    logger.info('Processing AI command:', command);
     
     // Implementation would go here
     return { success: true, command, context };
@@ -56,7 +57,7 @@ export class SafeActionHandler {
     const command = validateStringParam(action.data?.command, 'voice_help');
     const context = validateStringParam(action.context, 'voice');
     
-    console.log('Processing voice command:', command);
+    logger.info('Processing voice command:', command);
     
     // Implementation would go here
     return { success: true, command, context };
@@ -67,7 +68,7 @@ export class SafeActionHandler {
     const subject = validateStringParam(action.data?.subject, 'No Subject');
     const body = validateStringParam(action.data?.body, 'No Content');
     
-    console.log('Sending email:', { to, subject, body });
+    logger.info('Sending email:', { to, subject, body });
     
     // Implementation would go here
     return { success: true, to, subject, body };
@@ -77,7 +78,7 @@ export class SafeActionHandler {
     const phoneNumber = validateStringParam(action.data?.phoneNumber, '+1234567890');
     const message = validateStringParam(action.data?.message, 'Hello');
     
-    console.log('Sending SMS:', { phoneNumber, message });
+    logger.info('Sending SMS:', { phoneNumber, message });
     
     // Implementation would go here
     return { success: true, phoneNumber, message };
@@ -86,7 +87,7 @@ export class SafeActionHandler {
   private async handleNavigation(action: ActionPayload): Promise<any> {
     const path = validateStringParam(action.data?.path, '/dashboard');
     
-    console.log('Navigating to:', path);
+    logger.info('Navigating to:', path);
     
     // Implementation would go here
     return { success: true, path };
@@ -96,7 +97,7 @@ export class SafeActionHandler {
     const name = validateStringParam(action.data?.name, 'New Lead');
     const email = validateStringParam(action.data?.email, 'lead@example.com');
     
-    console.log('Creating lead:', { name, email });
+    logger.info('Creating lead:', { name, email });
     
     // Implementation would go here
     return { success: true, name, email };
@@ -106,14 +107,14 @@ export class SafeActionHandler {
     const leadId = validateStringParam(action.data?.leadId, 'default-lead-id');
     const updates = action.data?.updates || {};
     
-    console.log('Updating lead:', { leadId, updates });
+    logger.info('Updating lead:', { leadId, updates });
     
     // Implementation would go here
     return { success: true, leadId, updates };
   }
 
   private async handleDefaultAction(action: ActionPayload): Promise<any> {
-    console.log('Executing default action:', action);
+    logger.info('Executing default action:', action);
     toast.info('Action completed successfully');
     return { success: true, action: action.type };
   }
