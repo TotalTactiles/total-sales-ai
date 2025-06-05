@@ -121,19 +121,20 @@ The client now uses this function for speech synthesis instead of reading `VITE_
 
 ## Running tests
 
-Make sure the dependencies are installed first:
+This project uses [Vitest](https://vitest.dev/) for unit testing. Install
+dependencies first:
 
 ```sh
 npm install
 ```
 
-To execute the unit tests once, run:
+Run the test suite once with:
 
 ```sh
 npm test
 ```
 
-For interactive development with automatic re-runs, use:
+Or automatically re-run tests during development:
 
 ```sh
 npm run test:watch
