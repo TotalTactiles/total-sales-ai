@@ -70,6 +70,26 @@ npm install # or bun install
 npm run lint
 ```
 
+## Running tests
+
+Make sure the dependencies are installed first:
+
+```sh
+npm install
+```
+
+To execute the unit tests once, run:
+
+```sh
+npm test
+```
+
+For interactive development with automatic re-runs, use:
+
+```sh
+npm run test:watch
+```
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/13606cdc-6b16-461d-b2be-0098b12e8f3a) and click on Share -> Publish.
@@ -119,37 +139,3 @@ const { data, error } = await supabase.functions.invoke('elevenlabs-speech', {
 ```
 
 The client now uses this function for speech synthesis instead of reading `VITE_ELEVENLABS_API_KEY` directly.
-
-## Running tests
-
-Make sure the dependencies are installed first:
-
-```sh
-npm install
-```
-
-To execute the unit tests once, run:
-
-```sh
-npm test
-```
-
-For interactive development with automatic re-runs, use:
-
-```sh
-npm run test:watch
-```
-
-## Linting
-
-Install the dependencies if you haven't already:
-
-```sh
-npm install
-```
-
-Then check the code style with:
-
-```sh
-npm run lint
-```
