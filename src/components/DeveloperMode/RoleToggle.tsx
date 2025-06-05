@@ -25,32 +25,25 @@ const RoleToggle: React.FC = () => {
       toast.success(`Switched to ${newRole.replace('_', ' ')} role`);
 
       // Redirect to appropriate dashboard
-      const redirectPath =
-        newRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+      const redirectPath = newRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
       window.location.href = redirectPath;
     } catch (error) {
       console.error('Error toggling role:', error);
       toast.error('Failed to switch role');
     }
   };
-
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={toggleRole}
       className="fixed bottom-4 right-4 z-50"
+      title={`Switch to ${profile.role === 'manager' ? 'Sales Rep' : 'Manager'}`}
     >
       {profile.role === 'manager' ? (
-        <>
-          <User className="mr-2 h-4 w-4" />
-          Switch to Sales Rep
-        </>
+        <User className="h-4 w-4" />
       ) : (
-        <>
-          <Crown className="mr-2 h-4 w-4" />
-          Switch to Manager
-        </>
+        <Crown className="h-4 w-4" />
       )}
     </Button>
   );
