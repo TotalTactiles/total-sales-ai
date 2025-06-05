@@ -8,6 +8,7 @@ import { LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
@@ -108,10 +109,11 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             navigate('/onboarding');
           } else {
             // Regular navigation based on role
-            navigate('/sales/dashboard');
+            const role = companyStatus.isManager ? 'manager' : 'sales_rep';
+            navigate(getDashboardUrl({ role }));
           }
         } else {
-          navigate('/sales/dashboard');
+          navigate(getDashboardUrl({ role: 'sales_rep' }));
         }
       }, 1500);
       

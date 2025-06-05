@@ -7,15 +7,12 @@ export const getDashboardUrl = (
   if (!profileOrRole) return '/sales/dashboard';
 
   const role = profileOrRole.role;
-  switch (role) {
-    case 'admin':
-      return '/admin-dashboard';
-    case 'manager':
-      return '/manager/dashboard';
-    case 'sales_rep':
-    default:
-      return '/sales/dashboard';
+
+  if (role === 'manager' || role === 'admin') {
+    return '/manager/dashboard';
   }
+
+  return '/sales/dashboard';
 };
 
 export const updateActiveItem = (pathname: string, setActiveItem: (item: string) => void) => {

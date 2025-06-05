@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Crown, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 const RoleToggle: React.FC = () => {
   const {
     user,
@@ -25,7 +26,7 @@ const RoleToggle: React.FC = () => {
       toast.success(`Switched to ${newRole.replace('_', ' ')} role`);
 
       // Redirect to appropriate dashboard
-      const redirectPath = newRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+      const redirectPath = getDashboardUrl({ role: newRole });
       window.location.href = redirectPath;
     } catch (error) {
       console.error('Error toggling role:', error);

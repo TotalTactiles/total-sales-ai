@@ -5,6 +5,7 @@ import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Role } from '@/contexts/auth/types';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 import { ThemeToggle } from '@/components/ThemeProvider';
 import Logo from '@/components/Logo';
 import AuthLoginForm from './components/AuthLoginForm';
@@ -38,7 +39,7 @@ const AuthPage = () => {
   // Redirect if already logged in
   if (user && profile && !isTransitioning) {
     console.log("AuthPage: User is logged in, redirecting based on role:", profile.role);
-    const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+    const redirectPath = getDashboardUrl(profile);
     const from = location.state?.from?.pathname || redirectPath;
     return <Navigate to={from} replace />;
   }
@@ -47,7 +48,7 @@ const AuthPage = () => {
   if (isDemoMode() && !user) {
     const demoRole = localStorage.getItem('demoRole') as Role | null;
     if (demoRole) {
-      const redirectPath = demoRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+      const redirectPath = getDashboardUrl({ role: demoRole });
       console.log("AuthPage: Demo mode active, redirecting to", redirectPath);
       return <Navigate to={redirectPath} replace />;
     }
@@ -63,7 +64,7 @@ const AuthPage = () => {
     setIsTransitioning(true);
     // Simulate loading and transition to dashboard
     setTimeout(() => {
-      const redirectPath = selectedRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+      const redirectPath = getDashboardUrl({ role: selectedRole });
       console.log("AuthPage: Transitioning to", redirectPath);
       navigate(redirectPath, { replace: true });
       setIsTransitioning(false);
