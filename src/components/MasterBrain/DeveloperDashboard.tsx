@@ -43,12 +43,23 @@ const DeveloperDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
+  if (!profile?.company_id) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Button onClick={() => (window.location.href = '/onboarding')}>Set Up Company</Button>
+      </div>
+    );
+  }
+
   useEffect(() => {
     loadSystemImprovements();
   }, [profile?.company_id]);
 
   const loadSystemImprovements = async () => {
-    if (!profile?.company_id) return;
+    if (!profile?.company_id) {
+      setImprovements([]);
+      return;
+    }
     
     try {
       setIsLoading(true);
