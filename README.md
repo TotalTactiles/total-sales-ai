@@ -108,3 +108,12 @@ const { data, error } = await supabase.functions.invoke('elevenlabs-speech', {
 ```
 
 The client now uses this function for speech synthesis instead of reading `VITE_ELEVENLABS_API_KEY` directly.
+
+## Testing the Claude JSON parser
+
+After learning about the Claude JSON format above, you can verify the parser by running the project tests. Make sure dependencies are installed first:
+
+```sh
+npm i
+npm test
+```
