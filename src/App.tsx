@@ -2,7 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { AIContextProvider } from '@/contexts/AIContext';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -19,6 +19,8 @@ import DeveloperLayout from '@/layouts/DeveloperLayout';
 import AuthPage from '@/pages/Auth';
 import Logout from '@/pages/Auth/Logout';
 
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
+
 // Standalone pages
 import LeadWorkspace from '@/pages/LeadWorkspace';
 
@@ -30,6 +32,13 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const DashboardRedirect = () => {
+  const { profile, getLastSelectedRole } = useAuth();
+  const role = profile?.role || getLastSelectedRole();
+  const target = getDashboardUrl({ role } as any);
+  return <Navigate to={target} replace />;
+};
 
 function App() {
   console.log('App component rendering');
@@ -52,7 +61,7 @@ function App() {
                   <Route path="/" element={
                     <RequireAuth>
                       <OnboardingGuard>
-                        <Navigate to="/sales/dashboard" replace />
+                        <DashboardRedirect />
                       </OnboardingGuard>
                     </RequireAuth>
                   } />
@@ -113,7 +122,7 @@ function App() {
                   } />
                   
                   {/* Fallback */}
-                  <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
+                  <Route path="*" element={<DashboardRedirect />} />
                 </Routes>
                 <Toaster />
               </AIContextProvider>

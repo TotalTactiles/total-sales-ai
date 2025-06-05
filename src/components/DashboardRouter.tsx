@@ -2,45 +2,32 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardUrl } from './Navigation/navigationUtils';
+import { Role } from '@/contexts/auth/types';
 
 const DashboardRouter = () => {
-  const { user, profile } = useAuth();
-  
+  const { user, profile, getLastSelectedRole } = useAuth();
+
   // If not authenticated, redirect to auth
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
-  
-  // Route based on user role or demo mode
+
   const userStatus = localStorage.getItem('userStatus');
   const demoRole = localStorage.getItem('demoRole');
-  
-  // Handle demo mode
+
+  // Determine target role based on demo mode or authenticated profile
+  let role: Role = profile?.role ?? 'sales_rep';
+
   if (userStatus === 'demo' && demoRole) {
-    switch (demoRole) {
-      case 'sales-rep':
-        return <Navigate to="/" replace />;
-      case 'manager':
-        return <Navigate to="/manager/dashboard" replace />;
-      case 'admin':
-        return <Navigate to="/admin-dashboard" replace />;
-      default:
-        return <Navigate to="/" replace />;
-    }
+    role = demoRole as Role;
+  } else if (!profile) {
+    role = getLastSelectedRole();
   }
-  
-  // Handle authenticated users based on profile role
-  const role = profile?.role || 'sales_rep';
-  
-  switch (role) {
-    case 'manager':
-      return <Navigate to="/manager/dashboard" replace />;
-    case 'admin':
-      return <Navigate to="/admin-dashboard" replace />;
-    case 'sales_rep':
-    default:
-      return <Navigate to="/" replace />;
-  }
+
+  const target = getDashboardUrl({ role } as any);
+
+  return <Navigate to={target} replace />;
 };
 
 export default DashboardRouter;
