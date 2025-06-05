@@ -20,13 +20,12 @@ export interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ name, role }) => {
-  const { user } = useAuth();
+  const { signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
-      // For now, we'll just redirect to auth page
-      // The AuthContext might not have a logout method yet
       logger.info('Logout requested');
+      await signOut();
       window.location.href = '/auth';
     } catch (error) {
       logger.error('Logout failed:', error);
