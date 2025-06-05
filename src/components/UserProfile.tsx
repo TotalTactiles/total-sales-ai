@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React from 'react';
@@ -21,17 +22,12 @@ export interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ name, role }) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-=======
-  const { signOut } = useAuth();
-}
 
   const handleLogout = async () => {
     try {
       logger.info('Logout requested');
-      navigate('/logout');
-=======
       await signOut();
       window.location.href = '/auth';
     } catch (error) {
