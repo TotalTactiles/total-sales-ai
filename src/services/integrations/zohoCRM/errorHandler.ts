@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 
@@ -75,7 +76,7 @@ export class ZohoErrorHandler {
         .insert(errorLog);
 
       // Also log to console for immediate debugging
-      console.error('Zoho Error:', {
+      logger.error('Zoho Error:', {
         context,
         error: error.message || error,
         details: error.details,
@@ -84,8 +85,8 @@ export class ZohoErrorHandler {
 
     } catch (logError) {
       // Fallback to console logging if database logging fails
-      console.error('Failed to log Zoho error to database:', logError);
-      console.error('Original Zoho error:', error);
+      logger.error('Failed to log Zoho error to database:', logError);
+      logger.error('Original Zoho error:', error);
     }
   }
 
@@ -177,7 +178,7 @@ export class ZohoErrorHandler {
     try {
       // This could trigger a toast notification or in-app notification
       // For now, we'll log it as a user notification
-      console.warn('User Notification:', message);
+      logger.warn('User Notification:', message);
       
       // Could also store in a notifications table
       const userId = await this.getCurrentUserId();
@@ -195,7 +196,7 @@ export class ZohoErrorHandler {
           });
       }
     } catch (error) {
-      console.error('Failed to notify user:', error);
+      logger.error('Failed to notify user:', error);
     }
   }
 

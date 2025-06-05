@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 export class DataEncryptionService {
   private static instance: DataEncryptionService;
@@ -16,7 +17,7 @@ export class DataEncryptionService {
       const jsonString = JSON.stringify(data);
       return btoa(jsonString);
     } catch (error) {
-      console.error('Encryption failed:', error);
+      logger.error('Encryption failed:', error);
       return JSON.stringify(data); // Fallback to unencrypted
     }
   }
@@ -27,7 +28,7 @@ export class DataEncryptionService {
       const jsonString = atob(encryptedData);
       return JSON.parse(jsonString);
     } catch (error) {
-      console.error('Decryption failed:', error);
+      logger.error('Decryption failed:', error);
       try {
         return JSON.parse(encryptedData); // Try parsing as unencrypted JSON
       } catch {

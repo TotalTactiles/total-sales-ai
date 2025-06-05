@@ -1,3 +1,4 @@
+import { logger } from '../_shared/logger.ts';
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -54,7 +55,7 @@ async function fetchUserData(userId: string) {
       .single();
 
     if (profileError) {
-      console.error('Error fetching profile:', profileError);
+      logger.error('Error fetching profile:', profileError);
       return { profile: null, stats: null, persona: null, confidence: [] };
     }
 
@@ -66,7 +67,7 @@ async function fetchUserData(userId: string) {
       .single();
 
     if (statsError) {
-      console.error('Error fetching user stats:', statsError);
+      logger.error('Error fetching user stats:', statsError);
     }
 
     // Fetch AI agent persona
@@ -77,7 +78,7 @@ async function fetchUserData(userId: string) {
       .single();
 
     if (personaError) {
-      console.error('Error fetching AI persona:', personaError);
+      logger.error('Error fetching AI persona:', personaError);
     }
 
     // Fetch recent confidence cache entries (last 10)
@@ -89,7 +90,7 @@ async function fetchUserData(userId: string) {
       .limit(10);
 
     if (confidenceError) {
-      console.error('Error fetching confidence cache:', confidenceError);
+      logger.error('Error fetching confidence cache:', confidenceError);
     }
 
     return {
@@ -99,7 +100,7 @@ async function fetchUserData(userId: string) {
       confidence: confidence || [],
     };
   } catch (error) {
-    console.error('Error in fetchUserData:', error);
+    logger.error('Error in fetchUserData:', error);
     return { profile: null, stats: null, persona: null, confidence: [] };
   }
 }
@@ -143,7 +144,7 @@ async function callOpenAI(systemPrompt: string, userPrompt: string, model = MODE
       usage: data.usage
     };
   } catch (error) {
-    console.error('Error calling OpenAI:', error);
+    logger.error('Error calling OpenAI:', error);
     
     // If quota exceeded, don't retry with OpenAI
     if (error.message === 'QUOTA_EXCEEDED') {
@@ -197,7 +198,7 @@ async function callClaude(systemPrompt: string, userPrompt: string, model = MODE
       usage: data.usage
     };
   } catch (error) {
-    console.error('Error calling Claude:', error);
+    logger.error('Error calling Claude:', error);
     throw error;
   }
 }
@@ -208,23 +209,23 @@ async function callAIWithFallback(systemPrompt: string, userPrompt: string, pref
   
   try {
     if (useClaude && ANTHROPIC_API_KEY) {
-      console.log('Using Claude for complex/long-form task');
+      logger.info('Using Claude for complex/long-form task');
       return await callClaude(systemPrompt, userPrompt);
     } else if (OPENAI_API_KEY) {
-      console.log('Using OpenAI for standard task');
+      logger.info('Using OpenAI for standard task');
       return await callOpenAI(systemPrompt, userPrompt);
     } else {
       throw new Error('No AI API keys configured');
     }
   } catch (error) {
-    console.warn(`Primary AI service failed: ${error.message}`);
+    logger.warn(`Primary AI service failed: ${error.message}`);
     
     // Fallback logic
     if (error.message === 'OPENAI_QUOTA_EXCEEDED' && ANTHROPIC_API_KEY) {
-      console.log('OpenAI quota exceeded, falling back to Claude');
+      logger.info('OpenAI quota exceeded, falling back to Claude');
       return await callClaude(systemPrompt, userPrompt);
     } else if (useClaude && OPENAI_API_KEY && !error.message.includes('QUOTA')) {
-      console.log('Claude failed, falling back to OpenAI');
+      logger.info('Claude failed, falling back to OpenAI');
       return await callOpenAI(systemPrompt, userPrompt);
     }
     
@@ -249,7 +250,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Processing request${userId ? ` for user ${userId}` : ''} with provider preference: ${provider || 'auto'}`);
+    logger.info(`Processing request${userId ? ` for user ${userId}` : ''} with provider preference: ${provider || 'auto'}`);
 
     // Fetch user data if userId provided
     let userData = { profile: {}, stats: {}, persona: {}, recentActivity: [] };
@@ -292,7 +293,7 @@ serve(async (req) => {
     );
     
   } catch (error) {
-    console.error('Error processing request:', error);
+    logger.error('Error processing request:', error);
     
     let errorMessage = 'AI services are temporarily unavailable. Please try again later.';
     

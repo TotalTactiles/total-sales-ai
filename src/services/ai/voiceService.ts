@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { toast } from 'sonner';
 
@@ -22,7 +23,7 @@ class VoiceService {
       stream.getTracks().forEach(track => track.stop());
       return true;
     } catch (error) {
-      console.error('Microphone permission denied:', error);
+      logger.error('Microphone permission denied:', error);
       toast.error('Microphone access denied. Please allow microphone access.');
       return false;
     }
@@ -50,7 +51,7 @@ class VoiceService {
       this.mediaRecorderRef.start();
       return true;
     } catch (error) {
-      console.error('Failed to start recording:', error);
+      logger.error('Failed to start recording:', error);
       toast.error('Failed to start voice recording');
       return false;
     }
@@ -79,7 +80,7 @@ class VoiceService {
       const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
       // Mock transcription for now - in production this would call Whisper API
-      console.log('Processing audio command...');
+      logger.info('Processing audio command...');
       
       // Simulate processing delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -87,7 +88,7 @@ class VoiceService {
       // Return mock transcription
       return "Generate a follow-up email for this lead";
     } catch (error) {
-      console.error('Error processing audio command:', error);
+      logger.error('Error processing audio command:', error);
       throw new Error('Failed to process voice command');
     }
   }
@@ -108,7 +109,7 @@ class VoiceService {
         });
       }
     } catch (error) {
-      console.error('Error generating voice response:', error);
+      logger.error('Error generating voice response:', error);
     }
   }
 

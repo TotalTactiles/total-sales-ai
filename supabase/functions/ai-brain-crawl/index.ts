@@ -1,3 +1,4 @@
+import { logger } from '../_shared/logger.ts';
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
@@ -52,7 +53,7 @@ function createChunks(text: string, maxTokens = 750): string[] {
     
     return chunks;
   } catch (error) {
-    console.error('Error creating chunks:', error);
+    logger.error('Error creating chunks:', error);
     // Fallback to a simpler chunking method if tiktoken fails
     const approxCharsPerToken = 4; // Rough approximation
     const chunkSize = maxTokens * approxCharsPerToken;
@@ -84,7 +85,7 @@ async function getEmbedding(text: string): Promise<number[]> {
     const data = await response.json();
     return data.data[0].embedding;
   } catch (error) {
-    console.error('Error creating embedding:', error);
+    logger.error('Error creating embedding:', error);
     throw error;
   }
 }
@@ -106,7 +107,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Crawling URL: ${url} for company ID: ${companyId || 'null'}`);
+    logger.info(`Crawling URL: ${url} for company ID: ${companyId || 'null'}`);
     
     // If companyId is not provided but userId is, try to get the company_id from the user's profile
     let finalCompanyId = companyId;
@@ -119,13 +120,13 @@ serve(async (req) => {
           .single();
         
         if (profileError) {
-          console.error('Error fetching profile:', profileError);
+          logger.error('Error fetching profile:', profileError);
         } else if (profileData?.company_id) {
           finalCompanyId = profileData.company_id;
-          console.log(`Retrieved company_id ${finalCompanyId} from user profile`);
+          logger.info(`Retrieved company_id ${finalCompanyId} from user profile`);
         }
       } catch (err) {
-        console.error('Failed to retrieve company_id from profile:', err);
+        logger.error('Failed to retrieve company_id from profile:', err);
       }
     }
 
@@ -144,7 +145,7 @@ serve(async (req) => {
     
     // Create chunks
     const chunks = createChunks(text);
-    console.log(`Created ${chunks.length} chunks from URL content`);
+    logger.info(`Created ${chunks.length} chunks from URL content`);
     
     // Process each chunk
     const insertPromises = chunks.map(async (chunk, index) => {
@@ -174,7 +175,7 @@ serve(async (req) => {
         if (error) throw error;
         return { success: true, chunk_index: index };
       } catch (error) {
-        console.error(`Error processing chunk ${index}:`, error);
+        logger.error(`Error processing chunk ${index}:`, error);
         return { success: false, chunk_index: index, error };
       }
     });
@@ -192,7 +193,7 @@ serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
-    console.error('Error in web crawler function:', error);
+    logger.error('Error in web crawler function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

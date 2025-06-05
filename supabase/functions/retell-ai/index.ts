@@ -1,3 +1,4 @@
+import { logger } from '../_shared/logger.ts';
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -45,7 +46,7 @@ serve(async (req) => {
     if (url.pathname.includes('/webhook')) {
       const webhookData: RetellWebhookEvent = await req.json()
       
-      console.log('Retell webhook received:', webhookData.event, webhookData.call_id)
+      logger.info('Retell webhook received:', webhookData.event, webhookData.call_id)
       
       // Log call events to database
       await supabaseClient
@@ -69,14 +70,14 @@ serve(async (req) => {
       // Handle specific events
       switch (webhookData.event) {
         case 'call_started':
-          console.log(`Call started: ${webhookData.call_id}`)
+          logger.info(`Call started: ${webhookData.call_id}`)
           break
         case 'call_ended':
-          console.log(`Call ended: ${webhookData.call_id}`)
+          logger.info(`Call ended: ${webhookData.call_id}`)
           // Process call transcript and analysis here
           break
         case 'call_analyzed':
-          console.log(`Call analyzed: ${webhookData.call_id}`)
+          logger.info(`Call analyzed: ${webhookData.call_id}`)
           break
       }
 
@@ -199,7 +200,7 @@ Remember: This is a real person, not a demo. Be authentic and helpful.`
     })
 
   } catch (error) {
-    console.error('Error in retell-ai function:', error)
+    logger.error('Error in retell-ai function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 
@@ -72,7 +73,7 @@ export class ClickUpErrorHandler {
         .from('error_logs')
         .insert(errorLog);
 
-      console.error('ClickUp Error:', {
+      logger.error('ClickUp Error:', {
         context,
         error: error.message || error,
         details: error.details,
@@ -80,8 +81,8 @@ export class ClickUpErrorHandler {
       });
 
     } catch (logError) {
-      console.error('Failed to log ClickUp error to database:', logError);
-      console.error('Original ClickUp error:', error);
+      logger.error('Failed to log ClickUp error to database:', logError);
+      logger.error('Original ClickUp error:', error);
     }
   }
 
@@ -169,7 +170,7 @@ export class ClickUpErrorHandler {
 
   private async notifyUser(message: string): Promise<void> {
     try {
-      console.warn('User Notification:', message);
+      logger.warn('User Notification:', message);
       
       const userId = await this.getCurrentUserId();
       if (userId) {
@@ -186,7 +187,7 @@ export class ClickUpErrorHandler {
           });
       }
     } catch (error) {
-      console.error('Failed to notify user:', error);
+      logger.error('Failed to notify user:', error);
     }
   }
 

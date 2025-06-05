@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { toast } from 'sonner';
 
@@ -10,7 +11,7 @@ class ElevenLabsService {
       this.apiKey = apiKey || process.env.VITE_ELEVENLABS_API_KEY || null;
       
       if (!this.apiKey) {
-        console.warn('ElevenLabs API key not provided');
+        logger.warn('ElevenLabs API key not provided');
         this.serviceReady = false;
         return false;
       }
@@ -25,14 +26,14 @@ class ElevenLabsService {
       this.serviceReady = response.ok;
       
       if (this.serviceReady) {
-        console.log('ElevenLabs service initialized successfully');
+        logger.info('ElevenLabs service initialized successfully');
       } else {
-        console.error('ElevenLabs API key invalid');
+        logger.error('ElevenLabs API key invalid');
       }
       
       return this.serviceReady;
     } catch (error) {
-      console.error('Failed to initialize ElevenLabs service:', error);
+      logger.error('Failed to initialize ElevenLabs service:', error);
       this.serviceReady = false;
       return false;
     }
@@ -69,7 +70,7 @@ class ElevenLabsService {
       const audioBlob = await response.blob();
       return URL.createObjectURL(audioBlob);
     } catch (error) {
-      console.error('Error generating speech:', error);
+      logger.error('Error generating speech:', error);
       toast.error('Failed to generate voice response');
       return null;
     }

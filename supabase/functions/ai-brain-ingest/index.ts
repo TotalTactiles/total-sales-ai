@@ -1,3 +1,4 @@
+import { logger } from '../_shared/logger.ts';
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
@@ -44,7 +45,7 @@ async function removePII(text: string): Promise<string> {
     const data = await response.json();
     return data.choices[0].message.content;
   } catch (error) {
-    console.error('Error removing PII:', error);
+    logger.error('Error removing PII:', error);
     return text; // Return original text if PII removal fails
   }
 }
@@ -64,7 +65,7 @@ function createChunks(text: string, maxTokens = 750): string[] {
     
     return chunks;
   } catch (error) {
-    console.error('Error creating chunks:', error);
+    logger.error('Error creating chunks:', error);
     // Fallback to a simpler chunking method if tiktoken fails
     const approxCharsPerToken = 4; // Rough approximation
     const chunkSize = maxTokens * approxCharsPerToken;
@@ -96,7 +97,7 @@ async function getEmbedding(text: string): Promise<number[]> {
     const data = await response.json();
     return data.data[0].embedding;
   } catch (error) {
-    console.error('Error creating embedding:', error);
+    logger.error('Error creating embedding:', error);
     throw error;
   }
 }
@@ -118,7 +119,7 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Processing ingest for company ID: ${companyId || 'null'}`);
+    logger.info(`Processing ingest for company ID: ${companyId || 'null'}`);
 
     // Remove PII from the text
     const sanitizedText = await removePII(text);
@@ -126,7 +127,7 @@ serve(async (req) => {
     // Create chunks
     const chunks = createChunks(sanitizedText);
     
-    console.log(`Processing ${chunks.length} chunks for ingestion`);
+    logger.info(`Processing ${chunks.length} chunks for ingestion`);
     
     // Process each chunk
     const insertPromises = chunks.map(async (chunk, index) => {
@@ -149,7 +150,7 @@ serve(async (req) => {
         if (error) throw error;
         return { success: true, chunk_index: index };
       } catch (error) {
-        console.error(`Error processing chunk ${index}:`, error);
+        logger.error(`Error processing chunk ${index}:`, error);
         return { success: false, chunk_index: index, error };
       }
     });
@@ -177,7 +178,7 @@ serve(async (req) => {
           chunk_count: chunkCount || 0
         });
     } catch (error) {
-      console.error('Error updating stats history:', error);
+      logger.error('Error updating stats history:', error);
     }
     
     return new Response(
@@ -190,7 +191,7 @@ serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in AI Brain ingest function:', error);
+    logger.error('Error in AI Brain ingest function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

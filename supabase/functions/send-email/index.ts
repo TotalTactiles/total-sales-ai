@@ -1,3 +1,4 @@
+import { logger } from '../_shared/logger.ts';
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -44,7 +45,7 @@ serve(async (req) => {
     // - AWS SES
     // - Postmark
 
-    console.log('Email would be sent:', { to, subject, body })
+    logger.info('Email would be sent:', { to, subject, body })
 
     // Log the email for tracking
     await supabaseClient
@@ -84,7 +85,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in send-email function:', error)
+    logger.error('Error in send-email function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

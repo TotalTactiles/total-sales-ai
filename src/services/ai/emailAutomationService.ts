@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { automationFlowService } from './automationFlowService';
 import { emailTemplateService, EmailTemplate } from './email/emailTemplateService';
@@ -53,7 +54,7 @@ export class EmailAutomationService {
 
       await automationFlowService.evaluateFlowTriggers(trigger, flowContext);
     } catch (error) {
-      console.error('Error evaluating automation triggers:', error);
+      logger.error('Error evaluating automation triggers:', error);
     }
   }
 }
