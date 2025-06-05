@@ -111,8 +111,13 @@ The client now uses this function for speech synthesis instead of reading `VITE_
 
 ## Running tests
 
-This project uses the Bun runtime for tests. Ensure Bun is installed (version
-`1.2.14` is used in this repository).
+Make sure the dependencies are installed first:
+
+```sh
+npm install
+```
+
+This project uses the Bun runtime for tests. Ensure Bun is installed (version `1.2.14` is used in this repository). `npm test` runs with Bun under the hood.
 
 To execute the unit tests once, run:
 
@@ -124,4 +129,18 @@ For interactive development with automatic re-runs, use:
 
 ```sh
 npm run test:watch
+```
+
+## Linting
+
+Install the dependencies if you haven't already:
+
+```sh
+npm install
+```
+
+Then check the code style with:
+
+```sh
+npm run lint
 ```
