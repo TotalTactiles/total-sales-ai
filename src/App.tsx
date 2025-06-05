@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React from 'react';
@@ -12,6 +13,8 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import RequireAuth from '@/components/RequireAuth';
 import OnboardingGuard from '@/components/OnboardingGuard';
+import HealthCheck from '@/components/HealthCheck';
+import RoleToggle from '@/components/DeveloperMode/RoleToggle';
 
 // Layout components
 import SalesLayout from '@/layouts/SalesLayout';
@@ -36,8 +39,20 @@ const queryClient = new QueryClient({
 
 const DashboardRedirect: React.FC = () => {
   const { profile, isDemoMode, getLastSelectedRole } = useAuth();
-  const role = isDemoMode() ? getLastSelectedRole() : profile?.role || 'sales_rep';
-  return <Navigate to={getDashboardUrl({ role })} replace />;
+  
+  // Determine the correct role for redirection
+  let targetRole = 'sales_rep'; // Default fallback
+  
+  if (isDemoMode()) {
+    targetRole = getLastSelectedRole() || 'sales_rep';
+  } else if (profile?.role) {
+    targetRole = profile.role;
+  }
+  
+  const dashboardUrl = getDashboardUrl({ role: targetRole });
+  logger.info('Redirecting to dashboard:', { targetRole, dashboardUrl });
+  
+  return <Navigate to={dashboardUrl} replace />;
 };
 
 function App() {
@@ -57,7 +72,7 @@ function App() {
                   <Route path="/auth" element={<AuthPage />} />
                   <Route path="/logout" element={<Logout />} />
                   
-                  {/* Root redirect */}
+                  {/* Root redirect - goes to appropriate dashboard */}
                   <Route path="/" element={
                     <RequireAuth>
                       <OnboardingGuard>
@@ -66,30 +81,29 @@ function App() {
                     </RequireAuth>
                   } />
                   
-                  {/* Sales OS routes with nested lead workspace overlay */}
-                  <Route path="/sales/*" element={
+                  {/* Dashboard redirect for legacy URLs */}
+                  <Route path="/dashboard" element={
                     <RequireAuth>
                       <OnboardingGuard>
-                        <>
-                          <SalesLayout />
-                          <Routes>
-                            <Route path="/lead-workspace/:leadId" element={<LeadWorkspace />} />
-                          </Routes>
-                        </>
+                        <DashboardRedirect />
                       </OnboardingGuard>
                     </RequireAuth>
                   } />
                   
-                  {/* Manager OS routes with nested lead workspace overlay */}
+                  {/* Sales OS routes */}
+                  <Route path="/sales/*" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <SalesLayout />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Manager OS routes */}
                   <Route path="/manager/*" element={
                     <RequireAuth>
                       <OnboardingGuard>
-                        <>
-                          <ManagerLayout />
-                          <Routes>
-                            <Route path="/lead-workspace/:leadId" element={<LeadWorkspace />} />
-                          </Routes>
-                        </>
+                        <ManagerLayout />
                       </OnboardingGuard>
                     </RequireAuth>
                   } />
@@ -103,16 +117,7 @@ function App() {
                     </RequireAuth>
                   } />
                   
-                  {/* Direct lead management access */}
-                  <Route path="/lead-management" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
-                        <Navigate to="/sales/lead-management" replace />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
-                  
-                  {/* Standalone lead workspace route for direct access */}
+                  {/* Standalone lead workspace route */}
                   <Route path="/lead-workspace/:leadId" element={
                     <RequireAuth>
                       <OnboardingGuard>
@@ -121,10 +126,29 @@ function App() {
                     </RequireAuth>
                   } />
                   
-                  {/* Fallback */}
-                  <Route path="*" element={<DashboardRedirect />} />
+                  {/* Legacy redirects */}
+                  <Route path="/lead-management" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <Navigate to="/sales/lead-management" replace />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Catch all - redirect to appropriate dashboard */}
+                  <Route path="*" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <DashboardRedirect />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
                 </Routes>
+                
+                {/* Global components */}
                 <Toaster />
+                <HealthCheck />
+                <RoleToggle />
               </AIContextProvider>
             </AuthProvider>
           </Router>

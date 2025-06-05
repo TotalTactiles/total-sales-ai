@@ -87,7 +87,6 @@ export type Database = {
           event_summary: string | null
           id: string
           payload: Json | null
-          processed: boolean | null
           timestamp: string | null
           type: string | null
           visibility: string | null
@@ -97,7 +96,6 @@ export type Database = {
           event_summary?: string | null
           id?: string
           payload?: Json | null
-          processed?: boolean | null
           timestamp?: string | null
           type?: string | null
           visibility?: string | null
@@ -107,7 +105,6 @@ export type Database = {
           event_summary?: string | null
           id?: string
           payload?: Json | null
-          processed?: boolean | null
           timestamp?: string | null
           type?: string | null
           visibility?: string | null
