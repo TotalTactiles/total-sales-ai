@@ -111,7 +111,14 @@ The client now uses this function for speech synthesis instead of reading `VITE_
 
 ## Running tests
 
-To execute the unit tests once, run:
+Execute the test suite in continuous integration mode with:
+
+```sh
+npm run test:ci
+```
+
+This runs the Vitest suite once using a minimal reporter. You can also run the
+tests locally with:
 
 ```sh
 npm test
