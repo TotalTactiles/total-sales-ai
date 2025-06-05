@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,10 +26,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ name, role }) => {
     try {
       // For now, we'll just redirect to auth page
       // The AuthContext might not have a logout method yet
-      console.log('Logout requested');
+      logger.info('Logout requested');
       window.location.href = '/auth';
     } catch (error) {
-      console.error('Logout failed:', error);
+      logger.error('Logout failed:', error);
     }
   };
 

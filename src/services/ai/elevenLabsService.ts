@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,14 +15,14 @@ class ElevenLabsService {
       this.serviceReady = !error;
 
       if (this.serviceReady) {
-        console.log('ElevenLabs service initialized successfully');
+        logger.info('ElevenLabs service initialized successfully');
       } else {
-        console.error('ElevenLabs service initialization failed');
+        logger.error('ElevenLabs service initialization failed');
       }
 
       return this.serviceReady;
     } catch (error) {
-      console.error('Failed to initialize ElevenLabs service:', error);
+      logger.error('Failed to initialize ElevenLabs service:', error);
       this.serviceReady = false;
       return false;
     }
@@ -44,7 +45,7 @@ class ElevenLabsService {
 
       return data.url as string;
     } catch (error) {
-      console.error('Error generating speech:', error);
+      logger.error('Error generating speech:', error);
       toast.error('Failed to generate voice response');
       return null;
     }

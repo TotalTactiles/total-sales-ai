@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 
 import { supabase } from '@/integrations/supabase/client';
@@ -44,7 +45,7 @@ export class ClaudeAIService {
         usage: response.usage
       };
     } catch (error) {
-      console.error('Claude pattern analysis failed:', error);
+      logger.error('Claude pattern analysis failed:', error);
       throw new Error('Claude analysis service unavailable');
     }
   }
@@ -70,7 +71,7 @@ export class ClaudeAIService {
         usage: response.usage
       };
     } catch (error) {
-      console.error('Claude summarization failed:', error);
+      logger.error('Claude summarization failed:', error);
       throw new Error('Claude summarization service unavailable');
     }
   }
@@ -96,7 +97,7 @@ export class ClaudeAIService {
         usage: response.usage
       };
     } catch (error) {
-      console.error('Claude system insights failed:', error);
+      logger.error('Claude system insights failed:', error);
       throw new Error('Claude insights service unavailable');
     }
   }
@@ -122,7 +123,7 @@ export class ClaudeAIService {
         usage: response.usage
       };
     } catch (error) {
-      console.error('Claude market contextualization failed:', error);
+      logger.error('Claude market contextualization failed:', error);
       throw new Error('Claude market analysis service unavailable');
     }
   }

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { toast } from 'sonner';
 import { zohoCRMIntegration } from './zohoCRM';
@@ -46,7 +47,7 @@ export class CRMOrchestrator {
   }
 
   async initializeAllIntegrations(companyId: string): Promise<void> {
-    console.log('🚀 Initializing CRM integrations for company:', companyId);
+    logger.info('🚀 Initializing CRM integrations for company:', companyId);
 
     for (const provider of this.providers) {
       try {
@@ -54,15 +55,15 @@ export class CRMOrchestrator {
         provider.isActive = status.connected;
         
         if (provider.isActive) {
-          console.log(`✅ ${provider.name} is connected and active`);
+          logger.info(`✅ ${provider.name} is connected and active`);
           
           // Start auto-sync for connected providers
           this.startAutoSync(provider.id, companyId);
         } else {
-          console.log(`⚠️ ${provider.name} is not connected`);
+          logger.info(`⚠️ ${provider.name} is not connected`);
         }
       } catch (error) {
-        console.error(`❌ Error checking ${provider.name} status:`, error);
+        logger.error(`❌ Error checking ${provider.name} status:`, error);
         provider.isActive = false;
       }
     }
@@ -70,7 +71,7 @@ export class CRMOrchestrator {
     // Enable real-time sync
     await realTimeLeadSync.enableRealTimeSync(companyId);
     
-    console.log('🎯 CRM orchestrator initialization complete');
+    logger.info('🎯 CRM orchestrator initialization complete');
   }
 
   async connectProvider(providerId: string): Promise<{ success: boolean; authUrl?: string; error?: string }> {
@@ -89,7 +90,7 @@ export class CRMOrchestrator {
       
       return result;
     } catch (error) {
-      console.error(`Error connecting ${provider.name}:`, error);
+      logger.error(`Error connecting ${provider.name}:`, error);
       return { success: false, error: error.message };
     }
   }
@@ -111,7 +112,7 @@ export class CRMOrchestrator {
       
       return result;
     } catch (error) {
-      console.error(`Error disconnecting ${provider.name}:`, error);
+      logger.error(`Error disconnecting ${provider.name}:`, error);
       return { success: false, error: error.message };
     }
   }
@@ -123,7 +124,7 @@ export class CRMOrchestrator {
     }
 
     try {
-      console.log(`🔄 Starting sync for ${provider.name}...`);
+      logger.info(`🔄 Starting sync for ${provider.name}...`);
       
       let syncResult;
       if (providerId === 'zoho') {
@@ -134,10 +135,10 @@ export class CRMOrchestrator {
         throw new Error(`Sync not implemented for ${providerId}`);
       }
 
-      console.log(`✅ ${provider.name} sync completed:`, syncResult);
+      logger.info(`✅ ${provider.name} sync completed:`, syncResult);
       return syncResult;
     } catch (error) {
-      console.error(`❌ Error syncing ${provider.name}:`, error);
+      logger.error(`❌ Error syncing ${provider.name}:`, error);
       throw error;
     }
   }
@@ -146,11 +147,11 @@ export class CRMOrchestrator {
     const results = [];
     let overallSuccess = true;
 
-    console.log('🔄 Starting sync for all active providers...');
+    logger.info('🔄 Starting sync for all active providers...');
 
     for (const provider of this.providers) {
       if (!provider.isActive) {
-        console.log(`⏭️ Skipping ${provider.name} - not active`);
+        logger.info(`⏭️ Skipping ${provider.name} - not active`);
         continue;
       }
 
@@ -162,7 +163,7 @@ export class CRMOrchestrator {
           result
         });
       } catch (error) {
-        console.error(`❌ Failed to sync ${provider.name}:`, error);
+        logger.error(`❌ Failed to sync ${provider.name}:`, error);
         results.push({
           provider: provider.name,
           success: false,
@@ -172,7 +173,7 @@ export class CRMOrchestrator {
       }
     }
 
-    console.log('🎯 All provider sync completed. Overall success:', overallSuccess);
+    logger.info('🎯 All provider sync completed. Overall success:', overallSuccess);
     return { success: overallSuccess, results };
   }
 
@@ -182,15 +183,15 @@ export class CRMOrchestrator {
 
     const interval = setInterval(async () => {
       try {
-        console.log(`⏰ Auto-sync triggered for ${providerId}`);
+        logger.info(`⏰ Auto-sync triggered for ${providerId}`);
         await this.syncProvider(providerId, companyId, false);
       } catch (error) {
-        console.error(`❌ Auto-sync failed for ${providerId}:`, error);
+        logger.error(`❌ Auto-sync failed for ${providerId}:`, error);
       }
     }, intervalMinutes * 60 * 1000);
 
     this.syncIntervals.set(providerId, interval);
-    console.log(`⚡ Auto-sync started for ${providerId} (${intervalMinutes}min intervals)`);
+    logger.info(`⚡ Auto-sync started for ${providerId} (${intervalMinutes}min intervals)`);
   }
 
   private stopAutoSync(providerId: string): void {
@@ -198,7 +199,7 @@ export class CRMOrchestrator {
     if (interval) {
       clearInterval(interval);
       this.syncIntervals.delete(providerId);
-      console.log(`⏹️ Auto-sync stopped for ${providerId}`);
+      logger.info(`⏹️ Auto-sync stopped for ${providerId}`);
     }
   }
 
@@ -217,7 +218,7 @@ export class CRMOrchestrator {
       try {
         results[provider.id] = await provider.service.testConnection();
       } catch (error) {
-        console.error(`Connection test failed for ${provider.name}:`, error);
+        logger.error(`Connection test failed for ${provider.name}:`, error);
         results[provider.id] = false;
       }
     }
@@ -234,7 +235,7 @@ export class CRMOrchestrator {
     mappingConfig: any;
   }): Promise<void> {
     // This method would allow adding future CRMs dynamically
-    console.log('🔮 Custom CRM integration coming soon:', config.name);
+    logger.info('🔮 Custom CRM integration coming soon:', config.name);
     toast.info(`${config.name} integration will be available soon`);
   }
 }

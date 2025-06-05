@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useRef, useCallback } from 'react';
 import { SpeechRecognition } from './types';
@@ -30,7 +31,7 @@ export const useSpeechRecognition = () => {
     }
   ) => {
     recognition.onstart = () => {
-      console.log('Speech recognition started');
+      logger.info('Speech recognition started');
       handlers.onStart();
     };
 
@@ -43,7 +44,7 @@ export const useSpeechRecognition = () => {
     };
 
     recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
+      logger.error('Speech recognition error:', event.error);
       
       let errorMessage = 'Speech recognition error: ';
       
@@ -68,7 +69,7 @@ export const useSpeechRecognition = () => {
     };
 
     recognition.onend = () => {
-      console.log('Speech recognition ended');
+      logger.info('Speech recognition ended');
       handlers.onEnd();
     };
   }, []);
@@ -79,7 +80,7 @@ export const useSpeechRecognition = () => {
         recognitionRef.current.start();
         return true;
       } catch (error) {
-        console.error('Failed to start speech recognition:', error);
+        logger.error('Failed to start speech recognition:', error);
         return false;
       }
     }
@@ -91,7 +92,7 @@ export const useSpeechRecognition = () => {
       try {
         recognitionRef.current.stop();
       } catch (error) {
-        console.error('Error stopping recognition:', error);
+        logger.error('Error stopping recognition:', error);
       }
     }
   }, []);

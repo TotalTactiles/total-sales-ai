@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +34,7 @@ const HealthMonitor: React.FC = () => {
     // Log health status
     const hasErrors = checks.some(check => check.status === 'error');
     const hasWarnings = checks.some(check => check.status === 'warning');
-    console.log('System Health Check:', {
+    logger.info('System Health Check:', {
       overall: hasErrors ? 'error' : hasWarnings ? 'warning' : 'healthy',
       checks: checks.map(c => ({
         name: c.name,

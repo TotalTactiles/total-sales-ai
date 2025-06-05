@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -115,7 +116,7 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
           .single();
           
         if (error) {
-          console.error('Error checking tour status:', error);
+          logger.error('Error checking tour status:', error);
           return;
         }
         
@@ -136,7 +137,7 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
           setMessage(introMessage || generateMessage('greeting'));
         }
       } catch (err) {
-        console.error('Error in checkTourStatus:', err);
+        logger.error('Error in checkTourStatus:', err);
       }
     };
     
@@ -157,7 +158,7 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
         event_data: {}
       });
     } catch (err) {
-      console.error('Error tracking tour start:', err);
+      logger.error('Error tracking tour start:', err);
     }
   };
 
@@ -184,7 +185,7 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
       // Set a new message
       setMessage(`Great! You're all set to use ${agentName}. Let me know if you need anything else.`);
     } catch (err) {
-      console.error('Error completing tour:', err);
+      logger.error('Error completing tour:', err);
     }
   };
 

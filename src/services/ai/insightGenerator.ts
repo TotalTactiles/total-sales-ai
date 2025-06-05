@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { AIIngestionEvent, AIInsight } from './types';
@@ -65,7 +66,7 @@ export class InsightGenerator {
 
       return data || [];
     } catch (error) {
-      console.error('Error fetching call history:', error);
+      logger.error('Error fetching call history:', error);
       return [];
     }
   }
@@ -91,7 +92,7 @@ export class InsightGenerator {
 
       if (error) throw error;
     } catch (error) {
-      console.error('Error storing insight:', error);
+      logger.error('Error storing insight:', error);
     }
   }
 }

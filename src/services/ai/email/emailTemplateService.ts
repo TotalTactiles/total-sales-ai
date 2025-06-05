@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 
@@ -39,7 +40,7 @@ export class EmailTemplateService {
         companyId: data.company_id
       };
     } catch (error) {
-      console.error('Error creating email template:', error);
+      logger.error('Error creating email template:', error);
       throw error;
     }
   }
@@ -70,7 +71,7 @@ export class EmailTemplateService {
 
       return { subject, body };
     } catch (error) {
-      console.error('Error generating email from template:', error);
+      logger.error('Error generating email from template:', error);
       throw error;
     }
   }

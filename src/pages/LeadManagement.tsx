@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,7 +27,7 @@ const LeadManagement = () => {
     const hasReal = realLeads.length > 0;
     const shouldShowDemo = isDemo || (!hasReal);
     
-    console.log('LeadManagement state:', {
+    logger.info('LeadManagement state:', {
       isDemo,
       hasReal,
       shouldShowDemo,
@@ -52,7 +53,7 @@ const LeadManagement = () => {
   }, [realLeads, mockLeads, isDemoMode]);
 
   const handleLeadSelect = (lead: Lead) => {
-    console.log('Lead selected:', lead);
+    logger.info('Lead selected:', lead);
     setSelectedLead(lead);
     setIsIntelligencePanelOpen(true);
     setIsSlidePanelOpen(true);

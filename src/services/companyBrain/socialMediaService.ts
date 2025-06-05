@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { SocialMediaConnection } from './types';
@@ -25,7 +26,7 @@ export class SocialMediaService {
       toast.info(`${platform} OAuth integration coming soon`);
       return false;
     } catch (error) {
-      console.error('Error connecting platform:', error);
+      logger.error('Error connecting platform:', error);
       return false;
     }
   }
@@ -51,7 +52,7 @@ export class SocialMediaService {
         metrics: undefined
       }));
     } catch (error) {
-      console.error('Error getting social connections:', error);
+      logger.error('Error getting social connections:', error);
       return [];
     }
   }
@@ -81,7 +82,7 @@ export class SocialMediaService {
         lastSync: new Date()
       };
     } catch (error) {
-      console.error('Error syncing platform data:', error);
+      logger.error('Error syncing platform data:', error);
       throw error;
     }
   }

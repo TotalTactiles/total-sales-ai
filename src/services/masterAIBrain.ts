@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { AIIngestionEvent, AIRecommendation } from './ai/types';
@@ -68,7 +69,7 @@ class MasterAIBrain {
         this.processIngestionQueue();
       }
     } catch (error) {
-      console.error('Error reloading unprocessed events:', error);
+      logger.error('Error reloading unprocessed events:', error);
     }
   }
 
@@ -137,7 +138,7 @@ class MasterAIBrain {
       }
 
     } catch (error) {
-      console.error('Error ingesting AI event:', error);
+      logger.error('Error ingesting AI event:', error);
       this.emit('ingest-error', error);
       throw error;
     }
@@ -177,7 +178,7 @@ class MasterAIBrain {
     if (this.isProcessing || this.ingestionQueue.length === 0) return;
     
     this.isProcessing = true;
-    console.log(`Processing ${this.ingestionQueue.length} AI events with hybrid AI system...`);
+    logger.info(`Processing ${this.ingestionQueue.length} AI events with hybrid AI system...`);
 
     try {
       const batchSize = 10;
@@ -189,7 +190,7 @@ class MasterAIBrain {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {
-      console.error('Error processing ingestion queue:', error);
+      logger.error('Error processing ingestion queue:', error);
     } finally {
       this.isProcessing = false;
     }
@@ -219,7 +220,7 @@ class MasterAIBrain {
           .eq('id', event.id);
 
       } catch (error) {
-        console.error('Error processing event:', event, error);
+        logger.error('Error processing event:', event, error);
       }
     }
   }
@@ -242,7 +243,7 @@ class MasterAIBrain {
 
       await hybridAIOrchestrator.queueTask(analysisTask);
     } catch (error) {
-      console.error('Error in hybrid analysis:', error);
+      logger.error('Error in hybrid analysis:', error);
     }
   }
 
@@ -276,7 +277,7 @@ class MasterAIBrain {
         await emailAutomationService.evaluateAutomationTriggers(triggerType, eventData);
       }
     } catch (error) {
-      console.error('Error checking native automation triggers:', error);
+      logger.error('Error checking native automation triggers:', error);
     }
   }
 
@@ -325,7 +326,7 @@ class MasterAIBrain {
       });
 
     } catch (error) {
-      console.error('Error triggering automation:', error);
+      logger.error('Error triggering automation:', error);
       throw error;
     }
   }
@@ -357,7 +358,7 @@ class MasterAIBrain {
       });
 
     } catch (error) {
-      console.error('Error ingesting market data:', error);
+      logger.error('Error ingesting market data:', error);
     }
   }
 
@@ -379,7 +380,7 @@ class MasterAIBrain {
 
       return health;
     } catch (error) {
-      console.error('Error checking system health:', error);
+      logger.error('Error checking system health:', error);
       return {
         aiServices: 'degraded',
         learningStatus: 'error',
@@ -399,7 +400,7 @@ class MasterAIBrain {
 
       return count || 0;
     } catch (error) {
-      console.error('Error getting automation count:', error);
+      logger.error('Error getting automation count:', error);
       return 0;
     }
   }
@@ -416,7 +417,7 @@ class MasterAIBrain {
       this.performHealthCheck();
     }, 5 * 60000);
 
-    console.log('Enhanced Master Brain AI initialized with Claude integration, hybrid orchestration, and continuous learning');
+    logger.info('Enhanced Master Brain AI initialized with Claude integration, hybrid orchestration, and continuous learning');
   }
 
   private async performHealthCheck(): Promise<void> {
@@ -432,7 +433,7 @@ class MasterAIBrain {
       });
 
     } catch (error) {
-      console.error('Health check failed:', error);
+      logger.error('Health check failed:', error);
     }
   }
 }

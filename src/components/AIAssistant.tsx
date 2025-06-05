@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
@@ -135,7 +136,7 @@ const AIAssistant = () => {
         setMessages(prevMessages => [...prevMessages, aiMessage]);
         
       } catch (err: any) {
-        console.error("Error processing AI response:", err);
+        logger.error("Error processing AI response:", err);
         toast.error("Failed to get AI response");
         
         // Add error message
@@ -204,7 +205,7 @@ const AIAssistant = () => {
       setMessages(prevMessages => [...prevMessages, aiMessage]);
       
     } catch (err) {
-      console.error("Error processing suggested action:", err);
+      logger.error("Error processing suggested action:", err);
       
       // Add error message
       const aiMessage: AIMessage = {

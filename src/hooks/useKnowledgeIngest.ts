@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
@@ -45,12 +46,12 @@ export function useKnowledgeIngest() {
           .single();
         
         if (profileError) {
-          console.error("Error fetching user's company_id:", profileError);
+          logger.error("Error fetching user's company_id:", profileError);
         } else if (profileData) {
           companyId = profileData.company_id;
         }
       } catch (err) {
-        console.error("Exception when fetching user's company_id:", err);
+        logger.error("Exception when fetching user's company_id:", err);
       }
     }
 
@@ -69,7 +70,7 @@ export function useKnowledgeIngest() {
       });
 
       if (error) {
-        console.error("Error ingesting to AI Brain:", error);
+        logger.error("Error ingesting to AI Brain:", error);
         setError(error.message || "Error communicating with AI Brain");
         toast.error("Failed to ingest data to AI Brain");
         return null;
@@ -79,7 +80,7 @@ export function useKnowledgeIngest() {
       return data;
       
     } catch (err: any) {
-      console.error("Exception when ingesting to AI Brain:", err);
+      logger.error("Exception when ingesting to AI Brain:", err);
       setError(err.message || "Unknown error occurred");
       toast.error("Failed to ingest data");
       return null;
@@ -110,12 +111,12 @@ export function useKnowledgeIngest() {
         .single();
       
       if (profileError) {
-        console.error("Error fetching user's company_id:", profileError);
+        logger.error("Error fetching user's company_id:", profileError);
       } else if (profileData) {
         companyId = profileData.company_id;
       }
     } catch (err) {
-      console.error("Exception when fetching user's company_id:", err);
+      logger.error("Exception when fetching user's company_id:", err);
     }
 
     setIsIngesting(true);
@@ -133,7 +134,7 @@ export function useKnowledgeIngest() {
       });
 
       if (error) {
-        console.error("Error crawling web content:", error);
+        logger.error("Error crawling web content:", error);
         setError(error.message || "Error crawling web content");
         toast.error("Failed to crawl web content");
         return null;
@@ -143,7 +144,7 @@ export function useKnowledgeIngest() {
       return data;
       
     } catch (err: any) {
-      console.error("Exception when crawling web content:", err);
+      logger.error("Exception when crawling web content:", err);
       setError(err.message || "Unknown error occurred");
       toast.error("Failed to crawl web content");
       return null;

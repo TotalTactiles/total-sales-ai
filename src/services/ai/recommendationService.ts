@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { AIRecommendation } from './types';
@@ -41,7 +42,7 @@ export class RecommendationService {
 
       return recommendations;
     } catch (error) {
-      console.error('Error getting personalized recommendations:', error);
+      logger.error('Error getting personalized recommendations:', error);
       return [];
     }
   }

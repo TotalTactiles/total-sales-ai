@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { AIInsight, DataIngestionStatus } from './types';
@@ -69,7 +70,7 @@ export class AIInsightsService {
 
       return insights;
     } catch (error) {
-      console.error('Error generating insights:', error);
+      logger.error('Error generating insights:', error);
       return [];
     }
   }
@@ -105,7 +106,7 @@ export class AIInsightsService {
         errors: []
       };
     } catch (error) {
-      console.error('Error getting data ingestion status:', error);
+      logger.error('Error getting data ingestion status:', error);
       return {
         social: { connected: 0, total: 4 },
         website: { status: 'disconnected' },
@@ -155,7 +156,7 @@ Data Source: ${insight.type}
 
       return brief;
     } catch (error) {
-      console.error('Error creating campaign brief:', error);
+      logger.error('Error creating campaign brief:', error);
       throw error;
     }
   }

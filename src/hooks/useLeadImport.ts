@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -222,7 +223,7 @@ export const useLeadImport = () => {
       toast.success('Import session created');
       return session;
     } catch (error) {
-      console.error('Error creating import session:', error);
+      logger.error('Error creating import session:', error);
       toast.error('Failed to create import session');
       return null;
     } finally {
@@ -261,7 +262,7 @@ export const useLeadImport = () => {
       toast.success(`${rawData.length} records uploaded for processing`);
       return true;
     } catch (error) {
-      console.error('Error uploading raw data:', error);
+      logger.error('Error uploading raw data:', error);
       toast.error('Failed to upload data');
       return false;
     } finally {
@@ -288,7 +289,7 @@ export const useLeadImport = () => {
       toast.success('Field mapping saved');
       return true;
     } catch (error) {
-      console.error('Error saving field mapping:', error);
+      logger.error('Error saving field mapping:', error);
       toast.error('Failed to save field mapping');
       return false;
     } finally {
@@ -447,7 +448,7 @@ export const useLeadImport = () => {
 
           successCount++;
         } catch (error: any) {
-          console.error('Error importing record:', error);
+          logger.error('Error importing record:', error);
           
           // Update raw data with error
           await supabase
@@ -516,7 +517,7 @@ export const useLeadImport = () => {
       toast.success(`Import completed: ${successCount} leads imported, ${errorCount} errors`);
       return true;
     } catch (error: any) {
-      console.error('Error processing import:', error);
+      logger.error('Error processing import:', error);
       
       // Update session with error
       await supabase
@@ -704,7 +705,7 @@ export const useLeadImport = () => {
 
       setImportSessions(sessions);
     } catch (error) {
-      console.error('Error fetching import sessions:', error);
+      logger.error('Error fetching import sessions:', error);
       toast.error('Failed to fetch import history');
     } finally {
       setIsLoading(false);

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useCallback, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -79,7 +80,7 @@ const LeadImportDialog: React.FC<LeadImportDialogProps> = ({
       setCurrentStep('mapping');
       toast.success('File uploaded successfully');
     } catch (error) {
-      console.error('Error processing file:', error);
+      logger.error('Error processing file:', error);
       toast.error('Failed to process file');
     }
   }, [parseCSVFile, createImportSession]);

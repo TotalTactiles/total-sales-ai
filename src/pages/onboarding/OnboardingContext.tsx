@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -172,7 +173,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
       // Return the referral code
       return code;
     } catch (error: any) {
-      console.error('Error generating referral link:', error);
+      logger.error('Error generating referral link:', error);
       toast.error('Failed to generate referral link: ' + error.message);
       return null;
     }
@@ -195,7 +196,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
           event_data: { settings: enhancedSettings }
         });
     } catch (error) {
-      console.error('Failed to track onboarding completion:', error);
+      logger.error('Failed to track onboarding completion:', error);
     }
     
     // Call the provided completion function
@@ -259,7 +260,7 @@ export const buildDashboardFromSettings = async (options: BuildDashboardOptions)
       
     return true;
   } catch (error) {
-    console.error('Error building dashboard from settings:', error);
+    logger.error('Error building dashboard from settings:', error);
     
     // Track failed build
     await supabase

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { clickUpAuth } from './auth';
 import { ClickUpErrorHandler } from './errorHandler';
@@ -234,7 +235,7 @@ export class ClickUpAPI {
     const retryAfter = response.headers.get('Retry-After');
     const delayMs = retryAfter ? parseInt(retryAfter) * 1000 : 60000;
     
-    console.warn(`ClickUp API rate limit hit. Retrying after ${delayMs}ms`);
+    logger.warn(`ClickUp API rate limit hit. Retrying after ${delayMs}ms`);
     await new Promise(resolve => setTimeout(resolve, delayMs));
   }
 
@@ -243,7 +244,7 @@ export class ClickUpAPI {
       await this.getCurrentUser();
       return true;
     } catch (error) {
-      console.error('ClickUp connection test failed:', error);
+      logger.error('ClickUp connection test failed:', error);
       return false;
     }
   }

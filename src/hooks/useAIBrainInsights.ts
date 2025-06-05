@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,7 +41,7 @@ export const useAIBrainInsights = () => {
       if (error) throw error;
       setInsights(data || []);
     } catch (error) {
-      console.error('Error fetching AI insights:', error);
+      logger.error('Error fetching AI insights:', error);
       toast.error('Failed to fetch AI insights');
     } finally {
       setIsLoading(false);
@@ -66,7 +67,7 @@ export const useAIBrainInsights = () => {
 
       toast.success('Insight accepted');
     } catch (error) {
-      console.error('Error accepting insight:', error);
+      logger.error('Error accepting insight:', error);
       toast.error('Failed to accept insight');
     }
   };
@@ -83,18 +84,18 @@ export const useAIBrainInsights = () => {
       setInsights(prev => prev.filter(insight => insight.id !== insightId));
       toast.success('Insight dismissed');
     } catch (error) {
-      console.error('Error dismissing insight:', error);
+      logger.error('Error dismissing insight:', error);
       toast.error('Failed to dismiss insight');
     }
   };
 
   const logGhostIntent = (intent: string, details?: string) => {
-    console.log('Ghost intent logged:', intent, details);
+    logger.info('Ghost intent logged:', intent, details);
     // Could store this for analytics later
   };
 
   const logInteraction = (data: any) => {
-    console.log('Interaction logged:', data);
+    logger.info('Interaction logged:', data);
     // Could store this for analytics later
   };
 
@@ -124,7 +125,7 @@ export const useAIBrainInsights = () => {
       setInsights(prev => [data, ...prev]);
       return data;
     } catch (error) {
-      console.error('Error generating insight:', error);
+      logger.error('Error generating insight:', error);
       return null;
     } finally {
       setIsAnalyzing(false);

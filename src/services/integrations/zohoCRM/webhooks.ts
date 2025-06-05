@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { masterAIBrain } from '@/services/masterAIBrain';
@@ -27,10 +28,10 @@ export class ZohoWebhooks {
 
   async handleWebhook(payload: ZohoWebhookPayload): Promise<void> {
     try {
-      console.log('Processing Zoho webhook:', payload);
+      logger.info('Processing Zoho webhook:', payload);
 
       if (payload.module !== 'Leads') {
-        console.log('Ignoring non-lead webhook');
+        logger.info('Ignoring non-lead webhook');
         return;
       }
 
@@ -45,7 +46,7 @@ export class ZohoWebhooks {
           await this.handleLeadDeleted(payload.ids);
           break;
         default:
-          console.log(`Unhandled Zoho operation: ${payload.operation}`);
+          logger.info(`Unhandled Zoho operation: ${payload.operation}`);
       }
     } catch (error) {
       await this.errorHandler.logError(error, 'Webhook processing failed');
@@ -84,7 +85,7 @@ export class ZohoWebhooks {
 
   private async syncLeadFromZoho(leadId: string, operation: string): Promise<void> {
     try {
-      console.log(`Syncing Zoho lead ${leadId} (${operation})`);
+      logger.info(`Syncing Zoho lead ${leadId} (${operation})`);
 
       const zohoLead = await zohoAPI.getLead(leadId);
       if (!zohoLead) {
@@ -201,7 +202,7 @@ export class ZohoWebhooks {
           created_at: new Date().toISOString()
         });
     } catch (logError) {
-      console.error('Failed to log webhook activity:', logError);
+      logger.error('Failed to log webhook activity:', logError);
     }
   }
 
@@ -209,7 +210,7 @@ export class ZohoWebhooks {
     try {
       // This would set up webhooks in Zoho CRM
       // For now, return true as if successful
-      console.log('Setting up Zoho webhooks...');
+      logger.info('Setting up Zoho webhooks...');
       return true;
     } catch (error) {
       await this.errorHandler.logError(error, 'Failed to setup Zoho webhooks');
@@ -224,7 +225,7 @@ export class ZohoWebhooks {
       const expectedToken = process.env.ZOHO_WEBHOOK_TOKEN;
       return token === expectedToken;
     } catch (error) {
-      console.error('Webhook token validation failed:', error);
+      logger.error('Webhook token validation failed:', error);
       return false;
     }
   }

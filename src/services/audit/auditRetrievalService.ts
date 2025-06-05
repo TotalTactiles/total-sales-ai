@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { encryptionService } from '@/services/security/encryptionService';
@@ -10,7 +11,7 @@ export class AuditRetrievalService {
     filters?: AuditFilters
   ): Promise<AuditEntry[]> {
     if (!accessControlService.checkAccess('ai_audit_trail', 'read', userRole)) {
-      console.warn('Insufficient permissions to access audit trail');
+      logger.warn('Insufficient permissions to access audit trail');
       return [];
     }
 
@@ -56,7 +57,7 @@ export class AuditRetrievalService {
               userAgent: payload.auditEntry.userAgent
             } as AuditEntry;
           } catch (decryptError) {
-            console.error('Failed to decrypt audit entry:', decryptError);
+            logger.error('Failed to decrypt audit entry:', decryptError);
             return null;
           }
         })
@@ -65,7 +66,7 @@ export class AuditRetrievalService {
       return decryptedEntries.filter(Boolean) as AuditEntry[];
 
     } catch (error) {
-      console.error('Failed to fetch audit trail:', error);
+      logger.error('Failed to fetch audit trail:', error);
       accessControlService.logSecurityEvent(
         'Audit trail access failure',
         { error: error instanceof Error ? error.message : 'Unknown error' },

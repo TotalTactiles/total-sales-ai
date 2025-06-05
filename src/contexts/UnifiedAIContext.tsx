@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 import { masterAIBrain } from '@/services/masterAIBrain';
@@ -75,7 +76,7 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
       }
 
     } catch (error) {
-      console.error('Error initializing AI:', error);
+      logger.error('Error initializing AI:', error);
       addAIError('Failed to initialize AI system');
     }
   };
@@ -92,7 +93,7 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
       
       return response.response;
     } catch (error) {
-      console.error('Error generating AI response:', error);
+      logger.error('Error generating AI response:', error);
       addAIError('Failed to generate AI response');
       throw error;
     }
@@ -110,7 +111,7 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
       
       return response;
     } catch (error) {
-      console.error('Error generating strategy response:', error);
+      logger.error('Error generating strategy response:', error);
       addAIError('Failed to generate strategy response');
       throw error;
     }
@@ -128,7 +129,7 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
       
       return response;
     } catch (error) {
-      console.error('Error generating communication:', error);
+      logger.error('Error generating communication:', error);
       addAIError('Failed to generate communication');
       throw error;
     }
@@ -150,7 +151,7 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
         }
       });
     } catch (error) {
-      console.error('Error logging user action:', error);
+      logger.error('Error logging user action:', error);
       addAIError('Failed to log user action');
     }
   };
@@ -170,7 +171,7 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
         }
       });
     } catch (error) {
-      console.error('Error logging AI interaction:', error);
+      logger.error('Error logging AI interaction:', error);
       addAIError('Failed to log AI interaction');
     }
   };
@@ -185,7 +186,7 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
         await salesRepAI.getPersonalizedRecommendations();
       }
     } catch (error) {
-      console.error('Error getting AI recommendations:', error);
+      logger.error('Error getting AI recommendations:', error);
       addAIError('Failed to get AI recommendations');
     }
   };

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +19,7 @@ const Settings: React.FC = () => {
   const [cacheStrategy, setCacheStrategy] = useState('aggressive');
 
   const saveSettings = () => {
-    console.log('Saving developer settings...');
+    logger.info('Saving developer settings...');
     // In real app, this would save to database or config file
   };
 

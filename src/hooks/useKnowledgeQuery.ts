@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
@@ -43,12 +44,12 @@ export function useKnowledgeQuery() {
           .single();
         
         if (profileError) {
-          console.error("Error fetching user's company_id:", profileError);
+          logger.error("Error fetching user's company_id:", profileError);
         } else if (profileData) {
           companyId = profileData.company_id;
         }
       } catch (err) {
-        console.error("Exception when fetching user's company_id:", err);
+        logger.error("Exception when fetching user's company_id:", err);
       }
     }
 
@@ -66,7 +67,7 @@ export function useKnowledgeQuery() {
       });
 
       if (error) {
-        console.error("Error querying AI Brain:", error);
+        logger.error("Error querying AI Brain:", error);
         setError(error.message || "Error communicating with AI Brain");
         toast.error("Failed to query AI Brain");
         return null;
@@ -87,7 +88,7 @@ export function useKnowledgeQuery() {
       return results;
       
     } catch (err: any) {
-      console.error("Exception when querying AI Brain:", err);
+      logger.error("Exception when querying AI Brain:", err);
       setError(err.message || "Unknown error occurred");
       toast.error("Failed to query AI Brain");
       return null;

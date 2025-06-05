@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect, useCallback } from 'react';
 import { unifiedOAuthService, OAuthProvider, OAuthConnectionStatus } from '@/services/oauth/unifiedOAuthService';
@@ -23,7 +24,7 @@ export const useUnifiedOAuth = () => {
         const status = await unifiedOAuthService.checkConnectionStatus(provider.id);
         statuses[provider.id] = status;
       } catch (error) {
-        console.error(`Failed to check ${provider.id} status:`, error);
+        logger.error(`Failed to check ${provider.id} status:`, error);
         statuses[provider.id] = { provider: provider.id, connected: false };
       }
     }

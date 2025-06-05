@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { clickUpAuth } from './auth';
 import { clickUpAPI } from './api';
@@ -69,7 +70,7 @@ export class ClickUpCRMIntegration {
         syncErrors: errorCount || 0
       };
     } catch (error) {
-      console.error('Error getting ClickUp integration status:', error);
+      logger.error('Error getting ClickUp integration status:', error);
       return {
         connected: false,
         totalTasks: 0,
@@ -140,7 +141,7 @@ export class ClickUpCRMIntegration {
 
   private async discoverAndSetupLists(): Promise<void> {
     try {
-      console.log('Discovering ClickUp workspaces and lists...');
+      logger.info('Discovering ClickUp workspaces and lists...');
       
       const teams = await clickUpAPI.getTeams();
       let allLists: any[] = [];
@@ -158,14 +159,14 @@ export class ClickUpCRMIntegration {
       const leadLists = this.helpers.identifyLeadLists(allLists);
       this.trackedListIds = leadLists.map(list => list.id);
 
-      console.log(`Found ${leadLists.length} potential lead lists:`, leadLists.map(l => l.name));
+      logger.info(`Found ${leadLists.length} potential lead lists:`, leadLists.map(l => l.name));
 
       // Setup webhooks for lead lists
       if (this.trackedListIds.length > 0) {
         await clickUpWebhooks.setupWebhooks(this.trackedListIds);
       }
     } catch (error) {
-      console.error('Error discovering ClickUp lists:', error);
+      logger.error('Error discovering ClickUp lists:', error);
       throw error;
     }
   }
@@ -188,10 +189,10 @@ export class ClickUpCRMIntegration {
 
   async syncTasks(fullSync: boolean = false): Promise<{ success: boolean; synced: number; errors: number }> {
     try {
-      console.log('Starting ClickUp task sync...');
+      logger.info('Starting ClickUp task sync...');
       
       if (this.trackedListIds.length === 0) {
-        console.warn('No tracked lists found for ClickUp sync');
+        logger.warn('No tracked lists found for ClickUp sync');
         return { success: true, synced: 0, errors: 0 };
       }
 
@@ -201,7 +202,7 @@ export class ClickUpCRMIntegration {
       const lastSyncTime = fullSync ? undefined : await this.getLastSyncTime();
       const tasks = await clickUpAPI.getRecentTasks(this.trackedListIds, lastSyncTime);
       
-      console.log(`Found ${tasks.length} tasks to sync from ClickUp`);
+      logger.info(`Found ${tasks.length} tasks to sync from ClickUp`);
       
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -221,7 +222,7 @@ export class ClickUpCRMIntegration {
       for (const task of tasks) {
         try {
           if (!this.helpers.validateClickUpTask(task)) {
-            console.warn('Invalid ClickUp task data:', task);
+            logger.warn('Invalid ClickUp task data:', task);
             errorCount++;
             continue;
           }
@@ -255,7 +256,7 @@ export class ClickUpCRMIntegration {
 
           syncedCount++;
         } catch (taskError) {
-          console.error(`Error syncing task ${task.id}:`, taskError);
+          logger.error(`Error syncing task ${task.id}:`, taskError);
           await this.errorHandler.handleSyncError(task.id, taskError);
           errorCount++;
         }
@@ -263,7 +264,7 @@ export class ClickUpCRMIntegration {
 
       await this.updateLastSyncTime();
 
-      console.log(`ClickUp sync completed: ${syncedCount} synced, ${errorCount} errors`);
+      logger.info(`ClickUp sync completed: ${syncedCount} synced, ${errorCount} errors`);
 
       return {
         success: true,
@@ -271,7 +272,7 @@ export class ClickUpCRMIntegration {
         errors: errorCount
       };
     } catch (error) {
-      console.error('ClickUp sync failed:', error);
+      logger.error('ClickUp sync failed:', error);
       await this.errorHandler.logError(error, 'Task sync');
       return {
         success: false,
@@ -307,7 +308,7 @@ export class ClickUpCRMIntegration {
           updated_at: new Date().toISOString()
         });
     } catch (error) {
-      console.error('Failed to update last sync time:', error);
+      logger.error('Failed to update last sync time:', error);
     }
   }
 
@@ -315,18 +316,18 @@ export class ClickUpCRMIntegration {
     this.stopAutoSync();
     
     this.syncInterval = setInterval(async () => {
-      console.log('Running automated ClickUp sync...');
+      logger.info('Running automated ClickUp sync...');
       await this.syncTasks(false);
     }, intervalMinutes * 60 * 1000);
 
-    console.log(`ClickUp auto-sync started with ${intervalMinutes}-minute intervals`);
+    logger.info(`ClickUp auto-sync started with ${intervalMinutes}-minute intervals`);
   }
 
   stopAutoSync(): void {
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
       this.syncInterval = undefined;
-      console.log('ClickUp auto-sync stopped');
+      logger.info('ClickUp auto-sync stopped');
     }
   }
 

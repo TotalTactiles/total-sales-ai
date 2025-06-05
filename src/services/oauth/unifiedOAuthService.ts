@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -80,7 +81,7 @@ export class UnifiedOAuthService {
 
       return { success: false };
     } catch (error) {
-      console.error(`Failed to connect ${providerId}:`, error);
+      logger.error(`Failed to connect ${providerId}:`, error);
       toast.error(`Failed to connect ${providerId}`);
       return { success: false };
     }
@@ -102,7 +103,7 @@ export class UnifiedOAuthService {
         lastSync: data.lastSync ? new Date(data.lastSync) : undefined
       };
     } catch (error) {
-      console.error(`Failed to check ${providerId} status:`, error);
+      logger.error(`Failed to check ${providerId} status:`, error);
       return {
         provider: providerId,
         connected: false
@@ -121,7 +122,7 @@ export class UnifiedOAuthService {
       toast.success(`${providerId} disconnected successfully`);
       return { success: true };
     } catch (error) {
-      console.error(`Failed to disconnect ${providerId}:`, error);
+      logger.error(`Failed to disconnect ${providerId}:`, error);
       toast.error(`Failed to disconnect ${providerId}`);
       return { success: false };
     }
@@ -138,7 +139,7 @@ export class UnifiedOAuthService {
       toast.success(`${providerId} data synced successfully`);
       return data;
     } catch (error) {
-      console.error(`Failed to sync ${providerId} data:`, error);
+      logger.error(`Failed to sync ${providerId} data:`, error);
       toast.error(`Failed to sync ${providerId} data`);
       throw error;
     }

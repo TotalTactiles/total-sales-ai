@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -118,7 +119,7 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
   };
 
   const handleLeadClick = (lead: Lead) => {
-    console.log('Navigating to lead workspace:', lead.id);
+    logger.info('Navigating to lead workspace:', lead.id);
     // Navigate to the standalone lead workspace route
     navigate(`/lead-workspace/${lead.id}`);
     trackEvent({

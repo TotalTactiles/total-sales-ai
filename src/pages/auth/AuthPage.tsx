@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,7 +38,7 @@ const AuthPage = () => {
 
   // Redirect if already logged in
   if (user && profile && !isTransitioning) {
-    console.log("AuthPage: User is logged in, redirecting based on role:", profile.role);
+    logger.info("AuthPage: User is logged in, redirecting based on role:", profile.role);
     const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
     const from = location.state?.from?.pathname || redirectPath;
     return <Navigate to={from} replace />;
@@ -48,13 +49,13 @@ const AuthPage = () => {
     const demoRole = localStorage.getItem('demoRole') as Role | null;
     if (demoRole) {
       const redirectPath = demoRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
-      console.log("AuthPage: Demo mode active, redirecting to", redirectPath);
+      logger.info("AuthPage: Demo mode active, redirecting to", redirectPath);
       return <Navigate to={redirectPath} replace />;
     }
   }
 
   const handleRoleChange = (role: Role) => {
-    console.log("AuthPage: Role changed to", role);
+    logger.info("AuthPage: Role changed to", role);
     setSelectedRole(role);
     setLastSelectedRole(role);
   };
@@ -64,7 +65,7 @@ const AuthPage = () => {
     // Simulate loading and transition to dashboard
     setTimeout(() => {
       const redirectPath = selectedRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
-      console.log("AuthPage: Transitioning to", redirectPath);
+      logger.info("AuthPage: Transitioning to", redirectPath);
       navigate(redirectPath, { replace: true });
       setIsTransitioning(false);
     }, 1500);

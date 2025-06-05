@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from "react";
 
@@ -20,11 +21,11 @@ const VoiceAssistant = () => {
       recognition.onresult = (event: any) => {
         const speech = event.results[0][0].transcript;
         setTranscript(speech);
-        console.log("User said:", speech);
+        logger.info("User said:", speech);
       };
 
       recognition.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
+        logger.error("Speech recognition error:", event.error);
         setListening(false);
       };
 
@@ -40,7 +41,7 @@ const VoiceAssistant = () => {
         setListening(true);
       }
     } catch (error) {
-      console.error("Error with speech recognition:", error);
+      logger.error("Error with speech recognition:", error);
       setListening(false);
     }
   };

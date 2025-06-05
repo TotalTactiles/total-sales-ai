@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { accessControlService } from '@/services/security/accessControlService';
 import { AuditEntry } from '@/hooks/audit/types';
@@ -61,7 +62,7 @@ export class AuditExportService {
       );
 
     } catch (error) {
-      console.error('Failed to export audit trail:', error);
+      logger.error('Failed to export audit trail:', error);
       throw error;
     }
   }

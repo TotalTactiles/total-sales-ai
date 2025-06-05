@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,7 +25,7 @@ const LeadManagementTabs: React.FC<LeadManagementTabsProps> = ({
   const qualifiedLeads = leads.filter(lead => lead.status === 'qualified');
 
   const handleQuickAction = (action: string, lead: Lead) => {
-    console.log('Quick action:', action, 'for lead:', lead);
+    logger.info('Quick action:', action, 'for lead:', lead);
     // Handle quick actions here
   };
 

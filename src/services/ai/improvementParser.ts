@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 export interface ParsedImprovement {
   category: 'ux_ui' | 'feature_priority' | 'automation_flow' | 'system_performance';
   suggestion: string;
@@ -50,7 +51,7 @@ export function parseImprovementSuggestions(response: string): ParsedImprovement
       });
     }
   } catch (error) {
-    console.error('Error parsing improvement suggestions:', error);
+    logger.error('Error parsing improvement suggestions:', error);
   }
   return improvements;
 }

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 
@@ -39,7 +40,7 @@ export class ClickUpAuth {
       this.authConfig.clientId = 'placeholder_client_id';
       this.authConfig.clientSecret = 'placeholder_client_secret';
     } catch (error) {
-      console.warn('Failed to load ClickUp configuration:', error);
+      logger.warn('Failed to load ClickUp configuration:', error);
     }
   }
 
@@ -88,7 +89,7 @@ export class ClickUpAuth {
       await this.storeTokens(tokens);
       return tokens;
     } catch (error) {
-      console.error('ClickUp token exchange failed:', error);
+      logger.error('ClickUp token exchange failed:', error);
       throw error;
     }
   }
@@ -114,7 +115,7 @@ export class ClickUpAuth {
       await this.storeTokens(tokens);
       return tokens;
     } catch (error) {
-      console.error('ClickUp token validation failed:', error);
+      logger.error('ClickUp token validation failed:', error);
       throw error;
     }
   }
@@ -144,7 +145,7 @@ export class ClickUpAuth {
 
       return tokens.accessToken;
     } catch (error) {
-      console.error('Failed to get valid access token:', error);
+      logger.error('Failed to get valid access token:', error);
       throw error;
     }
   }
@@ -186,7 +187,7 @@ export class ClickUpAuth {
       await this.storeTokens(tokens);
       return tokens;
     } catch (error) {
-      console.error('ClickUp token refresh failed:', error);
+      logger.error('ClickUp token refresh failed:', error);
       throw error;
     }
   }
@@ -210,7 +211,7 @@ export class ClickUpAuth {
 
       if (error) throw error;
     } catch (error) {
-      console.error('Failed to store ClickUp tokens:', error);
+      logger.error('Failed to store ClickUp tokens:', error);
       throw error;
     }
   }
@@ -237,7 +238,7 @@ export class ClickUpAuth {
         expiresAt: data.expires_at ? new Date(data.expires_at).getTime() : undefined
       };
     } catch (error) {
-      console.error('Failed to get stored tokens:', error);
+      logger.error('Failed to get stored tokens:', error);
       return null;
     }
   }
@@ -263,7 +264,7 @@ export class ClickUpAuth {
         .eq('user_id', user.id)
         .eq('provider', 'clickup');
     } catch (error) {
-      console.error('Failed to disconnect ClickUp:', error);
+      logger.error('Failed to disconnect ClickUp:', error);
       throw error;
     }
   }

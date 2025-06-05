@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -43,7 +44,7 @@ export const useVoicePermissions = () => {
           await checkMicrophonePermission();
         }
       } catch (error) {
-        console.error('Error checking voice capabilities:', error);
+        logger.error('Error checking voice capabilities:', error);
         setState(prev => ({
           ...prev,
           error: 'Failed to check voice capabilities'
@@ -67,7 +68,7 @@ export const useVoicePermissions = () => {
         };
       }
     } catch (error) {
-      console.warn('Could not check microphone permission:', error);
+      logger.warn('Could not check microphone permission:', error);
       setState(prev => ({ ...prev, permissionState: 'unknown' }));
     }
   };
@@ -95,7 +96,7 @@ export const useVoicePermissions = () => {
       return true;
       
     } catch (error: any) {
-      console.error('Microphone permission denied:', error);
+      logger.error('Microphone permission denied:', error);
       
       let errorMessage = 'Microphone access denied. ';
       

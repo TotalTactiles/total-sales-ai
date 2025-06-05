@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,7 +80,7 @@ const KnowledgeUpload = () => {
               toast.success(`Successfully processed ${result.chunks_success} of ${result.chunks_total} chunks`);
             }
           } catch (error) {
-            console.error("Error processing file:", error);
+            logger.error("Error processing file:", error);
             toast.error("Failed to process file");
           } finally {
             setFile(null);
@@ -117,7 +118,7 @@ const KnowledgeUpload = () => {
             throw new Error('Failed to process URL');
           }
         } catch (error) {
-          console.error("Error processing URL:", error);
+          logger.error("Error processing URL:", error);
           toast.error("Failed to process URL content");
         } finally {
           setWebUrl('');
@@ -127,7 +128,7 @@ const KnowledgeUpload = () => {
         }
       }
     } catch (error) {
-      console.error("Error in upload process:", error);
+      logger.error("Error in upload process:", error);
       toast.error("An error occurred during the upload process");
       setIsProcessing(false);
       setProgress(0);

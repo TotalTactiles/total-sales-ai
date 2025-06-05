@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -48,7 +49,7 @@ const VoiceAIAssistant: React.FC<VoiceAIAssistantProps> = ({
         toast.error('Failed to start voice recognition');
       }
     } catch (error) {
-      console.error('Error starting voice recognition:', error);
+      logger.error('Error starting voice recognition:', error);
       setIsListening(false);
       toast.error('Voice recognition error');
     }
@@ -80,7 +81,7 @@ const VoiceAIAssistant: React.FC<VoiceAIAssistantProps> = ({
         toast.success('Command processed successfully');
       }
     } catch (error) {
-      console.error('Error processing voice command:', error);
+      logger.error('Error processing voice command:', error);
       setIsListening(false);
       setIsSpeaking(false);
       toast.error('Failed to process voice command');

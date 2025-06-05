@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { useState, useCallback } from 'react';
 import { voiceService } from '@/services/ai/voiceService';
@@ -33,10 +34,10 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
         return false;
       }
 
-      console.log('Voice recording started successfully');
+      logger.info('Voice recording started successfully');
       return true;
     } catch (error) {
-      console.error('Error starting voice commands:', error);
+      logger.error('Error starting voice commands:', error);
       setIsListening(false);
       const errorMessage = error instanceof Error ? error.message : 'Voice recording failed';
       options.onError?.(errorMessage);
@@ -49,7 +50,7 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
       setIsListening(false);
       setIsProcessing(true);
 
-      console.log('Stopping voice recording...');
+      logger.info('Stopping voice recording...');
       const audioBlob = await voiceService.stopRecording();
       
       if (!audioBlob || audioBlob.size === 0) {
@@ -59,11 +60,11 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
         return null;
       }
 
-      console.log('Processing voice command...');
+      logger.info('Processing voice command...');
       const transcription = await voiceService.processAudioCommand(audioBlob, 'current-user');
       
       if (transcription && transcription.trim()) {
-        console.log('Voice command transcribed:', transcription);
+        logger.info('Voice command transcribed:', transcription);
         setLastTranscription(transcription);
         options.onCommand?.(transcription);
         toast.success('Voice command processed successfully');
@@ -75,7 +76,7 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
       }
 
     } catch (error) {
-      console.error('Error processing voice command:', error);
+      logger.error('Error processing voice command:', error);
       const errorMessage = error instanceof Error ? error.message : 'Voice processing failed';
       options.onError?.(errorMessage);
       return null;
@@ -96,14 +97,14 @@ export const useVoiceCommands = (options: UseVoiceCommandsOptions = {}) => {
     try {
       // Ensure text is a string and not empty
       if (!text || typeof text !== 'string') {
-        console.error('Invalid text provided to speakResponse:', text);
+        logger.error('Invalid text provided to speakResponse:', text);
         throw new Error('Invalid text provided for speech');
       }
 
-      console.log('Speaking response:', text.substring(0, 50) + '...');
+      logger.info('Speaking response:', text.substring(0, 50) + '...');
       await voiceService.generateVoiceResponse(text);
     } catch (error) {
-      console.error('Error speaking response:', error);
+      logger.error('Error speaking response:', error);
       // Fallback to toast notification with safe string handling
       const fallbackText = typeof text === 'string' ? text : 'AI response generated';
       const truncatedText = fallbackText.substring(0, 100);

@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 
 import { toast } from 'sonner';
 
@@ -73,7 +74,7 @@ export class CRMDataMapper {
         const sourceValue = this.getNestedValue(zohoLead, template.sourceField);
         
         if (template.required && !sourceValue) {
-          console.warn(`Missing required field: ${template.sourceField} for Zoho lead ${zohoLead.id}`);
+          logger.warn(`Missing required field: ${template.sourceField} for Zoho lead ${zohoLead.id}`);
           continue;
         }
 
@@ -106,7 +107,7 @@ export class CRMDataMapper {
         conversion_likelihood: this.calculateConversionLikelihood(mappedData)
       } as CRMLeadData;
     } catch (error) {
-      console.error('Error mapping Zoho lead:', error);
+      logger.error('Error mapping Zoho lead:', error);
       throw new Error(`Failed to map Zoho lead ${zohoLead.id}: ${error.message}`);
     }
   }
@@ -125,7 +126,7 @@ export class CRMDataMapper {
         const sourceValue = this.getNestedValue(clickUpTask, template.sourceField);
         
         if (template.required && !sourceValue) {
-          console.warn(`Missing required field: ${template.sourceField} for ClickUp task ${clickUpTask.id}`);
+          logger.warn(`Missing required field: ${template.sourceField} for ClickUp task ${clickUpTask.id}`);
           continue;
         }
 
@@ -168,7 +169,7 @@ export class CRMDataMapper {
         conversion_likelihood: this.calculateConversionLikelihood(mappedData)
       } as CRMLeadData;
     } catch (error) {
-      console.error('Error mapping ClickUp task:', error);
+      logger.error('Error mapping ClickUp task:', error);
       throw new Error(`Failed to map ClickUp task ${clickUpTask.id}: ${error.message}`);
     }
   }

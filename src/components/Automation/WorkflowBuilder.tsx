@@ -1,3 +1,4 @@
+import { logger } from '@/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,7 +45,7 @@ const WorkflowBuilder = () => {
       // For demo purposes, use mock data
       setWorkflows(mockWorkflows as Workflow[]);
     } catch (error) {
-      console.error('Failed to load workflows:', error);
+      logger.error('Failed to load workflows:', error);
       toast.error('Failed to load workflows');
     } finally {
       setIsLoading(false);
@@ -79,7 +80,7 @@ const WorkflowBuilder = () => {
       });
       toast.success('Workflow created successfully');
     } catch (error) {
-      console.error('Failed to create workflow:', error);
+      logger.error('Failed to create workflow:', error);
       toast.error('Failed to create workflow');
     }
   };
@@ -91,7 +92,7 @@ const WorkflowBuilder = () => {
       );
       toast.success(`Workflow ${isActive ? 'activated' : 'deactivated'}`);
     } catch (error) {
-      console.error('Failed to toggle workflow:', error);
+      logger.error('Failed to toggle workflow:', error);
       toast.error('Failed to toggle workflow');
     }
   };
@@ -101,7 +102,7 @@ const WorkflowBuilder = () => {
       setWorkflows(prev => prev.filter(w => w.id !== workflowId));
       toast.success('Workflow deleted successfully');
     } catch (error) {
-      console.error('Failed to delete workflow:', error);
+      logger.error('Failed to delete workflow:', error);
       toast.error('Failed to delete workflow');
     }
   };
