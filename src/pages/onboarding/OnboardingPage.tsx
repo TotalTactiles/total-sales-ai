@@ -70,7 +70,7 @@ const OnboardingPage: React.FC = () => {
         
         // If onboarding is already complete, redirect to dashboard
         if (data?.onboarding_completed_at) {
-          const redirectPath = profile.role === 'manager' ? '/dashboard/manager' : '/dashboard/rep';
+          const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
           navigate(redirectPath);
         }
       } catch (err) {
@@ -121,7 +121,7 @@ const OnboardingPage: React.FC = () => {
       // After a delay, redirect to the appropriate dashboard
       setTimeout(() => {
         toast.success('Onboarding complete! Welcome to your SalesOS.');
-        navigate('/dashboard/manager');
+        navigate('/manager/dashboard');
       }, 3000);
       
     } catch (error: any) {
