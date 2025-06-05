@@ -129,3 +129,20 @@ For interactive development with automatic re-runs, use:
 ```sh
 npm run test:watch
 ```
+
+## Linting
+
+Before running the linter make sure the dependencies are installed:
+
+```sh
+npm install
+# or
+bun install
+```
+
+After the installation is complete you can execute the `lint` script with:
+
+```sh
+npm run lint
+```
+
