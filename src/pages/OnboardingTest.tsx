@@ -19,7 +19,7 @@ const OnboardingTest: React.FC = () => {
         initialCompanyId="test-company-id"
         completeOnboardingFn={async (settings) => {
           logger.info('Test onboarding completed:', settings);
-          alert('Test onboarding completed! Check console for details.');
+          alert('Test onboarding completed! Check logs for details.');
           setShowOnboarding(false);
         }}
         isSubmitting={false}
@@ -101,7 +101,7 @@ const OnboardingTest: React.FC = () => {
               <strong>1. Comprehensive Flow:</strong> This unified onboarding includes all advanced features like industry-specific customization, AI tone settings, and module selection.
             </div>
             <div>
-              <strong>2. Real-time Testing:</strong> All changes are logged to the console and can be monitored during the flow.
+              <strong>2. Real-time Testing:</strong> All changes are logged for real-time monitoring during the flow.
             </div>
             <div>
               <strong>3. Integration Ready:</strong> Once satisfied with the flow, it can be easily integrated into the main authentication process.

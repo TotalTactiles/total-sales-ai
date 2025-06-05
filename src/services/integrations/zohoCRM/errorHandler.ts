@@ -75,7 +75,7 @@ export class ZohoErrorHandler {
         .from('error_logs')
         .insert(errorLog);
 
-      // Also log to console for immediate debugging
+      // Also log via our logger for immediate debugging
       logger.error('Zoho Error:', {
         context,
         error: error.message || error,
@@ -84,7 +84,7 @@ export class ZohoErrorHandler {
       });
 
     } catch (logError) {
-      // Fallback to console logging if database logging fails
+      // Fallback to logger if database logging fails
       logger.error('Failed to log Zoho error to database:', logError);
       logger.error('Original Zoho error:', error);
     }

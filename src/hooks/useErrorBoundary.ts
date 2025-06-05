@@ -25,7 +25,7 @@ export const useErrorBoundary = () => {
 
     setErrors(prev => [...prev, errorEntry]);
 
-    // Log to console in development
+    // Log detailed error in development
     if (import.meta.env.DEV) {
       logger.error('Application Error:', error);
       logger.error('Error Info:', errorInfo);

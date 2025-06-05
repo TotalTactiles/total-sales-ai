@@ -94,7 +94,7 @@ export const useAISecurityPosture = () => {
 
     setSecurityEvents(prev => [newEvent, ...prev.slice(0, 49)]); // Keep last 50 events
 
-    // Log to console for debugging
+    // Log event for debugging
     logger.info('Security Event:', newEvent);
   };
 
