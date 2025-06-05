@@ -6,13 +6,16 @@ import Logo from '@/components/Logo';
 import UserProfile from '@/components/UserProfile';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
 const DashboardNavigation = () => {
   const location = useLocation();
   const { profile } = useAuth();
 
+  const dashboardHref = getDashboardUrl(profile);
+
   const navItems = [
-    { label: 'Dashboard', href: '/sales/dashboard', icon: Grid },
+    { label: 'Dashboard', href: dashboardHref, icon: Grid },
     { label: 'Leads', href: '/leads', icon: Users },
     { label: 'Statistics', href: '/analytics', icon: BarChart3 },
     { label: 'Rep Dev', href: '/company-brain', icon: GraduationCap },
@@ -31,8 +34,10 @@ const DashboardNavigation = () => {
         <nav className="hidden md:flex items-center space-x-8">
           {navItems.map((item) => {
             const IconComponent = item.icon;
-            const isActive = location.pathname === item.href ||
-                           (item.href === '/sales/dashboard' && location.pathname === '/');
+            const isActive =
+              location.pathname === item.href ||
+              ((item.href === '/sales/dashboard' || item.href === '/manager/dashboard') &&
+                location.pathname === '/');
             
             return (
               <Link
