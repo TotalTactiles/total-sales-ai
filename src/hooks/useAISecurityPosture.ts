@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { encodeBase64 } from '@/services/security/base64Service';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SecurityEvent {
@@ -101,7 +102,7 @@ export const useAISecurityPosture = () => {
     // For now, basic obfuscation for demo purposes
     try {
       const jsonString = JSON.stringify(data);
-      return btoa(jsonString);
+      return encodeBase64(jsonString);
     } catch {
       return 'encryption_failed';
     }
