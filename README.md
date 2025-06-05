@@ -151,3 +151,10 @@ npm run lint
 ```
 
 This script is defined in `package.json` and runs ESLint across the project.
+
+## Logging
+
+The application uses a shared `logger` utility located at `src/utils/logger.ts`.
+Avoid direct `console` statements in the source code and prefer `logger.info`,
+`logger.warn`, or `logger.error` instead. This helps standardize log messages and
+provides better control over log output in different environments.
