@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
@@ -150,7 +151,7 @@ const ManagerDashboard = () => {
           .single();
           
         if (statsError && statsError.code !== 'PGRST116') { // PGRST116 is "no rows returned" error
-          logger.error('Error fetching stats for user', profile.id, statsError);
+          logger.error('Error fetching stats for user', profile.id, statsError.message);
           continue;
         }
         

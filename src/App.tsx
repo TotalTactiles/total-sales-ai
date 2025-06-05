@@ -15,6 +15,7 @@ import RequireAuth from '@/components/RequireAuth';
 import OnboardingGuard from '@/components/OnboardingGuard';
 import HealthCheck from '@/components/HealthCheck';
 import RoleToggle from '@/components/DeveloperMode/RoleToggle';
+import { Role } from '@/contexts/auth/types';
 
 // Layout components
 import SalesLayout from '@/layouts/SalesLayout';
@@ -41,12 +42,12 @@ const DashboardRedirect: React.FC = () => {
   const { profile, isDemoMode, getLastSelectedRole } = useAuth();
   
   // Determine the correct role for redirection
-  let targetRole = 'sales_rep'; // Default fallback
+  let targetRole: Role = 'sales_rep'; // Default fallback
   
   if (isDemoMode()) {
     targetRole = getLastSelectedRole() || 'sales_rep';
   } else if (profile?.role) {
-    targetRole = profile.role;
+    targetRole = profile.role as Role;
   }
   
   const dashboardUrl = getDashboardUrl({ role: targetRole });

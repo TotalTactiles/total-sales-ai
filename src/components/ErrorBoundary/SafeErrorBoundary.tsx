@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
@@ -28,7 +29,7 @@ export class SafeErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error('Error caught by SafeErrorBoundary:', error, errorInfo);
+    logger.error('Error caught by SafeErrorBoundary:', error.message);
     this.setState({ error, errorInfo });
   }
 
