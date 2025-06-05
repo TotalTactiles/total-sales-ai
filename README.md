@@ -84,6 +84,7 @@ Create a `.env` file in the project root and define the following variables used
 ELEVENLABS_API_KEY=<your-elevenlabs-key>
 SUPABASE_URL=<your-supabase-url>
 SUPABASE_SERVICE_ROLE_KEY=<your-supabase-service-role-key>
+DATA_ENCRYPTION_KEY_B64=<optional-encryption-key>
 ```
 
 These keys should be kept private and are required for the `elevenlabs-speech` function.
