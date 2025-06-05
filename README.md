@@ -111,6 +111,9 @@ The client now uses this function for speech synthesis instead of reading `VITE_
 
 ## Running tests
 
+This project uses the Bun runtime for tests. Ensure Bun is installed (version
+`1.2.14` is used in this repository).
+
 To execute the unit tests once, run:
 
 ```sh
