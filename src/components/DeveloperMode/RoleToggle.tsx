@@ -1,8 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Crown, User, Settings } from 'lucide-react';
+import { Crown, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 const RoleToggle: React.FC = () => {
@@ -33,6 +32,20 @@ const RoleToggle: React.FC = () => {
       toast.error('Failed to switch role');
     }
   };
-  return;
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={toggleRole}
+      className="fixed bottom-4 right-4 z-50"
+      title={`Switch to ${profile.role === 'manager' ? 'Sales Rep' : 'Manager'}`}
+    >
+      {profile.role === 'manager' ? (
+        <User className="h-4 w-4" />
+      ) : (
+        <Crown className="h-4 w-4" />
+      )}
+    </Button>
+  );
 };
 export default RoleToggle;
