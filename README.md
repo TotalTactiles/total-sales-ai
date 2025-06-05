@@ -62,13 +62,20 @@ This project is built with:
 
 ## Linting
 
-Use the `lint` script to check your code for potential issues. Install the
-project dependencies first, then run the linter:
+Before running ESLint, install the project dependencies using either `npm` or
+`bun`:
 
 ```sh
 npm install # or bun install
+```
+
+Once the dependencies are installed you can execute the `lint` script with:
+
+```sh
 npm run lint
 ```
+
+This script is defined in `package.json` and runs ESLint across the project.
 
 ## Running tests
 
@@ -139,15 +146,3 @@ const { data, error } = await supabase.functions.invoke('elevenlabs-speech', {
 ```
 
 The client now uses this function for speech synthesis instead of reading `VITE_ELEVENLABS_API_KEY` directly.
-
-## Linting
-
-Before running the linter make sure the dependencies are installed. Run either
-`npm install` or `bun install` in the project root. After the installation is
-complete you can execute the `lint` script with:
-
-```sh
-npm run lint
-```
-
-This script is defined in `package.json` and runs ESLint across the project.
