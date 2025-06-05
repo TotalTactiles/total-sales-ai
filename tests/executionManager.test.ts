@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach, mock } from 'bun:test';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ExecutionManager } from '../src/services/ai/automation/executionManager';
 import { actionExecutors } from '../src/services/ai/automation/actionExecutors';
 import type { AutomationAction } from '../src/services/ai/types/automationTypes';
 
-mock.module('../src/services/ai/automation/actionExecutors', () => ({
+vi.mock('../src/services/ai/automation/actionExecutors', () => ({
   actionExecutors: {
     executeEmailAction: vi.fn(),
     executeSmsAction: vi.fn(),

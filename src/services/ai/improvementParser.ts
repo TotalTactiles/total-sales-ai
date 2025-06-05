@@ -38,6 +38,17 @@ export function parseImprovementSuggestions(response: string): ParsedImprovement
         }
       }
     }
+
+    if (currentSuggestion.trim() && currentCategory) {
+      improvements.push({
+        category: currentCategory,
+        suggestion: currentSuggestion.trim(),
+        impact: estimateImpact(currentSuggestion),
+        implementationComplexity: estimateComplexity(currentSuggestion),
+        estimatedValue: estimateValue(currentSuggestion),
+        confidence: 0.75
+      });
+    }
   } catch (error) {
     console.error('Error parsing improvement suggestions:', error);
   }
