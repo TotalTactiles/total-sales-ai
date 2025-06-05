@@ -10,10 +10,14 @@ const RoleToggle: React.FC = () => {
     profile
   } = useAuth();
   const isDev = process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost';
-  if (!isDev || !user || !profile) {
+
+  // Only hide the control when not in developer mode
+  if (!isDev) {
     return null;
   }
   const toggleRole = async () => {
+    if (!user || !profile) return;
+
     const newRole = profile.role === 'manager' ? 'sales_rep' : 'manager';
     try {
       const {
@@ -32,15 +36,18 @@ const RoleToggle: React.FC = () => {
       toast.error('Failed to switch role');
     }
   };
+  const disabled = !user || !profile;
+
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={toggleRole}
+      disabled={disabled}
       className="fixed bottom-4 right-4 z-50"
-      title={`Switch to ${profile.role === 'manager' ? 'Sales Rep' : 'Manager'}`}
+      title={`Switch to ${profile?.role === 'manager' ? 'Sales Rep' : 'Manager'}`}
     >
-      {profile.role === 'manager' ? (
+      {profile?.role === 'manager' ? (
         <User className="h-4 w-4" />
       ) : (
         <Crown className="h-4 w-4" />
