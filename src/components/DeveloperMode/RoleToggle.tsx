@@ -1,8 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Crown, User, Settings } from 'lucide-react';
+import { Crown, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 const RoleToggle: React.FC = () => {
@@ -26,13 +25,34 @@ const RoleToggle: React.FC = () => {
       toast.success(`Switched to ${newRole.replace('_', ' ')} role`);
 
       // Redirect to appropriate dashboard
-      const redirectPath = newRole === 'manager' ? '/manager-dashboard' : '/sales-rep-dashboard';
+      const redirectPath =
+        newRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
       window.location.href = redirectPath;
     } catch (error) {
       console.error('Error toggling role:', error);
       toast.error('Failed to switch role');
     }
   };
-  return;
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={toggleRole}
+      className="fixed bottom-4 right-4 z-50"
+    >
+      {profile.role === 'manager' ? (
+        <>
+          <User className="mr-2 h-4 w-4" />
+          Switch to Sales Rep
+        </>
+      ) : (
+        <>
+          <Crown className="mr-2 h-4 w-4" />
+          Switch to Manager
+        </>
+      )}
+    </Button>
+  );
 };
 export default RoleToggle;
