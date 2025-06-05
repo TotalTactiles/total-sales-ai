@@ -26,7 +26,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --radius: 0.25rem;
   }
 
   .dark {
@@ -58,5 +58,16 @@
   }
   body {
     @apply bg-background text-foreground font-inter;
+    font-size: 14px;
+    line-height: 1.4;
   }
+  
+  /* Enterprise typography scale */
+  h1 { @apply text-lg font-semibold tracking-tight leading-tight; }
+  h2 { @apply text-base font-semibold tracking-tight leading-tight; }
+  h3 { @apply text-sm font-semibold tracking-tight leading-tight; }
+  h4 { @apply text-xs font-semibold tracking-tight leading-tight; }
+  
+  p { @apply text-sm text-slate-700 leading-snug; }
+  small { @apply text-xs text-slate-500 leading-snug; }
 }
