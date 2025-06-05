@@ -12,7 +12,7 @@ const DashboardNavigation = () => {
   const location = useLocation();
   const { profile } = useAuth();
 
-  const dashboardHref = getDashboardUrl(profile);
+  const dashboardHref = getDashboardUrl({ role: profile?.role ?? 'sales_rep' });
 
   const navItems = [
     { label: 'Dashboard', href: dashboardHref, icon: Grid },

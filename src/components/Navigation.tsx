@@ -13,8 +13,8 @@ const Navigation = () => {
   const [activeItem, setActiveItem] = useState('dashboard');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Create dashboard URL function with current profile
-  const dashboardUrl = () => getDashboardUrl(profile);
+  // Create dashboard URL function with current role only
+  const dashboardUrl = () => getDashboardUrl({ role: profile?.role ?? 'sales_rep' });
   
   // Update active item based on current location
   useEffect(() => {

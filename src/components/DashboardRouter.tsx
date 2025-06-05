@@ -2,6 +2,8 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
+import { Role } from '@/contexts/auth/types';
 
 const DashboardRouter = () => {
   const { user, profile } = useAuth();
@@ -17,30 +19,14 @@ const DashboardRouter = () => {
   
   // Handle demo mode
   if (userStatus === 'demo' && demoRole) {
-    switch (demoRole) {
-      case 'sales_rep':
-        return <Navigate to="/" replace />;
-      case 'manager':
-        return <Navigate to="/manager/dashboard" replace />;
-      case 'admin':
-        return <Navigate to="/admin-dashboard" replace />;
-      default:
-        return <Navigate to="/" replace />;
-    }
+    const role = demoRole as Role;
+    return <Navigate to={getDashboardUrl({ role })} replace />;
   }
   
   // Handle authenticated users based on profile role
   const role = profile?.role || 'sales_rep';
-  
-  switch (role) {
-    case 'manager':
-      return <Navigate to="/manager/dashboard" replace />;
-    case 'admin':
-      return <Navigate to="/admin-dashboard" replace />;
-    case 'sales_rep':
-    default:
-      return <Navigate to="/" replace />;
-  }
+
+  return <Navigate to={getDashboardUrl({ role })} replace />;
 };
 
 export default DashboardRouter;

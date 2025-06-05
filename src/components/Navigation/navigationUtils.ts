@@ -1,7 +1,8 @@
 
-import { Profile } from '@/contexts/auth/types';
+import { Profile, Role } from '@/contexts/auth/types';
 
-export const getDashboardUrl = (profile: Profile | null): string => {
+export type RoleOnly = { role: Role };
+export const getDashboardUrl = (profile: Profile | RoleOnly | null): string => {
   if (!profile) return '/sales/dashboard';
   
   switch (profile.role) {
