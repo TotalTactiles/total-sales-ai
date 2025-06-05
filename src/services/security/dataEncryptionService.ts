@@ -1,6 +1,19 @@
 
 export class DataEncryptionService {
   private static instance: DataEncryptionService;
+  private keyPromise: Promise<CryptoKey>;
+
+  private constructor() {
+    const DEFAULT_KEY_B64 = 'b4nhn4DvmRll8uXzYr5BJHVLFvyomHE4WJahSbv95Jk='; // 32-byte key
+    const keyBytes = Uint8Array.from(atob(DEFAULT_KEY_B64), c => c.charCodeAt(0));
+    this.keyPromise = crypto.subtle.importKey(
+      'raw',
+      keyBytes,
+      { name: 'AES-GCM' },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  }
 
   static getInstance(): DataEncryptionService {
     if (!DataEncryptionService.instance) {
@@ -11,27 +24,50 @@ export class DataEncryptionService {
 
   async encryptSensitiveData(data: any): Promise<string> {
     try {
-      // In a real implementation, use proper encryption
-      // For now, we'll use base64 encoding as a placeholder
       const jsonString = JSON.stringify(data);
-      return btoa(jsonString);
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encoded = new TextEncoder().encode(jsonString);
+      const key = await this.keyPromise;
+      const cipher = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+
+      const combined = new Uint8Array(iv.byteLength + cipher.byteLength);
+      combined.set(iv);
+      combined.set(new Uint8Array(cipher), iv.byteLength);
+
+      return btoa(String.fromCharCode(...combined));
     } catch (error) {
       console.error('Encryption failed:', error);
-      return JSON.stringify(data); // Fallback to unencrypted
+      try {
+        const jsonString = JSON.stringify(data);
+        return btoa(jsonString); // Fallback to basic encoding
+      } catch {
+        return JSON.stringify(data);
+      }
     }
   }
 
   async decryptSensitiveData(encryptedData: string): Promise<any> {
     try {
-      // In a real implementation, use proper decryption
-      const jsonString = atob(encryptedData);
+      const combined = Uint8Array.from(atob(encryptedData), c => c.charCodeAt(0));
+      if (combined.byteLength <= 12) throw new Error('Invalid encrypted payload');
+
+      const iv = combined.slice(0, 12);
+      const dataBytes = combined.slice(12);
+      const key = await this.keyPromise;
+      const plainBuffer = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, dataBytes);
+      const jsonString = new TextDecoder().decode(plainBuffer);
       return JSON.parse(jsonString);
     } catch (error) {
       console.error('Decryption failed:', error);
       try {
-        return JSON.parse(encryptedData); // Try parsing as unencrypted JSON
+        const jsonString = atob(encryptedData);
+        return JSON.parse(jsonString);
       } catch {
-        return encryptedData; // Return as string if all else fails
+        try {
+          return JSON.parse(encryptedData); // Try parsing as unencrypted JSON
+        } catch {
+          return encryptedData; // Return as string if all else fails
+        }
       }
     }
   }
