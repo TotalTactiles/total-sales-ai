@@ -55,12 +55,6 @@ export const createNavItems = (getDashboardUrl: () => string): NavItem[] => [
     description: 'Performance insights and reports'
   },
   {
-    icon: <TrendingUp className="h-5 w-5" />,
-    label: 'Manager Analytics',
-    href: '/manager-analytics',
-    description: 'Executive command center'
-  },
-  {
     icon: <Brain className="h-5 w-5" />,
     label: 'Company Brain',
     href: '/company-brain',

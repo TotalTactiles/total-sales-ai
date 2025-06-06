@@ -23,8 +23,6 @@ export const updateActiveItem = (pathname: string, setActiveItem: (item: string)
     setActiveItem('dashboard');
   } else if (pathname === '/analytics') {
     setActiveItem('analytics');
-  } else if (pathname === '/manager-analytics') {
-    setActiveItem('manager-analytics');
   } else if (pathname.includes('leads')) {
     setActiveItem('leads');
   } else if (pathname.includes('company-brain')) {
@@ -41,11 +39,6 @@ export const updateActiveItem = (pathname: string, setActiveItem: (item: string)
 };
 
 export const shouldShowNavItem = (href: string, profile: Profile | null): boolean => {
-  // Manager Analytics is only for managers and admins
-  if (href === '/manager-analytics') {
-    return profile?.role === 'manager' || profile?.role === 'admin';
-  }
-  
-  // All other items are visible to everyone
+  // All items are visible to everyone for now
   return true;
 };
