@@ -12,6 +12,7 @@ import AuthLoginForm from './components/AuthLoginForm';
 import AuthSignupForm from './components/AuthSignupForm';
 import AuthDemoOptions from './components/AuthDemoOptions';
 import AuthLoadingScreen from './components/AuthLoadingScreen';
+import RoleCompanySelector from './RoleCompanySelector';
 
 const AuthPage = () => {
   const { user, profile, loading, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode } = useAuth();
@@ -36,8 +37,16 @@ const AuthPage = () => {
     );
   }
 
-  // Redirect if already logged in
+  // Redirect or prompt for selection if already logged in
   if (user && profile && !isTransitioning) {
+    const profileAny = profile as any;
+    const hasMultipleCompanies = Array.isArray(profileAny?.companies) && profileAny.companies.length > 1;
+    const hasMultipleRoles = Array.isArray(profileAny?.roles) && profileAny.roles.length > 1;
+
+    if (hasMultipleCompanies || hasMultipleRoles) {
+      return <RoleCompanySelector />;
+    }
+
     logger.info("AuthPage: User is logged in, redirecting based on role:", profile.role);
     const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
     const from = location.state?.from?.pathname || redirectPath;
