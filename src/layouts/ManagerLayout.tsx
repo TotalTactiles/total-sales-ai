@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
+import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 
 // Manager pages
 import ManagerDashboard from '@/pages/manager/Dashboard';
@@ -47,30 +47,28 @@ const ManagerLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 relative flex">
-      <Navigation role="manager" />
-      <div className="flex-1 lg:pl-64">
-        <main>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<ManagerDashboard />} />
-            <Route path="/analytics" element={<ManagerAnalytics />} />
-            <Route path="/lead-management" element={<ManagerLeadManagement />} />
-            <Route path="/company-brain" element={<ManagerCompanyBrain />} />
-            <Route path="/ai" element={<ManagerAI />} />
-            <Route path="/crm-integrations" element={<ManagerCRMIntegrations />} />
-            <Route path="/team-management" element={<TeamManagement />} />
-            <Route path="/security" element={<SecurityPage />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<ManagerSettings />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </main>
+    <div className="min-h-screen bg-slate-50">
+      <ManagerNavigation />
+      <main className="pt-[60px]">
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<ManagerDashboard />} />
+          <Route path="/analytics" element={<ManagerAnalytics />} />
+          <Route path="/lead-management" element={<ManagerLeadManagement />} />
+          <Route path="/company-brain" element={<ManagerCompanyBrain />} />
+          <Route path="/ai" element={<ManagerAI />} />
+          <Route path="/crm-integrations" element={<ManagerCRMIntegrations />} />
+          <Route path="/team-management" element={<TeamManagement />} />
+          <Route path="/security" element={<SecurityPage />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<ManagerSettings />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </main>
 
-        {/* Manager AI Assistant */}
-        <div className="fixed bottom-6 right-6 z-[9999]">
-          <UnifiedAIBubble context={aiContext} />
-        </div>
+      {/* Manager AI Assistant */}
+      <div className="fixed bottom-6 right-6 z-[9999]">
+        <UnifiedAIBubble context={aiContext} />
       </div>
     </div>
   );

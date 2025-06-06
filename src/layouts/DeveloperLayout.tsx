@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Navigation from '@/components/Navigation';
+import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
 
 // Developer pages
 import DeveloperDashboard from '@/pages/developer/Dashboard';
@@ -47,30 +47,28 @@ const DeveloperLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white relative flex">
-      <Navigation role="developer" />
-      <div className="flex-1 lg:pl-64">
-        <main>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DeveloperDashboard />} />
-            <Route path="/system-monitor" element={<DeveloperSystemMonitor />} />
-            <Route path="/ai-brain-logs" element={<DeveloperAILogs />} />
-            <Route path="/api-logs" element={<DeveloperAPILogs />} />
-            <Route path="/error-logs" element={<DeveloperErrorLogs />} />
-            <Route path="/qa-checklist" element={<DeveloperQAChecklist />} />
-            <Route path="/testing-sandbox" element={<DeveloperTestingSandbox />} />
-            <Route path="/version-control" element={<DeveloperVersionControl />} />
-            <Route path="/crm-integrations" element={<DeveloperCRMIntegrations />} />
-            <Route path="/settings" element={<DeveloperSettings />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </main>
+    <div className="min-h-screen bg-slate-900 text-white">
+      <DeveloperNavigation />
+      <main className="pt-[60px]">
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DeveloperDashboard />} />
+          <Route path="/system-monitor" element={<DeveloperSystemMonitor />} />
+          <Route path="/ai-brain-logs" element={<DeveloperAILogs />} />
+          <Route path="/api-logs" element={<DeveloperAPILogs />} />
+          <Route path="/error-logs" element={<DeveloperErrorLogs />} />
+          <Route path="/qa-checklist" element={<DeveloperQAChecklist />} />
+          <Route path="/testing-sandbox" element={<DeveloperTestingSandbox />} />
+          <Route path="/version-control" element={<DeveloperVersionControl />} />
+          <Route path="/crm-integrations" element={<DeveloperCRMIntegrations />} />
+          <Route path="/settings" element={<DeveloperSettings />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </main>
 
-        {/* Developer AI Assistant */}
-        <div className="fixed bottom-6 right-6 z-[9999]">
-          <UnifiedAIBubble context={aiContext} />
-        </div>
+      {/* Developer AI Assistant */}
+      <div className="fixed bottom-6 right-6 z-[9999]">
+        <UnifiedAIBubble context={aiContext} />
       </div>
     </div>
   );
