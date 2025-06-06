@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
-import Navigation from '@/components/Navigation';
+import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerOverviewCards from '@/components/Manager/ManagerOverviewCards';
 import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
 import ManagerAIAssistant from '@/components/ManagerAI/ManagerAIAssistant';
@@ -222,7 +222,7 @@ const ManagerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation role="manager" />
+      <ManagerNavigation />
       
       <main className="pt-[60px]">
         <div className="flex-1 px-4 md:px-6 py-6">

@@ -1,7 +1,22 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+import MobileNavigation from '@/components/Navigation/MobileNavigation';
+import { updateActiveItem } from '@/components/Navigation/navigationUtils';
+import type { NavItem } from '@/components/Navigation/navigationConfig';
+import {
+  Monitor,
+  Brain,
+  Activity,
+  Code,
+  AlertTriangle,
+  Database,
+  CheckSquare,
+  TestTube,
+  GitBranch,
+  Settings,
+} from 'lucide-react';
 
 // Developer pages
 import DeveloperDashboard from '@/pages/developer/Dashboard';
@@ -21,6 +36,27 @@ import { useAIContext } from '@/contexts/AIContext';
 const DeveloperLayout = () => {
   const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
   const location = useLocation();
+  const [activeItem, setActiveItem] = useState('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    updateActiveItem(location.pathname, setActiveItem);
+  }, [location]);
+
+  const navItems: NavItem[] = [
+    { icon: <Monitor className="h-5 w-5" />, label: 'Dashboard', href: '/developer/dashboard' },
+    { icon: <Brain className="h-5 w-5" />, label: 'AI Brain Hub', href: '/developer/ai-brain-logs' },
+    { icon: <Activity className="h-5 w-5" />, label: 'System Monitor', href: '/developer/system-monitor' },
+    { icon: <Code className="h-5 w-5" />, label: 'API Logs', href: '/developer/api-logs' },
+    { icon: <AlertTriangle className="h-5 w-5" />, label: 'Error Logs', href: '/developer/error-logs' },
+    { icon: <Database className="h-5 w-5" />, label: 'CRM Integration Dashboard', href: '/developer/crm-integrations' },
+    { icon: <CheckSquare className="h-5 w-5" />, label: 'QA Checklist', href: '/developer/qa-checklist' },
+    { icon: <TestTube className="h-5 w-5" />, label: 'Testing Tools', href: '/developer/testing-sandbox' },
+    { icon: <GitBranch className="h-5 w-5" />, label: 'Version Control', href: '/developer/version-control' },
+    { icon: <Settings className="h-5 w-5" />, label: 'Settings', href: '/developer/settings' },
+  ];
+
+  const getDashboardUrl = () => '/developer/dashboard';
   
   const getWorkspaceContext = () => {
     const path = location.pathname;
@@ -47,8 +83,16 @@ const DeveloperLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-slate-900 text-white relative">
       <DeveloperNavigation />
+      <MobileNavigation
+        navItems={navItems}
+        activeItem={activeItem}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        getDashboardUrl={getDashboardUrl}
+      />
+
       <main className="pt-[60px]">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -65,7 +109,7 @@ const DeveloperLayout = () => {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
-
+      
       {/* Developer AI Assistant */}
       <div className="fixed bottom-6 right-6 z-[9999]">
         <UnifiedAIBubble context={aiContext} />

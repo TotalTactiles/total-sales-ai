@@ -1,7 +1,19 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import SalesNavigation from '@/components/Navigation/SalesNavigation';
+import MobileNavigation from '@/components/Navigation/MobileNavigation';
+import { updateActiveItem } from '@/components/Navigation/navigationUtils';
+import type { NavItem } from '@/components/Navigation/navigationConfig';
+import {
+  Grid,
+  Users,
+  Bot,
+  Phone,
+  BarChart3,
+  GraduationCap,
+  Wrench,
+} from 'lucide-react';
 
 // Sales pages
 import SalesRepDashboard from '@/pages/sales/Dashboard';
@@ -19,6 +31,24 @@ import { useAIContext } from '@/contexts/AIContext';
 const SalesLayout = () => {
   const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
   const location = useLocation();
+  const [activeItem, setActiveItem] = useState('dashboard');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    updateActiveItem(location.pathname, setActiveItem);
+  }, [location]);
+
+  const navItems: NavItem[] = [
+    { icon: <Grid className="h-5 w-5" />, label: 'Dashboard', href: '/sales/dashboard' },
+    { icon: <Users className="h-5 w-5" />, label: 'Lead Management', href: '/sales/lead-management' },
+    { icon: <Bot className="h-5 w-5" />, label: 'AI Agent', href: '/sales/ai' },
+    { icon: <Phone className="h-5 w-5" />, label: 'Dialer', href: '/sales/dialer' },
+    { icon: <BarChart3 className="h-5 w-5" />, label: 'Analytics', href: '/sales/analytics' },
+    { icon: <GraduationCap className="h-5 w-5" />, label: 'Academy', href: '/sales/academy' },
+    { icon: <Wrench className="h-5 w-5" />, label: 'Settings', href: '/sales/settings' },
+  ];
+
+  const getDashboardUrl = () => '/sales/dashboard';
   
   // Determine workspace context from current route
   const getWorkspaceContext = () => {
@@ -52,8 +82,16 @@ const SalesLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 relative">
       <SalesNavigation />
+      <MobileNavigation
+        navItems={navItems}
+        activeItem={activeItem}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        getDashboardUrl={getDashboardUrl}
+      />
+
       <main className="pt-[60px]">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -68,7 +106,7 @@ const SalesLayout = () => {
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
-
+      
       {/* Unified AI Bubble - Single AI assistant with fixed positioning */}
       <div className="fixed bottom-6 right-6 z-[9999]">
         <UnifiedAIBubble context={aiContext} />
