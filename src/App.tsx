@@ -24,7 +24,7 @@ import DeveloperLayout from '@/layouts/DeveloperLayout';
 
 // Auth pages
 import AuthPage from '@/pages/Auth';
-import Logout from '@/pages/Auth/Logout';
+import Logout from '@/pages/auth/Logout';
 
 // Standalone pages
 import LeadWorkspace from '@/pages/LeadWorkspace';
