@@ -86,27 +86,25 @@ export const useIntegrations = () => {
     setIsLoading(true);
     
     try {
-      // For now, we'll simulate a call initiation
-      // In a real implementation, this would connect to Twilio or similar service
-      logger.info(`Initiating call to ${phoneNumber} for lead ${leadName}`);
-      
-      // Log the call attempt
-      await supabase.from('usage_events').insert({
-        user_id: user.id,
-        company_id: profile.company_id,
-        feature: 'call_initiation',
-        action: 'initiated',
-        context: 'lead_communication',
-        metadata: { leadId, leadName, phoneNumber }
+      const { data, error } = await supabase.functions.invoke('twilio-call', {
+        body: {
+          to: phoneNumber,
+          leadId,
+          leadName,
+          userId: user.id
+        }
       });
 
-      // Simulate call SID for demo purposes
-      const callSid = `CA${Math.random().toString(36).substr(2, 9)}`;
-      
-      return { 
-        success: true, 
-        callSid 
-      };
+      if (error) throw error;
+
+      if (data?.success) {
+        return {
+          success: true,
+          callSid: data.callSid
+        };
+      }
+
+      return { success: false, error: data?.error || 'Call initiation failed' };
     } catch (error) {
       logger.error('Call initiation error:', error);
       toast.error('Failed to initiate call');
@@ -125,27 +123,26 @@ export const useIntegrations = () => {
     setIsLoading(true);
     
     try {
-      // For now, we'll simulate SMS sending
-      // In a real implementation, this would connect to Twilio SMS service
-      logger.info(`Sending SMS to ${phoneNumber}: ${message}`);
-      
-      // Log the SMS attempt
-      await supabase.from('usage_events').insert({
-        user_id: user.id,
-        company_id: profile.company_id,
-        feature: 'sms_send',
-        action: 'sent',
-        context: 'lead_communication',
-        metadata: { leadId, leadName, phoneNumber, message }
+      const { data, error } = await supabase.functions.invoke('twilio-sms', {
+        body: {
+          to: phoneNumber,
+          message,
+          leadId,
+          leadName,
+          userId: user.id
+        }
       });
 
-      // Simulate message SID for demo purposes
-      const messageSid = `SM${Math.random().toString(36).substr(2, 9)}`;
-      
-      return { 
-        success: true, 
-        messageSid 
-      };
+      if (error) throw error;
+
+      if (data?.success) {
+        return {
+          success: true,
+          messageSid: data.messageSid
+        };
+      }
+
+      return { success: false, error: data?.error || 'SMS failed to send' };
     } catch (error) {
       logger.error('SMS send error:', error);
       toast.error('Failed to send SMS');
