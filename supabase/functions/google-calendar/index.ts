@@ -93,7 +93,7 @@ serve(async (req) => {
       const calendarEvent = await response.json()
 
       // Log meeting creation
-      await supabaseClient
+      const { error: usageError } = await supabaseClient
         .from('usage_events')
         .insert({
           user_id: user.id,
@@ -108,6 +108,14 @@ serve(async (req) => {
             provider: 'google_calendar'
           }
         })
+
+      if (usageError) {
+        console.error('Failed to log calendar event:', usageError)
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to log calendar event' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
 
       return new Response(JSON.stringify({
         success: true,

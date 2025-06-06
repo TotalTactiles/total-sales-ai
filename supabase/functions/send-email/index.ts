@@ -48,7 +48,7 @@ serve(async (req) => {
     console.log('Email would be sent:', { to, subject, body })
 
     // Log the email for tracking
-    await supabaseClient
+    const { error: usageError } = await supabaseClient
       .from('usage_events')
       .insert({
         user_id: userId,
@@ -64,8 +64,16 @@ serve(async (req) => {
         }
       })
 
+    if (usageError) {
+      logger.error('Failed to log email usage:', usageError)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to log email usage' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Create notification for successful email
-    await supabaseClient
+    const { error: notifError } = await supabaseClient
       .from('notifications')
       .insert({
         user_id: userId,
@@ -75,6 +83,14 @@ serve(async (req) => {
         message: `Email sent to ${to}: ${subject}`,
         metadata: { to, subject }
       })
+
+    if (notifError) {
+      logger.error('Failed to create email notification:', notifError)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to create notification' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     return new Response(JSON.stringify({
       success: true,

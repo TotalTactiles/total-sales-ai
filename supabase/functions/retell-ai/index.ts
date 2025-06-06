@@ -75,6 +75,8 @@ serve(async (req) => {
       const webhookData: RetellWebhookEvent = await req.json()
 
       console.log('Retell webhook received:', webhookData.event, webhookData.call_id)
+      // Log call events to database
+      const { error: logError } = await supabaseClient
 
       const { error: logErr } = await supabaseClient
         .from('ai_brain_logs')
@@ -95,6 +97,10 @@ serve(async (req) => {
         })
       if (logErr) {
         logger.error('Failed to log Retell webhook event', logErr)
+      }
+
+      if (logError) {
+        console.error('Failed to log Retell webhook event:', logError)
       }
 
       // Handle specific events
@@ -234,7 +240,33 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+    const callData = await callResponse.json()
 
+      // Log call initiation
+      const { error: usageError } = await supabaseClient
+        .from('usage_events')
+        .insert({
+          user_id: userId,
+          company_id: (await supabaseClient.from('profiles').select('company_id').eq('id', userId).single()).data?.company_id,
+          feature: 'retell_ai_call',
+          action: 'initiated',
+          context: `lead_${leadId}`,
+          metadata: {
+            leadName,
+            phoneNumber,
+            callId: callData.call_id,
+            agentId: agent.agent_id,
+            provider: 'retell_ai'
+          }
+        })
+
+      if (usageError) {
+        console.error('Failed to log Retell call initiation:', usageError)
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to log call event' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     if (action === 'get_analysis') {
       const { callId } = body
       if (!callId) {
