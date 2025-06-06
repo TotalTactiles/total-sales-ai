@@ -122,7 +122,7 @@ serve(async (req) => {
         .eq('id', user.id)
 
       // Log successful connection
-      await supabaseClient
+      const { error: usageError } = await supabaseClient
         .from('usage_events')
         .insert({
           user_id: user.id,
@@ -135,6 +135,14 @@ serve(async (req) => {
             timestamp: new Date().toISOString()
           }
         })
+
+      if (usageError) {
+        console.error('Failed to log Gmail OAuth event:', usageError)
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to log event' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
 
       return new Response(JSON.stringify({
         success: true,

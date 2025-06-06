@@ -133,7 +133,7 @@ serve(async (req) => {
       .single()
 
     // Log email in database
-    await supabaseClient
+    const { error: usageError } = await supabaseClient
       .from('usage_events')
       .insert({
         user_id: user.id,
@@ -151,6 +151,14 @@ serve(async (req) => {
           timestamp: new Date().toISOString()
         }
       })
+
+    if (usageError) {
+      console.error('Failed to log Gmail send event:', usageError)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to log email send' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     return new Response(JSON.stringify({
       success: true,

@@ -123,12 +123,16 @@ async function reindexEmbeddings(): Promise<{ success: boolean; recordsProcessed
         .select('*', { count: 'exact', head: true });
 
       // Insert a new stats entry
-      await supabase
+      const { error: statsError } = await supabase
         .from('stats_history')
         .insert({
           document_count: sourceData?.length || 0,
           chunk_count: chunkCount || 0
         });
+
+      if (statsError) {
+        console.error('Error inserting stats history:', statsError);
+      }
         
       console.log('Updated stats history after reindex');
     } catch (error) {

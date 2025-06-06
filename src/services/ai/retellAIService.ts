@@ -20,10 +20,12 @@ export interface RetellAgentConfig {
 
 export interface RetellCallOptions {
   phoneNumber: string;
+  leadId: string;
   leadName: string;
   leadId: string;
   userId: string;
   leadContext: any;
+  userId: string;
   agentConfig?: Partial<RetellAgentConfig>;
 }
 
@@ -93,10 +95,12 @@ export class RetellAIService {
 
       if (error) throw error;
 
-      logger.info('Retell AI call initiated', { 
-        callId: data.callId, 
+      logger.info('Retell AI call initiated', {
+        callId: data.callId,
         phoneNumber: options.phoneNumber,
-        leadName: options.leadName 
+        leadName: options.leadName,
+        leadId: options.leadId,
+        userId: options.userId
       }, 'retell_ai');
 
       toast.success(`AI Assistant is calling ${options.leadName}...`);
