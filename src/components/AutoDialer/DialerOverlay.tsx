@@ -33,6 +33,9 @@ import {
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import UnifiedAIAssistant from '../UnifiedAI/UnifiedAIAssistant';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
 
 interface DialerOverlayProps {
   lead: Lead;
@@ -56,6 +59,23 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
   const [activeTab, setActiveTab] = useState('notes');
   const [sentimentPulse, setSentimentPulse] = useState<'positive' | 'neutral' | 'negative'>('neutral');
   const [showAiFeedback, setShowAiFeedback] = useState(false);
+  const { user, profile } = useAuth();
+  const { trackEvent } = useUsageTracking();
+
+  const saveNotes = async () => {
+    if (!callNotes.trim()) return;
+    const { error } = await supabase
+      .from('leads')
+      .update({ notes: callNotes, updated_at: new Date().toISOString() })
+      .eq('id', lead.id);
+
+    if (error) {
+      toast.error('Failed to save notes');
+    } else {
+      toast.success('Call notes saved');
+      trackEvent({ feature: 'dialer_call', action: 'save_notes', context: lead.id });
+    }
+  };
 
   // Call timer
   useEffect(() => {
@@ -242,7 +262,7 @@ const DialerOverlay: React.FC<DialerOverlayProps> = ({
                         placeholder="AI will auto-generate call summary with timestamps and next steps..."
                         className="h-[calc(100%-60px)] resize-none"
                       />
-                      <Button className="mt-4">
+                      <Button className="mt-4" onClick={saveNotes}>
                         <Save className="h-4 w-4 mr-2" />
                         Save Notes
                       </Button>

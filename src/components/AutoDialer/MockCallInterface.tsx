@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
 
 interface MockCallInterfaceProps {
   lead: Lead;
@@ -49,6 +51,22 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
   const [emailDraft, setEmailDraft] = useState('');
   const [activeTab, setActiveTab] = useState('notes');
   const [showNumberpad, setShowNumberpad] = useState(false);
+  const { trackEvent } = useUsageTracking();
+
+  const saveNotes = async () => {
+    if (!callNotes.trim()) return;
+    const { error } = await supabase
+      .from('leads')
+      .update({ notes: callNotes, updated_at: new Date().toISOString() })
+      .eq('id', lead.id);
+
+    if (error) {
+      toast.error('Failed to save notes');
+    } else {
+      toast.success('Call notes saved');
+      trackEvent({ feature: 'dialer_call', action: 'save_notes', context: lead.id });
+    }
+  };
 
   // Mock call timer
   useEffect(() => {
@@ -299,7 +317,7 @@ const MockCallInterface: React.FC<MockCallInterfaceProps> = ({
                   placeholder="Take notes during your call..."
                   className="h-[calc(100%-100px)] resize-none"
                 />
-                <Button className="mt-4">
+                <Button className="mt-4" onClick={saveNotes}>
                   <Save className="h-4 w-4 mr-2" />
                   Save Notes
                 </Button>

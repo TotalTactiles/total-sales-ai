@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { 
+import {
   Phone, 
   PhoneCall, 
   PhoneOff, 
@@ -25,6 +25,9 @@ import {
 } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
 
 interface ActiveCallInterfaceProps {
   currentLead: Lead | null;
@@ -47,6 +50,37 @@ const ActiveCallInterface: React.FC<ActiveCallInterfaceProps> = ({
   const [isOnHold, setIsOnHold] = useState(false);
   const [callNotes, setCallNotes] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const { user, profile } = useAuth();
+  const { trackEvent } = useUsageTracking();
+
+  const saveNotes = async () => {
+    if (!currentLead || !callNotes.trim()) return;
+    const { error } = await supabase
+      .from('leads')
+      .update({ notes: callNotes, updated_at: new Date().toISOString() })
+      .eq('id', currentLead.id);
+
+    if (error) {
+      toast.error('Failed to save notes');
+    } else {
+      toast.success('Call notes saved');
+      trackEvent({ feature: 'dialer_call', action: 'save_notes', context: currentLead.id });
+    }
+  };
+
+  const logOutcome = async (outcome: string) => {
+    if (!currentLead || !user?.id || !profile?.company_id) return;
+    await supabase.from('usage_events').insert({
+      user_id: user.id,
+      company_id: profile.company_id,
+      role: profile.role,
+      feature: 'dialer_call',
+      action: 'outcome',
+      context: `lead_${currentLead.id}`,
+      outcome
+    });
+    await supabase.from('leads').update({ status: 'contacted' }).eq('id', currentLead.id);
+  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -54,19 +88,22 @@ const ActiveCallInterface: React.FC<ActiveCallInterfaceProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAnswered = () => {
+  const handleAnswered = async () => {
+    await logOutcome('connected');
     onCallAnswered();
     setIsRecording(true);
     toast.success('Call connected - Recording started');
   };
 
-  const handleMissed = () => {
+  const handleMissed = async () => {
+    await logOutcome('no_answer');
     onCallMissed();
     toast.info('Call missed - Moving to next lead');
   };
 
-  const handleVoicemail = () => {
+  const handleVoicemail = async () => {
     toast.info('Voicemail detected - Options available');
+    await logOutcome('voicemail');
     onCallMissed();
   };
 
@@ -219,7 +256,7 @@ const ActiveCallInterface: React.FC<ActiveCallInterfaceProps> = ({
           />
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-500">Auto-saves to lead profile</span>
-            <Button size="sm" variant="outline">
+            <Button size="sm" variant="outline" onClick={saveNotes}>
               <FileText className="h-3 w-3 mr-1" />
               Save Note
             </Button>
