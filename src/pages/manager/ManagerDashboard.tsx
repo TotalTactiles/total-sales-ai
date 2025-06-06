@@ -3,6 +3,7 @@ import { logger } from '@/utils/logger';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useDemoData } from '@/contexts/DemoDataContext';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerOverviewCards from '@/components/Manager/ManagerOverviewCards';
 import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
@@ -11,41 +12,18 @@ import ManagerRecognitionEngine from '@/components/Manager/ManagerRecognitionEng
 import ManagerEscalationCenter from '@/components/Manager/ManagerEscalationCenter';
 import ManagerBookingSystem from '@/components/Manager/ManagerBookingSystem';
 
-type TeamMember = {
-  id: string;
-  full_name: string | null;
-  last_login: string | null;
-  role: string;
-  stats: {
-    call_count: number;
-    win_count: number;
-    current_streak: number;
-    burnout_risk: number;
-    last_active: string | null;
-    mood_score: number | null;
-  }
-};
-
-type AIRecommendation = {
-  id: string;
-  type: 'follow-up' | 'burnout' | 'trending-down' | 'reward';
-  rep_name: string;
-  rep_id: string;
-  message: string;
-  action: string;
-};
+import type { DemoTeamMember, DemoAIRecommendation } from '@/data/demoData';
 
 const ManagerDashboard = () => {
-  const { user, profile } = useAuth();
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
+  const { user, profile, isDemoMode } = useAuth();
+  const [teamMembers, setTeamMembers] = useState<DemoTeamMember[]>([]);
+  const [recommendations, setRecommendations] = useState<DemoAIRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
 
   // Check if in demo mode
   useEffect(() => {
-    const isDemoMode = localStorage.getItem('demoMode') === 'true';
-    if (isDemoMode) {
+    if (isDemoMode()) {
       setDemoMode(true);
       initializeDemoData();
     } else {
@@ -53,74 +31,11 @@ const ManagerDashboard = () => {
     }
   }, [user]);
 
+  const { teamMembers: demoTeam, recommendations: demoRecs } = useDemoData();
+
   const initializeDemoData = () => {
-    // Mock team members data
-    const mockTeamMembers: TeamMember[] = [
-      {
-        id: 'demo-tm-1',
-        full_name: 'Sarah Johnson',
-        last_login: new Date().toISOString(),
-        role: 'sales_rep',
-        stats: {
-          call_count: 172,
-          win_count: 45,
-          current_streak: 5,
-          burnout_risk: 10,
-          last_active: new Date().toISOString(),
-          mood_score: 85
-        }
-      },
-      {
-        id: 'demo-tm-2',
-        full_name: 'Michael Chen',
-        last_login: new Date(Date.now() - 3600000).toISOString(),
-        role: 'sales_rep',
-        stats: {
-          call_count: 143,
-          win_count: 32,
-          current_streak: 0,
-          burnout_risk: 75,
-          last_active: new Date(Date.now() - 3600000).toISOString(),
-          mood_score: 45
-        }
-      },
-      {
-        id: 'demo-tm-3',
-        full_name: 'Jasmine Lee',
-        last_login: new Date(Date.now() - 86400000).toISOString(),
-        role: 'sales_rep',
-        stats: {
-          call_count: 198,
-          win_count: 57,
-          current_streak: 7,
-          burnout_risk: 20,
-          last_active: new Date(Date.now() - 43200000).toISOString(),
-          mood_score: 90
-        }
-      }
-    ];
-    
-    const mockRecommendations: AIRecommendation[] = [
-      {
-        id: 'demo-rec-1',
-        type: 'follow-up',
-        rep_name: 'Sarah Johnson',
-        rep_id: 'demo-tm-1',
-        message: 'Sarah missed 3 follow-ups with Enterprise leads this week',
-        action: 'Assign Recovery Mode'
-      },
-      {
-        id: 'demo-rec-2',
-        type: 'burnout',
-        rep_name: 'Michael Chen',
-        rep_id: 'demo-tm-2',
-        message: 'Michael worked 12+ hours overtime this week and mood score is dropping',
-        action: 'Schedule 1-on-1'
-      }
-    ];
-    
-    setTeamMembers(mockTeamMembers);
-    setRecommendations(mockRecommendations);
+    setTeamMembers(demoTeam);
+    setRecommendations(demoRecs);
     setLoading(false);
   };
 
@@ -140,7 +55,7 @@ const ManagerDashboard = () => {
       if (profilesError) throw profilesError;
       
       // Get stats for each sales rep
-      const teamData: TeamMember[] = [];
+      const teamData: DemoTeamMember[] = [];
       
       for (const profile of profilesData) {
         const { data: statsData, error: statsError } = await supabase

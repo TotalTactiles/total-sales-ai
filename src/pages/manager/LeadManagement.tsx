@@ -17,14 +17,16 @@ import {
   Clock
 } from 'lucide-react';
 import { useLeads } from '@/hooks/useLeads';
-import { useMockData } from '@/hooks/useMockData';
+import { useDemoData } from '@/contexts/DemoDataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ManagerLeadManagement = () => {
   const { leads } = useLeads();
-  const { leads: mockLeads } = useMockData();
+  const { leads: demoLeads } = useDemoData();
+  const { isDemoMode } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  
-  const displayLeads = leads && leads.length > 0 ? leads : mockLeads;
+
+  const displayLeads = isDemoMode() ? demoLeads : leads;
 
   const teamLeads = displayLeads.map(lead => ({
     ...lead,

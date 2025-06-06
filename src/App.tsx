@@ -8,6 +8,7 @@ import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AIContextProvider } from '@/contexts/AIContext';
+import { DemoDataProvider } from '@/contexts/DemoDataContext';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -67,7 +68,8 @@ function App() {
         <TooltipProvider>
           <Router>
             <AuthProvider>
-              <AIContextProvider>
+              <DemoDataProvider>
+                <AIContextProvider>
                 <Routes>
                   {/* Auth routes */}
                   <Route path="/login" element={<AuthPage />} />
@@ -153,6 +155,7 @@ function App() {
                 <HealthCheck />
                 <RoleToggle />
               </AIContextProvider>
+              </DemoDataProvider>
             </AuthProvider>
           </Router>
         </TooltipProvider>
