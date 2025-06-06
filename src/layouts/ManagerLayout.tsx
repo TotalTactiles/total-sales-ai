@@ -9,6 +9,10 @@ import ManagerAnalytics from '@/pages/manager/Analytics';
 import ManagerLeadManagement from '@/pages/manager/LeadManagement';
 import ManagerCompanyBrain from '@/pages/manager/CompanyBrain';
 import ManagerAI from '@/pages/manager/AI';
+import ManagerCRMIntegrations from '@/pages/manager/CRMIntegrations';
+import TeamManagement from '@/pages/manager/TeamManagement';
+import SecurityPage from '@/pages/manager/Security';
+import Reports from '@/pages/manager/Reports';
 import ManagerSettings from '@/pages/manager/Settings';
 
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
@@ -55,6 +59,10 @@ const ManagerLayout = () => {
           <Route path="/lead-management" element={<ManagerLeadManagement />} />
           <Route path="/company-brain" element={<ManagerCompanyBrain />} />
           <Route path="/ai" element={<ManagerAI />} />
+          <Route path="/crm-integrations" element={<ManagerCRMIntegrations />} />
+          <Route path="/team-management" element={<TeamManagement />} />
+          <Route path="/security" element={<SecurityPage />} />
+          <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<ManagerSettings />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
