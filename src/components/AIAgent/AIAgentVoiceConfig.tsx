@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Headphones, 
   Play, 
@@ -36,7 +38,80 @@ const AIAgentVoiceConfig = () => {
   const [voiceStability, setVoiceStability] = useState([0.75]);
   const [voiceClarity, setVoiceClarity] = useState([0.8]);
   const [usesPublishable, setUsesPublishable] = useState(false);
-  
+
+  const defaultIntro = 'Hi, this is {{agent_name}} from {{company_name}}. I\'m calling on behalf of {{rep_name}} to follow up on {{context}}.';
+  const defaultVoicemail = 'Hi, this is {{agent_name}} from {{company_name}} reaching out about {{context}}. I\'ll try again later, or feel free to reach me at {{callback_number}}. Have a great day!';
+  const defaultGatekeeper = "I'm calling regarding {{context}} that I believe would be relevant for {{target_role}}. Could you please connect me?";
+  const defaultMeeting = 'Based on our conversation, I\'d like to schedule a meeting with {{rep_name}} to discuss {{value_prop}} in more detail. Would {{proposed_time}} work for you?';
+
+  const [introScript, setIntroScript] = useState(defaultIntro);
+  const [voicemailScript, setVoicemailScript] = useState(defaultVoicemail);
+  const [gatekeeperScript, setGatekeeperScript] = useState(defaultGatekeeper);
+  const [meetingScript, setMeetingScript] = useState(defaultMeeting);
+
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('ai_agent_training')
+        .select('voice_settings, script_templates')
+        .eq('user_id', user.id)
+        .is('call_id', null)
+        .single();
+
+      if (data?.voice_settings) {
+        const vs = data.voice_settings as any;
+        setApiKey(vs.apiKey || '');
+        setVoiceModel(vs.voiceModel || 'eleven_multilingual_v2');
+        setSelectedVoice(vs.selectedVoice || '');
+        setVoiceSpeed([vs.voiceSpeed ?? 1]);
+        setVoiceStability([vs.voiceStability ?? 0.75]);
+        setVoiceClarity([vs.voiceClarity ?? 0.8]);
+        setUsesPublishable(vs.usesPublishable ?? false);
+      }
+
+      if (data?.script_templates) {
+        const st = data.script_templates as any;
+        setIntroScript(st.introScript || defaultIntro);
+        setVoicemailScript(st.voicemailScript || defaultVoicemail);
+        setGatekeeperScript(st.gatekeeperScript || defaultGatekeeper);
+        setMeetingScript(st.meetingScript || defaultMeeting);
+      }
+    };
+    loadSettings();
+  }, [user]);
+
+  const saveSettings = async () => {
+    if (!user) return;
+    const voice_settings = {
+      apiKey,
+      voiceModel,
+      selectedVoice,
+      voiceSpeed: voiceSpeed[0],
+      voiceStability: voiceStability[0],
+      voiceClarity: voiceClarity[0],
+      usesPublishable,
+    };
+
+    const script_templates = {
+      introScript,
+      voicemailScript,
+      gatekeeperScript,
+      meetingScript,
+    };
+
+    await supabase.from('ai_agent_training').upsert(
+      {
+        user_id: user.id,
+        voice_settings,
+        script_templates,
+      },
+      { onConflict: 'user_id' }
+    );
+  };
+
   // Sample voice options (based on ElevenLabs)
   const voiceOptions = [
     { id: 'roger', name: 'Roger (Professional Male)', description: 'Confident, authoritative sales voice' },
@@ -59,6 +134,7 @@ const AIAgentVoiceConfig = () => {
       title: "API Key Saved",
       description: "Your ElevenLabs API key has been securely saved.",
     });
+    saveSettings();
   };
   
   const handleTestVoice = () => {
@@ -69,6 +145,7 @@ const AIAgentVoiceConfig = () => {
   };
   
   const handleSaveVoiceSettings = () => {
+    saveSettings();
     toast({
       title: "Voice Settings Saved",
       description: "Your AI agent voice settings have been updated.",
@@ -332,9 +409,10 @@ const AIAgentVoiceConfig = () => {
           <div className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="intro-script">Introduction Script</Label>
-              <Textarea 
-                id="intro-script" 
-                defaultValue="Hi, this is {{agent_name}} from {{company_name}}. I'm calling on behalf of {{rep_name}} to follow up on {{context}}." 
+              <Textarea
+                id="intro-script"
+                value={introScript}
+                onChange={(e) => setIntroScript(e.target.value)}
                 rows={2}
               />
               <p className="text-xs text-slate-500">
@@ -344,27 +422,30 @@ const AIAgentVoiceConfig = () => {
             
             <div className="space-y-2">
               <Label htmlFor="voicemail-script">Voicemail Script</Label>
-              <Textarea 
-                id="voicemail-script" 
-                defaultValue="Hi, this is {{agent_name}} from {{company_name}} reaching out about {{context}}. I'll try again later, or feel free to reach me at {{callback_number}}. Have a great day!" 
+              <Textarea
+                id="voicemail-script"
+                value={voicemailScript}
+                onChange={(e) => setVoicemailScript(e.target.value)}
                 rows={3}
               />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="gatekeeper-script">Gatekeeper Strategy</Label>
-              <Textarea 
-                id="gatekeeper-script" 
-                defaultValue="I'm calling regarding {{context}} that I believe would be relevant for {{target_role}}. Could you please connect me?" 
+              <Textarea
+                id="gatekeeper-script"
+                value={gatekeeperScript}
+                onChange={(e) => setGatekeeperScript(e.target.value)}
                 rows={2}
               />
             </div>
             
             <div className="space-y-2">
               <Label htmlFor="meeting-booking">Meeting Booking Script</Label>
-              <Textarea 
-                id="meeting-booking" 
-                defaultValue="Based on our conversation, I'd like to schedule a meeting with {{rep_name}} to discuss {{value_prop}} in more detail. Would {{proposed_time}} work for you?" 
+              <Textarea
+                id="meeting-booking"
+                value={meetingScript}
+                onChange={(e) => setMeetingScript(e.target.value)}
                 rows={3}
               />
             </div>

@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   ThumbsUp, 
   ThumbsDown, 
@@ -25,8 +27,11 @@ import {
 
 const AIAgentFeedback = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [feedbackText, setFeedbackText] = useState('');
   const [activeTab, setActiveTab] = useState('training');
+  const [snippetText, setSnippetText] = useState('');
+  const [callId, setCallId] = useState('');
   
   // Sample objection data
   const objections = [
@@ -92,7 +97,11 @@ const AIAgentFeedback = () => {
     },
   ];
   
-  const handleSubmitFeedback = () => {
+  const handleSubmitFeedback = async () => {
+    if (!user) {
+      toast({ title: 'Not authenticated', description: 'Please sign in first', variant: 'destructive' });
+      return;
+    }
     if (!feedbackText.trim()) {
       toast({
         title: "Empty Feedback",
@@ -101,12 +110,16 @@ const AIAgentFeedback = () => {
       });
       return;
     }
-    
+    await supabase.from('ai_agent_training').insert({
+      user_id: user.id,
+      snippet: feedbackText,
+    });
+
     toast({
       title: "Feedback Submitted",
       description: "Your feedback on the AI agent has been recorded.",
     });
-    
+
     setFeedbackText('');
   };
   
@@ -115,6 +128,22 @@ const AIAgentFeedback = () => {
       title: "Playing Example",
       description: "Now playing the voice sample.",
     });
+  };
+
+  const submitSnippet = async (rating: number) => {
+    if (!user || !callId || !snippetText) {
+      toast({ title: 'Missing info', description: 'Provide call ID and snippet', variant: 'destructive' });
+      return;
+    }
+    await supabase.from('ai_agent_training').insert({
+      user_id: user.id,
+      call_id: callId,
+      snippet: snippetText,
+      rating,
+    });
+    toast({ title: 'Feedback Saved', description: 'Snippet tagged for training' });
+    setSnippetText('');
+    setCallId('');
   };
   
   const handleImproveScript = (id: string) => {
@@ -200,15 +229,34 @@ const AIAgentFeedback = () => {
                   
                   <div className="flex-1">
                     <p className="text-sm text-slate-600 mb-2">What aspects of the AI agent need improvement?</p>
-                    <Textarea 
-                      placeholder="e.g., The voice sounds too robotic when discussing pricing..." 
-                      rows={2}
-                      className="resize-none"
-                      value={feedbackText}
-                      onChange={(e) => setFeedbackText(e.target.value)}
-                    />
-                  </div>
+                  <Textarea
+                    placeholder="e.g., The voice sounds too robotic when discussing pricing..."
+                    rows={2}
+                    className="resize-none"
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                  />
                 </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="call-id">Call ID</Label>
+                  <Input id="call-id" value={callId} onChange={(e) => setCallId(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="snippet-text">Call Snippet</Label>
+                  <Textarea id="snippet-text" value={snippetText} onChange={(e) => setSnippetText(e.target.value)} rows={2} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => submitSnippet(1)}>
+                    <ThumbsUp className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => submitSnippet(-1)}>
+                    <ThumbsDown className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="detailed-feedback">Specific Learning Opportunities</Label>

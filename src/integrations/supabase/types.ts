@@ -1248,6 +1248,42 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_agent_training: {
+        Row: {
+          id: string
+          user_id: string
+          call_id: string | null
+          snippet: string | null
+          rating: number | null
+          voice_settings: Json | null
+          script_templates: Json | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          call_id?: string | null
+          snippet?: string | null
+          rating?: number | null
+          voice_settings?: Json | null
+          script_templates?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          call_id?: string | null
+          snippet?: string | null
+          rating?: number | null
+          voice_settings?: Json | null
+          script_templates?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_notifications: {
         Row: {
           created_at: string | null

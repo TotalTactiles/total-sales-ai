@@ -75,7 +75,7 @@ serve(async (req) => {
       .eq('id', userId)
       .single()
 
-    await supabaseClient
+    const { error: usageError } = await supabaseClient
       .from('usage_events')
       .insert({
         user_id: userId,
@@ -91,8 +91,16 @@ serve(async (req) => {
         }
       })
 
+    if (usageError) {
+      console.error('Failed to log call event:', usageError)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to log call event' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
     // Create initial call log for realtime updates
-    await supabaseClient.from('call_logs').insert({
+    const { error: logError } = await supabaseClient.from('call_logs').insert({
       user_id: userId,
       company_id: profile?.company_id,
       lead_id: leadId,
@@ -100,6 +108,14 @@ serve(async (req) => {
       status: 'initiated',
       call_sid: twilioData.sid
     })
+
+    if (logError) {
+      console.error('Failed to create call log:', logError)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to create call log' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     return new Response(JSON.stringify({
       success: true,

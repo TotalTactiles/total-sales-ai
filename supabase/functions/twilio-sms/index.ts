@@ -66,7 +66,7 @@ serve(async (req) => {
     }
 
     // Store SMS in database
-    await supabaseClient
+    const { error: usageError } = await supabaseClient
       .from('usage_events')
       .insert({
         user_id: userId,
@@ -82,6 +82,14 @@ serve(async (req) => {
           provider: 'twilio'
         }
       })
+
+    if (usageError) {
+      console.error('Failed to log SMS send event:', usageError)
+      return new Response(
+        JSON.stringify({ success: false, error: 'Failed to log SMS send' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
     return new Response(JSON.stringify({
       success: true,
