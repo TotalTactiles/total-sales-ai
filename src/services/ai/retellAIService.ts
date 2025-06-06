@@ -22,6 +22,8 @@ export interface RetellCallOptions {
   phoneNumber: string;
   leadId: string;
   leadName: string;
+  leadId: string;
+  userId: string;
   leadContext: any;
   userId: string;
   agentConfig?: Partial<RetellAgentConfig>;
@@ -42,7 +44,7 @@ export class RetellAIService {
     try {
       // Test Retell AI connection
       const { data, error } = await supabase.functions.invoke('retell-ai', {
-        body: { action: 'health_check' }
+        body: { test: true }
       });
 
       if (error) throw error;
@@ -64,10 +66,7 @@ export class RetellAIService {
       }
 
       const { data, error } = await supabase.functions.invoke('retell-ai', {
-        body: {
-          action: 'create_agent',
-          config
-        }
+        body: { config }
       });
 
       if (error) throw error;
@@ -91,10 +90,7 @@ export class RetellAIService {
       }
 
       const { data, error } = await supabase.functions.invoke('retell-ai', {
-        body: {
-          action: 'initiate_call',
-          ...options
-        }
+        body: { ...options }
       });
 
       if (error) throw error;
@@ -127,10 +123,7 @@ export class RetellAIService {
   async getCallAnalysis(callId: string): Promise<any> {
     try {
       const { data, error } = await supabase.functions.invoke('retell-ai', {
-        body: {
-          action: 'get_analysis',
-          callId
-        }
+        body: { callId }
       });
 
       if (error) throw error;
