@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { Phone, PhoneCall, Clock, Mic, MicOff, Brain, Save, Zap } from 'lucide-react';
+import { Phone, PhoneCall, Clock, Mic, MicOff, Brain, Save, Zap, Target } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/useIntegrations';
@@ -320,14 +320,17 @@ Probability: 85% likely to move forward`;
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <p className="text-xs text-slate-600">
-              📞 Your call conversion rate: 67% (above team average of 52%)
+            <p className="text-xs text-slate-600 flex items-center gap-1">
+              <PhoneCall className="h-3 w-3" />
+              Your call conversion rate: 67% (above team average of 52%)
             </p>
-            <p className="text-xs text-slate-600">
-              ⏰ Optimal call length for this lead type: 15-20 minutes
+            <p className="text-xs text-slate-600 flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              Optimal call length for this lead type: 15-20 minutes
             </p>
-            <p className="text-xs text-slate-600">
-              🎯 Key phrases that resonate: "ROI", "time savings", "Q1 implementation"
+            <p className="text-xs text-slate-600 flex items-center gap-1">
+              <Target className="h-3 w-3" />
+              Key phrases that resonate: "ROI", "time savings", "Q1 implementation"
             </p>
           </div>
         </CardContent>

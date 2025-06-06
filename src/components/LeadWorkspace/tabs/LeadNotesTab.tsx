@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Brain, Save, Plus, Phone } from 'lucide-react';
+import { Brain, Save, Plus, Phone, Target, TrendingUp, Clock } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import UnifiedAIAssistant from '../../UnifiedAI/UnifiedAIAssistant';
@@ -144,14 +144,17 @@ const LeadNotesTab: React.FC<LeadNotesTabProps> = ({ lead }) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <p className="text-xs text-slate-600">
-              🎯 Key themes: Budget approved, Q1 timeline, manual process pain
+            <p className="text-xs text-slate-600 flex items-center gap-1">
+              <Target className="h-3 w-3" />
+              Key themes: Budget approved, Q1 timeline, manual process pain
             </p>
-            <p className="text-xs text-slate-600">
-              📈 Sentiment trend: Positive → Very positive (improving)
+            <p className="text-xs text-slate-600 flex items-center gap-1">
+              <TrendingUp className="h-3 w-3" />
+              Sentiment trend: Positive → Very positive (improving)
             </p>
-            <p className="text-xs text-slate-600">
-              ⏰ Last substantive update: 2 days ago (follow-up recommended)
+            <p className="text-xs text-slate-600 flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              Last substantive update: 2 days ago (follow-up recommended)
             </p>
           </div>
         </CardContent>

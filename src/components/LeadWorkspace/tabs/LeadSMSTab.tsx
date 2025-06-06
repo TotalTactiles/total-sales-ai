@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageSquare, Send, Brain, Settings } from 'lucide-react';
+import { MessageSquare, Send, Brain, Settings, Smartphone, Clock, Lightbulb } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/useIntegrations';
@@ -51,7 +51,7 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
   const handleAiAssist = () => {
     setIsAiAssisting(true);
     setTimeout(() => {
-      const aiMessage = `Hi ${lead.name.split(' ')[0]}! Just sent over that ROI calculator showing $45K+ potential savings. Perfect timing for your Q1 planning. Quick 15-min call to walk through it? 📊`;
+      const aiMessage = `Hi ${lead.name.split(' ')[0]}! Just sent over that ROI calculator showing $45K+ potential savings. Perfect timing for your Q1 planning. Quick 15-min call to walk through it?`;
       setMessage(aiMessage);
       setIsAiAssisting(false);
       toast.success('AI has generated an optimized SMS based on your conversation');
@@ -197,14 +197,17 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p className="text-xs text-slate-600">
-                📱 Your SMS response rate: 78% (keep messages under 160 chars)
+              <p className="text-xs text-slate-600 flex items-center gap-1">
+                <Smartphone className="h-3 w-3" />
+                Your SMS response rate: 78% (keep messages under 160 chars)
               </p>
-              <p className="text-xs text-slate-600">
-                ⏰ Best SMS time for this lead: Business hours 9 AM - 5 PM
+              <p className="text-xs text-slate-600 flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                Best SMS time for this lead: Business hours 9 AM - 5 PM
               </p>
-              <p className="text-xs text-slate-600">
-                💡 Use emojis sparingly - this lead prefers professional tone
+              <p className="text-xs text-slate-600 flex items-center gap-1">
+                <Lightbulb className="h-3 w-3" />
+                Use emojis sparingly - this lead prefers professional tone
               </p>
             </div>
           </CardContent>

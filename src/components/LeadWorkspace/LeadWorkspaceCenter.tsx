@@ -2,7 +2,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
-import { Brain } from 'lucide-react';
+import { Brain, StickyNote, Mail, PhoneCall, MessageCircle, Calendar } from 'lucide-react';
 import { DatabaseLead } from '@/hooks/useLeads';
 import LeadOverviewTab from './tabs/LeadOverviewTab';
 import LeadNotesTab from './tabs/LeadNotesTab';
@@ -73,12 +73,24 @@ const LeadWorkspaceCenter: React.FC<LeadWorkspaceCenterProps> = ({
       <Tabs value={activeTab} onValueChange={onTabChange} className="flex-1 flex flex-col">
         <div className="border-b px-6 bg-white">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="overview">🧠 Overview</TabsTrigger>
-            <TabsTrigger value="notes">📋 Notes</TabsTrigger>
-            <TabsTrigger value="email">📨 Email</TabsTrigger>
-            <TabsTrigger value="call">📞 Call</TabsTrigger>
-            <TabsTrigger value="sms">💬 SMS</TabsTrigger>
-            <TabsTrigger value="meetings">📆 Meetings</TabsTrigger>
+            <TabsTrigger value="overview" className="flex items-center gap-1">
+              <Brain className="h-3 w-3" /> Overview
+            </TabsTrigger>
+            <TabsTrigger value="notes" className="flex items-center gap-1">
+              <StickyNote className="h-3 w-3" /> Notes
+            </TabsTrigger>
+            <TabsTrigger value="email" className="flex items-center gap-1">
+              <Mail className="h-3 w-3" /> Email
+            </TabsTrigger>
+            <TabsTrigger value="call" className="flex items-center gap-1">
+              <PhoneCall className="h-3 w-3" /> Call
+            </TabsTrigger>
+            <TabsTrigger value="sms" className="flex items-center gap-1">
+              <MessageCircle className="h-3 w-3" /> SMS
+            </TabsTrigger>
+            <TabsTrigger value="meetings" className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" /> Meetings
+            </TabsTrigger>
           </TabsList>
         </div>
 

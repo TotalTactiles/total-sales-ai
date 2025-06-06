@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Video, Users, MapPin, Brain, Plus, Link } from 'lucide-react';
+import { Calendar, Clock, Video, Users, MapPin, Brain, Plus, Link, Target, Lightbulb, PhoneCall, Building2 } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/useIntegrations';
@@ -107,8 +107,8 @@ const LeadMeetingsTab: React.FC<LeadMeetingsTabProps> = ({ lead }) => {
   const getMeetingIcon = (type: string) => {
     switch (type) {
       case 'video': return <Video className="h-4 w-4 text-blue-600" />;
-      case 'phone': return <Clock className="h-4 w-4 text-green-600" />;
-      case 'in-person': return <MapPin className="h-4 w-4 text-purple-600" />;
+      case 'phone': return <PhoneCall className="h-4 w-4 text-green-600" />;
+      case 'in-person': return <Building2 className="h-4 w-4 text-purple-600" />;
       default: return <Calendar className="h-4 w-4 text-gray-600" />;
     }
   };
@@ -176,9 +176,15 @@ const LeadMeetingsTab: React.FC<LeadMeetingsTabProps> = ({ lead }) => {
                 <SelectValue placeholder="Meeting type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="video">🎥 Google Meet</SelectItem>
-                <SelectItem value="phone">📞 Phone Call</SelectItem>
-                <SelectItem value="in-person">🏢 In Person</SelectItem>
+                <SelectItem value="video" className="flex items-center gap-1">
+                  <Video className="h-3 w-3" /> Google Meet
+                </SelectItem>
+                <SelectItem value="phone" className="flex items-center gap-1">
+                  <PhoneCall className="h-3 w-3" /> Phone Call
+                </SelectItem>
+                <SelectItem value="in-person" className="flex items-center gap-1">
+                  <Building2 className="h-3 w-3" /> In Person
+                </SelectItem>
               </SelectContent>
             </Select>
 
@@ -278,14 +284,17 @@ const LeadMeetingsTab: React.FC<LeadMeetingsTabProps> = ({ lead }) => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            <p className="text-xs text-slate-600">
-              📅 Your meeting show-up rate: 87% (above team average)
+            <p className="text-xs text-slate-600 flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              Your meeting show-up rate: 87% (above team average)
             </p>
-            <p className="text-xs text-slate-600">
-              🎯 Best meeting length for demos: 30-45 minutes
+            <p className="text-xs text-slate-600 flex items-center gap-1">
+              <Target className="h-3 w-3" />
+              Best meeting length for demos: 30-45 minutes
             </p>
-            <p className="text-xs text-slate-600">
-              💡 Send calendar invite 24-48 hours in advance for best attendance
+            <p className="text-xs text-slate-600 flex items-center gap-1">
+              <Lightbulb className="h-3 w-3" />
+              Send calendar invite 24-48 hours in advance for best attendance
             </p>
           </div>
         </CardContent>
