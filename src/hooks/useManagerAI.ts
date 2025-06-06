@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { masterAIBrain, AIRecommendation } from '@/services/masterAIBrain';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useDemoData } from '@/contexts/DemoDataContext';
 
 export interface ManagerInsight {
   id: string;
@@ -42,7 +43,14 @@ export const useManagerAI = () => {
   const [automationSequences, setAutomationSequences] = useState<AutomationSequence[]>([]);
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const { user, profile } = useAuth();
+  const { user, profile, isDemoMode } = useAuth();
+  const {
+    leads: demoLeads,
+    calls: demoCalls,
+    recommendations: demoRecs,
+    teamMembers: demoTeam,
+    aiInsights: demoInsights,
+  } = useDemoData();
 
   const getContextualInsights = async (currentPage: string) => {
     if (!user?.id || !profile?.company_id) return;
@@ -230,6 +238,15 @@ export const useManagerAI = () => {
 
   const gatherReportData = async () => {
     try {
+      if (isDemoMode()) {
+        return {
+          leads: demoLeads,
+          calls: demoCalls,
+          analytics: [],
+          timestamp: new Date().toISOString(),
+        };
+      }
+
       // Gather data from multiple sources
       const [leadsData, callsData, analyticsData] = await Promise.all([
         supabase.from('leads').select('*').eq('company_id', profile?.company_id),
@@ -372,6 +389,13 @@ export const useManagerAI = () => {
 
   const getTeamPerformanceStats = async () => {
     try {
+      if (isDemoMode()) {
+        return demoTeam.map(tm => ({
+          user_id: tm.id,
+          ...tm.stats,
+        }));
+      }
+
       const { data } = await supabase
         .from('user_stats')
         .select('*')
@@ -386,6 +410,10 @@ export const useManagerAI = () => {
 
   const getRecentAIInsights = async () => {
     try {
+      if (isDemoMode()) {
+        return demoInsights;
+      }
+
       const { data } = await supabase
         .from('ai_brain_insights')
         .select('*')
@@ -402,6 +430,15 @@ export const useManagerAI = () => {
 
   const getCompanyMetrics = async () => {
     try {
+      if (isDemoMode()) {
+        const metrics = {
+          total_leads: demoLeads.length,
+          high_priority: demoLeads.filter(l => l.priority === 'high').length,
+          avg_score: demoLeads.reduce((s, l) => s + (l.score || 0), 0) / demoLeads.length,
+        };
+        return metrics;
+      }
+
       const { data } = await supabase
         .from('leads')
         .select('status, priority, score')
