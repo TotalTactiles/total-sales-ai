@@ -11,10 +11,10 @@ const allowedOrigins = (Deno.env.get('CORS_ALLOWED_ORIGINS') ?? '')
 
 interface RetellCallRequest {
   phoneNumber: string
-  leadId: string
+  leadId?: string
   leadName: string
   leadContext?: any
-  userId: string
+  agentConfig?: any
 }
 
 interface RetellWebhookEvent {
@@ -28,7 +28,9 @@ interface RetellWebhookEvent {
 serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin':
-      allowedOrigins.includes(req.headers.get('origin') ?? '')
+      allowedOrigins.length === 0
+        ? '*'
+        : allowedOrigins.includes(req.headers.get('origin') ?? '')
         ? req.headers.get('origin') ?? ''
         : allowedOrigins[0] ?? '',
     'Access-Control-Allow-Headers':
@@ -49,16 +51,34 @@ serve(async (req) => {
       throw new Error('Retell AI API key not configured')
     }
 
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user } } = await supabaseClient.auth.getUser(token)
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     const url = new URL(req.url)
-    
+
     // Handle webhook events from Retell AI
     if (url.pathname.includes('/webhook')) {
       const webhookData: RetellWebhookEvent = await req.json()
-      
+
       console.log('Retell webhook received:', webhookData.event, webhookData.call_id)
-      
       // Log call events to database
       const { error: logError } = await supabaseClient
+
+      const { error: logErr } = await supabaseClient
         .from('ai_brain_logs')
         .insert({
           company_id: 'retell-calls',
@@ -75,6 +95,9 @@ serve(async (req) => {
             timestamp: new Date().toISOString()
           }
         })
+      if (logErr) {
+        logger.error('Failed to log Retell webhook event', logErr)
+      }
 
       if (logError) {
         console.error('Failed to log Retell webhook event:', logError)
@@ -99,89 +122,124 @@ serve(async (req) => {
       })
     }
 
-    // Handle call initiation
-    const { phoneNumber, leadId, leadName, leadContext, userId }: RetellCallRequest = await req.json()
+    const body = await req.json()
+    const { action } = body
 
-    // Create Retell AI agent configuration
-    const agentConfig = {
-      agent_name: "Sales AI Assistant",
-      voice_id: "11labs-Adrian",
-      voice_temperature: 0.7,
-      voice_speed: 1.0,
-      response_engine: {
-        type: "retell-llm",
-        llm_id: "gpt-4o"
-      },
-      language: "en-US",
-      interruption_sensitivity: 0.7,
-      ambient_sound: "office",
-      agent_prompt: `You are a professional sales AI assistant for a CRM platform. You are calling ${leadName}.
-
-LEAD CONTEXT:
-${JSON.stringify(leadContext, null, 2)}
-
-YOUR ROLE:
-- You're reaching out to qualify this lead and assess their interest
-- Be professional, friendly, and conversational
-- Listen for buying signals and pain points
-- Ask open-ended questions to understand their business needs
-- If they object, handle professionally and try to reschedule
-
-CONVERSATION FLOW:
-1. Introduction: "Hi ${leadName}, this is Sarah from [Company]. I'm calling because you showed interest in our CRM solution..."
-2. Qualification: Ask about their current process, pain points, team size
-3. Value proposition: Explain how we help similar businesses
-4. Next steps: Schedule demo or send information
-
-IMPORTANT:
-- Keep responses conversational and under 30 seconds
-- Let them speak and respond naturally
-- Handle interruptions gracefully
-- If they're not interested, ask for 30 seconds to explain value
-- Always aim to schedule a follow-up or demo
-
-Remember: This is a real person, not a demo. Be authentic and helpful.`
-    }
-
-    // Create Retell AI agent
-    const agentResponse = await fetch('https://api.retellai.com/create-agent', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${retellApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(agentConfig)
-    })
-
-    if (!agentResponse.ok) {
-      throw new Error(`Failed to create Retell agent: ${agentResponse.statusText}`)
-    }
-
-    const agent = await agentResponse.json()
-
-    // Initiate call through Retell AI
-    const callResponse = await fetch('https://api.retellai.com/create-phone-call', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${retellApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from_number: Deno.env.get('TWILIO_PHONE_NUMBER'),
-        to_number: phoneNumber,
-        agent_id: agent.agent_id,
-        metadata: {
-          leadId,
-          leadName,
-          userId
-        }
+    if (!action) {
+      return new Response(JSON.stringify({ error: 'Missing action' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
-    })
-
-    if (!callResponse.ok) {
-      throw new Error(`Failed to initiate Retell call: ${callResponse.statusText}`)
     }
 
+    if (action === 'health_check') {
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (action === 'create_agent') {
+      const { config } = body
+      if (!config) {
+        return new Response(JSON.stringify({ error: 'Missing config' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      const agentResp = await fetch('https://api.retellai.com/create-agent', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${retellApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(config)
+      })
+
+      if (!agentResp.ok) {
+        throw new Error(`Failed to create Retell agent: ${agentResp.statusText}`)
+      }
+
+      const agent = await agentResp.json()
+      return new Response(JSON.stringify({ agent_id: agent.agent_id }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    if (action === 'initiate_call') {
+      const { phoneNumber, leadName, leadContext, agentConfig = {}, leadId } = body as RetellCallRequest
+
+      const agentResp = await fetch('https://api.retellai.com/create-agent', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${retellApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(agentConfig)
+      })
+
+      if (!agentResp.ok) {
+        throw new Error(`Failed to create Retell agent: ${agentResp.statusText}`)
+      }
+
+      const agent = await agentResp.json()
+
+      const callResp = await fetch('https://api.retellai.com/create-phone-call', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${retellApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from_number: Deno.env.get('TWILIO_PHONE_NUMBER'),
+          to_number: phoneNumber,
+          agent_id: agent.agent_id,
+          metadata: { leadId, leadName, userId: user.id }
+        })
+      })
+
+      if (!callResp.ok) {
+        throw new Error(`Failed to initiate Retell call: ${callResp.statusText}`)
+      }
+
+      const callData = await callResp.json()
+
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .single()
+
+      const { error: usageErr } = await supabaseClient
+        .from('usage_events')
+        .insert({
+          user_id: user.id,
+          company_id: profile?.company_id,
+          feature: 'retell_ai_call',
+          action: 'initiated',
+          context: `lead_${leadId}`,
+          metadata: {
+            leadName,
+            phoneNumber,
+            callId: callData.call_id,
+            agentId: agent.agent_id,
+            provider: 'retell_ai'
+          }
+        })
+      if (usageErr) {
+        logger.error('Failed to log usage event', usageErr)
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        callId: callData.call_id,
+        agentId: agent.agent_id,
+        status: 'initiated',
+        message: `AI call initiated to ${leadName}`
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
     const callData = await callResponse.json()
 
       // Log call initiation
@@ -209,15 +267,32 @@ Remember: This is a real person, not a demo. Be authentic and helpful.`
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
+    if (action === 'get_analysis') {
+      const { callId } = body
+      if (!callId) {
+        return new Response(JSON.stringify({ error: 'Missing callId' }), {
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
 
-    return new Response(JSON.stringify({
-      success: true,
-      callId: callData.call_id,
-      agentId: agent.agent_id,
-      status: 'initiated',
-      message: `AI call initiated to ${leadName}`
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      const analysisResp = await fetch(`https://api.retellai.com/call-analysis/${callId}`, {
+        headers: { 'Authorization': `Bearer ${retellApiKey}` }
+      })
+
+      if (!analysisResp.ok) {
+        throw new Error(`Failed to get call analysis: ${analysisResp.statusText}`)
+      }
+
+      const analysis = await analysisResp.json()
+      return new Response(JSON.stringify(analysis), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    return new Response(JSON.stringify({ error: 'Invalid action' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
 
   } catch (error) {
