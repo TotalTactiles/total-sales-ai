@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 
+import { Role } from '@/contexts/auth/types';
+
 interface AuthSignupFormProps {
-  selectedRole?: string;
+  selectedRole?: Role;
   setIsLogin?: (value: boolean) => void;
 }
 
@@ -29,7 +31,7 @@ const AuthSignupForm: React.FC<AuthSignupFormProps> = ({ selectedRole, setIsLogi
 
     setIsLoading(true);
     try {
-      const { error } = await signUp(email, password);
+      const { error } = await signUp(email, password, { role: selectedRole });
       if (error) {
         toast.error(error.message);
       } else {
