@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchProfile = async (userId: string): Promise<void> => {
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -99,27 +99,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (error) {
         logger.error('Error fetching profile:', error);
-        return;
+        return null;
       }
 
       setProfile(data);
+      return data;
     } catch (error) {
       logger.error('Error in fetchProfile:', error);
+      return null;
     }
   };
 
-  const signIn = async (email: string, password: string): Promise<{ error?: AuthError }> => {
+  const signIn = async (
+    email: string,
+    password: string
+  ): Promise<{ profile?: Profile; error?: AuthError }> => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
       if (error) {
         toast.error(error.message);
         return { error };
       }
 
+      const session = data.session;
+      const user = data.user;
+
+      setSession(session);
+      setUser(user);
+
+      let fetchedProfile: Profile | null = null;
+      if (user) {
+        fetchedProfile = await fetchProfile(user.id);
+        if (fetchedProfile) {
+          setLastSelectedRole(fetchedProfile.role);
+        }
+      }
+
       toast.success('Signed in successfully');
-      return {};
+      return { profile: fetchedProfile || undefined };
     } catch (error) {
       logger.error('Sign in error:', error);
       toast.error('An unexpected error occurred');
