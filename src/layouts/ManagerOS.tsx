@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
+import Navigation from '@/components/Navigation';
 
 // Manager Pages
 import ManagerDashboard from '@/pages/manager/Dashboard';
@@ -14,7 +14,7 @@ import ManagerSettings from '@/pages/manager/Settings';
 const ManagerOS: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
-      <ManagerNavigation />
+      <Navigation role="manager" />
       <main className="pt-16">
         <Routes>
           <Route index element={<ManagerDashboard />} />

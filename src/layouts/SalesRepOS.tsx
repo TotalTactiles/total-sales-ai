@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
+import Navigation from '@/components/Navigation';
 
 // Sales Rep Pages
 import SalesRepDashboard from '@/pages/sales/Dashboard';
@@ -14,7 +14,7 @@ import SalesRepSettings from '@/pages/sales/Settings';
 const SalesRepOS: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
-      <SalesRepNavigation />
+      <Navigation role="sales_rep" />
       <main className="pt-16">
         <Routes>
           <Route index element={<SalesRepDashboard />} />
