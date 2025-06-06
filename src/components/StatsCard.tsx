@@ -1,5 +1,5 @@
 
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info, TrendingUp, TrendingDown, Minus } from "lucide-react";
@@ -11,7 +11,7 @@ interface StatsCardProps {
   value: string | number;
   change?: string;
   changeType?: 'increase' | 'decrease' | 'neutral';
-  icon?: ReactNode;
+  icon?: string;
   tooltip?: string;
   chartData?: number[];
   color?: ColorVariant;
@@ -24,8 +24,7 @@ const StatsCard = ({
   changeType = 'neutral',
   tooltip,
   chartData = [],
-  color = 'default',
-  icon
+  color = 'default'
 }: StatsCardProps) => {
   const changeColorClass = 
     changeType === 'increase' ? 'text-emerald-600' : 
@@ -67,9 +66,6 @@ const StatsCard = ({
             </div>
           )}
         </div>
-        {icon && (
-          <div className="ml-3 text-slate-500 flex-shrink-0">{icon}</div>
-        )}
       </div>
       
       {/* Micro Chart */}

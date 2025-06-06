@@ -106,9 +106,3 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--foreground));
 }
-
-@layer components {
-  .futuristic-card {
-    @apply rounded-lg border border-slate-200/60 bg-gradient-to-br from-white to-slate-50 shadow-sm hover:shadow-md dark:from-slate-800 dark:to-slate-900 dark:border-slate-700 p-3;
-  }
-}

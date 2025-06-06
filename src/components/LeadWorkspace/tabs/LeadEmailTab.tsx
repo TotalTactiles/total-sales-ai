@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Send, Mail, Paperclip, Settings, Link, Target, TrendingUp, Lightbulb } from 'lucide-react';
+import { Brain, Send, Mail, Paperclip, Settings, Link } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/useIntegrations';
@@ -247,17 +247,14 @@ P.S. Similar manufacturing companies typically see ROI within 3-4 months of impl
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p className="text-xs text-slate-600 flex items-center gap-1">
-                <Target className="h-3 w-3" />
-                Response rate increases 34% when mentioning specific ROI numbers
+              <p className="text-xs text-slate-600">
+                🎯 Response rate increases 34% when mentioning specific ROI numbers
               </p>
-              <p className="text-xs text-slate-600 flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" />
-                Best send time for {lead.company}: Tuesday-Thursday, 10 AM - 2 PM
+              <p className="text-xs text-slate-600">
+                📈 Best send time for {lead.company}: Tuesday-Thursday, 10 AM - 2 PM
               </p>
-              <p className="text-xs text-slate-600 flex items-center gap-1">
-                <Lightbulb className="h-3 w-3" />
-                Manufacturing companies respond well to concrete time savings examples
+              <p className="text-xs text-slate-600">
+                💡 Manufacturing companies respond well to concrete time savings examples
               </p>
             </div>
           </CardContent>

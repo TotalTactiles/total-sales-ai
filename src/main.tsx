@@ -33,20 +33,43 @@ if (process.env.NODE_ENV === 'development') {
 
 // Enhanced error boundary for the entire app
 const ErrorFallback: React.FC<{ error: Error }> = ({ error }) => (
-  <div className="flex min-h-screen flex-col items-center justify-center p-5 text-center font-sans">
-    <h1 className="mb-4 text-[#dc2626]">Application Error</h1>
-    <p className="mb-5 text-gray-500">
+  <div style={{ 
+    padding: '20px', 
+    textAlign: 'center', 
+    minHeight: '100vh', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontFamily: 'system-ui, sans-serif'
+  }}>
+    <h1 style={{ color: '#dc2626', marginBottom: '16px' }}>Application Error</h1>
+    <p style={{ marginBottom: '20px', color: '#6b7280' }}>
       Something went wrong. Please refresh the page to try again.
     </p>
-    <button
-      onClick={() => window.location.reload()}
-      className="mb-5 rounded-md bg-blue-500 px-4 py-2 text-white cursor-pointer"
+    <button 
+      onClick={() => window.location.reload()} 
+      style={{
+        padding: '8px 16px',
+        backgroundColor: '#3b82f6',
+        color: 'white',
+        border: 'none',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        marginBottom: '20px'
+      }}
     >
       Refresh Page
     </button>
-    <details className="mt-5 text-left max-w-[600px]">
-      <summary className="cursor-pointer mb-2">Error Details</summary>
-      <pre className="overflow-auto rounded bg-gray-100 p-3 text-xs">
+    <details style={{ marginTop: '20px', textAlign: 'left', maxWidth: '600px' }}>
+      <summary style={{ cursor: 'pointer', marginBottom: '8px' }}>Error Details</summary>
+      <pre style={{ 
+        background: '#f3f4f6', 
+        padding: '12px', 
+        borderRadius: '4px', 
+        fontSize: '12px',
+        overflow: 'auto'
+      }}>
         {error.stack || error.message}
       </pre>
     </details>

@@ -6,13 +6,8 @@ import DesktopNavigation from './Navigation/DesktopNavigation';
 import MobileNavigation from './Navigation/MobileNavigation';
 import { getDashboardUrl, updateActiveItem } from './Navigation/navigationUtils';
 import { createNavItems } from './Navigation/navigationConfig';
-import type { Role } from '@/contexts/auth/types';
 
-interface NavigationProps {
-  role?: Role;
-}
-
-const Navigation: React.FC<NavigationProps> = ({ role }) => {
+const Navigation = () => {
   const location = useLocation();
   const { profile } = useAuth();
   const [activeItem, setActiveItem] = useState('dashboard');
@@ -25,10 +20,8 @@ const Navigation: React.FC<NavigationProps> = ({ role }) => {
   useEffect(() => {
     updateActiveItem(location.pathname, setActiveItem);
   }, [location]);
-
-  const userRole = role || profile?.role || 'sales_rep';
-
-  const navItems = createNavItems(userRole, dashboardUrl);
+  
+  const navItems = createNavItems(dashboardUrl);
   
   return (
     <div className="bg-sidebar text-sidebar-foreground shadow-lg">
