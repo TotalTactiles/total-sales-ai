@@ -19,11 +19,14 @@ vi.mock('@/hooks/useIntegrations', () => ({
 }));
 
 let makeConversationalCallMock = vi.fn();
+let getCallAnalysisMock = vi.fn();
 
 vi.mock('@/hooks/useRetellAI', () => ({
   useRetellAI: () => ({
     makeConversationalCall: makeConversationalCallMock,
-    isLoading: false
+    getCallAnalysis: getCallAnalysisMock,
+    isLoading: false,
+    error: null
   })
 }));
 
@@ -36,6 +39,7 @@ beforeEach(() => {
   sendSMSMock = vi.fn().mockResolvedValue({ success: true });
   sendEmailMock = vi.fn().mockResolvedValue({ success: true });
   makeConversationalCallMock = vi.fn().mockResolvedValue({ success: true });
+  getCallAnalysisMock = vi.fn().mockResolvedValue({});
 });
 
 afterEach(() => {
