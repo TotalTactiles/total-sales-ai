@@ -58,7 +58,7 @@ serve(async (req) => {
       console.log('Retell webhook received:', webhookData.event, webhookData.call_id)
       
       // Log call events to database
-      await supabaseClient
+      const { error: logError } = await supabaseClient
         .from('ai_brain_logs')
         .insert({
           company_id: 'retell-calls',
@@ -75,6 +75,10 @@ serve(async (req) => {
             timestamp: new Date().toISOString()
           }
         })
+
+      if (logError) {
+        console.error('Failed to log Retell webhook event:', logError)
+      }
 
       // Handle specific events
       switch (webhookData.event) {
@@ -180,23 +184,31 @@ Remember: This is a real person, not a demo. Be authentic and helpful.`
 
     const callData = await callResponse.json()
 
-    // Log call initiation
-    await supabaseClient
-      .from('usage_events')
-      .insert({
-        user_id: userId,
-        company_id: (await supabaseClient.from('profiles').select('company_id').eq('id', userId).single()).data?.company_id,
-        feature: 'retell_ai_call',
-        action: 'initiated',
-        context: `lead_${leadId}`,
-        metadata: {
-          leadName,
-          phoneNumber,
-          callId: callData.call_id,
-          agentId: agent.agent_id,
-          provider: 'retell_ai'
-        }
-      })
+      // Log call initiation
+      const { error: usageError } = await supabaseClient
+        .from('usage_events')
+        .insert({
+          user_id: userId,
+          company_id: (await supabaseClient.from('profiles').select('company_id').eq('id', userId).single()).data?.company_id,
+          feature: 'retell_ai_call',
+          action: 'initiated',
+          context: `lead_${leadId}`,
+          metadata: {
+            leadName,
+            phoneNumber,
+            callId: callData.call_id,
+            agentId: agent.agent_id,
+            provider: 'retell_ai'
+          }
+        })
+
+      if (usageError) {
+        console.error('Failed to log Retell call initiation:', usageError)
+        return new Response(
+          JSON.stringify({ success: false, error: 'Failed to log call event' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
 
     return new Response(JSON.stringify({
       success: true,

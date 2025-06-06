@@ -171,12 +171,16 @@ serve(async (req) => {
         .select('*', { count: 'exact', head: true });
 
       // Insert a new stats entry
-      await supabase
+      const { error: statsError } = await supabase
         .from('stats_history')
         .insert({
           document_count: sourceData?.length || 0,
           chunk_count: chunkCount || 0
         });
+
+      if (statsError) {
+        console.error('Error inserting stats history:', statsError);
+      }
     } catch (error) {
       console.error('Error updating stats history:', error);
     }
