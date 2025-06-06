@@ -69,11 +69,17 @@ serve(async (req) => {
     }
 
     // Log call attempt in database
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('company_id')
+      .eq('id', userId)
+      .single()
+
     await supabaseClient
       .from('usage_events')
       .insert({
         user_id: userId,
-        company_id: (await supabaseClient.from('profiles').select('company_id').eq('id', userId).single()).data?.company_id,
+        company_id: profile?.company_id,
         feature: 'phone_call',
         action: 'initiated',
         context: `lead_${leadId}`,
@@ -84,6 +90,16 @@ serve(async (req) => {
           provider: 'twilio'
         }
       })
+
+    // Create initial call log for realtime updates
+    await supabaseClient.from('call_logs').insert({
+      user_id: userId,
+      company_id: profile?.company_id,
+      lead_id: leadId,
+      call_type: 'outbound',
+      status: 'initiated',
+      call_sid: twilioData.sid
+    })
 
     return new Response(JSON.stringify({
       success: true,

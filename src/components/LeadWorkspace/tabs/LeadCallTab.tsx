@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import { useIntegrations } from '@/hooks/useIntegrations';
 import { useRetellAI } from '@/hooks/useRetellAI';
+import { useCallStatus } from '@/hooks/useCallStatus';
 
 interface LeadCallTabProps {
   lead: Lead;
@@ -19,6 +20,19 @@ const LeadCallTab: React.FC<LeadCallTabProps> = ({ lead }) => {
   const [isAiAssisting, setIsAiAssisting] = useState(false);
   const { makeCall, isLoading } = useIntegrations();
   const { makeConversationalCall, isLoading: isAICallLoading } = useRetellAI();
+  const [callSid, setCallSid] = useState<string>();
+  const { status: callStatus, duration } = useCallStatus(callSid);
+
+  useEffect(() => {
+    if (!callStatus) return;
+    if (callStatus === 'completed' || callStatus === 'failed' || callStatus === 'no-answer') {
+      setIsRecording(false);
+      setCallSid(undefined);
+      if (callStatus === 'failed') {
+        toast.error('Call failed');
+      }
+    }
+  }, [callStatus]);
 
   const mockCallHistory = [
     {
@@ -52,11 +66,14 @@ const LeadCallTab: React.FC<LeadCallTabProps> = ({ lead }) => {
 
   const handleStartCall = async () => {
     const result = await makeCall(lead.phone, lead.id, lead.name);
-    
+
     if (result.success) {
       // Start recording automatically when call begins
       setIsRecording(true);
+      setCallSid(result.callSid);
       toast.success(`Call initiated to ${lead.name}. Call SID: ${result.callSid}`);
+    } else {
+      toast.error('Failed to start call');
     }
   };
 
@@ -147,6 +164,9 @@ Probability: 85% likely to move forward`;
             <div>
               <div className="font-medium">{lead.phone}</div>
               <div className="text-sm text-slate-600">Best time to call: Today 2-4 PM (78% connect rate)</div>
+              {callStatus && (
+                <div className="text-sm mt-1">Status: {callStatus}{duration ? ` - ${duration}s` : ''}</div>
+              )}
             </div>
             <div className="flex gap-2">
               <Button 
