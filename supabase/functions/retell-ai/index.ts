@@ -28,7 +28,9 @@ interface RetellWebhookEvent {
 serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin':
-      allowedOrigins.includes(req.headers.get('origin') ?? '')
+      allowedOrigins.length === 0
+        ? '*'
+        : allowedOrigins.includes(req.headers.get('origin') ?? '')
         ? req.headers.get('origin') ?? ''
         : allowedOrigins[0] ?? '',
     'Access-Control-Allow-Headers':
