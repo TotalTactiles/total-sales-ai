@@ -22,10 +22,8 @@ export interface RetellCallOptions {
   phoneNumber: string;
   leadId: string;
   leadName: string;
-  leadId: string;
   userId: string;
   leadContext: any;
-  userId: string;
   agentConfig?: Partial<RetellAgentConfig>;
 }
 

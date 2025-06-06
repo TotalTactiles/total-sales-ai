@@ -125,7 +125,6 @@ export class VoiceAIService {
       }
     }
   }
-  async initiateAICall(phoneNumber: string, leadId: string, leadName: string, leadContext: any): Promise<{ success: boolean; callId?: string }> {
   async initiateAICall(
     phoneNumber: string,
     leadId: string,
@@ -140,7 +139,6 @@ export class VoiceAIService {
         leadName,
         userId,
         leadContext,
-        userId: this.currentConfig?.userId || '',
         agentConfig: {
           agent_name: `Sales AI for ${leadName}`,
           voice_id: 'pNInz6obpgDQGcFmaJgB',
