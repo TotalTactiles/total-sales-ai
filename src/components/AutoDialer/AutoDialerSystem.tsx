@@ -109,13 +109,15 @@ const AutoDialerSystem: React.FC<AutoDialerSystemProps> = ({ leads, onLeadSelect
   };
 
   const handleCallMissed = () => {
-    setConsecutiveMissed(prev => prev + 1);
-    
-    if (consecutiveMissed >= 9) {
-      aiReorderQueue();
-      toast.info('AI is reordering queue based on recent patterns');
-    }
-    
+    setConsecutiveMissed(prev => {
+      const newCount = prev + 1;
+      if (newCount >= 10) {
+        aiReorderQueue();
+        toast.info('AI is reordering queue based on recent patterns');
+      }
+      return newCount;
+    });
+
     handleEndCall();
   };
 
