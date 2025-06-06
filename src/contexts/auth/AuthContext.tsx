@@ -2,7 +2,8 @@
 import { logger } from '@/utils/logger';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
+import { initializeDemoUser } from './demoMode';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { AuthContextType, Profile, Role } from './types';
 import { toast } from 'sonner';
@@ -126,11 +127,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<{ profile?: Profile; error?: AuthError }> => {
     try {
       setLoading(true);
-      
+
       // Clear any existing demo mode or cached roles before signing in
       localStorage.removeItem('demoMode');
       localStorage.removeItem('demoRole');
-      
+
+      // If Supabase isn't configured, fall back to local demo mode
+      if (!isSupabaseConfigured) {
+        const role: Role = email.includes('manager') ? 'manager' : 'sales_rep';
+        const { demoUser, demoProfile } = initializeDemoUser(role);
+        localStorage.setItem('demoMode', 'true');
+        localStorage.setItem('demoRole', role);
+        setLastSelectedRole(role);
+        setUser(demoUser);
+        setProfile(demoProfile);
+        setSession(null);
+        toast.success('Signed in using local demo mode');
+        return { profile: demoProfile };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
