@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -5,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { AuthContextType, Profile, Role } from './types';
 import { toast } from 'sonner';
+import { setLastSelectedRole, getLastSelectedRole, setLastSelectedCompanyId, getLastSelectedCompanyId } from './localStorage';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -66,7 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setProfile(null);
           setLoading(false);
           
-          // Clear all storage
+          // Clear all storage including demo mode
           localStorage.clear();
           sessionStorage.clear();
           
@@ -102,7 +104,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return null;
       }
 
+      logger.info('Fetched profile:', data);
       setProfile(data);
+      
+      // Update local storage with the actual role from database
+      if (data?.role) {
+        setLastSelectedRole(data.role);
+        logger.info('Updated lastSelectedRole to:', data.role);
+      }
+      
       return data;
     } catch (error) {
       logger.error('Error in fetchProfile:', error);
@@ -116,6 +126,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<{ profile?: Profile; error?: AuthError }> => {
     try {
       setLoading(true);
+      
+      // Clear any existing demo mode or cached roles before signing in
+      localStorage.removeItem('demoMode');
+      localStorage.removeItem('demoRole');
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -137,6 +152,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         fetchedProfile = await fetchProfile(user.id);
         if (fetchedProfile) {
           setLastSelectedRole(fetchedProfile.role);
+          logger.info('Sign in successful, role set to:', fetchedProfile.role);
         }
       }
 
@@ -188,7 +204,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(null);
       setLoading(false);
       
-      // Clear all storage immediately
+      // Clear all storage immediately including demo mode
       localStorage.clear();
       sessionStorage.clear();
       
@@ -215,22 +231,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const isDemoMode = (): boolean => {
     return localStorage.getItem('demoMode') === 'true';
-  };
-
-  const setLastSelectedRole = (role: Role): void => {
-    localStorage.setItem('lastSelectedRole', role);
-  };
-
-  const getLastSelectedRole = (): Role => {
-    return (localStorage.getItem('lastSelectedRole') as Role) || 'sales_rep';
-  };
-
-  const setLastSelectedCompanyId = (companyId: string): void => {
-    localStorage.setItem('lastSelectedCompanyId', companyId);
-  };
-
-  const getLastSelectedCompanyId = (): string | null => {
-    return localStorage.getItem('lastSelectedCompanyId');
   };
 
   const initializeDemoMode = (role: Role): void => {

@@ -46,12 +46,14 @@ const DashboardRedirect: React.FC = () => {
   
   if (isDemoMode()) {
     targetRole = getLastSelectedRole() || 'sales_rep';
+    logger.info('Demo mode active, using role:', targetRole);
   } else if (profile?.role) {
     targetRole = profile.role as Role;
+    logger.info('Using profile role:', targetRole);
   }
   
   const dashboardUrl = getDashboardUrl({ role: targetRole });
-  logger.info('Redirecting to dashboard:', { targetRole, dashboardUrl });
+  logger.info('Redirecting to dashboard:', { targetRole, dashboardUrl, profileRole: profile?.role });
   
   return <Navigate to={dashboardUrl} replace />;
 };

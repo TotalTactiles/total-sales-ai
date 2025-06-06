@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React from 'react';
@@ -31,6 +32,10 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
   };
   
   const handleDirectDemoLogin = () => {
+    // Clear any existing auth data first
+    localStorage.clear();
+    sessionStorage.clear();
+    
     // Skip the form and directly log in with demo mode
     logger.info("Direct demo login with role:", selectedRole);
     initializeDemoMode(selectedRole);

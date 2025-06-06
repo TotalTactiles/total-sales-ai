@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
@@ -37,19 +38,15 @@ const AuthPage = () => {
     );
   }
 
-  // Redirect or prompt for selection if already logged in
+  // Redirect based on actual profile role if logged in
   if (user && profile && !isTransitioning) {
-    const profileAny = profile as any;
-    const hasMultipleCompanies = Array.isArray(profileAny?.companies) && profileAny.companies.length > 1;
-    const hasMultipleRoles = Array.isArray(profileAny?.roles) && profileAny.roles.length > 1;
-
-    if (hasMultipleCompanies || hasMultipleRoles) {
-      return <RoleCompanySelector />;
-    }
-
-    logger.info("AuthPage: User is logged in, redirecting based on role:", profile.role);
+    logger.info("AuthPage: User is logged in, profile role:", profile.role);
+    
+    // Force redirect based on actual profile role, not cached role
     const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
     const from = location.state?.from?.pathname || redirectPath;
+    
+    logger.info("AuthPage: Redirecting to:", from);
     return <Navigate to={from} replace />;
   }
 
