@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+import Navigation from '@/components/Navigation';
 
 // Developer Pages
 import DeveloperDashboard from '@/pages/developer/Dashboard';
@@ -18,7 +18,7 @@ import DeveloperCRMIntegrations from '@/pages/developer/CRMIntegrations';
 const DeveloperOS: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-900 text-white">
-      <DeveloperNavigation />
+      <Navigation role="developer" />
       <main className="pt-16">
         <Routes>
           <Route index element={<DeveloperDashboard />} />
