@@ -61,31 +61,33 @@ const DialerQueue: React.FC<DialerQueueProps> = ({
           {lead.priority === 'high' && <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />}
         </div>
         <div className="flex gap-1">
-          {queueType === 'rep' ? (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoveLeadBetweenQueues(lead.id, 'rep', 'ai');
-              }}
-            >
-              <ArrowRight className="h-3 w-3" />
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 w-6 p-0"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoveLeadBetweenQueues(lead.id, 'ai', 'rep');
-              }}
-            >
-              <ArrowLeft className="h-3 w-3" />
-            </Button>
-          )}
+            {queueType === 'rep' ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0"
+                data-testid="move-to-ai"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveLeadBetweenQueues(lead.id, 'rep', 'ai');
+                }}
+              >
+                <ArrowRight className="h-3 w-3" />
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0"
+                data-testid="move-to-rep"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveLeadBetweenQueues(lead.id, 'ai', 'rep');
+                }}
+              >
+                <ArrowLeft className="h-3 w-3" />
+              </Button>
+            )}
         </div>
       </div>
       
