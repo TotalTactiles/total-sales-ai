@@ -1,3 +1,4 @@
+
 //@vitest-environment jsdom
 
 import React, { createContext, useContext, useState } from 'react';
@@ -12,7 +13,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
 
-  const signIn = async (email: string) => {
+  const signIn = async (email: string, password: string) => {
     const role = email.includes('manager') ? 'manager' : 'sales_rep';
     setProfile({ id: '1', role } as Profile);
     return {};
@@ -20,6 +21,10 @@ const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children })
 
   const signOut = async () => {
     setProfile(null);
+  };
+
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+    return profile;
   };
 
   const value: AuthContextType = {
@@ -30,10 +35,12 @@ const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     signIn,
     signUp: async () => ({}),
     signOut,
-    fetchProfile: async () => {},
+    fetchProfile,
     isDemoMode: () => false,
     setLastSelectedRole: () => {},
     getLastSelectedRole: () => 'sales_rep',
+    setLastSelectedCompanyId: () => {},
+    getLastSelectedCompanyId: () => null,
     initializeDemoMode: () => {}
   };
 
@@ -51,12 +58,12 @@ const LoginControls: React.FC = () => {
   const navigate = useNavigate();
 
   const loginAsManager = async () => {
-    await signIn('manager@example.com');
+    await signIn('manager@example.com', 'password123');
     navigate('/manager/dashboard');
   };
 
   const loginAsSales = async () => {
-    await signIn('sales@example.com');
+    await signIn('sales@example.com', 'password123');
     navigate('/sales/dashboard');
   };
 
@@ -132,4 +139,3 @@ describe('auth routing', () => {
     });
   });
 });
-
