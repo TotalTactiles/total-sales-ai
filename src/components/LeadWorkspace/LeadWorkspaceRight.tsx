@@ -8,9 +8,13 @@ import {
   ChevronLeft, 
   ChevronRight, 
   TrendingUp, 
-  Clock, 
+  Clock,
   Target,
   FileText,
+  BarChart2,
+  Video,
+  PhoneCall,
+  Lightbulb,
   Send,
   Zap,
   Calculator,
@@ -229,14 +233,17 @@ const LeadWorkspaceRight: React.FC<LeadWorkspaceRightProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="text-sm text-slate-600 hover:text-slate-900 cursor-pointer">
-              📄 Pricing_Proposal_v2.pdf
+            <div className="text-sm text-slate-600 hover:text-slate-900 cursor-pointer flex items-center gap-1">
+              <FileText className="h-3 w-3" />
+              Pricing_Proposal_v2.pdf
             </div>
-            <div className="text-sm text-slate-600 hover:text-slate-900 cursor-pointer">
-              📊 ROI_Calculator.xlsx
+            <div className="text-sm text-slate-600 hover:text-slate-900 cursor-pointer flex items-center gap-1">
+              <BarChart2 className="h-3 w-3" />
+              ROI_Calculator.xlsx
             </div>
-            <div className="text-sm text-slate-600 hover:text-slate-900 cursor-pointer">
-              🎥 Product_Demo.mp4
+            <div className="text-sm text-slate-600 hover:text-slate-900 cursor-pointer flex items-center gap-1">
+              <Video className="h-3 w-3" />
+              Product_Demo.mp4
             </div>
             <Button variant="outline" size="sm" className="w-full mt-2">
               Upload New File
@@ -254,14 +261,17 @@ const LeadWorkspaceRight: React.FC<LeadWorkspaceRightProps> = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p className="text-xs text-slate-600">
-                🎯 Your email response rate is 23% higher when including industry stats
+              <p className="text-xs text-slate-600 flex items-center gap-1">
+                <Target className="h-3 w-3" />
+                Your email response rate is 23% higher when including industry stats
               </p>
-              <p className="text-xs text-slate-600">
-                📞 Best call success: Tuesday-Thursday, 2-4 PM
+              <p className="text-xs text-slate-600 flex items-center gap-1">
+                <PhoneCall className="h-3 w-3" />
+                Best call success: Tuesday-Thursday, 2-4 PM
               </p>
-              <p className="text-xs text-slate-600">
-                💡 Similar leads from {lead.source} respond well to case studies
+              <p className="text-xs text-slate-600 flex items-center gap-1">
+                <Lightbulb className="h-3 w-3" />
+                Similar leads from {lead.source} respond well to case studies
               </p>
             </div>
           </CardContent>
