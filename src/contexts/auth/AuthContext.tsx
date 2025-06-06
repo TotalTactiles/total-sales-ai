@@ -203,6 +203,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return (localStorage.getItem('lastSelectedRole') as Role) || 'sales_rep';
   };
 
+  const setLastSelectedCompanyId = (companyId: string): void => {
+    localStorage.setItem('lastSelectedCompanyId', companyId);
+  };
+
+  const getLastSelectedCompanyId = (): string | null => {
+    return localStorage.getItem('lastSelectedCompanyId');
+  };
+
   const initializeDemoMode = (role: Role): void => {
     localStorage.setItem('demoMode', 'true');
     localStorage.setItem('demoRole', role);
@@ -222,6 +230,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isDemoMode,
     setLastSelectedRole,
     getLastSelectedRole,
+    setLastSelectedCompanyId,
+    getLastSelectedCompanyId,
     initializeDemoMode
   };
 

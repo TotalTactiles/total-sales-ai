@@ -30,5 +30,7 @@ export interface AuthContextType {
   isDemoMode: () => boolean;
   setLastSelectedRole: (role: Role) => void;
   getLastSelectedRole: () => Role;
+  setLastSelectedCompanyId: (companyId: string) => void;
+  getLastSelectedCompanyId: () => string | null;
   initializeDemoMode: (role: Role) => void;
 }
