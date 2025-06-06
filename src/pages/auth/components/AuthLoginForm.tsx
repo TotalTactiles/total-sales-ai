@@ -9,6 +9,7 @@ import { LogIn } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
@@ -23,7 +24,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   formData: externalFormData,
   setFormData: externalSetFormData
 }) => {
-  const { signIn, initializeDemoMode } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const [internalFormData, setInternalFormData] = useState({
     email: 'sales.rep@company.com',
@@ -42,83 +43,38 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     });
   };
 
-  const checkCompanySettings = async (userId: string) => {
-    try {
-      // Get the user's profile to find company_id
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('company_id, role')
-        .eq('id', userId)
-        .single();
-      
-      if (profileError) throw profileError;
-      
-      // If no company_id, we can't check settings
-      if (!profileData.company_id) {
-        return null;
-      }
-      
-      // Check if company settings exist and if onboarding is completed
-      const { data: settingsData, error: settingsError } = await supabase
-        .from('company_settings')
-        .select('onboarding_completed_at')
-        .eq('company_id', profileData.company_id)
-        .maybeSingle();
-      
-      if (settingsError) throw settingsError;
-      
-      // Return combination of profile and settings
-      return {
-        hasSettings: !!settingsData,
-        onboardingCompleted: !!settingsData?.onboarding_completed_at,
-        isManager: profileData.role === 'manager',
-        companyId: profileData.company_id
-      };
-    } catch (error) {
-      logger.error('Error checking company settings:', error);
-      return null;
-    }
-  };
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    try {
-      logger.info('Logging in as full paying user');
-      
-      // Simulate full user authentication with all features unlocked
-      initializeDemoMode('sales_rep');
-      
-      // Store the plan type and email for demo purposes
-      localStorage.setItem('planType', 'pro');
-      localStorage.setItem('userEmail', formData.email);
-      
-      setIsTransitioning(true);
-      
-      // Check for company settings (only in real mode, not demo mode)
-      // In a real implementation, you would check after actual authentication
-      const userId = localStorage.getItem('userId') || '123e4567-e89b-12d3-a456-426614174000'; // Mock user ID for demo
-      const companyStatus = await checkCompanySettings(userId);
 
-      // Direct navigation based on settings status
-      setTimeout(() => {
-        if (companyStatus) {
-          if (companyStatus.isManager && (!companyStatus.hasSettings || !companyStatus.onboardingCompleted)) {
-            // Manager with no company settings or incomplete onboarding -> onboarding
-            navigate('/onboarding');
-          } else {
-            // Regular navigation based on role
-            navigate('/sales/dashboard');
-          }
-        } else {
-          navigate('/sales/dashboard');
-        }
-      }, 1500);
-      
-      toast.success('Welcome back! Logged in as full user with Pro features.');
-      return;
-      
+    try {
+      const { error } = await signIn(formData.email, formData.password);
+
+      if (error) {
+        throw error;
+      }
+
+      // Retrieve the current session after sign in
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
+      if (!userId) {
+        throw new Error('User session not found');
+      }
+
+      // Fetch profile to update context and get role
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (profileError || !profileData) {
+        throw profileError || new Error('Profile not found');
+      }
+
+      navigate(getDashboardUrl({ role: profileData.role }));
     } catch (error: any) {
       logger.error('Authentication error:', error);
       toast.error(error.message || 'Login failed');
