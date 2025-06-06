@@ -23,10 +23,13 @@ export interface AuthContextType {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: AuthError }>;
+  signIn: (
+    email: string,
+    password: string
+  ) => Promise<{ profile?: Profile; error?: AuthError }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error?: AuthError }>;
   signOut: () => Promise<void>;
-  fetchProfile: (userId: string) => Promise<void>;
+  fetchProfile: (userId: string) => Promise<Profile | null>;
   isDemoMode: () => boolean;
   setLastSelectedRole: (role: Role) => void;
   getLastSelectedRole: () => Role;
