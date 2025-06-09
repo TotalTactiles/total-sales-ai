@@ -246,8 +246,8 @@ const CompanyDashboard = () => {
               <div key={activity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div>
                   <p className="font-medium text-sm">{activity.rep}</p>
-                  <p className="text-xs text-gray-600">{activity.action}</p>
-                  <p className="text-xs text-gray-500">{activity.time}</p>
+                  <p className="text-xs text-muted-foreground">{activity.action}</p>
+                  <p className="text-xs text-muted-foreground">{activity.time}</p>
                 </div>
                 <Badge variant="secondary" className="bg-green-100 text-green-800">
                   {activity.value}

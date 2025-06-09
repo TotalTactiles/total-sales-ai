@@ -13,7 +13,7 @@ const LeadAssignment: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-gray-600">Automatically distribute new leads to your team.</p>
+        <p className="text-sm text-muted-foreground">Automatically distribute new leads to your team.</p>
         <Button size="sm">
           Assign Leads
           <UserPlus className="h-4 w-4 ml-2" />

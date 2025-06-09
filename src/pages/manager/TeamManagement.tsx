@@ -7,7 +7,7 @@ const TeamManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-foreground dark:text-white">
           Team Management
         </h1>
       </div>
@@ -71,7 +71,7 @@ const TeamManagement: React.FC = () => {
           <CardTitle>Team Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground dark:text-gray-400">
             Detailed team management features will be implemented here, including
             performance tracking, goal setting, and team collaboration tools.
           </p>

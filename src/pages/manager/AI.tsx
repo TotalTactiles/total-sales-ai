@@ -102,8 +102,8 @@ const ManagerAI = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">AI Assistant CEO</h1>
-          <p className="text-gray-600">Your strategic AI partner for management decisions</p>
+          <h1 className="text-3xl font-bold text-foreground">AI Assistant CEO</h1>
+          <p className="text-muted-foreground">Your strategic AI partner for management decisions</p>
         </div>
         <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
           <Brain className="h-3 w-3 mr-1" />
@@ -129,11 +129,11 @@ const ManagerAI = () => {
                     <div className={`max-w-[80%] p-3 rounded-lg ${
                       chat.type === 'user' 
                         ? 'bg-blue-600 text-white' 
-                        : 'bg-gray-100 text-gray-900'
+                        : 'bg-gray-100 text-foreground'
                     }`}>
                       <p className="text-sm whitespace-pre-line">{chat.message}</p>
                       <p className={`text-xs mt-1 ${
-                        chat.type === 'user' ? 'text-blue-100' : 'text-gray-500'
+                        chat.type === 'user' ? 'text-blue-100' : 'text-muted-foreground'
                       }`}>
                         {chat.time}
                       </p>
@@ -213,19 +213,19 @@ const ManagerAI = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Team Performance</span>
+                <span className="text-sm text-muted-foreground">Team Performance</span>
                 <Badge variant="default">115% of target</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Pipeline Health</span>
+                <span className="text-sm text-muted-foreground">Pipeline Health</span>
                 <Badge variant="secondary">Strong</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Deal Velocity</span>
+                <span className="text-sm text-muted-foreground">Deal Velocity</span>
                 <Badge variant="outline">18 days avg</Badge>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Win Rate</span>
+                <span className="text-sm text-muted-foreground">Win Rate</span>
                 <Badge variant="default">24.3%</Badge>
               </div>
             </CardContent>
@@ -250,10 +250,10 @@ const ManagerAI = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <h4 className="font-medium text-sm">{insight.title}</h4>
-                        <p className="text-xs text-gray-600 mt-1">{insight.message}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{insight.message}</p>
                         <div className="flex items-center gap-1 mt-2">
                           <Clock className="h-3 w-3 text-gray-400" />
-                          <span className="text-xs text-gray-500">{insight.time}</span>
+                          <span className="text-xs text-muted-foreground">{insight.time}</span>
                         </div>
                       </div>
                       <Badge 

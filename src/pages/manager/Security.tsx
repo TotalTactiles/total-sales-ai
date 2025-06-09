@@ -17,7 +17,7 @@ const SecurityPage: React.FC = () => {
           <CardContent className="p-8 text-center">
             <Lock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-gray-700 mb-2">Access Restricted</h2>
-            <p className="text-gray-600">Security dashboard is only available to managers and administrators.</p>
+            <p className="text-muted-foreground">Security dashboard is only available to managers and administrators.</p>
           </CardContent>
         </Card>
       </div>
@@ -28,8 +28,8 @@ const SecurityPage: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Security Center</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-foreground">Security Center</h1>
+          <p className="text-muted-foreground mt-2">
             Monitor and manage AI security posture, data protection, and access controls
           </p>
         </div>

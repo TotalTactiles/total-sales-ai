@@ -13,7 +13,7 @@ const MarketingAnalytics: React.FC = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground">
           View campaign performance and audience engagement metrics.
         </p>
         <Button variant="outline" size="sm">
