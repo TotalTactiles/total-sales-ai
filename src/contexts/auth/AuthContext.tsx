@@ -185,6 +185,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (email: string, password: string, metadata?: any): Promise<{ error?: AuthError }> => {
     try {
       setLoading(true);
+
+      // If Supabase isn't configured, fall back to local demo mode
+      if (!isSupabaseConfigured) {
+        const role: Role = metadata?.role ?? (email.includes('manager') ? 'manager' : 'sales_rep');
+        const { demoUser, demoProfile } = initializeDemoUser(role);
+        localStorage.setItem('demoMode', 'true');
+        localStorage.setItem('demoRole', role);
+        setLastSelectedRole(role);
+        setUser(demoUser);
+        setProfile(demoProfile);
+        setSession(null);
+        toast.success('Demo account created successfully');
+        return {};
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
