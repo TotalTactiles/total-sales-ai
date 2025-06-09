@@ -35,17 +35,17 @@ const ModernSidebar: React.FC<SidebarProps> = ({ className }) => {
 
   return (
     <div className={cn(
-      "bg-white border-r border-neutral-200 transition-all duration-300 flex flex-col shadow-soft",
+      "bg-card border-r border-border transition-all duration-300 flex flex-col shadow-soft",
       isCollapsed ? "w-16" : "w-64",
       className
     )}>
       {/* Header */}
-      <div className="p-4 border-b border-neutral-200">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
           {!isCollapsed && <Logo />}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-2 rounded-lg hover:bg-neutral-100 transition-colors"
+            className="p-2 rounded-lg hover:bg-accent transition-colors"
           >
             {isCollapsed ? (
               <ChevronRight className="h-4 w-4" />
@@ -72,7 +72,7 @@ const ModernSidebar: React.FC<SidebarProps> = ({ className }) => {
                 "flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group",
                 isActive
                   ? "gradient-lavender text-white shadow-card"
-                  : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
               )}
               title={isCollapsed ? item.label : undefined}
             >
@@ -86,7 +86,7 @@ const ModernSidebar: React.FC<SidebarProps> = ({ className }) => {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-neutral-200">
+      <div className="p-4 border-t border-border">
         <div className={cn(
           "flex items-center gap-3 p-3 rounded-xl bg-lavender-50",
           isCollapsed ? "justify-center" : ""

@@ -5,17 +5,19 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default: "gradient-lavender text-white shadow-card hover:shadow-elevated",
-        destructive: "bg-red-500 text-white shadow-card hover:bg-red-600 hover:shadow-elevated",
-        outline: "border border-neutral-200 bg-white shadow-soft hover:bg-neutral-50 hover:shadow-card",
-        secondary: "bg-neutral-100 text-neutral-900 shadow-soft hover:bg-neutral-200 hover:shadow-card",
-        ghost: "hover:bg-neutral-100 hover:text-neutral-900",
-        link: "text-lavender-600 underline-offset-4 hover:underline",
+        destructive: "bg-destructive text-destructive-foreground shadow-card hover:bg-destructive/90 hover:shadow-elevated",
+        outline: "border border-border bg-background shadow-soft hover:bg-accent hover:text-accent-foreground hover:shadow-card",
+        secondary: "bg-secondary text-secondary-foreground shadow-soft hover:bg-secondary/80 hover:shadow-card",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
         pill: "pill-button gradient-lavender text-white",
+        info: "bg-softBlue-100 text-softBlue-700 hover:bg-softBlue-200 shadow-soft hover:shadow-card",
+        success: "bg-mint-100 text-mint-700 hover:bg-mint-200 shadow-soft hover:shadow-card",
       },
       size: {
         default: "h-10 px-4 py-2",

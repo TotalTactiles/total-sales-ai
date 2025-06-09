@@ -24,7 +24,7 @@ const SalesNavigation = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-neutral-200 shadow-soft">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-card border-b border-border shadow-soft">
       <div className="h-16 flex items-center justify-between px-6">
         <div className="flex items-center gap-4">
           <Logo />
@@ -49,7 +49,7 @@ const SalesNavigation = () => {
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? 'gradient-lavender text-white shadow-card'
-                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                 }`}
               >
                 <IconComponent className="h-4 w-4" />
@@ -63,7 +63,7 @@ const SalesNavigation = () => {
         <div className="flex items-center gap-3">
           <Button variant="outline" size="icon" className="relative">
             <Bell className="h-4 w-4" />
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 h-5 w-5 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center">
               3
             </span>
           </Button>
@@ -77,7 +77,7 @@ const SalesNavigation = () => {
 
           {/* Mobile menu toggle */}
           <button
-            className="lg:hidden p-2 rounded-xl hover:bg-neutral-100 transition-colors"
+            className="lg:hidden p-2 rounded-xl hover:bg-accent transition-colors"
             onClick={() => setMobileMenuOpen(prev => !prev)}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -87,7 +87,7 @@ const SalesNavigation = () => {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-neutral-200 bg-white p-4 space-y-2 shadow-card">
+        <div className="lg:hidden border-t border-border bg-card p-4 space-y-2 shadow-card">
           {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href ||
@@ -102,7 +102,7 @@ const SalesNavigation = () => {
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 w-full ${
                   isActive
                     ? 'gradient-lavender text-white shadow-card'
-                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                 }`}
               >
                 <IconComponent className="h-5 w-5" />
