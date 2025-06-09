@@ -11,6 +11,7 @@ import AuthSignupForm from './components/AuthSignupForm';
 import AuthDemoOptions from './components/AuthDemoOptions';
 import AuthLoadingScreen from './components/AuthLoadingScreen';
 import { logger } from '@/utils/logger';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 const AuthPage = () => {
   const {
     user,
@@ -58,7 +59,7 @@ const AuthPage = () => {
     if (isNewUser && !showOnboarding) {
       setShowOnboarding(true);
     }
-    const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+    const redirectPath = getDashboardUrl(profile);
     const from = location.state?.from?.pathname || redirectPath;
     logger.info("AuthPage: Redirecting to:", from);
     return <Navigate to={from} replace />;
@@ -68,7 +69,7 @@ const AuthPage = () => {
   if (isDemoMode() && !user) {
     const demoRole = localStorage.getItem('demoRole') as Role | null;
     if (demoRole) {
-      const redirectPath = demoRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+      const redirectPath = getDashboardUrl({ role: demoRole });
       logger.info("AuthPage: Demo mode active, redirecting to", redirectPath);
       return <Navigate to={redirectPath} replace />;
     }
@@ -82,7 +83,7 @@ const AuthPage = () => {
     setIsTransitioning(true);
     // Simulate loading and transition to dashboard
     setTimeout(() => {
-      const redirectPath = selectedRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+      const redirectPath = getDashboardUrl({ role: selectedRole });
       logger.info("AuthPage: Transitioning to", redirectPath);
       navigate(redirectPath, {
         replace: true
