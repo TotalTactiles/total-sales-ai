@@ -4,7 +4,7 @@ import { logger } from '@/utils/logger';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { initializeDemoUser } from './demoMode';
-import { User, Session, AuthError } from '@supabase/supabase-js';
+import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
 import { AuthContextType, Profile, Role } from './types';
 import { toast } from 'sonner';
 import { setLastSelectedRole, getLastSelectedRole, setLastSelectedCompanyId, getLastSelectedCompanyId } from './localStorage';
@@ -209,6 +209,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const signUpWithOAuth = async (
+    provider: Provider
+  ): Promise<{ profile?: Profile; error?: AuthError }> => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth`
+        }
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return { error };
+      }
+
+      if (data.session && data.session.user) {
+        const { session } = data;
+        setSession(session);
+        setUser(session.user);
+        const fetchedProfile = await fetchProfile(session.user.id);
+        toast.success('Signed in successfully');
+        return { profile: fetchedProfile || undefined };
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      }
+
+      return {};
+    } catch (error) {
+      logger.error('OAuth sign up error:', error);
+      toast.error('An unexpected error occurred');
+      return { error: error as AuthError };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async (): Promise<void> => {
     try {
       logger.info('SignOut: Starting logout process...');
@@ -262,6 +302,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     signIn,
     signUp,
+    signUpWithOAuth,
     signOut,
     fetchProfile,
     isDemoMode,

@@ -1,5 +1,5 @@
 
-import { User, Session, AuthError } from '@supabase/supabase-js';
+import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
 
 export type Role = 'sales_rep' | 'manager' | 'developer' | 'admin';
 
@@ -28,6 +28,7 @@ export interface AuthContextType {
     password: string
   ) => Promise<{ profile?: Profile; error?: AuthError }>;
   signUp: (email: string, password: string, metadata?: any) => Promise<{ error?: AuthError }>;
+  signUpWithOAuth: (provider: Provider) => Promise<{ profile?: Profile; error?: AuthError }>;
   signOut: () => Promise<void>;
   fetchProfile: (userId: string) => Promise<Profile | null>;
   isDemoMode: () => boolean;
