@@ -115,9 +115,6 @@ run:
 npm run create:developer
 ```
 
-Quick demo login is only available for Manager and Sales Rep roles. Developers
-should sign in using the credentials created by this script.
-
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
