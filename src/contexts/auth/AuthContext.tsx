@@ -192,6 +192,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<{ error?: AuthError }> => {
     try {
       setLoading(true);
+      
+      const { data, error } = await supabase.auth.signUp({
       const { data, error } = await supabase.auth.signUp({
 
       // If Supabase isn't configured, fall back to local demo mode
@@ -212,8 +214,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email,
         password,
         options: {
-          data: metadata
-        }
+          data: metadata,
+        },
       });
 
       if (error) {
@@ -221,6 +223,60 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error };
       }
 
+      const userId = data.user?.id;
+
+      if (metadata?.role === 'manager' && userId) {
+        // Fetch the newly created profile to get company_id (set by DB trigger)
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('id', userId)
+          .single();
+
+        const companyId = profileData?.company_id || userId;
+
+        if (!profileError) {
+          const defaultSettings = {
+            company_id: companyId,
+            industry: '',
+            sales_model: [],
+            team_roles: [],
+            tone: {
+              humor: 50,
+              formality: 50,
+              pushiness: 30,
+              detail: 60,
+            },
+            pain_points: [],
+            agent_name: 'SalesOS',
+            enabled_modules: {
+              dialer: true,
+              brain: true,
+              leads: true,
+              analytics: true,
+              missions: false,
+              tools: false,
+              aiAgent: true,
+            },
+            original_goal: '',
+            personalization_flags: {
+              dashboardCustomized: false,
+              welcomeMessageSent: false,
+              guidedTourShown: false,
+            },
+          };
+
+          const { error: companyError } = await supabase
+            .from('company_settings')
+            .insert(defaultSettings);
+
+          if (companyError) {
+            logger.error('Error creating company settings:', companyError);
+            toast.error('Company setup failed: ' + companyError.message);
+          }
+        } else {
+          logger.error('Error fetching profile after sign up:', profileError);
+          toast.error('Company setup failed: ' + profileError.message);
       const session = data.session;
       const newUser = data.user;
 
