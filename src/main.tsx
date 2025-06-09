@@ -1,5 +1,6 @@
 
 import { logger } from '@/utils/logger';
+import { setupAPIInterceptors } from './utils/apiInterceptor';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -11,6 +12,7 @@ import { optimizeForMobile } from './utils/mobileOptimization';
 try {
   optimizeForMobile();
   logger.info('Mobile optimizations applied successfully');
+  setupAPIInterceptors();
 } catch (error) {
   logger.warn('Mobile optimization failed:', error);
 }
