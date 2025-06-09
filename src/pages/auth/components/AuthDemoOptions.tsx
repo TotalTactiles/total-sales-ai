@@ -11,7 +11,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 interface AuthDemoOptionsProps {
   selectedRole: Role;
   setIsTransitioning: (value: boolean) => void;
-  simulateLoginTransition: () => void;
+  simulateLoginTransition: (role?: Role) => void;
   setFormData: (data: { email: string; password: string }) => void;
 }
 

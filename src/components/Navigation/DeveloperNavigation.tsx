@@ -1,7 +1,7 @@
 import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -24,7 +24,8 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const DeveloperNavigation: React.FC = () => {
   const location = useLocation();
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
+  const navigate = useNavigate();
   const [testMode, setTestMode] = useState('developer');
 
   const navItems = [
@@ -50,12 +51,8 @@ const DeveloperNavigation: React.FC = () => {
     logger.info(`Developer Testing: Simulating ${nextMode} experience`);
   };
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-    } catch (error) {
-      logger.error('Logout failed:', error);
-    }
+  const handleLogout = () => {
+    navigate('/logout');
   };
 
   return (
