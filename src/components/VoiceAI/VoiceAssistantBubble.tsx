@@ -44,6 +44,7 @@ const VoiceAssistantBubble: React.FC<VoiceAssistantBubbleProps> = ({
     isProcessing,
     isSpeaking,
     isWakeWordActive,
+    isDetecting,
     transcript,
     response,
     error,
@@ -91,6 +92,7 @@ const VoiceAssistantBubble: React.FC<VoiceAssistantBubbleProps> = ({
     if (isSpeaking) return 'speaking';
     if (isProcessing) return 'processing';
     if (isListening) return 'listening';
+    if (isDetecting) return 'detecting';
     if (isWakeWordActive) return 'active';
     return 'inactive';
   };
@@ -103,6 +105,7 @@ const VoiceAssistantBubble: React.FC<VoiceAssistantBubbleProps> = ({
       case 'speaking': return 'bg-purple-500';
       case 'processing': return 'bg-yellow-500';
       case 'listening': return 'bg-blue-500';
+      case 'detecting': return 'bg-cyan-500';
       case 'active': return 'bg-green-500';
       default: return 'bg-gray-500';
     }
@@ -111,6 +114,7 @@ const VoiceAssistantBubble: React.FC<VoiceAssistantBubbleProps> = ({
   const getStateAnimation = () => {
     switch (getState()) {
       case 'listening': return 'animate-pulse';
+      case 'detecting': return 'animate-pulse';
       case 'processing': return 'animate-spin';
       case 'speaking': return 'animate-bounce';
       default: return '';
@@ -125,6 +129,7 @@ const VoiceAssistantBubble: React.FC<VoiceAssistantBubbleProps> = ({
       case 'processing': return <Loader2 className="h-8 w-8 text-white animate-spin" />;
       case 'speaking': return <Volume2 className="h-8 w-8 text-white" />;
       case 'listening': return <Mic className="h-8 w-8 text-white" />;
+      case 'detecting': return <Mic className="h-8 w-8 text-white" />;
       default: return <Brain className="h-8 w-8 text-white" />;
     }
   };
@@ -135,6 +140,7 @@ const VoiceAssistantBubble: React.FC<VoiceAssistantBubbleProps> = ({
       case 'permission_denied': return 'No Access';
       case 'error': return 'Error';
       case 'listening': return 'Listening';
+      case 'detecting': return 'Detecting';
       case 'processing': return 'Processing';
       case 'speaking': return 'Speaking';
       case 'active': return 'Active';
@@ -202,6 +208,7 @@ const VoiceAssistantBubble: React.FC<VoiceAssistantBubbleProps> = ({
             isListening ? 'bg-blue-100 text-blue-800' :
             isProcessing ? 'bg-yellow-100 text-yellow-800' :
             isSpeaking ? 'bg-purple-100 text-purple-800' :
+            isDetecting ? 'bg-cyan-100 text-cyan-800' :
             isWakeWordActive ? 'bg-green-100 text-green-800' :
             'bg-gray-100 text-gray-800'
           )}

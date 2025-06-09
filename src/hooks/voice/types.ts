@@ -6,6 +6,7 @@ export interface VoiceInteractionState {
   isProcessing: boolean;
   isSpeaking: boolean;
   isWakeWordActive: boolean;
+  isDetecting: boolean;
   transcript: string;
   response: string;
   error: string | null;
