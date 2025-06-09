@@ -10,6 +10,8 @@ export const getDashboardUrl = (
   switch (role) {
     case 'admin':
       return '/admin-dashboard';
+    case 'developer':
+      return '/developer/dashboard';
     case 'manager':
       return '/manager/dashboard';
     case 'sales_rep':

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
+import { Role } from '@/contexts/auth/types';
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
   simulateLoginTransition: () => void;
@@ -20,12 +21,14 @@ interface AuthLoginFormProps {
     email: string;
     password: string;
   }) => void;
+  selectedRole?: Role;
 }
 const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   setIsTransitioning,
   simulateLoginTransition,
   formData: externalFormData,
-  setFormData: externalSetFormData
+  setFormData: externalSetFormData,
+  selectedRole
 }) => {
   const {
     signIn
@@ -101,7 +104,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></div>
             Logging in...
           </> : <>
-            <LogIn className="mr-2 h-4 w-4" /> Login as Full User
+            <LogIn className="mr-2 h-4 w-4" /> Login as {selectedRole === 'developer' ? 'Developer' : 'Full User'}
           </>}
       </Button>
       
