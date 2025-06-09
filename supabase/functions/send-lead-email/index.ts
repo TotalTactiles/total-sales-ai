@@ -83,7 +83,7 @@ serve(async (req) => {
       })
 
     if (usageError) {
-      console.error('Failed to log lead email usage:', usageError)
+      logger.error('Failed to log lead email usage:', usageError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to log email usage' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -115,7 +115,7 @@ serve(async (req) => {
       })
 
     if (notifError) {
-      console.error('Failed to create lead email notification:', notifError)
+      logger.error('Failed to create lead email notification:', notifError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to create notification' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -132,7 +132,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in send-lead-email function:', error)
+    logger.error('Error in send-lead-email function:', error)
     
     return new Response(JSON.stringify({ 
       error: error.message,

@@ -68,7 +68,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('AI brain query error:', error);
+    logger.error('AI brain query error:', error);
     return new Response(JSON.stringify({
       error: error.message,
       response: "I'm having trouble processing that request right now. Please try again.",

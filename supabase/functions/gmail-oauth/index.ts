@@ -107,7 +107,7 @@ serve(async (req) => {
         })
 
       if (error) {
-        console.error('Database error:', error)
+        logger.error('Database error:', error)
         throw new Error('Failed to store tokens')
       }
 
@@ -137,7 +137,7 @@ serve(async (req) => {
         })
 
       if (usageError) {
-        console.error('Failed to log Gmail OAuth event:', usageError)
+        logger.error('Failed to log Gmail OAuth event:', usageError)
         return new Response(
           JSON.stringify({ success: false, error: 'Failed to log event' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -186,7 +186,7 @@ serve(async (req) => {
     throw new Error('Invalid action')
 
   } catch (error) {
-    console.error('Error in gmail-oauth function:', error)
+    logger.error('Error in gmail-oauth function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

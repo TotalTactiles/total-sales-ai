@@ -121,7 +121,7 @@ serve(async (req) => {
     const gmailData = await response.json()
 
     if (!response.ok) {
-      console.error('Gmail API error:', gmailData)
+      logger.error('Gmail API error:', gmailData)
       throw new Error(`Gmail API error: ${gmailData.error?.message || 'Unknown error'}`)
     }
 
@@ -153,7 +153,7 @@ serve(async (req) => {
       })
 
     if (usageError) {
-      console.error('Failed to log Gmail send event:', usageError)
+      logger.error('Failed to log Gmail send event:', usageError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to log email send' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -170,7 +170,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in gmail-send function:', error)
+    logger.error('Error in gmail-send function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

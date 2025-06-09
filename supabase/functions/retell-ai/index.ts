@@ -74,7 +74,7 @@ serve(async (req) => {
     if (url.pathname.includes('/webhook')) {
       const webhookData: RetellWebhookEvent = await req.json()
 
-      console.log('Retell webhook received:', webhookData.event, webhookData.call_id)
+      logger.info('Retell webhook received:', webhookData.event, webhookData.call_id)
       // Log call events to database
       const { error: logError } = await supabaseClient
 
@@ -100,20 +100,20 @@ serve(async (req) => {
       }
 
       if (logError) {
-        console.error('Failed to log Retell webhook event:', logError)
+        logger.error('Failed to log Retell webhook event:', logError)
       }
 
       // Handle specific events
       switch (webhookData.event) {
         case 'call_started':
-          console.log(`Call started: ${webhookData.call_id}`)
+          logger.info(`Call started: ${webhookData.call_id}`)
           break
         case 'call_ended':
-          console.log(`Call ended: ${webhookData.call_id}`)
+          logger.info(`Call ended: ${webhookData.call_id}`)
           // Process call transcript and analysis here
           break
         case 'call_analyzed':
-          console.log(`Call analyzed: ${webhookData.call_id}`)
+          logger.info(`Call analyzed: ${webhookData.call_id}`)
           break
       }
 
@@ -261,7 +261,7 @@ serve(async (req) => {
         })
 
       if (usageError) {
-        console.error('Failed to log Retell call initiation:', usageError)
+        logger.error('Failed to log Retell call initiation:', usageError)
         return new Response(
           JSON.stringify({ success: false, error: 'Failed to log call event' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -296,7 +296,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in retell-ai function:', error)
+    logger.error('Error in retell-ai function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 
