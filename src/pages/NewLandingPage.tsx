@@ -271,7 +271,7 @@ const NewLandingPage: React.FC = () => {
                         <Button size="sm" className="bg-white text-purple-600 hover:bg-purple-50">
                           Send Quote
                         </Button>
-                        <Button size="sm" variant="outline" className="border-white/30 hover:bg-white/10 text-gray-50">
+                        <Button size="sm" variant="outline" className="border-white/30 hover:bg-white/10 text-slate-50">
                           Schedule Follow-up
                         </Button>
                       </div>
@@ -290,7 +290,7 @@ const NewLandingPage: React.FC = () => {
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
-                Old CRMs Slow You Down. <span className="text-purple-600">SalesOS Launches You Forward.</span>
+                Old CRMs Slow You Down. <span className="text-purple-600">TSAM Launches You Forward.</span>
               </h2>
             </div>
 
@@ -306,7 +306,7 @@ const NewLandingPage: React.FC = () => {
                 </div>
                 
                 <div>
-                  <h3 className="text-xl font-bold text-purple-600 mb-6 text-center">SalesOS</h3>
+                  <h3 className="text-xl font-bold text-purple-600 mb-6 text-center">TSAM</h3>
                   <div className="space-y-4">
                     {comparison.map((item, index) => <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-4 text-green-700 flex items-center">
                         <CheckCircle className="w-5 h-5 mr-3 text-green-600" />
