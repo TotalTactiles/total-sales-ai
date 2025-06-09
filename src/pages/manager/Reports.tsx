@@ -5,9 +5,7 @@ import { Button } from '@/components/ui/button';
 const Reports: React.FC = () => {
   return <div className="space-y-6 mx-[108px] my-[20px]">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground dark:text-white">
-          Reports & Analytics
-        </h1>
+        <h1 className="text-3xl font-bold text-foreground dark:text-white">Reports</h1>
         <Button className="bg-indigo-700 hover:bg-indigo-600">
           <Download className="h-4 w-4 mr-2" />
           Export All
