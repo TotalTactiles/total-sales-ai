@@ -8,6 +8,8 @@ import { User, Session, AuthError } from '@supabase/supabase-js';
 import { AuthContextType, Profile, Role } from './types';
 import { toast } from 'sonner';
 import { setLastSelectedRole, getLastSelectedRole, setLastSelectedCompanyId, getLastSelectedCompanyId } from './localStorage';
+import { useNavigate } from 'react-router-dom';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -28,6 +30,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Get initial session
@@ -189,8 +192,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ): Promise<{ error?: AuthError }> => {
     try {
       setLoading(true);
-
+      
       const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
+
+      // If Supabase isn't configured, fall back to local demo mode
+      if (!isSupabaseConfigured) {
+        const role: Role = metadata?.role ?? (email.includes('manager') ? 'manager' : 'sales_rep');
+        const { demoUser, demoProfile } = initializeDemoUser(role);
+        localStorage.setItem('demoMode', 'true');
+        localStorage.setItem('demoRole', role);
+        setLastSelectedRole(role);
+        setUser(demoUser);
+        setProfile(demoProfile);
+        setSession(null);
+        toast.success('Demo account created successfully');
+        return {};
+      }
+
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -257,6 +277,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           logger.error('Error fetching profile after sign up:', profileError);
           toast.error('Company setup failed: ' + profileError.message);
+      const session = data.session;
+      const newUser = data.user;
+
+      if (session && newUser) {
+        setSession(session);
+        setUser(newUser);
+        const fetchedProfile = await fetchProfile(newUser.id);
+        if (fetchedProfile) {
+          setLastSelectedRole(fetchedProfile.role);
+
+          const needsOnboarding =
+            fetchedProfile.company_id &&
+            !localStorage.getItem(`onboarding_complete_${fetchedProfile.company_id}`);
+
+          if (needsOnboarding) {
+            navigate('/onboarding');
+          } else {
+            navigate(getDashboardUrl(fetchedProfile));
+          }
         }
       }
 
