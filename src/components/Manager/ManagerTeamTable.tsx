@@ -51,7 +51,7 @@ const ManagerTeamTable: React.FC<ManagerTeamTableProps> = ({ teamMembers }) => {
   };
 
   return (
-    <Card>
+    <Card className="rounded-lg shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />

@@ -6,7 +6,7 @@ import { Upload, Search, RefreshCw } from 'lucide-react';
 const KnowledgeTab: React.FC = () => {
   return (
     <div className="space-y-6">
-      <Card>
+      <Card className="rounded-lg shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5" />
@@ -21,7 +21,7 @@ const KnowledgeTab: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-lg shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />

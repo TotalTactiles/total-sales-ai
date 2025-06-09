@@ -12,7 +12,7 @@ interface ManagerBookingSystemProps {
 
 const ManagerBookingSystem: React.FC<ManagerBookingSystemProps> = ({ demoMode }) => {
   return (
-    <Card>
+    <Card className="rounded-lg shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-salesBlue" />
@@ -28,7 +28,7 @@ const ManagerBookingSystem: React.FC<ManagerBookingSystemProps> = ({ demoMode })
             Regular 1-on-1s improve retention by 41% and performance by 27%.
           </p>
           
-          <Card className="bg-slate-50">
+          <Card className="bg-slate-50 rounded-lg shadow-md">
             <CardContent className="p-4">
               <h4 className="font-medium mb-2">Upcoming Sessions</h4>
               {demoMode ? (

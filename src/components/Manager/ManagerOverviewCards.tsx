@@ -43,7 +43,7 @@ const ManagerOverviewCards: React.FC<ManagerOverviewCardsProps> = ({
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
             <Users className="h-8 w-8 text-salesBlue mb-2" />
             <p className="text-sm text-muted-foreground">Team Members</p>
@@ -51,7 +51,7 @@ const ManagerOverviewCards: React.FC<ManagerOverviewCardsProps> = ({
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
             <Award className="h-8 w-8 text-salesGreen mb-2" />
             <p className="text-sm text-muted-foreground">Top Performer</p>
@@ -63,7 +63,7 @@ const ManagerOverviewCards: React.FC<ManagerOverviewCardsProps> = ({
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
             <AlertCircle className="h-8 w-8 text-salesRed mb-2" />
             <p className="text-sm text-muted-foreground">Burnout Risk</p>
@@ -73,7 +73,7 @@ const ManagerOverviewCards: React.FC<ManagerOverviewCardsProps> = ({
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
             <CheckCircle className="h-8 w-8 text-salesCyan mb-2" />
             <p className="text-sm text-muted-foreground">Team Win Rate</p>

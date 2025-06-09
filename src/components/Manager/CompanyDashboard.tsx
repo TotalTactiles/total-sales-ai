@@ -77,7 +77,7 @@ const CompanyDashboard = () => {
     <div className="space-y-6">
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -90,7 +90,7 @@ const CompanyDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pipeline Value</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -103,7 +103,7 @@ const CompanyDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -116,7 +116,7 @@ const CompanyDashboard = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -133,7 +133,7 @@ const CompanyDashboard = () => {
       {/* Charts and Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Rep Performance */}
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardHeader>
             <CardTitle>Rep Performance Comparison</CardTitle>
           </CardHeader>
@@ -153,7 +153,7 @@ const CompanyDashboard = () => {
         </Card>
 
         {/* Lead Sources */}
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardHeader>
             <CardTitle>Lead Sources Distribution</CardTitle>
           </CardHeader>
@@ -182,7 +182,7 @@ const CompanyDashboard = () => {
       </div>
 
       {/* Pipeline Funnel */}
-      <Card>
+      <Card className="rounded-lg shadow-md">
         <CardHeader>
           <CardTitle>Sales Pipeline Funnel</CardTitle>
         </CardHeader>
@@ -202,7 +202,7 @@ const CompanyDashboard = () => {
       </Card>
 
       {/* AI Insights */}
-      <Card>
+      <Card className="rounded-lg shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-blue-600" />
@@ -232,7 +232,7 @@ const CompanyDashboard = () => {
       </Card>
 
       {/* Recent Team Activity */}
-      <Card>
+      <Card className="rounded-lg shadow-md">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Recent Team Activity</CardTitle>
           <Button variant="outline" size="sm">

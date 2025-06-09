@@ -136,7 +136,7 @@ const IntegrationsTab = () => {
           const IconComponent = integration.icon;
           
           return (
-            <Card key={integration.id} className="hover:shadow-lg transition-shadow">
+            <Card key={integration.id} className="rounded-lg shadow-md hover:shadow-lg transition-shadow">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -200,7 +200,7 @@ const IntegrationsTab = () => {
       </div>
 
       {/* Integration Benefits */}
-      <Card>
+      <Card className="rounded-lg shadow-md">
         <CardHeader>
           <CardTitle>What happens when you connect?</CardTitle>
         </CardHeader>

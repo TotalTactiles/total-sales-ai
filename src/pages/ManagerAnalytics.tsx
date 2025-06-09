@@ -158,7 +158,7 @@ const ManagerAnalytics = () => {
               <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Left Column - AI Alerts */}
                 <div className="lg:col-span-1 space-y-4">
-                  <Card className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <Card className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5 text-orange-500" />
@@ -181,7 +181,7 @@ const ManagerAnalytics = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <Card className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Brain className="h-5 w-5 text-purple-500" />
@@ -206,7 +206,7 @@ const ManagerAnalytics = () => {
 
                 {/* Center Column - Rep Performance */}
                 <div className="lg:col-span-2 space-y-4">
-                  <Card className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <Card className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardHeader>
                       <CardTitle className="text-xl flex items-center gap-2">
                         <Users className="h-6 w-6 text-blue-500" />
@@ -250,7 +250,7 @@ const ManagerAnalytics = () => {
 
                 {/* Right Column - Quick Tools */}
                 <div className="lg:col-span-1 space-y-4">
-                  <Card className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <Card className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Target className="h-5 w-5 text-green-500" />
@@ -273,7 +273,7 @@ const ManagerAnalytics = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <Card className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-lg flex items-center gap-2">
                         <Clock className="h-5 w-5 text-orange-500" />
@@ -301,7 +301,7 @@ const ManagerAnalytics = () => {
             <TabsContent value="marketing">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
-                  <Card className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <Card className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardHeader>
                       <CardTitle className="text-xl flex items-center gap-2">
                         <TrendingUp className="h-6 w-6 text-green-500" />
@@ -363,7 +363,7 @@ const ManagerAnalytics = () => {
             <TabsContent value="business">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {businessMetrics.map((metric, index) => (
-                  <Card key={index} className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                  <Card key={index} className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start mb-4">
                         <div>
@@ -386,7 +386,7 @@ const ManagerAnalytics = () => {
 
             <TabsContent value="ai-activity">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <Card className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <CardTitle className="text-xl flex items-center gap-2">
                       <Brain className="h-6 w-6 text-purple-500" />
@@ -410,7 +410,7 @@ const ManagerAnalytics = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="rounded-xl shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <Card className="rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <CardTitle className="text-xl">AI Learning Insights</CardTitle>
                   </CardHeader>

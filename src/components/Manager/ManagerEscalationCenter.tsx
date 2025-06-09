@@ -10,7 +10,7 @@ interface ManagerEscalationCenterProps {
 
 const ManagerEscalationCenter: React.FC<ManagerEscalationCenterProps> = ({ demoMode }) => {
   return (
-    <Card className="border border-salesRed-light">
+    <Card className="border border-salesRed-light rounded-lg shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-salesRed">
           <AlertCircle className="h-5 w-5" />

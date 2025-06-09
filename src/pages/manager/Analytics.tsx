@@ -55,7 +55,7 @@ const ManagerAnalytics = () => {
         <TabsContent value="overview" className="space-y-6">
           {/* Key Metrics Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Monthly ARR</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -68,7 +68,7 @@ const ManagerAnalytics = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">CAC</CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
@@ -81,7 +81,7 @@ const ManagerAnalytics = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">LTV</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -94,7 +94,7 @@ const ManagerAnalytics = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -109,7 +109,7 @@ const ManagerAnalytics = () => {
           </div>
 
           {/* AI Insights */}
-          <Card>
+          <Card className="rounded-lg shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Brain className="h-5 w-5 text-blue-600" />
@@ -142,7 +142,7 @@ const ManagerAnalytics = () => {
         </TabsContent>
 
         <TabsContent value="sales-reps" className="space-y-6">
-          <Card>
+          <Card className="rounded-lg shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -186,7 +186,7 @@ const ManagerAnalytics = () => {
 
         <TabsContent value="marketing" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader>
                 <CardTitle>Lead Sources</CardTitle>
               </CardHeader>
@@ -210,7 +210,7 @@ const ManagerAnalytics = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader>
                 <CardTitle>Campaign Performance</CardTitle>
               </CardHeader>
@@ -235,7 +235,7 @@ const ManagerAnalytics = () => {
         </TabsContent>
 
         <TabsContent value="funnels" className="space-y-6">
-          <Card>
+          <Card className="rounded-lg shadow-md">
             <CardHeader>
               <CardTitle>Booking Flow Conversions</CardTitle>
             </CardHeader>
@@ -270,7 +270,7 @@ const ManagerAnalytics = () => {
 
         <TabsContent value="retention" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader>
                 <CardTitle>Customer Retention Metrics</CardTitle>
               </CardHeader>
@@ -296,7 +296,7 @@ const ManagerAnalytics = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader>
                 <CardTitle>Churn Risk Analysis</CardTitle>
               </CardHeader>

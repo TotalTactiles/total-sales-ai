@@ -5,7 +5,7 @@ import { BarChart3, RefreshCw } from 'lucide-react';
 
 const MarketingAnalytics: React.FC = () => {
   return (
-    <Card>
+    <Card className="rounded-lg shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <BarChart3 className="h-5 w-5" />
