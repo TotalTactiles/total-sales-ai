@@ -23,7 +23,7 @@ const ManagerCompanyBrain = () => {
   const [selectedTab, setSelectedTab] = useState('overview');
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -124,7 +124,7 @@ const ManagerCompanyBrain = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-background rounded-lg">
                       <div className="flex items-center gap-3">
                         <Brain className="h-5 w-5 text-purple-600" />
                         <div>
@@ -135,7 +135,7 @@ const ManagerCompanyBrain = () => {
                       <Badge variant="outline" className="text-green-600 border-green-600">Success</Badge>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-background rounded-lg">
                       <div className="flex items-center gap-3">
                         <Zap className="h-5 w-5 text-yellow-600" />
                         <div>
@@ -146,7 +146,7 @@ const ManagerCompanyBrain = () => {
                       <Badge variant="outline" className="text-blue-600 border-blue-600">Optimized</Badge>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                    <div className="flex items-center justify-between p-4 bg-background rounded-lg">
                       <div className="flex items-center gap-3">
                         <Database className="h-5 w-5 text-blue-600" />
                         <div>
