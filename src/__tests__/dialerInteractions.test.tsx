@@ -96,7 +96,7 @@ it('sends SMS and email with proper parameters', async () => {
   // Email action
   fireEvent.click(screen.getByRole('button', { name: /^email$/i }));
   const emailArea = screen.getByPlaceholderText('Compose your follow-up email...');
-  fireEvent.change(emailArea, { target: { value: 'hi there' });
+  fireEvent.change(emailArea, { target: { value: 'hi there' } });
   fireEvent.click(screen.getByRole('button', { name: /send email/i }));
   expect(sendEmailMock).toHaveBeenCalledWith(
     baseLead.email,

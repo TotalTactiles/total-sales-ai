@@ -25,11 +25,29 @@ interface SystemResource {
 const SystemMonitor: React.FC = () => {
   const [resources, setResources] = useState<SystemResource[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [osInfo, setOsInfo] = useState<string>('');
 
   useEffect(() => {
     loadSystemResources();
     const interval = setInterval(loadSystemResources, 5000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const detectOS = () => {
+      if (typeof navigator === 'undefined') {
+        return 'Unknown';
+      }
+      const ua = navigator.userAgent;
+      if (/windows/i.test(ua)) return 'Windows';
+      if (/macintosh|mac os x/i.test(ua)) return 'macOS';
+      if (/android/i.test(ua)) return 'Android';
+      if (/iphone|ipad|ipod/i.test(ua)) return 'iOS';
+      if (/linux/i.test(ua)) return 'Linux';
+      return 'Unknown';
+    };
+
+    setOsInfo(detectOS());
   }, []);
 
   const loadSystemResources = () => {
@@ -142,7 +160,7 @@ const SystemMonitor: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-300">
             <div>
               <h4 className="font-medium mb-2">Server Details</h4>
-              <p className="text-sm">OS: Linux Ubuntu 20.04</p>
+              <p className="text-sm">OS: {osInfo || 'Unknown'}</p>
               <p className="text-sm">Runtime: Node.js 18.x</p>
               <p className="text-sm">Framework: React 18 + Vite</p>
             </div>
