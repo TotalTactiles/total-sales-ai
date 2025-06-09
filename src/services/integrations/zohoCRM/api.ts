@@ -3,6 +3,7 @@ import { logger } from '@/utils/logger';
 import { zohoAuth } from './auth';
 import { ZohoErrorHandler } from './errorHandler';
 import { ZohoHelpers } from './helpers';
+import { withRetry } from '@/utils/withRetry';
 
 export interface ZohoLead {
   id: string;
@@ -51,14 +52,18 @@ export class ZohoAPI {
     try {
       const accessToken = await zohoAuth.getValidAccessToken();
       
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        ...options,
-        headers: {
-          'Authorization': `Zoho-oauthtoken ${accessToken}`,
-          'Content-Type': 'application/json',
-          ...options.headers
-        }
-      });
+      const response = await withRetry(
+        () =>
+          fetch(`${this.baseUrl}${endpoint}`, {
+            ...options,
+            headers: {
+              'Authorization': `Zoho-oauthtoken ${accessToken}`,
+              'Content-Type': 'application/json',
+              ...options.headers
+            }
+          }),
+        'zoho-api'
+      );
 
       if (response.status === 429) {
         // Rate limit hit - implement exponential backoff

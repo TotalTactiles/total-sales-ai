@@ -217,7 +217,7 @@ const VersionControl: React.FC = () => {
       )}
 
       <Tabs defaultValue="current" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-800">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 md:grid-cols-3 bg-slate-800">
           <TabsTrigger value="current" className="data-[state=active]:bg-blue-600">Current Build</TabsTrigger>
           <TabsTrigger value="changelog" className="data-[state=active]:bg-green-600">Changelog</TabsTrigger>
           <TabsTrigger value="notes" className="data-[state=active]:bg-purple-600">Release Notes</TabsTrigger>

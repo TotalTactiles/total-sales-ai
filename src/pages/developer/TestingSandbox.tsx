@@ -167,7 +167,7 @@ const TestingSandbox: React.FC = () => {
       </div>
 
       <Tabs defaultValue="features" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-slate-800">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-slate-800">
           <TabsTrigger value="features" className="data-[state=active]:bg-blue-600">Features</TabsTrigger>
           <TabsTrigger value="ai" className="data-[state=active]:bg-purple-600">AI Testing</TabsTrigger>
           <TabsTrigger value="flows" className="data-[state=active]:bg-green-600">Automation Flows</TabsTrigger>
@@ -180,7 +180,7 @@ const TestingSandbox: React.FC = () => {
               <CardTitle className="text-white">Feature Testing</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Button className="h-20 flex flex-col items-center justify-center">
                   <TestTube className="h-6 w-6 mb-2" />
                   Test Login Flow

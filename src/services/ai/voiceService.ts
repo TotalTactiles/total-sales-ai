@@ -3,6 +3,7 @@ import { logger } from '@/utils/logger';
 import { toast } from 'sonner';
 import { encodeBase64 } from '@/services/security/base64Service';
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry } from '@/utils/withRetry';
 
 class VoiceService {
   private mediaRecorderRef: MediaRecorder | null = null;
@@ -81,9 +82,13 @@ class VoiceService {
       const arrayBuffer = await audioBlob.arrayBuffer();
       const base64Audio = encodeBase64(new Uint8Array(arrayBuffer));
 
-      const { data, error } = await supabase.functions.invoke('voice-to-text', {
-        body: { audio: base64Audio }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('voice-to-text', {
+            body: { audio: base64Audio }
+          }),
+        'voice-to-text'
+      );
 
       if (error) {
         logger.error('Voice transcription failed', error);

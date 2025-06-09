@@ -18,6 +18,9 @@ interface LogEntry {
   event_summary: string;
   payload: any;
   visibility: string;
+  agent_id?: string | null;
+  ai_type?: string | null;
+  error_type?: string | null;
 }
 
 const DeveloperLogs: React.FC = () => {
@@ -27,6 +30,8 @@ const DeveloperLogs: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
   const [contextFilter, setContextFilter] = useState('all');
+  const [agentFilter, setAgentFilter] = useState('all');
+  const [errorCounts, setErrorCounts] = useState<Record<string, number>>({});
   const { user, profile } = useAuth();
 
   useEffect(() => {
@@ -37,7 +42,7 @@ const DeveloperLogs: React.FC = () => {
 
   useEffect(() => {
     filterLogs();
-  }, [logs, searchTerm, levelFilter, contextFilter]);
+  }, [logs, searchTerm, levelFilter, contextFilter, agentFilter]);
 
   const fetchLogs = async () => {
     try {
@@ -51,6 +56,14 @@ const DeveloperLogs: React.FC = () => {
 
       if (error) throw error;
       setLogs(data || []);
+      const counts: Record<string, number> = {};
+      const dayAgo = Date.now() - 24 * 60 * 60 * 1000;
+      for (const log of data || []) {
+        if (log.agent_id && log.error_type && new Date(log.timestamp).getTime() > dayAgo) {
+          counts[log.agent_id] = (counts[log.agent_id] || 0) + 1;
+        }
+      }
+      setErrorCounts(counts);
     } catch (error) {
       logger.error('Error fetching logs:', error);
     } finally {
@@ -74,6 +87,10 @@ const DeveloperLogs: React.FC = () => {
 
     if (contextFilter !== 'all') {
       filtered = filtered.filter(log => log.payload?.context === contextFilter);
+    }
+
+    if (agentFilter !== 'all') {
+      filtered = filtered.filter(log => log.agent_id === agentFilter);
     }
 
     setFilteredLogs(filtered);
@@ -165,17 +182,31 @@ const DeveloperLogs: React.FC = () => {
               <SelectItem value="api">API</SelectItem>
             </SelectContent>
           </Select>
+
+          <Select value={agentFilter} onValueChange={setAgentFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Agent" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Agents</SelectItem>
+              {Array.from(new Set(logs.map(l => l.agent_id).filter(Boolean))).map(id => (
+                <SelectItem key={id as string} value={id as string}>{id}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
       
       <CardContent>
         <ScrollArea className="h-96">
           <div className="space-y-2">
-            {filteredLogs.map((log) => (
-              <div
-                key={log.id}
-                className="p-3 border rounded-lg hover:bg-gray-50"
-              >
+            {filteredLogs.map((log) => {
+              const highlight = log.agent_id && errorCounts[log.agent_id] > 3;
+              return (
+                <div
+                  key={log.id}
+                  className={`p-3 border rounded-lg hover:bg-gray-50 ${highlight ? 'border-red-400' : ''}`}
+                >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <Badge className={getLevelColor(log.payload?.level || 'info')}>
@@ -184,6 +215,11 @@ const DeveloperLogs: React.FC = () => {
                     {log.payload?.context && (
                       <Badge variant="outline">
                         {log.payload.context}
+                      </Badge>
+                    )}
+                    {log.agent_id && (
+                      <Badge variant="secondary" className="bg-gray-200 text-gray-800">
+                        {log.agent_id}
                       </Badge>
                     )}
                     <span className="text-xs text-gray-500">
@@ -207,7 +243,8 @@ const DeveloperLogs: React.FC = () => {
                   </details>
                 )}
               </div>
-            ))}
+              );
+            })}
             
             {filteredLogs.length === 0 && !loading && (
               <div className="text-center py-8 text-gray-500">
