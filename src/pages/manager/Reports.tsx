@@ -8,7 +8,7 @@ const Reports: React.FC = () => {
         <h1 className="text-3xl font-bold text-foreground dark:text-white">
           Reports & Analytics
         </h1>
-        <Button>
+        <Button className="bg-indigo-700 hover:bg-indigo-600">
           <Download className="h-4 w-4 mr-2" />
           Export All
         </Button>
@@ -97,7 +97,7 @@ const Reports: React.FC = () => {
             <p className="text-muted-foreground dark:text-gray-400 mb-4">
               Create custom reports with specific metrics and date ranges.
             </p>
-            <Button className="w-full">
+            <Button className="w-full bg-indigo-700 hover:bg-indigo-600">
               Create Custom Report
             </Button>
           </CardContent>
