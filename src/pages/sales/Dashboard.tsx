@@ -1,4 +1,3 @@
-import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -12,13 +11,16 @@ import AIRecommendedActions from '@/components/Dashboard/AIRecommendedActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLeads } from '@/hooks/useLeads';
 import { useMockData } from '@/hooks/useMockData';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 const SalesDashboard = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { leads } = useLeads();
   const { leads: mockLeads } = useMockData();
+  const isMobile = useIsMobile();
   const [userStats, setUserStats] = useState(null);
 
   useEffect(() => {
@@ -105,8 +107,16 @@ const SalesDashboard = () => {
     logger.info('Action clicked:', actionId);
   };
 
+  const containerClass = isMobile 
+    ? "mobile-optimized space-y-4" 
+    : "max-w-7xl mx-auto p-6 space-y-6";
+
+  const gridClass = isMobile 
+    ? "space-y-4" 
+    : "grid grid-cols-1 lg:grid-cols-3 gap-6";
+
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
+    <div className={containerClass}>
       <section>
         <AIDailySummary summary={dailySummary} isFullUser={isFullUser} />
       </section>
@@ -115,13 +125,13 @@ const SalesDashboard = () => {
         <PerformanceMetricsGrid userStats={userStats} isFullUser={isFullUser} />
       </section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
+      <div className={gridClass}>
+        <div className={isMobile ? "space-y-4" : "lg:col-span-2 space-y-6"}>
           <PipelinePulse leads={pipelineLeads} onLeadClick={handleLeadClick} />
           <AIOptimizedTimeBlocks isFullUser={isFullUser} />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <VictoryArchive victories={victories} isFullUser={isFullUser} />
           <AISummaryCard data={aiSummaryData} isFullUser={isFullUser} />
         </div>

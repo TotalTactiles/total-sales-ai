@@ -1,6 +1,4 @@
 
-import { logger } from '@/utils/logger';
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
@@ -13,7 +11,7 @@ import AuthLoginForm from './components/AuthLoginForm';
 import AuthSignupForm from './components/AuthSignupForm';
 import AuthDemoOptions from './components/AuthDemoOptions';
 import AuthLoadingScreen from './components/AuthLoadingScreen';
-import RoleCompanySelector from './RoleCompanySelector';
+import { logger } from '@/utils/logger';
 
 const AuthPage = () => {
   const { user, profile, loading, setLastSelectedRole, getLastSelectedRole, initializeDemoMode, isDemoMode } = useAuth();
@@ -22,6 +20,7 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -42,7 +41,13 @@ const AuthPage = () => {
   if (user && profile && !isTransitioning) {
     logger.info("AuthPage: User is logged in, profile role:", profile.role);
     
-    // Force redirect based on actual profile role, not cached role
+    // Check if this is a new user (no previous login)
+    const isNewUser = !localStorage.getItem('hasCompletedOnboarding');
+    
+    if (isNewUser && !showOnboarding) {
+      setShowOnboarding(true);
+    }
+    
     const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
     const from = location.state?.from?.pathname || redirectPath;
     
@@ -88,16 +93,16 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-background to-muted/80 dark:from-dark dark:to-dark/90">
+    <div className="min-h-screen flex flex-col items-center justify-center gradient-secondary">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
       
-      <Card className="max-w-md w-full p-8 shadow-lg border border-border/40 rounded-xl dark:bg-dark-card dark:border-dark-border">
-        <div className="text-center mb-6">
+      <Card className="max-w-md w-full mx-4 p-8 shadow-xl border-0 rounded-2xl gradient-card backdrop-blur-sm">
+        <div className="text-center mb-8">
           <Logo />
-          <h2 className="text-2xl font-bold mt-4 text-foreground dark:text-white">Welcome to SalesOS</h2>
-          <p className="text-muted-foreground dark:text-gray-400 mt-1">Your AI-powered sales acceleration platform</p>
+          <h2 className="text-2xl font-bold mt-6 text-foreground font-poppins">Welcome to SalesOS</h2>
+          <p className="text-muted-foreground mt-2 text-sm">Your AI-powered sales acceleration platform</p>
         </div>
       
         <Tabs 
@@ -106,21 +111,27 @@ const AuthPage = () => {
           onValueChange={(value) => handleRoleChange(value as Role)}
           className="w-full"
         >
-          <TabsList className="grid grid-cols-2 mb-6">
-            <TabsTrigger value="manager" className="flex items-center gap-2">
-              Manager View
+          <TabsList className="grid grid-cols-2 mb-8 bg-neutral-100 rounded-xl p-1">
+            <TabsTrigger 
+              value="manager" 
+              className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+            >
+              Manager
             </TabsTrigger>
-            <TabsTrigger value="sales_rep" className="flex items-center gap-2">
-              Sales Rep View
+            <TabsTrigger 
+              value="sales_rep" 
+              className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all"
+            >
+              Sales Rep
             </TabsTrigger>
           </TabsList>
         
           <div className="space-y-6">
-            <div className="text-center p-4 mb-4 border border-dashed border-border rounded-lg dark:border-dark-border">
-              <h3 className="font-medium text-lg mb-1">
+            <div className="text-center p-6 mb-6 border border-neutral-200 rounded-xl bg-neutral-50/50">
+              <h3 className="font-semibold text-lg mb-2 font-poppins">
                 {selectedRole === 'manager' ? 'Manager Dashboard' : 'Sales Rep Dashboard'}
               </h3>
-              <p className="text-sm text-muted-foreground dark:text-gray-400">
+              <p className="text-sm text-muted-foreground">
                 {selectedRole === 'manager' 
                   ? 'Team analysis, performance tracking & AI coaching' 
                   : 'Smart dialer, call scripts & AI sales assistant'}
@@ -153,7 +164,7 @@ const AuthPage = () => {
               <div className="flex items-center justify-center">
                 <button 
                   onClick={() => setIsLogin(!isLogin)}
-                  className="text-sm text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer"
+                  className="text-sm text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer font-medium"
                 >
                   {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
                 </button>

@@ -21,7 +21,8 @@ export default {
 		},
 		extend: {
 			fontFamily: {
-				inter: ['Inter', 'sans-serif'],
+				inter: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+				poppins: ['Poppins', 'system-ui', '-apple-system', 'sans-serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -30,7 +31,17 @@ export default {
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
-					DEFAULT: 'hsl(var(--primary))',
+					DEFAULT: '#4A3AFF',
+					50: '#F0EEFF',
+					100: '#E3DCFF',
+					200: '#C7B9FF',
+					300: '#AB96FF',
+					400: '#8F73FF',
+					500: '#4A3AFF',
+					600: '#3B2ECC',
+					700: '#2C2299',
+					800: '#1D1766',
+					900: '#0E0B33',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
@@ -67,53 +78,39 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// SalesOS custom colors
-				salesBlue: {
-					DEFAULT: '#1a3c6e',
-					light: '#3a5c8e',
-					dark: '#0a2c5e',
+				// Brand colors - blue/purple theme
+				brand: {
+					DEFAULT: '#4A3AFF',
+					light: '#6B73FF',
+					dark: '#3B2ECC',
 				},
-				salesCyan: {
+				brandSecondary: {
 					DEFAULT: '#38bdf8',
 					light: '#58ddf8',
 					dark: '#189dd8',
 				},
-				salesGreen: {
+				success: {
 					DEFAULT: '#22c55e',
 					light: '#42e57e',
-					dark: '#0aa54e',
+					dark: '#16a34a',
 				},
-				salesRed: {
+				danger: {
 					DEFAULT: '#ef4444',
 					light: '#f87171',
 					dark: '#dc2626',
 				},
-				// Dashboard color palette based on reference design
-				dashYellow: {
-					DEFAULT: '#F9A825',
-					light: '#FBC02D',
-					dark: '#F57F17',
-				},
-				dashGreen: {
-					DEFAULT: '#4CAF50',
-					light: '#66BB6A',
-					dark: '#2E7D32',
-				},
-				dashBlue: {
-					DEFAULT: '#2196F3',
-					light: '#42A5F5',
-					dark: '#1565C0',
-				},
-				dashPurple: {
-					DEFAULT: '#9C27B0',
-					light: '#AB47BC',
-					dark: '#6A1B9A',
-				},
-				dashRed: {
-					DEFAULT: '#F44336',
-					light: '#EF5350',
-					dark: '#C62828',
-				},
+				neutral: {
+					50: '#f8fafc',
+					100: '#f1f5f9',
+					200: '#e2e8f0',
+					300: '#cbd5e1',
+					400: '#94a3b8',
+					500: '#64748b',
+					600: '#475569',
+					700: '#334155',
+					800: '#1e293b',
+					900: '#0f172a',
+				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -128,18 +125,6 @@ export default {
 				'accordion-up': {
 					from: { height: 'var(--radix-accordion-content-height)' },
 					to: { height: '0' }
-				},
-				'pulse-soft': {
-					'0%, 100%': { opacity: '1' },
-					'50%': { opacity: '0.8' },
-				},
-				'bounce-small': {
-					'0%, 100%': {
-						transform: 'translateY(0)',
-					},
-					'50%': {
-						transform: 'translateY(-10%)',
-					},
 				},
 				'slide-up': {
 					'0%': {
@@ -159,17 +144,24 @@ export default {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-5px)' },
 				},
+				'pulse-glow': {
+					'0%, 100%': { 
+						boxShadow: '0 0 20px rgba(74, 58, 255, 0.3)' 
+					},
+					'50%': { 
+						boxShadow: '0 0 30px rgba(74, 58, 255, 0.6)' 
+					},
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'pulse-soft': 'pulse-soft 2s infinite',
-				'bounce-small': 'bounce-small 2s infinite',
 				'slide-up': 'slide-up 0.3s ease-out',
 				'fade-in': 'fade-in 0.5s ease-out',
 				'float': 'float 3s ease-in-out infinite',
+				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
 			}
 		}
 	},
-        plugins: [tailwindcssAnimate],
+	plugins: [tailwindcssAnimate],
 } satisfies Config;
