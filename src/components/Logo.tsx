@@ -12,11 +12,6 @@ const Logo = ({
     md: "text-2xl",
     lg: "text-4xl"
   };
-  return <div className={`font-bold ${sizeClasses[size]} text-salesBlue flex items-center gap-2 ${className}`}>
-      <div className="w-8 h-8 rounded-md bg-gradient-to-br from-salesBlue to-salesCyan flex items-center justify-center text-white font-bold">
-        S
-      </div>
-      <span>TSAM</span>
-    </div>;
+  return;
 };
 export default Logo;
