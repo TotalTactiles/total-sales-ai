@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const RoleToggle = () => {
   const navigate = useNavigate();
-  const { profile, signOut } = useAuth();
+  const { profile } = useAuth();
 
   const currentRole = profile?.role || 'sales_rep';
   
@@ -17,11 +17,9 @@ const RoleToggle = () => {
   
   if (!isDev && !isOnDeveloperRoute) return null;
 
-  const handleRoleSwitch = async () => {
-    // For proper role switching, user must log out and log back in
-    // This ensures clean state and proper routing
-    await signOut();
-    navigate('/auth');
+  const handleRoleSwitch = () => {
+    // Redirect to logout page to switch roles cleanly
+    navigate('/logout');
   };
 
   return (

@@ -14,7 +14,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LogOut, Settings, User } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 
 export interface UserProfileProps {
   name: string;
@@ -22,17 +21,11 @@ export interface UserProfileProps {
 }
 
 const UserProfile: React.FC<UserProfileProps> = ({ name, role }) => {
-  const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      logger.info('Logout requested');
-      await signOut();
-      window.location.href = '/auth';
-    } catch (error) {
-      logger.error('Logout failed:', error);
-    }
+  const handleLogout = () => {
+    logger.info('Logout requested');
+    navigate('/logout');
   };
 
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();

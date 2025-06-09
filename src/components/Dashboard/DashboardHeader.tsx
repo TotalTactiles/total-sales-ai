@@ -74,7 +74,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 localStorage.removeItem('demoMode');
                 localStorage.removeItem('demoRole');
                 localStorage.removeItem('planType');
-                window.location.href = '/auth';
+                window.location.href = '/logout';
               }}
             >
               Exit Demo

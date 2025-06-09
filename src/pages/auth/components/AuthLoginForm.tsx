@@ -6,13 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 import { Role } from '@/contexts/auth/types';
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
-  simulateLoginTransition: () => void;
+  simulateLoginTransition: (role?: Role) => void;
   formData?: {
     email: string;
     password: string;
@@ -33,7 +31,6 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   const {
     signIn
   } = useAuth();
-  const navigate = useNavigate();
   const [internalFormData, setInternalFormData] = useState({
     email: 'sales.rep@company.com',
     password: 'fulluser123'
@@ -79,12 +76,12 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       if (profileError || !profileData) {
         throw profileError || new Error('Profile not found');
       }
-      navigate(getDashboardUrl({
-        role: profileData.role
-      }));
+
+      simulateLoginTransition(profileData.role as Role);
     } catch (error: any) {
       logger.error('Authentication error:', error);
       toast.error(error.message || 'Login failed');
+      setIsTransitioning(false);
     } finally {
       setIsLoading(false);
     }

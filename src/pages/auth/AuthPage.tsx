@@ -79,11 +79,12 @@ const AuthPage = () => {
     setSelectedRole(role);
     setLastSelectedRole(role);
   };
-  const simulateLoginTransition = () => {
+  const simulateLoginTransition = (roleParam?: Role) => {
     setIsTransitioning(true);
     // Simulate loading and transition to dashboard
     setTimeout(() => {
-      const redirectPath = getDashboardUrl({ role: selectedRole });
+      const roleToUse = roleParam || selectedRole;
+      const redirectPath = getDashboardUrl({ role: roleToUse });
       logger.info("AuthPage: Transitioning to", redirectPath);
       navigate(redirectPath, {
         replace: true

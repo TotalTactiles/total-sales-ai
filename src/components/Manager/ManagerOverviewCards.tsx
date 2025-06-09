@@ -34,7 +34,7 @@ const ManagerOverviewCards: React.FC<ManagerOverviewCardsProps> = ({
             onClick={() => {
               localStorage.removeItem('demoMode');
               localStorage.removeItem('demoRole');
-              window.location.href = '/auth';
+              window.location.href = '/logout';
             }}
           >
             Exit Demo
