@@ -94,13 +94,33 @@ export default {
 					light: '#42e57e',
 					dark: '#16a34a',
 				},
-				danger: {
-					DEFAULT: '#ef4444',
-					light: '#f87171',
-					dark: '#dc2626',
-				},
-				neutral: {
-					50: '#f8fafc',
+                                danger: {
+                                        DEFAULT: '#ef4444',
+                                        light: '#f87171',
+                                        dark: '#dc2626',
+                                },
+                                salesBlue: {
+                                        DEFAULT: '#4A3AFF',
+                                        light: '#6B73FF',
+                                        dark: '#3B2ECC',
+                                },
+                                salesCyan: {
+                                        DEFAULT: '#38bdf8',
+                                        light: '#58ddf8',
+                                        dark: '#189dd8',
+                                },
+                                salesGreen: {
+                                        DEFAULT: '#22c55e',
+                                        light: '#42e57e',
+                                        dark: '#16a34a',
+                                },
+                                salesRed: {
+                                        DEFAULT: '#ef4444',
+                                        light: '#f87171',
+                                        dark: '#dc2626',
+                                },
+                                neutral: {
+                                        50: '#f8fafc',
 					100: '#f1f5f9',
 					200: '#e2e8f0',
 					300: '#cbd5e1',
