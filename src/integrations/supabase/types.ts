@@ -420,6 +420,36 @@ export type Database = {
         }
         Relationships: []
       }
+      api_logs: {
+        Row: {
+          endpoint: string
+          id: string
+          method: string
+          response_time: number
+          status: number
+          timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          endpoint: string
+          id?: string
+          method: string
+          response_time: number
+          status: number
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          endpoint?: string
+          id?: string
+          method?: string
+          response_time?: number
+          status?: number
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       feature_requests: {
         Row: {
           company_id: string | null
