@@ -27,11 +27,11 @@ const AIAgentAutomation = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" className="bg-white/20 border-white/30 hover:bg-white/30 backdrop-blur-sm text-xs h-8 text-gray-950">
+            <Button variant="secondary" size="sm" className="bg-white/20 border-white/30 hover:bg-white/30 backdrop-blur-sm text-xs h-8 text-gray-50">
               <Filter className="h-3 w-3 mr-1" />
               Filter
             </Button>
-            <Button size="sm" className="bg-white hover:bg-blue-50 font-medium text-xs h-8 text-stone-50">
+            <Button size="sm" className="bg-white hover:bg-blue-50 font-medium text-xs h-8 text-zinc-950">
               <Plus className="h-3 w-3 mr-1" />
               New Automation
             </Button>
