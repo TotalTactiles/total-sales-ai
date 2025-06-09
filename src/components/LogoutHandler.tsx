@@ -1,10 +1,12 @@
 import { logger } from '@/utils/logger';
 
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const LogoutHandler = () => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleLogout = async () => {
@@ -29,20 +31,20 @@ const LogoutHandler = () => {
         
         logger.info('LogoutHandler: Forcing redirect to auth');
         
-        // Force a complete page reload to the auth page to clear all state
-        window.location.replace('/auth');
+        // Navigate to auth without full page reload
+        setTimeout(() => navigate('/auth', { replace: true }), 100);
         
       } catch (error) {
         logger.error('LogoutHandler error:', error);
         // Force redirect even on error
         localStorage.clear();
         sessionStorage.clear();
-        window.location.replace('/auth');
+        setTimeout(() => navigate('/auth', { replace: true }), 100);
       }
     };
 
     handleLogout();
-  }, [signOut]);
+  }, [signOut, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
