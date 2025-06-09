@@ -6,7 +6,7 @@ import { Database, TrendingUp, Users } from 'lucide-react';
 
 const ManagerCRMIntegrations = () => {
   return (
-    <div className="min-h-screen bg-slate-50 p-6">
+    <div className="min-h-screen bg-background p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-slate-900 mb-2">CRM & Data Management</h1>

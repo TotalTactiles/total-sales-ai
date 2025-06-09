@@ -48,7 +48,7 @@ const ManagerLayout = () => {
   };
   
   return (
-    <div className="min-h-screen bg-slate-50 relative">
+    <div className="min-h-screen bg-background relative">
       <ManagerNavigation />
       
       <main className="pt-[60px]">
