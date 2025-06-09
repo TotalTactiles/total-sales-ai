@@ -350,12 +350,8 @@ const NewLandingPage: React.FC = () => {
       {/* Final CTA Section */}
       <section className="py-20 bg-gradient-to-r from-purple-600 to-purple-800 text-white">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Join the Next Generation of Sales Teams?
-          </h2>
-          <p className="text-xl text-purple-200 mb-8 max-w-2xl mx-auto">
-            Limited beta slots remaining. Be the first to close smarter.
-          </p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-6">Ready to Join the Next Generation of Sales Teams?</h2>
+          <p className="text-xl text-purple-200 mb-8 max-w-2xl mx-auto">Limited beta slots remaining. Be the first to close smarter.</p>
           <Button size="lg" onClick={() => navigate('/auth')} className="bg-white text-purple-600 hover:bg-purple-50 text-lg px-8 py-4 shadow-xl hover:shadow-2xl transition-all duration-300">
             Get Access to SalesOS
             <ArrowRight className="ml-2 h-5 w-5" />
