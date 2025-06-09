@@ -3,7 +3,9 @@
 
 import React, { createContext, useContext, useState } from 'react';
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, fireEvent, screen, cleanup, waitFor } from '@testing-library/react';
+import { render, cleanup, waitFor } from '@testing-library/react';
+import { fireEvent } from '@testing-library/dom';
+import { screen } from '@testing-library/dom';
 import { MemoryRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import type { AuthContextType, Profile } from '@/contexts/auth/types';
 
