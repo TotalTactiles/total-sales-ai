@@ -2,15 +2,20 @@ import { logger } from '@/utils/logger';
 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry } from '@/utils/withRetry';
 
 class ElevenLabsService {
   private serviceReady = false;
 
   async initialize(): Promise<boolean> {
     try {
-      const { error } = await supabase.functions.invoke('elevenlabs-speech', {
-        body: { test: true }
-      });
+      const { error } = await withRetry(
+        () =>
+          supabase.functions.invoke('elevenlabs-speech', {
+            body: { test: true }
+          }),
+        'elevenlabs-speech'
+      );
 
       this.serviceReady = !error;
 
@@ -35,9 +40,13 @@ class ElevenLabsService {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('elevenlabs-speech', {
-        body: { text, voiceId }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('elevenlabs-speech', {
+            body: { text, voiceId }
+          }),
+        'elevenlabs-speech'
+      );
 
       if (error) {
         throw error;

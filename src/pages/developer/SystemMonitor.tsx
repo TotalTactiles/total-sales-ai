@@ -1,19 +1,19 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Server, 
-  Database, 
-  Cpu, 
-  MemoryStick, 
-  Network, 
-  HardDrive,
+import {
+  Server,
+  Database,
+  Cpu,
+  MemoryStick,
   Activity,
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/logger';
 
 interface SystemResource {
   name: string;
@@ -50,46 +50,55 @@ const SystemMonitor: React.FC = () => {
     setOsInfo(detectOS());
   }, []);
 
-  const loadSystemResources = () => {
-    setResources([
-      {
-        name: 'CPU Usage',
-        usage: Math.random() * 30 + 20,
-        status: 'healthy',
-        details: '4 cores @ 2.4GHz'
-      },
-      {
-        name: 'Memory',
-        usage: Math.random() * 40 + 40,
-        status: 'healthy',
-        details: '8GB available'
-      },
-      {
-        name: 'Database',
-        usage: Math.random() * 20 + 10,
-        status: 'healthy',
-        details: 'Supabase connection pool'
-      },
-      {
-        name: 'API Calls',
-        usage: Math.random() * 60 + 20,
-        status: 'healthy',
-        details: '1.2k requests/min'
-      },
-      {
-        name: 'Storage',
-        usage: Math.random() * 25 + 15,
-        status: 'healthy',
-        details: '256GB SSD'
-      },
-      {
-        name: 'Network',
-        usage: Math.random() * 50 + 10,
-        status: 'healthy',
-        details: '100Mbps connection'
-      }
-    ]);
-    setLastUpdate(new Date());
+  const requestIdRef = useRef(0);
+
+  const loadSystemResources = async () => {
+    const requestId = ++requestIdRef.current;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('system-health');
+      if (error) throw error;
+      if (requestId !== requestIdRef.current) return;
+
+      const cpuUsage = data.cpuUsage as number;
+      const memoryUsage = data.memoryUsage as number;
+      const dbStatus = data.dbStatus as string;
+      const errorRate = data.errorRate as number;
+      const dbQueryTime = data.dbQueryTime as number;
+
+      setResources([
+        {
+          name: 'CPU Usage',
+          usage: cpuUsage,
+          status:
+            cpuUsage > 80 ? 'critical' : cpuUsage > 60 ? 'warning' : 'healthy',
+          details: `${cpuUsage.toFixed(1)}% load`
+        },
+        {
+          name: 'Memory',
+          usage: memoryUsage,
+          status:
+            memoryUsage > 80 ? 'critical' : memoryUsage > 60 ? 'warning' : 'healthy',
+          details: `${memoryUsage.toFixed(1)}% used`
+        },
+        {
+          name: 'Database',
+          usage: Math.min(dbQueryTime / 10, 100),
+          status: dbStatus === 'healthy' ? 'healthy' : 'critical',
+          details: `${dbStatus} - ${dbQueryTime}ms`
+        },
+        {
+          name: 'API Error Rate',
+          usage: Math.min(errorRate * 100, 100),
+          status:
+            errorRate > 0.1 ? 'critical' : errorRate > 0.05 ? 'warning' : 'healthy',
+          details: `${(errorRate * 100).toFixed(2)}% errors/min`
+        }
+      ]);
+      setLastUpdate(new Date());
+    } catch (err) {
+      logger.error('Failed to load system resources', err);
+    }
   };
 
   const getStatusIcon = (status: string) => {
@@ -106,8 +115,6 @@ const SystemMonitor: React.FC = () => {
       case 'CPU Usage': return <Cpu className="h-5 w-5 text-blue-500" />;
       case 'Memory': return <MemoryStick className="h-5 w-5 text-green-500" />;
       case 'Database': return <Database className="h-5 w-5 text-purple-500" />;
-      case 'Storage': return <HardDrive className="h-5 w-5 text-orange-500" />;
-      case 'Network': return <Network className="h-5 w-5 text-cyan-500" />;
       default: return <Server className="h-5 w-5 text-gray-500" />;
     }
   };

@@ -37,7 +37,7 @@ const Settings: React.FC = () => {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-slate-800">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 bg-slate-800">
           <TabsTrigger value="general" className="data-[state=active]:bg-blue-600">General</TabsTrigger>
           <TabsTrigger value="ai" className="data-[state=active]:bg-purple-600">AI Settings</TabsTrigger>
           <TabsTrigger value="debug" className="data-[state=active]:bg-red-600">Debug Tools</TabsTrigger>
@@ -196,7 +196,7 @@ const Settings: React.FC = () => {
                 <CardTitle className="text-white">AI Performance Metrics</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-green-400">98.7%</p>
                     <p className="text-sm text-slate-400">Uptime</p>

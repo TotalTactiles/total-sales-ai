@@ -2,6 +2,7 @@ import { logger } from '@/utils/logger';
 
 
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry } from '@/utils/withRetry';
 
 export interface ClaudeResponse {
   response: string;
@@ -26,14 +27,18 @@ export class ClaudeAIService {
 
   async analyzePatterns(data: any[], context: string): Promise<ClaudeResponse> {
     try {
-      const { data: response, error } = await supabase.functions.invoke('ai-agent', {
-        body: {
-          prompt: `Analyze the following data patterns and provide insights: ${JSON.stringify(data)}`,
-          systemPrompt: `You are Claude, an expert pattern analyst. Context: ${context}. Provide detailed pattern analysis, insights, and recommendations.`,
-          model: 'claude-3-opus',
-          provider: 'anthropic'
-        }
-      });
+      const { data: response, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('ai-agent', {
+            body: {
+              prompt: `Analyze the following data patterns and provide insights: ${JSON.stringify(data)}`,
+              systemPrompt: `You are Claude, an expert pattern analyst. Context: ${context}. Provide detailed pattern analysis, insights, and recommendations.`,
+              model: 'claude-3-opus',
+              provider: 'anthropic'
+            }
+          }),
+        'ai-agent'
+      );
 
       if (error) throw error;
 
@@ -52,14 +57,18 @@ export class ClaudeAIService {
 
   async summarizeLargeContent(content: string, context: string): Promise<ClaudeResponse> {
     try {
-      const { data: response, error } = await supabase.functions.invoke('ai-agent', {
-        body: {
-          prompt: `Summarize this content comprehensively: ${content}`,
-          systemPrompt: `You are Claude, an expert at large-scale content summarization. Context: ${context}. Provide a detailed, structured summary with key insights.`,
-          model: 'claude-3-opus',
-          provider: 'anthropic'
-        }
-      });
+      const { data: response, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('ai-agent', {
+            body: {
+              prompt: `Summarize this content comprehensively: ${content}`,
+              systemPrompt: `You are Claude, an expert at large-scale content summarization. Context: ${context}. Provide a detailed, structured summary with key insights.`,
+              model: 'claude-3-opus',
+              provider: 'anthropic'
+            }
+          }),
+        'ai-agent'
+      );
 
       if (error) throw error;
 
@@ -78,14 +87,18 @@ export class ClaudeAIService {
 
   async generateSystemInsights(userInteractions: any[], systemMetrics: any[]): Promise<ClaudeResponse> {
     try {
-      const { data: response, error } = await supabase.functions.invoke('ai-agent', {
-        body: {
-          prompt: `Generate adaptive system insights based on user interactions: ${JSON.stringify(userInteractions)} and system metrics: ${JSON.stringify(systemMetrics)}`,
-          systemPrompt: 'You are Claude, a system intelligence expert. Analyze user behavior patterns, system performance, and suggest proactive improvements for UX, features, and automation flows.',
-          model: 'claude-3-opus',
-          provider: 'anthropic'
-        }
-      });
+      const { data: response, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('ai-agent', {
+            body: {
+              prompt: `Generate adaptive system insights based on user interactions: ${JSON.stringify(userInteractions)} and system metrics: ${JSON.stringify(systemMetrics)}`,
+              systemPrompt: 'You are Claude, a system intelligence expert. Analyze user behavior patterns, system performance, and suggest proactive improvements for UX, features, and automation flows.',
+              model: 'claude-3-opus',
+              provider: 'anthropic'
+            }
+          }),
+        'ai-agent'
+      );
 
       if (error) throw error;
 
@@ -104,14 +117,18 @@ export class ClaudeAIService {
 
   async contextualizeMarketData(marketData: any[], companyContext: string): Promise<ClaudeResponse> {
     try {
-      const { data: response, error } = await supabase.functions.invoke('ai-agent', {
-        body: {
-          prompt: `Contextualize this market data for our company: ${JSON.stringify(marketData)}`,
-          systemPrompt: `You are Claude, a market intelligence analyst. Company context: ${companyContext}. Provide strategic insights on how market trends impact this specific business.`,
-          model: 'claude-3-opus',
-          provider: 'anthropic'
-        }
-      });
+      const { data: response, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('ai-agent', {
+            body: {
+              prompt: `Contextualize this market data for our company: ${JSON.stringify(marketData)}`,
+              systemPrompt: `You are Claude, a market intelligence analyst. Company context: ${companyContext}. Provide strategic insights on how market trends impact this specific business.`,
+              model: 'claude-3-opus',
+              provider: 'anthropic'
+            }
+          }),
+        'ai-agent'
+      );
 
       if (error) throw error;
 

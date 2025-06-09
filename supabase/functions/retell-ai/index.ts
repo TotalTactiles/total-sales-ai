@@ -84,6 +84,12 @@ serve(async (req) => {
           company_id: 'retell-calls',
           type: 'interaction',
           event_summary: `Retell AI call ${webhookData.event}`,
+          agent_id: webhookData.call_analysis?.agent_id ?? null,
+          ai_type: 'retell_ai',
+          error_type:
+            webhookData.event.includes('error') || webhookData.event.includes('failed')
+              ? webhookData.event
+              : null,
           payload: {
             feature: 'retell_ai',
             action: webhookData.event,

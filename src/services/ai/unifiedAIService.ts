@@ -1,6 +1,7 @@
 
 // Unified AI Service for Total Tactiles OS
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry } from '@/utils/withRetry';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
 
@@ -66,13 +67,17 @@ export class UnifiedAIService {
     try {
       const contextualSystemMessage = this.getContextualSystemMessage(systemMessage, workspaceContext);
       
-      const { data, error } = await supabase.functions.invoke('openai-chat', {
-        body: {
-          prompt,
-          systemMessage: contextualSystemMessage,
-          context: workspaceContext
-        }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('openai-chat', {
+            body: {
+              prompt,
+              systemMessage: contextualSystemMessage,
+              context: workspaceContext
+            }
+          }),
+        'openai-chat'
+      );
 
       if (error) throw error;
 
@@ -94,13 +99,17 @@ export class UnifiedAIService {
     try {
       const contextualSystemMessage = this.getContextualSystemMessage(systemMessage, workspaceContext);
       
-      const { data, error } = await supabase.functions.invoke('claude-chat', {
-        body: {
-          prompt,
-          systemMessage: contextualSystemMessage,
-          context: workspaceContext
-        }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('claude-chat', {
+            body: {
+              prompt,
+              systemMessage: contextualSystemMessage,
+              context: workspaceContext
+            }
+          }),
+        'claude-chat'
+      );
 
       if (error) throw error;
 

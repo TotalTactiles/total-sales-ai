@@ -8,17 +8,17 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Search, Download, RefreshCw, Globe, Clock, AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface APILogEntry {
   id: string;
-  timestamp: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  timestamp: string | null;
+  method: string;
   endpoint: string;
   status: number;
-  responseTime: number;
-  userAgent: string;
-  ip: string;
-  error?: string;
+  response_time: number;
+  user_id: string | null;
 }
 
 const APILogs: React.FC = () => {
@@ -28,6 +28,7 @@ const APILogs: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [methodFilter, setMethodFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const { profile } = useAuth();
 
   useEffect(() => {
     fetchAPILogs();
@@ -40,41 +41,14 @@ const APILogs: React.FC = () => {
   const fetchAPILogs = async () => {
     try {
       setLoading(true);
-      // Mock API logs data
-      const mockLogs: APILogEntry[] = [
-        {
-          id: '1',
-          timestamp: new Date().toISOString(),
-          method: 'POST',
-          endpoint: '/api/ai-agent',
-          status: 200,
-          responseTime: 1250,
-          userAgent: 'Mozilla/5.0...',
-          ip: '192.168.1.100'
-        },
-        {
-          id: '2',
-          timestamp: new Date(Date.now() - 120000).toISOString(),
-          method: 'GET',
-          endpoint: '/api/leads',
-          status: 200,
-          responseTime: 340,
-          userAgent: 'Mozilla/5.0...',
-          ip: '192.168.1.100'
-        },
-        {
-          id: '3',
-          timestamp: new Date(Date.now() - 300000).toISOString(),
-          method: 'POST',
-          endpoint: '/api/send-email',
-          status: 500,
-          responseTime: 5000,
-          userAgent: 'Mozilla/5.0...',
-          ip: '192.168.1.100',
-          error: 'Email service timeout'
-        }
-      ];
-      setLogs(mockLogs);
+      const { data, error } = await supabase
+        .from('api_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(500);
+
+      if (error) throw error;
+      setLogs(data || []);
     } catch (error) {
       logger.error('Error fetching API logs:', error);
     } finally {
@@ -88,8 +62,7 @@ const APILogs: React.FC = () => {
     if (searchTerm) {
       filtered = filtered.filter(log =>
         log.endpoint.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.ip.includes(searchTerm) ||
-        (log.error && log.error.toLowerCase().includes(searchTerm.toLowerCase()))
+        (log.user_id && log.user_id.includes(searchTerm))
       );
     }
 
@@ -128,6 +101,30 @@ const APILogs: React.FC = () => {
     }
   };
 
+  const exportLogs = (format: 'json' | 'csv') => {
+    if (format === 'json') {
+      const dataStr = JSON.stringify(filteredLogs, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `api-logs-${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const headers = ['timestamp', 'method', 'endpoint', 'status', 'response_time', 'user_id'];
+      const rows = filteredLogs.map(log => headers.map(h => `"${(log as any)[h] ?? ''}"`).join(','));
+      const csv = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `api-logs-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+  };
+
   return (
     <div className="p-6 space-y-6 bg-slate-900 min-h-screen text-white">
       <div className="flex items-center justify-between">
@@ -148,9 +145,18 @@ const APILogs: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
+            onClick={() => exportLogs('json')}
             className="border-slate-600 text-white"
           >
-            <Download className="h-4 w-4" />
+            <Download className="h-4 w-4" /> JSON
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportLogs('csv')}
+            className="border-slate-600 text-white"
+          >
+            <Download className="h-4 w-4" /> CSV
           </Button>
         </div>
       </div>
@@ -175,7 +181,7 @@ const APILogs: React.FC = () => {
               <div>
                 <p className="text-sm text-slate-400">Avg Response Time</p>
                 <p className="text-xl font-bold text-white">
-                  {logs.length > 0 ? Math.round(logs.reduce((acc, log) => acc + log.responseTime, 0) / logs.length) : 0}ms
+                  {logs.length > 0 ? Math.round(logs.reduce((acc, log) => acc + log.response_time, 0) / logs.length) : 0}ms
                 </p>
               </div>
             </div>
@@ -201,9 +207,9 @@ const APILogs: React.FC = () => {
             <div className="flex items-center gap-2">
               <Globe className="h-5 w-5 text-purple-400" />
               <div>
-                <p className="text-sm text-slate-400">Unique IPs</p>
+                <p className="text-sm text-slate-400">Unique Users</p>
                 <p className="text-xl font-bold text-white">
-                  {new Set(logs.map(log => log.ip)).size}
+                  {new Set(logs.map(log => log.user_id)).size}
                 </p>
               </div>
             </div>
@@ -271,16 +277,15 @@ const APILogs: React.FC = () => {
                       <span className="text-sm font-mono text-white">{log.endpoint}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <span>{log.responseTime}ms</span>
-                      <span>{new Date(log.timestamp).toLocaleString()}</span>
+                      <span>{log.response_time}ms</span>
+                      {log.timestamp && (
+                        <span>{new Date(log.timestamp).toLocaleString()}</span>
+                      )}
                     </div>
                   </div>
-                  
+
                   <div className="text-xs text-slate-400 space-y-1">
-                    <p>IP: {log.ip}</p>
-                    {log.error && (
-                      <p className="text-red-400">Error: {log.error}</p>
-                    )}
+                    {log.user_id && <p>User: {log.user_id}</p>}
                   </div>
                 </div>
               ))}
