@@ -2,6 +2,7 @@ import { logger } from '@/utils/logger';
 
 import { clickUpAuth } from './auth';
 import { ClickUpErrorHandler } from './errorHandler';
+import { withRetry } from '@/utils/withRetry';
 
 export interface ClickUpTask {
   id: string;
@@ -92,14 +93,18 @@ export class ClickUpAPI {
     try {
       const accessToken = await clickUpAuth.getValidAccessToken();
       
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        ...options,
-        headers: {
-          'Authorization': accessToken,
-          'Content-Type': 'application/json',
-          ...options.headers
-        }
-      });
+      const response = await withRetry(
+        () =>
+          fetch(`${this.baseUrl}${endpoint}`, {
+            ...options,
+            headers: {
+              'Authorization': accessToken,
+              'Content-Type': 'application/json',
+              ...options.headers
+            }
+          }),
+        'clickup-api'
+      );
 
       if (response.status === 429) {
         await this.handleRateLimit(response);
