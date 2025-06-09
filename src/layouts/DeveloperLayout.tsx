@@ -53,18 +53,18 @@ const DeveloperLayout = () => {
       
       <main className="pt-[60px]">
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<DeveloperDashboard />} />
-          <Route path="/system-monitor" element={<DeveloperSystemMonitor />} />
-          <Route path="/ai-brain-logs" element={<DeveloperAILogs />} />
-          <Route path="/api-logs" element={<DeveloperAPILogs />} />
-          <Route path="/error-logs" element={<DeveloperErrorLogs />} />
-          <Route path="/qa-checklist" element={<DeveloperQAChecklist />} />
-          <Route path="/testing-sandbox" element={<DeveloperTestingSandbox />} />
-          <Route path="/version-control" element={<DeveloperVersionControl />} />
-          <Route path="/crm-integrations" element={<DeveloperCRMIntegrations />} />
-          <Route path="/settings" element={<DeveloperSettings />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DeveloperDashboard />} />
+          <Route path="system-monitor" element={<DeveloperSystemMonitor />} />
+          <Route path="ai-brain-logs" element={<DeveloperAILogs />} />
+          <Route path="api-logs" element={<DeveloperAPILogs />} />
+          <Route path="error-logs" element={<DeveloperErrorLogs />} />
+          <Route path="qa-checklist" element={<DeveloperQAChecklist />} />
+          <Route path="testing-sandbox" element={<DeveloperTestingSandbox />} />
+          <Route path="version-control" element={<DeveloperVersionControl />} />
+          <Route path="crm-integrations" element={<DeveloperCRMIntegrations />} />
+          <Route path="settings" element={<DeveloperSettings />} />
+          <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Routes>
       </main>
       
