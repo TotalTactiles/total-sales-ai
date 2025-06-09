@@ -5,6 +5,12 @@ import { logger } from '@/utils/logger';
 import { retellAIService } from '@/services/ai/retellAIService';
 import { elevenLabsService } from '@/services/ai/elevenLabsService';
 
+interface ProviderMetric {
+  endpoint: string;
+  statusCode: number;
+  latencyMs: number;
+}
+
 interface SystemHealthMetrics {
   apiHealth: 'healthy' | 'degraded' | 'down';
   databaseHealth: 'healthy' | 'degraded' | 'down';
@@ -12,10 +18,12 @@ interface SystemHealthMetrics {
   aiSystemHealth: 'healthy' | 'degraded' | 'down';
   retellAIHealth: 'healthy' | 'degraded' | 'down';
   elevenLabsHealth: 'healthy' | 'degraded' | 'down';
+  authHealth: 'healthy' | 'degraded' | 'down';
   lastChecked: Date;
   uptime: number;
   errorRate: number;
   responseTime: number;
+  providerMetrics: ProviderMetric[];
 }
 
 export const useSystemHealth = () => {
@@ -26,10 +34,12 @@ export const useSystemHealth = () => {
     aiSystemHealth: 'healthy',
     retellAIHealth: 'down',
     elevenLabsHealth: 'down',
+    authHealth: 'down',
     lastChecked: new Date(),
     uptime: 0,
     errorRate: 0,
-    responseTime: 0
+    responseTime: 0,
+    providerMetrics: []
   });
 
   const [isChecking, setIsChecking] = useState(false);
@@ -39,61 +49,124 @@ export const useSystemHealth = () => {
     const startTime = performance.now();
 
     try {
-      // Check database health
-      const dbStart = performance.now();
-      const { error: dbError } = await supabase.from('profiles').select('id').limit(1);
-      const dbTime = performance.now() - dbStart;
-      
-      // Check AI system health
-      const aiStart = performance.now();
-      const { error: aiError } = await supabase.functions.invoke('ai-brain-query', {
-        body: { query: 'health check', context: { workspace: 'health' } }
-      });
-      const aiTime = performance.now() - aiStart;
+      const providerMetrics: ProviderMetric[] = [];
+      const { data: authData, error: authError } = await (async () => {
+        const t0 = performance.now();
+        const result = await supabase.auth.getUser();
+        providerMetrics.push({
+          endpoint: 'auth',
+          statusCode: result.error ? result.error.status || 500 : 200,
+          latencyMs: performance.now() - t0
+        });
+        return result;
+      })();
 
-      // Check voice system capabilities
+      const agentId = authData?.user?.id ?? null;
+
+      const { error: dbError } = await (async () => {
+        const t0 = performance.now();
+        const res = await supabase.from('profiles').select('id').limit(1);
+        providerMetrics.push({
+          endpoint: 'database',
+          statusCode: res.error ? res.error.status || 500 : 200,
+          latencyMs: performance.now() - t0
+        });
+        return res;
+      })();
+
+      const { error: openaiError } = await (async () => {
+        const t0 = performance.now();
+        const res = await supabase.functions.invoke('openai-chat', { body: { prompt: 'ping' } });
+        providerMetrics.push({
+          endpoint: 'openai-chat',
+          statusCode: res.error ? res.error.status || 500 : 200,
+          latencyMs: performance.now() - t0
+        });
+        return res;
+      })();
+
+      const { error: claudeError } = await (async () => {
+        const t0 = performance.now();
+        const res = await supabase.functions.invoke('claude-chat', { body: { prompt: 'ping' } });
+        providerMetrics.push({
+          endpoint: 'claude-chat',
+          statusCode: res.error ? res.error.status || 500 : 200,
+          latencyMs: performance.now() - t0
+        });
+        return res;
+      })();
+
+      const retellHealthy = await (async () => {
+        const t0 = performance.now();
+        const res = await supabase.functions.invoke('retell-ai', { body: { test: true } });
+        providerMetrics.push({
+          endpoint: 'retell-ai',
+          statusCode: res.error ? res.error.status || 500 : 200,
+          latencyMs: performance.now() - t0
+        });
+        return !res.error;
+      })();
+
+      const elevenLabsHealthy = await (async () => {
+        const t0 = performance.now();
+        const res = await supabase.functions.invoke('elevenlabs-speech', { body: { test: true } });
+        providerMetrics.push({
+          endpoint: 'elevenlabs-speech',
+          statusCode: res.error ? res.error.status || 500 : 200,
+          latencyMs: performance.now() - t0
+        });
+        return !res.error;
+      })();
+
       const voiceSupported = ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
       const micSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-
-      // Check Retell AI health
-      const retellHealthy = retellAIService.isServiceReady();
-
-      // Check ElevenLabs health  
-      const elevenLabsHealthy = elevenLabsService.isServiceReady();
 
       const totalTime = performance.now() - startTime;
 
       setMetrics({
         apiHealth: 'healthy',
-        databaseHealth: dbError ? 'down' : dbTime > 1000 ? 'degraded' : 'healthy',
+        databaseHealth: dbError
+          ? 'down'
+          : (providerMetrics.find(p => p.endpoint === 'database')?.latencyMs || 0) > 1000
+            ? 'degraded'
+            : 'healthy',
         voiceSystemHealth: (!voiceSupported || !micSupported) ? 'down' : 'healthy',
-        aiSystemHealth: aiError ? 'degraded' : aiTime > 5000 ? 'degraded' : 'healthy',
+        aiSystemHealth: openaiError || claudeError ? 'degraded' : 'healthy',
         retellAIHealth: retellHealthy ? 'healthy' : 'down',
         elevenLabsHealth: elevenLabsHealthy ? 'healthy' : 'down',
+        authHealth: authError ? 'down' : 'healthy',
         lastChecked: new Date(),
         uptime: Date.now() - performance.timeOrigin,
-        errorRate: 0, // Would calculate from recent error logs
-        responseTime: totalTime
+        errorRate: 0,
+        responseTime: totalTime,
+        providerMetrics
       });
 
-      logger.info('System health check completed', {
-        dbTime,
-        aiTime,
-        totalTime,
-        voiceSupported,
-        micSupported,
-        retellHealthy,
-        elevenLabsHealthy
-      }, 'system_health');
+      logger.info('System health check completed', { providerMetrics, totalTime }, 'system_health');
+
+      for (const metric of providerMetrics) {
+        const severity = metric.statusCode >= 500 ? 'error' : metric.statusCode >= 400 ? 'warning' : 'info';
+        await supabase.from('ai_brain_logs').insert({
+          type: 'system_health_metric',
+          endpoint: metric.endpoint,
+          status_code: metric.statusCode,
+          latency_ms: Math.round(metric.latencyMs),
+          agent_id: agentId,
+          severity,
+          timestamp: new Date().toISOString(),
+          visibility: 'admin_only'
+        });
+      }
 
     } catch (error) {
       logger.error('System health check failed', error, 'system_health');
-      
+
       setMetrics(prev => ({
         ...prev,
         apiHealth: 'down',
         lastChecked: new Date(),
-        responseTime: performance.now() - startTime
+        responseTime: performance.now() - startTime,
+        providerMetrics: []
       }));
     } finally {
       setIsChecking(false);

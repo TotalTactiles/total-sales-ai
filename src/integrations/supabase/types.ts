@@ -87,6 +87,11 @@ export type Database = {
           event_summary: string | null
           id: string
           payload: Json | null
+          endpoint: string | null
+          status_code: number | null
+          latency_ms: number | null
+          agent_id: string | null
+          severity: string | null
           agent_id: string | null
           ai_type: string | null
           error_type: string | null
@@ -99,6 +104,11 @@ export type Database = {
           event_summary?: string | null
           id?: string
           payload?: Json | null
+          endpoint?: string | null
+          status_code?: number | null
+          latency_ms?: number | null
+          agent_id?: string | null
+          severity?: string | null
           agent_id?: string | null
           ai_type?: string | null
           error_type?: string | null
@@ -111,6 +121,11 @@ export type Database = {
           event_summary?: string | null
           id?: string
           payload?: Json | null
+          endpoint?: string | null
+          status_code?: number | null
+          latency_ms?: number | null
+          agent_id?: string | null
+          severity?: string | null
           agent_id?: string | null
           ai_type?: string | null
           error_type?: string | null
