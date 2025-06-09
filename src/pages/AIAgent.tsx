@@ -33,9 +33,7 @@ const AIAgent: React.FC<AIAgentProps> = ({
                   <h1 className="flat-heading-lg text-3xl font-bold">
                     AI Calling Agent
                   </h1>
-                  <p className="text-slate-600 mt-0.5 text-base">
-                    Autonomous voice AI for cold lead outreach and qualification
-                  </p>
+                  <p className="text-slate-600 mt-0.5 text-base">Autonomous AI agnet for lead outreach, qualification & convertion</p>
                 </div>
               </div>
             </div>
