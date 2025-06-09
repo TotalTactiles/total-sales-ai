@@ -2,6 +2,7 @@
 import { logger } from '@/utils/logger';
 
 import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
@@ -26,6 +27,9 @@ import DeveloperLayout from '@/layouts/DeveloperLayout';
 // Auth pages
 import AuthPage from '@/pages/Auth';
 import Logout from '@/pages/auth/Logout';
+
+// Landing page
+import NewLandingPage from '@/pages/NewLandingPage';
 
 // Standalone pages
 import LeadWorkspace from '@/pages/LeadWorkspace';
@@ -71,6 +75,9 @@ function App() {
               <DemoDataProvider>
                 <AIContextProvider>
                 <Routes>
+                  {/* Landing page */}
+                  <Route path="/landing" element={<NewLandingPage />} />
+                  
                   {/* Auth routes */}
                   <Route path="/login" element={<AuthPage />} />
                   <Route path="/signup" element={<AuthPage />} />
