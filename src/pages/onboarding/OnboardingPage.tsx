@@ -16,6 +16,7 @@ import OnboardingProgress from './components/OnboardingProgress';
 import StepNavigation from './components/StepNavigation';
 import StepIndicator from './components/StepIndicator';
 import AIAssistantHelper from '@/components/AIAssistant/AIAssistantHelper';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
 // Define the tour steps for the guided tutorial
 const DASHBOARD_TOUR_STEPS = [
@@ -71,7 +72,7 @@ const OnboardingPage: React.FC = () => {
         
         // If onboarding is already complete, redirect to dashboard
         if (data?.onboarding_completed_at) {
-          const redirectPath = profile.role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+          const redirectPath = getDashboardUrl({ role: profile.role });
           navigate(redirectPath);
         }
       } catch (err) {
@@ -122,7 +123,7 @@ const OnboardingPage: React.FC = () => {
       // After a delay, redirect to the appropriate dashboard
       setTimeout(() => {
         toast.success('Onboarding complete! Welcome to your SalesOS.');
-        navigate('/manager/dashboard');
+        navigate(getDashboardUrl({ role: profile.role }));
       }, 3000);
       
     } catch (error: any) {
