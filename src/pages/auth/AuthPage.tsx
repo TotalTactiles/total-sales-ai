@@ -33,6 +33,17 @@ const AuthPage = () => {
     fullName: ''
   });
 
+  // Prefill credentials based on selected role
+  useEffect(() => {
+    if (selectedRole === 'developer') {
+      setFormData({ email: 'krishdev@tsam.com', password: 'badabing2024', fullName: '' });
+    } else if (selectedRole === 'manager') {
+      setFormData({ email: 'manager@salesos.com', password: 'manager123', fullName: '' });
+    } else {
+      setFormData({ email: 'sales.rep@company.com', password: 'fulluser123', fullName: '' });
+    }
+  }, [selectedRole]);
+
   // Show loading screen while auth state is being determined
   if (loading) {
     return <AuthLoadingScreen role={selectedRole} isDemoMode={isDemoMode()} />;
@@ -97,27 +108,38 @@ const AuthPage = () => {
         </div>
       
         <Tabs defaultValue={selectedRole} value={selectedRole} onValueChange={value => handleRoleChange(value as Role)} className="w-full">
-          <TabsList className="grid grid-cols-2 mb-8 bg-neutral-100 rounded-xl p-1">
+          <TabsList className="grid grid-cols-3 mb-8 bg-neutral-100 rounded-xl p-1">
             <TabsTrigger value="manager" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
               Manager
             </TabsTrigger>
             <TabsTrigger value="sales_rep" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
               Sales Rep
             </TabsTrigger>
+            <TabsTrigger value="developer" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+              Developer
+            </TabsTrigger>
           </TabsList>
         
           <div className="space-y-6">
             <div className="text-center p-6 mb-6 border border-neutral-200 rounded-xl bg-neutral-50/50">
               <h3 className="font-semibold text-lg mb-2 font-poppins">
-                {selectedRole === 'manager' ? 'Manager Dashboard' : 'Sales Rep Dashboard'}
+                {selectedRole === 'manager'
+                  ? 'Manager Dashboard'
+                  : selectedRole === 'developer'
+                  ? 'Developer Dashboard'
+                  : 'Sales Rep Dashboard'}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {selectedRole === 'manager' ? 'Team analysis, performance tracking & AI coaching' : 'Smart dialer, call scripts & AI sales assistant'}
+                {selectedRole === 'manager'
+                  ? 'Team analysis, performance tracking & AI coaching'
+                  : selectedRole === 'developer'
+                  ? 'System monitoring, logs & developer tools'
+                  : 'Smart dialer, call scripts & AI sales assistant'}
               </p>
             </div>
             
             <div className="flex flex-col space-y-4">
-              {isLogin ? <AuthLoginForm setIsTransitioning={setIsTransitioning} simulateLoginTransition={simulateLoginTransition} formData={{
+              {isLogin ? <AuthLoginForm selectedRole={selectedRole} setIsTransitioning={setIsTransitioning} simulateLoginTransition={simulateLoginTransition} formData={{
               email: formData.email,
               password: formData.password
             }} setFormData={(data: {

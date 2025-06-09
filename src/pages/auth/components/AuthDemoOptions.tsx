@@ -25,9 +25,19 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
   
   const handleDemoLogin = () => {
     // First fill in the form with demo credentials
-    const email = selectedRole === 'manager' ? 'manager@salesos.com' : 'rep@salesos.com';
-    const password = selectedRole === 'manager' ? 'manager123' : 'sales123';
-    
+    const email =
+      selectedRole === 'manager'
+        ? 'manager@salesos.com'
+        : selectedRole === 'developer'
+        ? 'krishdev@tsam.com'
+        : 'rep@salesos.com';
+    const password =
+      selectedRole === 'manager'
+        ? 'manager123'
+        : selectedRole === 'developer'
+        ? 'badabing2024'
+        : 'sales123';
+
     setFormData({ email, password });
   };
   
@@ -35,9 +45,12 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
     // Clear any existing auth data first
     localStorage.clear();
     sessionStorage.clear();
-    
+
     // Skip the form and directly log in with demo mode
     logger.info("Direct demo login with role:", selectedRole);
+    if (selectedRole === 'developer') {
+      return;
+    }
     initializeDemoMode(selectedRole);
     setIsTransitioning(true);
     
@@ -65,17 +78,23 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
           Fill in Demo Credentials
         </Button>
         
-        <Button
-          onClick={handleDirectDemoLogin}
-          variant="default"
-          className="w-full py-2 bg-salesBlue hover:bg-salesBlue/90 text-sm font-medium transition-colors"
-        >
-          Quick Demo Login
-        </Button>
+        {selectedRole !== 'developer' && (
+          <Button
+            onClick={handleDirectDemoLogin}
+            variant="default"
+            className="w-full py-2 bg-salesBlue hover:bg-salesBlue/90 text-sm font-medium transition-colors"
+          >
+            Quick Demo Login
+          </Button>
+        )}
       </div>
-      
+
       <p className="text-xs text-center text-muted-foreground mt-3">
-        {selectedRole === 'manager' ? 'Demo Manager Account' : 'Demo Sales Rep Account'}
+        {selectedRole === 'manager'
+          ? 'Demo Manager Account'
+          : selectedRole === 'developer'
+          ? 'Use developer credentials to log in'
+          : 'Demo Sales Rep Account'}
       </p>
     </div>
   );

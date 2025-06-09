@@ -105,6 +105,16 @@ When deploying the Supabase functions, set the `CORS_ALLOWED_ORIGINS` environmen
 variable with a comma-separated list of domains allowed to call the functions.
 Only requests from these origins will be permitted.
 
+## Developer OS account
+
+Create the default developer account using the provided script. Ensure the
+`SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` environment variables are set and
+run:
+
+```sh
+npm run create:developer
+```
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!

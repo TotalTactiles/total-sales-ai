@@ -10,7 +10,8 @@
     "lint": "eslint .",
     "test": "vitest",
     "test:watch": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "create:developer": "node scripts/createDeveloper.js"
   },
   "dependencies": {
     "@11labs/react": "^0.1.4",
