@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Github, Google } from 'lucide-react';
+import { Provider } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { Role } from '@/contexts/auth/types';
 interface AuthSignupFormProps {
@@ -19,7 +21,8 @@ const AuthSignupForm: React.FC<AuthSignupFormProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const {
-    signUp
+    signUp,
+    signUpWithOAuth
   } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +41,20 @@ const AuthSignupForm: React.FC<AuthSignupFormProps> = ({
         toast.error(error.message);
       } else {
         toast.success('Account created successfully! Please check your email.');
+      }
+    } catch (error) {
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleOAuth = async (provider: Provider) => {
+    setIsLoading(true);
+    try {
+      const { error } = await signUpWithOAuth(provider);
+      if (error) {
+        toast.error(error.message);
       }
     } catch (error) {
       toast.error('An unexpected error occurred');
@@ -66,6 +83,15 @@ const AuthSignupForm: React.FC<AuthSignupFormProps> = ({
           <Button type="submit" disabled={isLoading} className="w-full bg-indigo-700 hover:bg-indigo-600">
             {isLoading ? 'Creating Account...' : 'Sign Up'}
           </Button>
+
+          <div className="flex flex-col space-y-2 pt-2">
+            <Button type="button" variant="outline" onClick={() => handleOAuth('google')} disabled={isLoading}>
+              <Google className="mr-2 h-4 w-4" /> Sign Up with Google
+            </Button>
+            <Button type="button" variant="outline" onClick={() => handleOAuth('github')} disabled={isLoading}>
+              <Github className="mr-2 h-4 w-4" /> Sign Up with GitHub
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>;
