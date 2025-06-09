@@ -60,18 +60,26 @@ const OnboardingPage: React.FC = () => {
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       if (!profile?.company_id) return;
-      
+
+      // If we already have the local flag, skip the remote check
+      const localKey = `onboarding_complete_${profile.company_id}`;
+      if (localStorage.getItem(localKey)) {
+        navigate(getDashboardUrl({ role: profile.role }));
+        return;
+      }
+
       try {
         const { data, error } = await supabase
           .from('company_settings')
           .select('onboarding_completed_at')
           .eq('company_id', profile.company_id)
           .maybeSingle();
-          
+
         if (error) throw error;
-        
-        // If onboarding is already complete, redirect to dashboard
+
+        // If onboarding is already complete, set flag and redirect to dashboard
         if (data?.onboarding_completed_at) {
+          localStorage.setItem(localKey, 'true');
           const redirectPath = getDashboardUrl({ role: profile.role });
           navigate(redirectPath);
         }
@@ -79,7 +87,7 @@ const OnboardingPage: React.FC = () => {
         logger.error('Error checking onboarding status:', err);
       }
     };
-    
+
     checkOnboardingStatus();
   }, [profile?.company_id, navigate]);
 
@@ -116,6 +124,12 @@ const OnboardingPage: React.FC = () => {
         companyId: profile.company_id,
         settings: settings
       });
+
+      // Mark onboarding complete for this company in local storage
+      localStorage.setItem(
+        `onboarding_complete_${profile.company_id}`,
+        'true'
+      );
       
       // Show completion state briefly before redirecting
       setOnboardingComplete(true);
