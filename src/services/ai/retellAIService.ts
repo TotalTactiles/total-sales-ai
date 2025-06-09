@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry } from '@/utils/withRetry';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
 
@@ -41,9 +42,13 @@ export class RetellAIService {
   async initialize(): Promise<boolean> {
     try {
       // Test Retell AI connection
-      const { data, error } = await supabase.functions.invoke('retell-ai', {
-        body: { test: true }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('retell-ai', {
+            body: { test: true }
+          }),
+        'retell-ai'
+      );
 
       if (error) throw error;
 
@@ -63,9 +68,13 @@ export class RetellAIService {
         await this.initialize();
       }
 
-      const { data, error } = await supabase.functions.invoke('retell-ai', {
-        body: { config }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('retell-ai', {
+            body: { config }
+          }),
+        'retell-ai'
+      );
 
       if (error) throw error;
 
@@ -87,9 +96,13 @@ export class RetellAIService {
         }
       }
 
-      const { data, error } = await supabase.functions.invoke('retell-ai', {
-        body: { ...options }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('retell-ai', {
+            body: { ...options }
+          }),
+        'retell-ai'
+      );
 
       if (error) throw error;
 
@@ -120,9 +133,13 @@ export class RetellAIService {
 
   async getCallAnalysis(callId: string): Promise<any> {
     try {
-      const { data, error } = await supabase.functions.invoke('retell-ai', {
-        body: { callId }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('retell-ai', {
+            body: { callId }
+          }),
+        'retell-ai'
+      );
 
       if (error) throw error;
       return data;

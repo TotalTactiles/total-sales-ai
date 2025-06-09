@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry } from '@/utils/withRetry';
 import { AutomationAction, AutomationResult } from '../types/automationTypes';
 
 export class ActionExecutors {
@@ -10,15 +11,19 @@ export class ActionExecutors {
     companyId: string
   ): Promise<AutomationResult> {
     try {
-      const { data, error } = await supabase.functions.invoke('gmail-send', {
-        body: {
-          to: context.email || context.leadEmail,
-          subject: this.replaceVariables(action.content, context),
-          body: this.replaceVariables(action.metadata?.body || action.content, context),
-          leadId: context.leadId,
-          leadName: context.leadName || context.name
-        }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('gmail-send', {
+            body: {
+              to: context.email || context.leadEmail,
+              subject: this.replaceVariables(action.content, context),
+              body: this.replaceVariables(action.metadata?.body || action.content, context),
+              leadId: context.leadId,
+              leadName: context.leadName || context.name
+            }
+          }),
+        'gmail-send'
+      );
 
       if (error) throw error;
 
@@ -50,13 +55,17 @@ export class ActionExecutors {
         };
       }
 
-      const { data, error } = await supabase.functions.invoke('twilio-sms', {
-        body: {
-          to: context.phone,
-          message: this.replaceVariables(action.content, context),
-          leadId: context.leadId
-        }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('twilio-sms', {
+            body: {
+              to: context.phone,
+              message: this.replaceVariables(action.content, context),
+              leadId: context.leadId
+            }
+          }),
+        'twilio-sms'
+      );
 
       if (error) throw error;
 
@@ -200,15 +209,19 @@ export class ActionExecutors {
     companyId: string
   ): Promise<AutomationResult> {
     try {
-      const { data, error } = await supabase.functions.invoke('google-calendar', {
-        body: {
-          summary: this.replaceVariables(action.content, context),
-          description: action.metadata?.description || '',
-          start: action.metadata?.startTime || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          duration: action.metadata?.duration || 30,
-          attendees: context.email ? [context.email] : []
-        }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('google-calendar', {
+            body: {
+              summary: this.replaceVariables(action.content, context),
+              description: action.metadata?.description || '',
+              start: action.metadata?.startTime || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+              duration: action.metadata?.duration || 30,
+              attendees: context.email ? [context.email] : []
+            }
+          }),
+        'google-calendar'
+      );
 
       if (error) throw error;
 

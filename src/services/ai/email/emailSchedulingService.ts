@@ -1,6 +1,7 @@
 import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry } from '@/utils/withRetry';
 
 export class EmailSchedulingService {
   async scheduleEmail(
@@ -59,15 +60,19 @@ export class EmailSchedulingService {
           
           if (payload.status !== 'scheduled') continue;
 
-          const { data, error: sendError } = await supabase.functions.invoke('gmail-send', {
-            body: {
-              to: payload.to,
-              subject: payload.subject,
-              body: payload.body,
-              leadId: payload.metadata?.leadId,
-              leadName: payload.metadata?.leadName
-            }
-          });
+          const { data, error: sendError } = await withRetry(
+            () =>
+              supabase.functions.invoke('gmail-send', {
+                body: {
+                  to: payload.to,
+                  subject: payload.subject,
+                  body: payload.body,
+                  leadId: payload.metadata?.leadId,
+                  leadName: payload.metadata?.leadName
+                }
+              }),
+            'gmail-send'
+          );
 
           if (sendError) throw sendError;
 

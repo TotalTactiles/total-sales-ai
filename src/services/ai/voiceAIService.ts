@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { withRetry } from '@/utils/withRetry';
 import { unifiedAIService } from './unifiedAIService';
 import { elevenLabsService } from './elevenLabsService';
 import { retellAIService } from './retellAIService';
@@ -53,13 +54,17 @@ export class VoiceAIService {
 
     try {
       // Convert audio to text
-      const { data, error } = await supabase.functions.invoke('voice-to-text', {
-        body: { 
-          audio: await this.blobToBase64(audioBlob),
-          userId: this.currentConfig.userId,
-          workspace: this.currentConfig.workspace
-        }
-      });
+      const { data, error } = await withRetry(
+        () =>
+          supabase.functions.invoke('voice-to-text', {
+            body: {
+              audio: await this.blobToBase64(audioBlob),
+              userId: this.currentConfig.userId,
+              workspace: this.currentConfig.workspace
+            }
+          }),
+        'voice-to-text'
+      );
 
       if (error) throw error;
       
