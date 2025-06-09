@@ -17,7 +17,7 @@ const ManagerCRMIntegrations = () => {
 
         <div className="grid gap-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -29,7 +29,7 @@ const ManagerCRMIntegrations = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -41,7 +41,7 @@ const ManagerCRMIntegrations = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -55,7 +55,7 @@ const ManagerCRMIntegrations = () => {
           </div>
         </div>
 
-        <Card>
+        <Card className="rounded-lg shadow-md">
           <CardHeader>
             <CardTitle>Integration Management</CardTitle>
           </CardHeader>

@@ -69,7 +69,7 @@ const ManagerCompanyBrain = () => {
           <TabsContent value="overview" className="mt-6">
             <div className="grid gap-6">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Card>
+                <Card className="rounded-lg shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -81,7 +81,7 @@ const ManagerCompanyBrain = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="rounded-lg shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -93,7 +93,7 @@ const ManagerCompanyBrain = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="rounded-lg shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -105,7 +105,7 @@ const ManagerCompanyBrain = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="rounded-lg shadow-md">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
@@ -118,7 +118,7 @@ const ManagerCompanyBrain = () => {
                 </Card>
               </div>
 
-              <Card>
+              <Card className="rounded-lg shadow-md">
                 <CardHeader>
                   <CardTitle>Recent AI Activity</CardTitle>
                 </CardHeader>
@@ -163,7 +163,7 @@ const ManagerCompanyBrain = () => {
           </TabsContent>
 
           <TabsContent value="knowledge" className="mt-6">
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader>
                 <CardTitle>Knowledge Base Management</CardTitle>
               </CardHeader>
@@ -183,7 +183,7 @@ const ManagerCompanyBrain = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <Card>
+                    <Card className="rounded-lg shadow-md">
                       <CardContent className="p-4">
                         <h4 className="font-medium mb-2">Sales Playbooks</h4>
                         <p className="text-sm text-slate-600 mb-3">342 articles</p>
@@ -191,7 +191,7 @@ const ManagerCompanyBrain = () => {
                       </CardContent>
                     </Card>
                     
-                    <Card>
+                    <Card className="rounded-lg shadow-md">
                       <CardContent className="p-4">
                         <h4 className="font-medium mb-2">Product Information</h4>
                         <p className="text-sm text-slate-600 mb-3">189 articles</p>
@@ -199,7 +199,7 @@ const ManagerCompanyBrain = () => {
                       </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="rounded-lg shadow-md">
                       <CardContent className="p-4">
                         <h4 className="font-medium mb-2">Competitor Analysis</h4>
                         <p className="text-sm text-slate-600 mb-3">96 articles</p>
@@ -221,7 +221,7 @@ const ManagerCompanyBrain = () => {
           </TabsContent>
 
           <TabsContent value="insights" className="mt-6">
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader>
                 <CardTitle>AI-Generated Insights</CardTitle>
               </CardHeader>
@@ -280,7 +280,7 @@ const ManagerCompanyBrain = () => {
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardHeader>
                 <CardTitle>Company Brain Settings</CardTitle>
               </CardHeader>

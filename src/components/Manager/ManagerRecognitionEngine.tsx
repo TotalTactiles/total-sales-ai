@@ -6,7 +6,7 @@ import { Award, Trophy, Bell } from 'lucide-react';
 
 const ManagerRecognitionEngine = () => {
   return (
-    <Card>
+    <Card className="rounded-lg shadow-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Award className="h-5 w-5 text-salesGreen" />
@@ -23,7 +23,7 @@ const ManagerRecognitionEngine = () => {
           </p>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardContent className="p-4 text-center">
                 <Award className="h-8 w-8 text-salesCyan mx-auto mb-2" />
                 <h3 className="font-medium mb-1">Personal Awards</h3>
@@ -36,7 +36,7 @@ const ManagerRecognitionEngine = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardContent className="p-4 text-center">
                 <Trophy className="h-8 w-8 text-salesGreen mx-auto mb-2" />
                 <h3 className="font-medium mb-1">Team Challenges</h3>
@@ -49,7 +49,7 @@ const ManagerRecognitionEngine = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="rounded-lg shadow-md">
               <CardContent className="p-4 text-center">
                 <Bell className="h-8 w-8 text-salesBlue mx-auto mb-2" />
                 <h3 className="font-medium mb-1">Public Recognition</h3>
