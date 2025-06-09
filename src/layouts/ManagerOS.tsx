@@ -15,7 +15,7 @@ const ManagerOS: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <ManagerNavigation />
-      <main className="pt-16">
+      <main className="pt-[60px]">
         <Routes>
           <Route index element={<ManagerDashboard />} />
           <Route path="dashboard" element={<ManagerDashboard />} />
