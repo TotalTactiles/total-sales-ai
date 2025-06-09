@@ -368,7 +368,7 @@ const NewLandingPage: React.FC = () => {
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-4 mb-4 md:mb-0">
               <Logo />
-              <div className="text-sm text-slate-400">© 2024 TSAM. All rights reserved 2025.</div>
+              <div className="text-sm text-slate-400">© 2024 TSAM. All rights reserved.</div>
             </div>
             <div className="flex space-x-6 text-sm text-slate-400">
               <a href="#" className="hover:text-white transition-colors">Privacy</a>
