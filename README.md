@@ -146,3 +146,14 @@ const { data, error } = await supabase.functions.invoke('elevenlabs-speech', {
 ```
 
 The client now uses this function for speech synthesis instead of reading `VITE_ELEVENLABS_API_KEY` directly.
+
+## Design System Colors
+
+Custom Tailwind classes such as `bg-salesBlue` or `text-salesGreen` rely on colors defined in `tailwind.config.ts` under `theme.extend.colors`. These Sales Rep palette colors are:
+
+- **salesBlue** – `#4A3AFF` (light: `#6B73FF`, dark: `#3B2ECC`)
+- **salesCyan** – `#38bdf8` (light: `#58ddf8`, dark: `#189dd8`)
+- **salesGreen** – `#22c55e` (light: `#42e57e`, dark: `#16a34a`)
+- **salesRed** – `#ef4444` (light: `#f87171`, dark: `#dc2626`)
+
+These colors match the Sales Rep design system and can be used directly in Tailwind utility classes.
