@@ -14,7 +14,14 @@ const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children })
   const [profile, setProfile] = useState<Profile | null>(null);
 
   const signIn = async (email: string, password: string) => {
-    const role = email.includes('manager') ? 'manager' : 'sales_rep';
+    let role: Profile['role'];
+    if (email.includes('developer')) {
+      role = 'developer';
+    } else if (email.includes('manager')) {
+      role = 'manager';
+    } else {
+      role = 'sales_rep';
+    }
     setProfile({ id: '1', role } as Profile);
     return {};
   };
@@ -67,6 +74,11 @@ const LoginControls: React.FC = () => {
     navigate('/sales/dashboard');
   };
 
+  const loginAsDeveloper = async () => {
+    await signIn('developer@example.com', 'password123');
+    navigate('/developer/dashboard');
+  };
+
   const handleLogout = async () => {
     await signOut();
     navigate('/auth');
@@ -76,6 +88,7 @@ const LoginControls: React.FC = () => {
     <div>
       <button onClick={loginAsManager}>Manager Login</button>
       <button onClick={loginAsSales}>Sales Login</button>
+      <button onClick={loginAsDeveloper}>Developer Login</button>
       <button onClick={handleLogout}>Logout</button>
     </div>
   );
@@ -117,6 +130,15 @@ describe('auth routing', () => {
     fireEvent.click(screen.getByText('Sales Login'));
     await waitFor(() => {
       expect(screen.getByTestId('location').textContent).toBe('/sales/dashboard');
+    });
+  });
+
+  it('routes to developer dashboard after developer login', async () => {
+    renderWithProviders();
+
+    fireEvent.click(screen.getByText('Developer Login'));
+    await waitFor(() => {
+      expect(screen.getByTestId('location').textContent).toBe('/developer/dashboard');
     });
   });
 
