@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, afterEach, beforeEach, beforeAll } from 'vitest'
 import { JSDOM } from 'jsdom'
 import { AuthProvider, useAuth } from '@/contexts/auth/AuthContext'
+import { MemoryRouter } from 'react-router-dom'
 
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -59,7 +60,9 @@ describe('signOut routing', () => {
     sessionStorage.setItem('baz', 'qux')
 
     const wrapper = ({ children }: { children: React.ReactNode }) => (
-      <AuthProvider>{children}</AuthProvider>
+      <MemoryRouter>
+        <AuthProvider>{children}</AuthProvider>
+      </MemoryRouter>
     )
     const { result } = renderHook(() => useAuth(), { wrapper })
 

@@ -26,6 +26,11 @@ const AuthSignupForm: React.FC<AuthSignupFormProps> = ({
   } = useAuth();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
     if (password !== confirmPassword) {
       toast.error('Passwords do not match');
       return;
@@ -41,6 +46,7 @@ const AuthSignupForm: React.FC<AuthSignupFormProps> = ({
         toast.error(error.message);
       } else {
         toast.success('Account created successfully! Please check your email.');
+        if (setIsLogin) setIsLogin(true);
       }
     } catch (error) {
       toast.error('An unexpected error occurred');
