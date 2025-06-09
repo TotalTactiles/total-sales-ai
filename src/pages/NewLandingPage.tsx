@@ -222,7 +222,7 @@ const NewLandingPage: React.FC = () => {
               <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
                 Designed to Feel Like <span className="text-purple-600">Magic</span>
               </h2>
-              <p className="text-xl text-slate-600 max-w-3xl mx-auto">TSAM doesn't just log tasks. It thinks, adapts, and guides. From first touch to close, your AI operating sysyem handles it or coaches your team to do it better.</p>
+              <p className="text-xl text-slate-600 max-w-3xl mx-auto">TSAM doesn't just log tasks. It thinks, adapts, and guides. From first touch to close, your AI operating system handles it or coaches your team to do it better.</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
