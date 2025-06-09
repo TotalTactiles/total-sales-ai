@@ -1,12 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Download, Calendar, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 const Reports: React.FC = () => {
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6 mx-[108px]">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-foreground dark:text-white">
           Reports & Analytics
@@ -106,8 +103,6 @@ const Reports: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Reports;
