@@ -85,7 +85,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Voice to text error:', error)
+    logger.error('Voice to text error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {

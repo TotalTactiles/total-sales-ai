@@ -110,7 +110,7 @@ serve(async (req) => {
         })
 
       if (usageError) {
-        console.error('Failed to log calendar event:', usageError)
+        logger.error('Failed to log calendar event:', usageError)
         return new Response(
           JSON.stringify({ success: false, error: 'Failed to log calendar event' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -129,7 +129,7 @@ serve(async (req) => {
     throw new Error('Invalid action')
 
   } catch (error) {
-    console.error('Error in google-calendar function:', error)
+    logger.error('Error in google-calendar function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

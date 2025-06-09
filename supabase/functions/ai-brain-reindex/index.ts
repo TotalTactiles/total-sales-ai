@@ -33,7 +33,7 @@ async function getEmbedding(text: string): Promise<number[]> {
     const data = await response.json();
     return data.data[0].embedding;
   } catch (error) {
-    console.error('Error creating embedding:', error);
+    logger.error('Error creating embedding:', error);
     throw error;
   }
 }
@@ -54,7 +54,7 @@ async function reindexEmbeddings(): Promise<{ success: boolean; recordsProcessed
 
     const lastRun = jobData?.last_run || new Date(0).toISOString(); // Default to epoch if never run
     
-    console.log(`Last reindex job run at: ${lastRun}`);
+    logger.info(`Last reindex job run at: ${lastRun}`);
     
     // Get records created or updated since last run
     const { data: records, error: recordsError } = await supabase
@@ -66,7 +66,7 @@ async function reindexEmbeddings(): Promise<{ success: boolean; recordsProcessed
       throw new Error(`Error fetching records: ${recordsError.message}`);
     }
     
-    console.log(`Found ${records?.length || 0} records to process`);
+    logger.info(`Found ${records?.length || 0} records to process`);
     
     // Process each record
     let successCount = 0;
@@ -80,13 +80,13 @@ async function reindexEmbeddings(): Promise<{ success: boolean; recordsProcessed
           .eq('id', record.id);
           
         if (updateError) {
-          console.error(`Error updating embedding for record ${record.id}:`, updateError);
+          logger.error(`Error updating embedding for record ${record.id}:`, updateError);
           continue;
         }
         
         successCount++;
       } catch (error) {
-        console.error(`Error processing record ${record.id}:`, error);
+        logger.error(`Error processing record ${record.id}:`, error);
       }
     }
     
@@ -107,7 +107,7 @@ async function reindexEmbeddings(): Promise<{ success: boolean; recordsProcessed
       .eq('job_name', 'ai_brain_reindex');
       
     if (updateJobError) {
-      console.error('Error updating job status:', updateJobError);
+      logger.error('Error updating job status:', updateJobError);
     }
     
     // After reindex, update stats_history table with latest counts
@@ -131,12 +131,12 @@ async function reindexEmbeddings(): Promise<{ success: boolean; recordsProcessed
         });
 
       if (statsError) {
-        console.error('Error inserting stats history:', statsError);
+        logger.error('Error inserting stats history:', statsError);
       }
         
-      console.log('Updated stats history after reindex');
+      logger.info('Updated stats history after reindex');
     } catch (error) {
-      console.error('Error updating stats history:', error);
+      logger.error('Error updating stats history:', error);
     }
     
     return {
@@ -144,7 +144,7 @@ async function reindexEmbeddings(): Promise<{ success: boolean; recordsProcessed
       recordsProcessed: successCount
     };
   } catch (error) {
-    console.error('Error in reindex job:', error);
+    logger.error('Error in reindex job:', error);
     
     // Update job with error status
     try {
@@ -161,7 +161,7 @@ async function reindexEmbeddings(): Promise<{ success: boolean; recordsProcessed
         })
         .eq('job_name', 'ai_brain_reindex');
     } catch (e) {
-      console.error('Error updating job error status:', e);
+      logger.error('Error updating job error status:', e);
     }
     
     return {
@@ -187,7 +187,7 @@ serve(async (req) => {
       { status: result.success ? 200 : 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in AI Brain reindex function:', error);
+    logger.error('Error in AI Brain reindex function:', error);
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

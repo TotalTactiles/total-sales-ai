@@ -84,7 +84,7 @@ serve(async (req) => {
       })
 
     if (usageError) {
-      console.error('Failed to log SMS send event:', usageError)
+      logger.error('Failed to log SMS send event:', usageError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to log SMS send' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -101,7 +101,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in twilio-sms function:', error)
+    logger.error('Error in twilio-sms function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

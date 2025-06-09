@@ -59,7 +59,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in ai-voice function:', error)
+    logger.error('Error in ai-voice function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

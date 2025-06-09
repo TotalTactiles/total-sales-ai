@@ -283,7 +283,7 @@ serve(async (req) => {
         });
 
       if (error) {
-        console.error('Database error:', error);
+        logger.error('Database error:', error);
         throw new Error('Failed to store OAuth connection');
       }
 
@@ -362,7 +362,7 @@ serve(async (req) => {
     throw new Error('Invalid action');
 
   } catch (error) {
-    console.error('Error in unified-oauth function:', error);
+    logger.error('Error in unified-oauth function:', error);
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

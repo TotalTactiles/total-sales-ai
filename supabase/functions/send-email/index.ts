@@ -45,7 +45,7 @@ serve(async (req) => {
     // - AWS SES
     // - Postmark
 
-    console.log('Email would be sent:', { to, subject, body })
+    logger.info('Email would be sent:', { to, subject, body })
 
     // Log the email for tracking
     const { error: usageError } = await supabaseClient
@@ -101,7 +101,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in send-email function:', error)
+    logger.error('Error in send-email function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

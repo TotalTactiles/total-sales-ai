@@ -92,7 +92,7 @@ serve(async (req) => {
       })
 
     if (usageError) {
-      console.error('Failed to log call event:', usageError)
+      logger.error('Failed to log call event:', usageError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to log call event' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -110,7 +110,7 @@ serve(async (req) => {
     })
 
     if (logError) {
-      console.error('Failed to create call log:', logError)
+      logger.error('Failed to create call log:', logError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to create call log' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -127,7 +127,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    console.error('Error in twilio-call function:', error)
+    logger.error('Error in twilio-call function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 

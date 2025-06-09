@@ -130,7 +130,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Email fetch error:', error)
+    logger.error('Email fetch error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
