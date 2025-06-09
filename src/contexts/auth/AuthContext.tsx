@@ -194,7 +194,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(true);
       
       const { data, error } = await supabase.auth.signUp({
-      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata
+        }
+      });
 
       // If Supabase isn't configured, fall back to local demo mode
       if (!isSupabaseConfigured) {
@@ -209,14 +214,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         toast.success('Demo account created successfully');
         return {};
       }
-
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: metadata,
-        },
-      });
 
       if (error) {
         toast.error(error.message);
@@ -277,6 +274,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           logger.error('Error fetching profile after sign up:', profileError);
           toast.error('Company setup failed: ' + profileError.message);
+        }
+      }
+
       const session = data.session;
       const newUser = data.user;
 
