@@ -6,6 +6,7 @@ import { Role } from '@/contexts/auth/types';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface AuthDemoOptionsProps {
   selectedRole: Role;
@@ -78,7 +79,7 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
           Fill in Demo Credentials
         </Button>
         
-        {selectedRole !== 'developer' && (
+        {selectedRole !== 'developer' ? (
           <Button
             onClick={handleDirectDemoLogin}
             variant="default"
@@ -86,6 +87,21 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
           >
             Quick Demo Login
           </Button>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="default"
+                disabled
+                className="w-full py-2 bg-salesBlue text-sm font-medium opacity-50 cursor-not-allowed"
+              >
+                Quick Demo Login
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Developer quick demo login is not available</p>
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
 
@@ -93,7 +109,7 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
         {selectedRole === 'manager'
           ? 'Demo Manager Account'
           : selectedRole === 'developer'
-          ? 'Use developer credentials to log in'
+          ? 'Developer quick demo login unavailable. Use your credentials.'
           : 'Demo Sales Rep Account'}
       </p>
     </div>
