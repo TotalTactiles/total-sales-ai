@@ -8,7 +8,7 @@ const Reports: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-foreground dark:text-white">
           Reports & Analytics
         </h1>
         <Button>
@@ -97,7 +97,7 @@ const Reports: React.FC = () => {
             <CardTitle>Custom Reports</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
+            <p className="text-muted-foreground dark:text-gray-400 mb-4">
               Create custom reports with specific metrics and date ranges.
             </p>
             <Button className="w-full">

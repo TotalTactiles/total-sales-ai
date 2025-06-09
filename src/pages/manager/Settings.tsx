@@ -66,8 +66,8 @@ const ManagerSettings = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manager Settings</h1>
-          <p className="text-gray-600">Configure your management preferences and team settings</p>
+          <h1 className="text-3xl font-bold text-foreground">Manager Settings</h1>
+          <p className="text-muted-foreground">Configure your management preferences and team settings</p>
         </div>
         <Button onClick={handleSave}>
           <Save className="h-4 w-4 mr-2" />
@@ -147,7 +147,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Email Notifications</h4>
-                    <p className="text-sm text-gray-600">Receive email updates about important events</p>
+                    <p className="text-sm text-muted-foreground">Receive email updates about important events</p>
                   </div>
                   <Switch
                     checked={settings.emailNotifications}
@@ -158,7 +158,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Push Notifications</h4>
-                    <p className="text-sm text-gray-600">Get real-time notifications in the browser</p>
+                    <p className="text-sm text-muted-foreground">Get real-time notifications in the browser</p>
                   </div>
                   <Switch
                     checked={settings.pushNotifications}
@@ -169,7 +169,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Weekly Reports</h4>
-                    <p className="text-sm text-gray-600">Automated weekly team performance reports</p>
+                    <p className="text-sm text-muted-foreground">Automated weekly team performance reports</p>
                   </div>
                   <Switch
                     checked={settings.weeklyReports}
@@ -180,7 +180,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Deal Alerts</h4>
-                    <p className="text-sm text-gray-600">Notifications for high-value deals and closures</p>
+                    <p className="text-sm text-muted-foreground">Notifications for high-value deals and closures</p>
                   </div>
                   <Switch
                     checked={settings.dealAlerts}
@@ -191,7 +191,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Team Updates</h4>
-                    <p className="text-sm text-gray-600">Updates about team member activities</p>
+                    <p className="text-sm text-muted-foreground">Updates about team member activities</p>
                   </div>
                   <Switch
                     checked={settings.teamUpdates}
@@ -216,7 +216,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">AI Suggestions</h4>
-                    <p className="text-sm text-gray-600">Enable AI-powered recommendations and insights</p>
+                    <p className="text-sm text-muted-foreground">Enable AI-powered recommendations and insights</p>
                   </div>
                   <Switch
                     checked={settings.aiSuggestions}
@@ -227,7 +227,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Voice Commands</h4>
-                    <p className="text-sm text-gray-600">Control the AI assistant with voice commands</p>
+                    <p className="text-sm text-muted-foreground">Control the AI assistant with voice commands</p>
                   </div>
                   <Switch
                     checked={settings.voiceCommands}
@@ -238,7 +238,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Auto Analysis</h4>
-                    <p className="text-sm text-gray-600">Automatic analysis of team performance data</p>
+                    <p className="text-sm text-muted-foreground">Automatic analysis of team performance data</p>
                   </div>
                   <Switch
                     checked={settings.autoAnalysis}
@@ -249,7 +249,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Smart Insights</h4>
-                    <p className="text-sm text-gray-600">Proactive insights and optimization suggestions</p>
+                    <p className="text-sm text-muted-foreground">Proactive insights and optimization suggestions</p>
                   </div>
                   <Switch
                     checked={settings.smartInsights}
@@ -298,7 +298,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Auto Assignment</h4>
-                    <p className="text-sm text-gray-600">Automatically assign new leads to team members</p>
+                    <p className="text-sm text-muted-foreground">Automatically assign new leads to team members</p>
                   </div>
                   <Switch
                     checked={settings.autoAssignment}
@@ -309,7 +309,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Performance Tracking</h4>
-                    <p className="text-sm text-gray-600">Track individual team member performance</p>
+                    <p className="text-sm text-muted-foreground">Track individual team member performance</p>
                   </div>
                   <Switch
                     checked={settings.performanceTracking}
@@ -334,7 +334,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Two-Factor Authentication</h4>
-                    <p className="text-sm text-gray-600">Add an extra layer of security to your account</p>
+                    <p className="text-sm text-muted-foreground">Add an extra layer of security to your account</p>
                   </div>
                   <Switch
                     checked={settings.twoFactor}
@@ -345,7 +345,7 @@ const ManagerSettings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-medium">Data Export</h4>
-                    <p className="text-sm text-gray-600">Allow data export functionality</p>
+                    <p className="text-sm text-muted-foreground">Allow data export functionality</p>
                   </div>
                   <Switch
                     checked={settings.dataExport}
@@ -364,7 +364,7 @@ const ManagerSettings = () => {
                   min="15"
                   max="480"
                 />
-                <p className="text-sm text-gray-600">Automatically log out after period of inactivity</p>
+                <p className="text-sm text-muted-foreground">Automatically log out after period of inactivity</p>
               </div>
             </CardContent>
           </Card>

@@ -50,7 +50,7 @@ const ManagerLeadManagement = () => {
       case 'high': return <AlertTriangle className="h-4 w-4 text-red-500" />;
       case 'medium': return <Clock className="h-4 w-4 text-yellow-500" />;
       case 'low': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      default: return <Clock className="h-4 w-4 text-gray-500" />;
+      default: return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -59,8 +59,8 @@ const ManagerLeadManagement = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Team Lead Management</h1>
-          <p className="text-gray-600">Monitor and manage your team's lead pipeline</p>
+          <h1 className="text-3xl font-bold text-foreground">Team Lead Management</h1>
+          <p className="text-muted-foreground">Monitor and manage your team's lead pipeline</p>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -207,15 +207,15 @@ const ManagerLeadManagement = () => {
                       </div>
                       <div>
                         <h4 className="font-medium">{lead.name}</h4>
-                        <p className="text-sm text-gray-600">{lead.company} • {lead.email}</p>
-                        <p className="text-xs text-gray-500">Assigned to: {lead.assignedTo}</p>
+                        <p className="text-sm text-muted-foreground">{lead.company} • {lead.email}</p>
+                        <p className="text-xs text-muted-foreground">Assigned to: {lead.assignedTo}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <div className="text-right">
                         <p className="text-sm font-medium">Score: {lead.score}%</p>
-                        <p className="text-xs text-gray-500">{lead.daysInPipeline} days in pipeline</p>
-                        <p className="text-xs text-gray-500">Last: {lead.lastActivity}</p>
+                        <p className="text-xs text-muted-foreground">{lead.daysInPipeline} days in pipeline</p>
+                        <p className="text-xs text-muted-foreground">Last: {lead.lastActivity}</p>
                       </div>
                       <Badge className={getStatusColor(lead.status)}>
                         {lead.status}
@@ -246,10 +246,10 @@ const ManagerLeadManagement = () => {
                         <div key={lead.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                           <div>
                             <p className="font-medium text-sm">{lead.name}</p>
-                            <p className="text-xs text-gray-600">{lead.company}</p>
+                            <p className="text-xs text-muted-foreground">{lead.company}</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">{lead.score}%</span>
+                            <span className="text-xs text-muted-foreground">{lead.score}%</span>
                             <Badge className={getStatusColor(lead.status)}>
                               {lead.status}
                             </Badge>
@@ -278,8 +278,8 @@ const ManagerLeadManagement = () => {
                   <div key={lead.id} className="flex items-center justify-between p-4 border-l-4 border-red-400 bg-red-50 rounded-lg">
                     <div>
                       <h4 className="font-medium">{lead.name}</h4>
-                      <p className="text-sm text-gray-600">{lead.company} • Assigned to: {lead.assignedTo}</p>
-                      <p className="text-xs text-gray-500">Score: {lead.score}% • {lead.daysInPipeline} days in pipeline</p>
+                      <p className="text-sm text-muted-foreground">{lead.company} • Assigned to: {lead.assignedTo}</p>
+                      <p className="text-xs text-muted-foreground">Score: {lead.score}% • {lead.daysInPipeline} days in pipeline</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="destructive">High Priority</Badge>
@@ -306,8 +306,8 @@ const ManagerLeadManagement = () => {
                   <div key={lead.id} className="flex items-center justify-between p-4 border-l-4 border-yellow-400 bg-yellow-50 rounded-lg">
                     <div>
                       <h4 className="font-medium">{lead.name}</h4>
-                      <p className="text-sm text-gray-600">{lead.company} • Assigned to: {lead.assignedTo}</p>
-                      <p className="text-xs text-gray-500">Last activity: {lead.lastActivity} • {lead.daysInPipeline} days ago</p>
+                      <p className="text-sm text-muted-foreground">{lead.company} • Assigned to: {lead.assignedTo}</p>
+                      <p className="text-xs text-muted-foreground">Last activity: {lead.lastActivity} • {lead.daysInPipeline} days ago</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Stalled</Badge>

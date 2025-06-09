@@ -123,7 +123,7 @@ const IntegrationsTab = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">Social Media Integrations</h2>
-          <p className="text-gray-600">Connect your social media accounts to enhance AI insights and content analysis.</p>
+          <p className="text-muted-foreground">Connect your social media accounts to enhance AI insights and content analysis.</p>
         </div>
         <Button variant="outline" onClick={() => window.location.reload()}>
           <RefreshCw className="h-4 w-4 mr-2" />
@@ -155,10 +155,10 @@ const IntegrationsTab = () => {
               </CardHeader>
               
               <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600">{integration.description}</p>
+                <p className="text-sm text-muted-foreground">{integration.description}</p>
                 
                 {integration.connected && integration.lastSync && (
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     Last synced: {new Date(integration.lastSync).toLocaleString()}
                   </div>
                 )}
@@ -208,7 +208,7 @@ const IntegrationsTab = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <h4 className="font-semibold text-sm">Data Ingested:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
+              <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Posts, captions, and hashtags</li>
                 <li>• Comments and replies</li>
                 <li>• Engagement metrics (likes, shares, views)</li>
@@ -218,7 +218,7 @@ const IntegrationsTab = () => {
             </div>
             <div className="space-y-2">
               <h4 className="font-semibold text-sm">AI Enhancements:</h4>
-              <ul className="text-sm text-gray-600 space-y-1">
+              <ul className="text-sm text-muted-foreground space-y-1">
                 <li>• Content-aware lead responses</li>
                 <li>• Brand voice consistency</li>
                 <li>• Market trend analysis</li>

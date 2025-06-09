@@ -14,7 +14,7 @@ const KnowledgeTab: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Add documents or URLs to build your company knowledge base.
           </p>
           <Button size="sm">Upload Content</Button>
@@ -29,7 +29,7 @@ const KnowledgeTab: React.FC = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Quickly search through all indexed material and refresh when needed.
           </p>
           <Button variant="outline" size="sm">

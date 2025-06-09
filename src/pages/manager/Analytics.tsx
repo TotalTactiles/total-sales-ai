@@ -23,8 +23,8 @@ const ManagerAnalytics = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manager Analytics</h1>
-          <p className="text-gray-600">Comprehensive team performance insights</p>
+          <h1 className="text-3xl font-bold text-foreground">Manager Analytics</h1>
+          <p className="text-muted-foreground">Comprehensive team performance insights</p>
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
@@ -164,7 +164,7 @@ const ManagerAnalytics = () => {
                       </div>
                       <div>
                         <h4 className="font-medium">{rep.name}</h4>
-                        <p className="text-sm text-gray-600">{rep.deals} deals • {rep.value} pipeline</p>
+                        <p className="text-sm text-muted-foreground">{rep.deals} deals • {rep.value} pipeline</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -201,7 +201,7 @@ const ManagerAnalytics = () => {
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div>
                         <p className="font-medium text-sm">{source.source}</p>
-                        <p className="text-xs text-gray-600">{source.leads} leads • {source.conversion} conversion</p>
+                        <p className="text-xs text-muted-foreground">{source.leads} leads • {source.conversion} conversion</p>
                       </div>
                       <Badge variant="outline">{source.cost} CAC</Badge>
                     </div>
@@ -244,14 +244,14 @@ const ManagerAnalytics = () => {
                 <div className="grid grid-cols-5 gap-4 text-center">
                   <div className="p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">1,240</div>
-                    <p className="text-sm text-gray-600">Visitors</p>
+                    <p className="text-sm text-muted-foreground">Visitors</p>
                   </div>
                   <div className="flex items-center">
                     <div className="text-lg text-gray-400">→</div>
                   </div>
                   <div className="p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">186</div>
-                    <p className="text-sm text-gray-600">Demos Booked</p>
+                    <p className="text-sm text-muted-foreground">Demos Booked</p>
                     <p className="text-xs text-green-600">15% conversion</p>
                   </div>
                   <div className="flex items-center">
@@ -259,7 +259,7 @@ const ManagerAnalytics = () => {
                   </div>
                   <div className="p-4 border rounded-lg">
                     <div className="text-2xl font-bold text-blue-600">45</div>
-                    <p className="text-sm text-gray-600">Deals Closed</p>
+                    <p className="text-sm text-muted-foreground">Deals Closed</p>
                     <p className="text-xs text-green-600">24% close rate</p>
                   </div>
                 </div>
