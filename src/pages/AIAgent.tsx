@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import AIAgentDashboard from '@/components/AIAgent/AIAgentDashboard';
@@ -7,18 +8,22 @@ import AIAgentVoiceConfig from '@/components/AIAgent/AIAgentVoiceConfig';
 import AIAgentFeedback from '@/components/AIAgent/AIAgentFeedback';
 import AIAgentLearningEngine from '@/components/AIAgent/AIAgentLearningEngine';
 import AIAgentAutomation from '@/components/AIAgent/AIAgentAutomation';
-import AgenticWorkflows from '@/components/AIAgent/AgenticWorkflows';
+import AgenticWorkflows from '@/components/RelevanceAI/AgenticWorkflows';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Headphones, ClipboardList, Clock, Settings, LineChart, Brain, Zap } from 'lucide-react';
+
 interface AIAgentProps {
   hideNavigation?: boolean;
 }
+
 const AIAgent: React.FC<AIAgentProps> = ({
   hideNavigation = false
 }) => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-purple-50/10">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-purple-50/10">
       {!hideNavigation && <Navigation />}
       
       <div className="flex-1 px-4 py-4">
@@ -113,6 +118,8 @@ const AIAgent: React.FC<AIAgentProps> = ({
           </Tabs>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default AIAgent;
