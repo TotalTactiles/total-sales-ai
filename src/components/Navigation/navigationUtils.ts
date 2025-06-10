@@ -18,6 +18,25 @@ export const getDashboardUrl = (profile?: Profile | { role: Role } | null): stri
   }
 };
 
+export const shouldShowNavItem = (href: string, profile?: Profile | null): boolean => {
+  if (!profile) return false;
+
+  // Developer can see all nav items
+  if (profile.role === 'developer') return true;
+
+  // Manager can see manager and sales items
+  if (profile.role === 'manager') {
+    return !href.includes('/developer/');
+  }
+
+  // Sales rep can only see sales items
+  if (profile.role === 'sales_rep') {
+    return href.includes('/sales/') || href.includes('/dashboard');
+  }
+
+  return false;
+};
+
 export const updateActiveItem = (pathname: string, setActiveItem: (item: string) => void) => {
   if (pathname.includes('/dashboard')) {
     setActiveItem('dashboard');
