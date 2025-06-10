@@ -7,6 +7,7 @@ import AIAgentVoiceConfig from '@/components/AIAgent/AIAgentVoiceConfig';
 import AIAgentFeedback from '@/components/AIAgent/AIAgentFeedback';
 import AIAgentLearningEngine from '@/components/AIAgent/AIAgentLearningEngine';
 import AIAgentAutomation from '@/components/AIAgent/AIAgentAutomation';
+import AgenticWorkflows from '@/components/AIAgent/AgenticWorkflows';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Headphones, ClipboardList, Clock, Settings, LineChart, Brain, Zap } from 'lucide-react';
@@ -33,7 +34,7 @@ const AIAgent: React.FC<AIAgentProps> = ({
                   <h1 className="flat-heading-lg text-3xl font-bold">
                     AI Calling Agent
                   </h1>
-                  <p className="text-slate-600 mt-0.5 text-base">Autonomous AI agnet for lead outreach, qualification & convertion</p>
+                  <p className="text-slate-600 mt-0.5 text-base">Autonomous AI agent for lead outreach, qualification & conversion</p>
                 </div>
               </div>
             </div>
@@ -42,15 +43,18 @@ const AIAgent: React.FC<AIAgentProps> = ({
           {/* Compact Tabs */}
           <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-lg p-1 mb-4 shadow-sm">
-              <TabsList className="grid grid-cols-7 w-full bg-transparent gap-0.5">
+              <TabsList className="grid grid-cols-8 w-full bg-transparent gap-0.5">
                 <TabsTrigger value="dashboard" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <LineChart className="h-3 w-3" />
                   <span className="hidden sm:inline text-xs">Dashboard</span>
                 </TabsTrigger>
-                <TabsTrigger value="automation" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
+                <TabsTrigger value="workflows" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <Zap className="h-3 w-3" />
+                  <span className="hidden sm:inline text-xs">Workflows</span>
+                </TabsTrigger>
+                <TabsTrigger value="automation" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
+                  <Brain className="h-3 w-3" />
                   <span className="hidden sm:inline text-xs">Automation</span>
-                  
                 </TabsTrigger>
                 <TabsTrigger value="call-queue" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
                   <ClipboardList className="h-3 w-3" />
@@ -77,6 +81,10 @@ const AIAgent: React.FC<AIAgentProps> = ({
 
             <TabsContent value="dashboard">
               <AIAgentDashboard />
+            </TabsContent>
+            
+            <TabsContent value="workflows">
+              <AgenticWorkflows />
             </TabsContent>
             
             <TabsContent value="automation">
