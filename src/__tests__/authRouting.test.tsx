@@ -41,6 +41,7 @@ const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     loading: false,
     signIn,
     signUp: async () => ({}),
+    signUpWithOAuth: async () => ({}),
     signOut,
     fetchProfile,
     isDemoMode: () => false,

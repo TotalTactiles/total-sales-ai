@@ -55,7 +55,7 @@ export const useSystemHealth = () => {
         const result = await supabase.auth.getUser();
         providerMetrics.push({
           endpoint: 'auth',
-          statusCode: result.error ? result.error.status || 500 : 200,
+          statusCode: result.error ? 500 : 200,
           latencyMs: performance.now() - t0
         });
         return result;
@@ -68,7 +68,7 @@ export const useSystemHealth = () => {
         const res = await supabase.from('profiles').select('id').limit(1);
         providerMetrics.push({
           endpoint: 'database',
-          statusCode: res.error ? res.error.status || 500 : 200,
+          statusCode: res.error ? 500 : 200,
           latencyMs: performance.now() - t0
         });
         return res;
@@ -79,7 +79,7 @@ export const useSystemHealth = () => {
         const res = await supabase.functions.invoke('openai-chat', { body: { prompt: 'ping' } });
         providerMetrics.push({
           endpoint: 'openai-chat',
-          statusCode: res.error ? res.error.status || 500 : 200,
+          statusCode: res.error ? 500 : 200,
           latencyMs: performance.now() - t0
         });
         return res;
@@ -90,7 +90,7 @@ export const useSystemHealth = () => {
         const res = await supabase.functions.invoke('claude-chat', { body: { prompt: 'ping' } });
         providerMetrics.push({
           endpoint: 'claude-chat',
-          statusCode: res.error ? res.error.status || 500 : 200,
+          statusCode: res.error ? 500 : 200,
           latencyMs: performance.now() - t0
         });
         return res;
@@ -101,7 +101,7 @@ export const useSystemHealth = () => {
         const res = await supabase.functions.invoke('retell-ai', { body: { test: true } });
         providerMetrics.push({
           endpoint: 'retell-ai',
-          statusCode: res.error ? res.error.status || 500 : 200,
+          statusCode: res.error ? 500 : 200,
           latencyMs: performance.now() - t0
         });
         return !res.error;
@@ -112,7 +112,7 @@ export const useSystemHealth = () => {
         const res = await supabase.functions.invoke('elevenlabs-speech', { body: { test: true } });
         providerMetrics.push({
           endpoint: 'elevenlabs-speech',
-          statusCode: res.error ? res.error.status || 500 : 200,
+          statusCode: res.error ? 500 : 200,
           latencyMs: performance.now() - t0
         });
         return !res.error;
@@ -148,11 +148,13 @@ export const useSystemHealth = () => {
         const severity = metric.statusCode >= 500 ? 'error' : metric.statusCode >= 400 ? 'warning' : 'info';
         await supabase.from('ai_brain_logs').insert({
           type: 'system_health_metric',
-          endpoint: metric.endpoint,
-          status_code: metric.statusCode,
-          latency_ms: Math.round(metric.latencyMs),
-          agent_id: agentId,
-          severity,
+          event_summary: `${metric.endpoint}: ${metric.statusCode} (${Math.round(metric.latencyMs)}ms)`,
+          payload: {
+            endpoint: metric.endpoint,
+            status_code: metric.statusCode,
+            latency_ms: Math.round(metric.latencyMs),
+            agent_id: agentId
+          },
           timestamp: new Date().toISOString(),
           visibility: 'admin_only'
         });

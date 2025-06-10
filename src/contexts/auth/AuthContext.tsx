@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
@@ -325,15 +324,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         toast.error(error.message);
         return { error };
-      }
-
-      if (data.session && data.session.user) {
-        const { session } = data;
-        setSession(session);
-        setUser(session.user);
-        const fetchedProfile = await fetchProfile(session.user.id);
-        toast.success('Signed in successfully');
-        return { profile: fetchedProfile || undefined };
       }
 
       if (data.url) {
