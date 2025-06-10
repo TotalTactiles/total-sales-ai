@@ -2,24 +2,49 @@
 import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
+import { VoiceInteractionState, VoiceInteractionOptions } from '@/hooks/voice/types';
 
-interface VoiceInteractionState {
-  isListening: boolean;
-  isProcessing: boolean;
-  transcript: string;
-  error: string | null;
-}
-
-export const useVoiceInteraction = () => {
+export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
   const [state, setState] = useState<VoiceInteractionState>({
     isListening: false,
     isProcessing: false,
+    isSpeaking: false,
+    isWakeWordActive: false,
+    isDetecting: false,
     transcript: '',
-    error: null
+    response: '',
+    error: null,
+    permissionState: 'unknown',
+    microphoneSupported: true
   });
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  const checkMicrophoneSupport = useCallback(() => {
+    const supported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) &&
+                     (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window));
+    
+    setState(prev => ({ ...prev, microphoneSupported: supported }));
+    return supported;
+  }, []);
+
+  const requestMicrophonePermission = useCallback(async () => {
+    try {
+      if (!checkMicrophoneSupport()) {
+        setState(prev => ({ ...prev, permissionState: 'denied' }));
+        return false;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setState(prev => ({ ...prev, permissionState: 'granted' }));
+      return true;
+    } catch (error) {
+      setState(prev => ({ ...prev, permissionState: 'denied' }));
+      return false;
+    }
+  }, [checkMicrophoneSupport]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {
@@ -33,16 +58,18 @@ export const useVoiceInteraction = () => {
 
   const startListening = useCallback(async () => {
     try {
-      // Check for speech recognition support
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      if (!checkMicrophoneSupport()) {
         throw new Error('Speech recognition not supported in this browser');
       }
 
-      // Request microphone permission
+      const hasPermission = await requestMicrophonePermission();
+      if (!hasPermission) {
+        throw new Error('Microphone permission denied');
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
-      // Initialize speech recognition
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
       recognitionRef.current = recognition;
@@ -86,18 +113,18 @@ export const useVoiceInteraction = () => {
       logger.error('Failed to start voice recognition:', error);
       toast.error(errorMessage);
     }
-  }, []);
+  }, [checkMicrophoneSupport, requestMicrophonePermission]);
 
   const processVoiceCommand = useCallback(async (command: string) => {
     setState(prev => ({ ...prev, isProcessing: true }));
     
     try {
-      // Process the voice command here
       logger.info('Processing voice command:', command);
       
-      // Add your voice command processing logic here
+      // Simulate AI response
+      const response = `Processed command: ${command}`;
+      setState(prev => ({ ...prev, response, isProcessing: false }));
       
-      setState(prev => ({ ...prev, isProcessing: false }));
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to process voice command';
       setState(prev => ({ ...prev, error: errorMessage, isProcessing: false }));
@@ -106,10 +133,21 @@ export const useVoiceInteraction = () => {
     }
   }, []);
 
+  const toggleWakeWord = useCallback(() => {
+    setState(prev => ({ ...prev, isWakeWordActive: !prev.isWakeWordActive }));
+  }, []);
+
+  const clearError = useCallback(() => {
+    setState(prev => ({ ...prev, error: null }));
+  }, []);
+
   return {
     ...state,
     startListening,
     stopListening,
-    processVoiceCommand
+    processVoiceCommand,
+    toggleWakeWord,
+    clearError,
+    requestMicrophonePermission
   };
 };
