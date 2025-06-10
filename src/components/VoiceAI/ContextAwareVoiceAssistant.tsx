@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
@@ -97,15 +98,11 @@ const ContextAwareVoiceAssistant: React.FC<ContextAwareVoiceAssistantProps> = ({
       {/* Voice Assistant Bubble */}
       {activeMode === 'voice' && (
         <VoiceAssistantBubble
-          context={workspaceContext}
-          workspaceData={{
+          context={{
+            workspace: workspaceContext,
             currentLead,
-            isCallActive,
-            emailContext,
-            smsContext
+            isCallActive
           }}
-          wakeWord={`Hey ${getAssistantName()}`}
-          position="bottom-right"
         />
       )}
 

@@ -1,10 +1,11 @@
+
 import { logger } from '@/utils/logger';
 
 import { useRef, useCallback } from 'react';
-import { SpeechRecognition } from './types';
+import { SpeechRecognitionType } from './types';
 
 export const useSpeechRecognition = () => {
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionType | null>(null);
 
   const createRecognition = useCallback(() => {
     const SpeechRecognitionConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -22,7 +23,7 @@ export const useSpeechRecognition = () => {
   }, []);
 
   const setupRecognitionHandlers = useCallback((
-    recognition: SpeechRecognition,
+    recognition: SpeechRecognitionType,
     handlers: {
       onResult: (transcript: string) => void;
       onError: (error: string) => void;
