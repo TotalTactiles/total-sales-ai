@@ -136,7 +136,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // If Supabase isn't configured, fall back to local demo mode
       if (!isSupabaseConfigured) {
-        const role: Role = email.includes('manager') ? 'manager' : 'sales_rep';
+        let role: Role = 'sales_rep'; // Default fallback
+        
+        // Determine role based on email for demo mode
+        if (email.includes('krishdev') || email.includes('developer')) {
+          role = 'developer';
+        } else if (email.includes('manager')) {
+          role = 'manager';
+        }
+        
         const { demoUser, demoProfile } = initializeDemoUser(role);
         localStorage.setItem('demoMode', 'true');
         localStorage.setItem('demoRole', role);
