@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { withRetry } from '@/utils/withRetry';
 import { unifiedAIService } from './unifiedAIService';
@@ -55,7 +54,7 @@ export class VoiceAIService {
     try {
       // Convert audio to text
       const { data, error } = await withRetry(
-        () =>
+        async () =>
           supabase.functions.invoke('voice-to-text', {
             body: {
               audio: await this.blobToBase64(audioBlob),
@@ -130,6 +129,7 @@ export class VoiceAIService {
       }
     }
   }
+
   async initiateAICall(
     phoneNumber: string,
     leadId: string,

@@ -87,14 +87,6 @@ export type Database = {
           event_summary: string | null
           id: string
           payload: Json | null
-          endpoint: string | null
-          status_code: number | null
-          latency_ms: number | null
-          agent_id: string | null
-          severity: string | null
-          agent_id: string | null
-          ai_type: string | null
-          error_type: string | null
           timestamp: string | null
           type: string | null
           visibility: string | null
@@ -104,14 +96,6 @@ export type Database = {
           event_summary?: string | null
           id?: string
           payload?: Json | null
-          endpoint?: string | null
-          status_code?: number | null
-          latency_ms?: number | null
-          agent_id?: string | null
-          severity?: string | null
-          agent_id?: string | null
-          ai_type?: string | null
-          error_type?: string | null
           timestamp?: string | null
           type?: string | null
           visibility?: string | null
@@ -121,14 +105,6 @@ export type Database = {
           event_summary?: string | null
           id?: string
           payload?: Json | null
-          endpoint?: string | null
-          status_code?: number | null
-          latency_ms?: number | null
-          agent_id?: string | null
-          severity?: string | null
-          agent_id?: string | null
-          ai_type?: string | null
-          error_type?: string | null
           timestamp?: string | null
           type?: string | null
           visibility?: string | null
@@ -439,36 +415,6 @@ export type Database = {
           error_type?: string
           id?: string
           provider?: string
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      api_logs: {
-        Row: {
-          endpoint: string
-          id: string
-          method: string
-          response_time: number
-          status: number
-          timestamp: string | null
-          user_id: string | null
-        }
-        Insert: {
-          endpoint: string
-          id?: string
-          method: string
-          response_time: number
-          status: number
-          timestamp?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          endpoint?: string
-          id?: string
-          method?: string
-          response_time?: number
-          status?: number
           timestamp?: string | null
           user_id?: string | null
         }
