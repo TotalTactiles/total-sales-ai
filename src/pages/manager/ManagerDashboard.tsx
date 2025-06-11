@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useDemoData } from '@/contexts/DemoDataContext';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerOverviewCards from '@/components/Manager/ManagerOverviewCards';
 import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
 import ManagerAIAssistant from '@/components/ManagerAI/ManagerAIAssistant';
@@ -108,8 +107,6 @@ const ManagerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <ManagerNavigation />
-      
       <main className="pt-[60px]">
         <div className="flex-1 px-4 md:px-6 py-6">
           <div className="max-w-7xl mx-auto">
