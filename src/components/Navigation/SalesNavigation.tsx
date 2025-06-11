@@ -1,29 +1,32 @@
-
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Grid, Users, BarChart3, GraduationCap, Wrench, Phone, Bot, Menu, X } from 'lucide-react';
-import Logo from '@/components/Logo';
+import React from 'react';
+import { Grid, Users, BarChart3, GraduationCap, Wrench, Phone, Bot } from 'lucide-react';
+import OSNavigation from './OSNavigation';
 import UserProfile from '@/components/UserProfile';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 
-const SalesNavigation = () => {
-  const location = useLocation();
-  const { profile } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+const navItems = [
+  { label: 'Dashboard', href: '/sales/dashboard', icon: Grid },
+  { label: 'Lead Management', href: '/sales/lead-management', icon: Users },
+  { label: 'AI Agent', href: '/sales/ai', icon: Bot },
+  { label: 'Dialer', href: '/sales/dialer', icon: Phone },
+  { label: 'Analytics', href: '/sales/analytics', icon: BarChart3 },
+  { label: 'Academy', href: '/sales/academy', icon: GraduationCap },
+  { label: 'Settings', href: '/sales/settings', icon: Wrench },
+];
 
-  const navItems = [
-    { label: 'Dashboard', href: '/sales/dashboard', icon: Grid },
-    { label: 'Lead Management', href: '/sales/lead-management', icon: Users },
-    { label: 'AI Agent', href: '/sales/ai', icon: Bot },
-    { label: 'Dialer', href: '/sales/dialer', icon: Phone },
-    { label: 'Analytics', href: '/sales/analytics', icon: BarChart3 },
-    { label: 'Academy', href: '/sales/academy', icon: GraduationCap },
-    { label: 'Settings', href: '/sales/settings', icon: Wrench },
-  ];
+const SalesNavigation: React.FC = () => {
+  const { profile } = useAuth();
 
   return (
     <header className="fixed bottom-0 left-0 right-0 border-t z-50 bg-background border-border shadow-sm">
+    <OSNavigation
+      items={navItems}
+      role="Sales OS"
+      icon={Users}
+      actions={
+        <>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
       <div className="h-[60px] flex items-center justify-between px-6">
         <div className="flex items-center">
           <Logo />
@@ -34,7 +37,7 @@ const SalesNavigation = () => {
         </div>
 
         {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-6" aria-label="Sales navigation">
           {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href ||
@@ -45,6 +48,7 @@ const SalesNavigation = () => {
               <Link
                 key={item.label}
                 to={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
@@ -52,7 +56,7 @@ const SalesNavigation = () => {
                 }`}
               >
                 <IconComponent className="h-4 w-4" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
@@ -62,6 +66,8 @@ const SalesNavigation = () => {
         <button
           className="md:hidden p-2 rounded-md hover:bg-accent focus:outline-none"
           onClick={() => setMobileMenuOpen(prev => !prev)}
+          aria-label="Toggle navigation menu"
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -69,15 +75,18 @@ const SalesNavigation = () => {
         <div className="flex items-center space-x-4">
           <ThemeToggle />
           <UserProfile
-            name={profile?.full_name || "Sales Rep"}
+            name={profile?.full_name || 'Sales Rep'}
             role="Sales Representative"
           />
+        </>
+      }
+    />
         </div>
       </div>
 
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background px-6 py-4">
-          <div className="space-y-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
+          <div className="flex space-x-3 overflow-x-auto whitespace-nowrap" style={{ maxWidth: '100%' }}>
             {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href ||
@@ -89,6 +98,8 @@ const SalesNavigation = () => {
                 key={item.label}
                 to={item.href}
                 onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors w-full ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
@@ -96,7 +107,7 @@ const SalesNavigation = () => {
                 }`}
               >
                 <IconComponent className="h-4 w-4" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
