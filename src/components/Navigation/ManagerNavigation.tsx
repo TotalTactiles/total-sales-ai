@@ -60,13 +60,14 @@ const ManagerNavigation = () => {
             <span className="my-[8px] mx-[12px]">Manager</span>
           </div>
         </div>
-
         <nav className="hidden md:flex items-center space-x-6">
           <div className="flex space-x-6 overflow-x-auto whitespace-nowrap">
+        <nav className="hidden md:flex items-center space-x-6" aria-label="Manager navigation">
+          <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
             {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href;
-            return <Link key={item.label} to={item.href} className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}>
+            return <Link key={item.label} to={item.href} aria-current={isActive ? 'page' : undefined} className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}>
                   <IconComponent className="h-4 w-4" />
                   <span>{item.label}</span>
                 </Link>;

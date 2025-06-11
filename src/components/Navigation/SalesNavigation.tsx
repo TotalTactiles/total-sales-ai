@@ -34,7 +34,7 @@ const SalesNavigation = () => {
         </div>
 
         {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-6" aria-label="Sales navigation">
           {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href ||
@@ -45,6 +45,7 @@ const SalesNavigation = () => {
               <Link
                 key={item.label}
                 to={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
@@ -52,7 +53,7 @@ const SalesNavigation = () => {
                 }`}
               >
                 <IconComponent className="h-4 w-4" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
@@ -62,6 +63,8 @@ const SalesNavigation = () => {
         <button
           className="md:hidden p-2 rounded-md hover:bg-accent focus:outline-none"
           onClick={() => setMobileMenuOpen(prev => !prev)}
+          aria-label="Toggle navigation menu"
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -90,13 +93,15 @@ const SalesNavigation = () => {
                 to={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors w-full ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                 }`}
               >
                 <IconComponent className="h-4 w-4" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
