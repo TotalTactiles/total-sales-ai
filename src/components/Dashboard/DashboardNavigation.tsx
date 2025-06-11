@@ -31,18 +31,19 @@ const DashboardNavigation = () => {
         </div>
 
         {/* Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-8" aria-label="Dashboard navigation">
           {navItems.map((item) => {
             const IconComponent = item.icon;
             const isActive =
               location.pathname === item.href ||
               ((item.href === '/sales/dashboard' || item.href === '/manager/dashboard') &&
                 location.pathname === '/');
-            
+
             return (
               <Link
                 key={item.label}
                 to={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary text-primary-foreground'

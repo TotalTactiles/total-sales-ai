@@ -77,6 +77,58 @@ const DeveloperNavigation: React.FC = () => {
       </Button>
     </>
   );
+  return (
+    <nav className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50" aria-label="Developer navigation">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex">
+            <div className="flex-shrink-0 flex items-center">
+              <Code className="h-8 w-8 text-cyan-400" />
+              <span className="ml-2 text-xl font-bold text-white">Developer OS</span>
+              <Badge className="ml-2 bg-cyan-500 text-white">
+                <Zap className="h-3 w-3 mr-1" />
+                TESTING MODE
+              </Badge>
+            </div>
+          </div>
+
+          <div className="hidden md:ml-6 md:flex md:space-x-8">
+            <div className="flex space-x-8 overflow-x-auto whitespace-nowrap">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.href;
+              
+              return (
+                <Link
+                  key={item.href}
+                  to={item.href}
+                  className={`flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-slate-700 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            {/* Developer-only role simulation toggle */}
+            <Button
+              onClick={toggleTestMode}
+              variant="outline"
+              size="sm"
+              className="text-white border-slate-600 hover:bg-slate-700"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Test as {testMode === 'developer' ? 'Manager' : testMode === 'manager' ? 'Sales Rep' : 'Developer'}
+            </Button>
 
   const badge = (
     <Badge className="ml-2 bg-cyan-500 text-white">

@@ -25,6 +25,53 @@ const SalesNavigation: React.FC = () => {
       icon={Users}
       actions={
         <>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
+      <div className="h-[60px] flex items-center justify-between px-6">
+        <div className="flex items-center">
+          <Logo />
+          <div className="flex items-center space-x-1 text-sm text-muted-foreground ml-2">
+            <Users className="h-4 w-4" />
+            <span className="text-xs">Sales OS</span>
+          </div>
+        </div>
+
+        {/* Desktop navigation */}
+        <nav className="hidden md:flex items-center space-x-6" aria-label="Sales navigation">
+          {navItems.map(item => {
+            const IconComponent = item.icon;
+            const isActive = location.pathname === item.href ||
+              (item.href.includes('dashboard') && location.pathname === '/sales') ||
+              (item.href.includes('lead-management') && location.pathname.includes('lead-management'));
+            
+            return (
+              <Link
+                key={item.label}
+                to={item.href}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+              >
+                <IconComponent className="h-4 w-4" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Mobile menu toggle */}
+        <button
+          className="md:hidden p-2 rounded-md hover:bg-accent focus:outline-none"
+          onClick={() => setMobileMenuOpen(prev => !prev)}
+          aria-label="Toggle navigation menu"
+          aria-expanded={mobileMenuOpen}
+        >
+          {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </button>
+
+        <div className="flex items-center space-x-4">
           <ThemeToggle />
           <UserProfile
             name={profile?.full_name || 'Sales Rep'}
@@ -33,6 +80,40 @@ const SalesNavigation: React.FC = () => {
         </>
       }
     />
+        </div>
+      </div>
+
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-border bg-background px-6 py-4">
+          <div className="flex space-x-3 overflow-x-auto whitespace-nowrap" style={{ maxWidth: '100%' }}>
+            {navItems.map(item => {
+            const IconComponent = item.icon;
+            const isActive = location.pathname === item.href ||
+              (item.href.includes('dashboard') && location.pathname === '/sales') ||
+              (item.href.includes('lead-management') && location.pathname.includes('lead-management'));
+
+            return (
+              <Link
+                key={item.label}
+                to={item.href}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors w-full ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                }`}
+              >
+                <IconComponent className="h-4 w-4" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+          </div>
+        </div>
+      )}
+    </header>
   );
 };
 

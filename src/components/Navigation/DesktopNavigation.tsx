@@ -8,11 +8,19 @@ interface DesktopNavigationProps {
   navItems: NavItem[];
   activeItem: string;
 }
-
 const DesktopNavigation: React.FC<DesktopNavigationProps> = ({ navItems, activeItem }) => {
   const location = useLocation();
   const { profile } = useAuth();
   const filteredNavItems = navItems.filter(item => shouldShowNavItem(item.href, profile));
+const DesktopNavigation: React.FC<DesktopNavigationProps> = ({
+  navItems,
+  activeItem,
+}) => {
+  const location = useLocation();
+  const { profile } = useAuth();
+  const filteredNavItems = navItems.filter(item =>
+    shouldShowNavItem(item.href, profile)
+  );
 
   return (
     <div className="hidden lg:block">
