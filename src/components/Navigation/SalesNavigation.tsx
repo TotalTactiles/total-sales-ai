@@ -53,7 +53,7 @@ const SalesNavigation = () => {
                 }`}
               >
                 <IconComponent className="h-4 w-4" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
@@ -100,7 +100,7 @@ const SalesNavigation = () => {
                 }`}
               >
                 <IconComponent className="h-4 w-4" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <span>{item.label}</span>
               </Link>
             );
           })}
