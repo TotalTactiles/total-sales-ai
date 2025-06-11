@@ -13,6 +13,20 @@ export interface AgentContext {
   recentActions?: any[];
   tone?: string;
   industry?: string;
+  
+  // Extended context for enhanced functionality
+  teamComparison?: any;
+  industryBenchmarks?: any;
+  performanceHistory?: any;
+  similarLeadOutcomes?: any;
+  recentFeedback?: any[];
+  
+  // Task-specific context
+  query?: string;
+  isCallActive?: boolean;
+  leadId?: string;
+  scenario?: string;
+  objection?: string;
 }
 
 export interface AgentTask {
@@ -141,13 +155,13 @@ class AgentOrchestrator {
       .map(f => f.correction);
 
     // If similar corrections appear 3+ times, trigger learning
-    const correctionCounts = recentCorrections.reduce((acc, corr) => {
+    const correctionCounts = recentCorrections.reduce((acc: Record<string, number>, corr: string) => {
       acc[corr] = (acc[corr] || 0) + 1;
       return acc;
-    }, {} as Record<string, number>);
+    }, {});
 
     for (const [corr, count] of Object.entries(correctionCounts)) {
-      if (count >= 3) {
+      if (typeof count === 'number' && count >= 3) {
         logger.info('Triggering agent learning for repeated correction:', { userId, correction: corr });
         // Here you would implement the learning signal back to the system
       }

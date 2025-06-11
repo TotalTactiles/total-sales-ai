@@ -37,7 +37,7 @@ const AgentRiskPrediction: React.FC = () => {
   const getRiskColor = (level: string) => {
     switch (level) {
       case 'high': return 'destructive';
-      case 'medium': return 'warning';
+      case 'medium': return 'default';
       case 'low': return 'secondary';
       default: return 'secondary';
     }
