@@ -1,9 +1,10 @@
 
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import RelevanceAIBubble from '@/components/RelevanceAI/RelevanceAIBubble';
+import EnhancedRelevanceAIBubble from '@/components/RelevanceAI/EnhancedRelevanceAIBubble';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAIContext } from '@/contexts/AIContext';
+import { useRelevanceAITriggers } from '@/hooks/useRelevanceAITriggers';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -12,9 +13,12 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { profile } = useAuth();
-  const { workspace, currentLead, isCallActive } = useAIContext();
+  const { workspace, currentLead, isCallActive, callDuration } = useAIContext();
+  
+  // Initialize real-time triggers
+  useRelevanceAITriggers();
 
-  // Show Relevance AI bubble on all authenticated pages except auth pages
+  // Show enhanced Relevance AI bubble on all authenticated pages except auth pages
   const showAIBubble = profile && !location.pathname.includes('/auth');
 
   return (
@@ -22,11 +26,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       {children}
       
       {showAIBubble && (
-        <RelevanceAIBubble
+        <EnhancedRelevanceAIBubble
           context={{
             workspace,
             currentLead,
-            isCallActive
+            isCallActive,
+            callDuration
           }}
         />
       )}

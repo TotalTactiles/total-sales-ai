@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   BarChart3, 
@@ -83,5 +82,14 @@ export const createNavItems = (getDashboardUrl: () => string): NavItem[] => [
     label: 'Settings',
     href: '/settings',
     description: 'Account and system settings'
+  }
+];
+
+export const getDeveloperNavigation = (): NavigationItem[] => [
+  {
+    name: 'Relevance AI Monitor',
+    href: '/developer/relevance-ai',
+    icon: Bot,
+    description: 'Monitor Relevance AI agent health and task execution'
   }
 ];

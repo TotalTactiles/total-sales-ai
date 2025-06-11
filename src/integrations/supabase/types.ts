@@ -45,6 +45,93 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_agent_status: {
+        Row: {
+          agent_name: string
+          error_count: number | null
+          id: string
+          last_health_check: string | null
+          metadata: Json | null
+          response_time_ms: number | null
+          status: string
+          success_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_name: string
+          error_count?: number | null
+          id?: string
+          last_health_check?: string | null
+          metadata?: Json | null
+          response_time_ms?: number | null
+          status?: string
+          success_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_name?: string
+          error_count?: number | null
+          id?: string
+          last_health_check?: string | null
+          metadata?: Json | null
+          response_time_ms?: number | null
+          status?: string
+          success_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ai_agent_tasks: {
+        Row: {
+          agent_type: string
+          company_id: string
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          input_payload: Json | null
+          output_payload: Json | null
+          retry_count: number | null
+          started_at: string | null
+          status: string
+          task_type: string
+          user_id: string | null
+        }
+        Insert: {
+          agent_type: string
+          company_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_payload?: Json | null
+          output_payload?: Json | null
+          retry_count?: number | null
+          started_at?: string | null
+          status?: string
+          task_type: string
+          user_id?: string | null
+        }
+        Update: {
+          agent_type?: string
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          input_payload?: Json | null
+          output_payload?: Json | null
+          retry_count?: number | null
+          started_at?: string | null
+          status?: string
+          task_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       ai_brain_insights: {
         Row: {
           accepted: boolean | null
@@ -1071,6 +1158,36 @@ export type Database = {
           new_company_id?: string
           referral_code?: string
           referring_company_id?: string
+        }
+        Relationships: []
+      }
+      relevance_usage: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          requests_limit: number
+          requests_used: number
+          tier: string
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          requests_limit?: number
+          requests_used?: number
+          tier?: string
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          requests_limit?: number
+          requests_used?: number
+          tier?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
