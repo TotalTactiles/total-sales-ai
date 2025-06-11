@@ -76,8 +76,9 @@ const SalesNavigation = () => {
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background px-6 py-4 space-y-3">
-          {navItems.map(item => {
+        <div className="md:hidden border-t border-border bg-background px-6 py-4">
+          <div className="space-y-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
+            {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href ||
               (item.href.includes('dashboard') && location.pathname === '/sales') ||
@@ -99,6 +100,7 @@ const SalesNavigation = () => {
               </Link>
             );
           })}
+          </div>
         </div>
       )}
     </header>
