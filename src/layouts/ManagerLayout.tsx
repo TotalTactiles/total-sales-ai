@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
+import ManagerSidebar from '@/components/Navigation/ManagerSidebar';
 
 // Manager pages
 import ManagerDashboard from '@/pages/manager/Dashboard';
@@ -18,10 +18,12 @@ import ManagerSettings from '@/pages/manager/Settings';
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
 import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ManagerLayout = () => {
   const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
   const location = useLocation();
+  const { profile } = useAuth();
   
   const getWorkspaceContext = () => {
     const path = location.pathname;
@@ -48,10 +50,8 @@ const ManagerLayout = () => {
   };
   
   return (
-    <div className="min-h-screen bg-background relative">
-      <ManagerNavigation />
-      
-      <main className="pt-[60px]">
+    <ManagerSidebar profileName={profile?.full_name}>
+      <main className="pt-4 flex-1">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<ManagerDashboard />} />
@@ -66,13 +66,13 @@ const ManagerLayout = () => {
           <Route path="/settings" element={<ManagerSettings />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+
+        {/* Manager AI Assistant */}
+        <div className="fixed bottom-6 right-6 z-[9999]">
+          <UnifiedAIBubble context={aiContext} />
+        </div>
       </main>
-      
-      {/* Manager AI Assistant */}
-      <div className="fixed bottom-6 right-6 z-[9999]">
-        <UnifiedAIBubble context={aiContext} />
-      </div>
-    </div>
+    </ManagerSidebar>
   );
 };
 

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import SalesNavigation from '@/components/Navigation/SalesNavigation';
+import SalesSidebar from '@/components/Navigation/SalesSidebar';
 
 // Sales pages
 import SalesRepDashboard from '@/pages/sales/Dashboard';
@@ -16,10 +16,12 @@ import LeadWorkspace from '@/pages/LeadWorkspace';
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
 import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const SalesLayout = () => {
   const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
   const location = useLocation();
+  const { profile } = useAuth();
   
   // Determine workspace context from current route
   const getWorkspaceContext = () => {
@@ -53,10 +55,8 @@ const SalesLayout = () => {
   };
   
   return (
-    <div className="min-h-screen bg-slate-50 relative">
-      <SalesNavigation />
-      
-      <main className="pt-[60px]">
+    <SalesSidebar profileName={profile?.full_name}>
+      <main className="pt-4 flex-1">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<SalesRepDashboard />} />
@@ -69,13 +69,12 @@ const SalesLayout = () => {
           <Route path="/settings" element={<SalesSettings />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
+        {/* Unified AI Bubble - Single AI assistant with fixed positioning */}
+        <div className="fixed bottom-6 right-6 z-[9999]">
+          <UnifiedAIBubble context={aiContext} />
+        </div>
       </main>
-      
-      {/* Unified AI Bubble - Single AI assistant with fixed positioning */}
-      <div className="fixed bottom-6 right-6 z-[9999]">
-        <UnifiedAIBubble context={aiContext} />
-      </div>
-    </div>
+    </SalesSidebar>
   );
 };
 

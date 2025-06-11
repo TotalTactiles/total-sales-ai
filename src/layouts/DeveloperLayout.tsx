@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+import DeveloperSidebar from '@/components/Navigation/DeveloperSidebar';
 
 // Developer pages
 import DeveloperDashboard from '@/pages/developer/Dashboard';
@@ -18,10 +18,12 @@ import DeveloperCRMIntegrations from '@/pages/developer/CRMIntegrations';
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
 import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 
 const DeveloperLayout = () => {
   const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
   const location = useLocation();
+  const { profile } = useAuth();
   
   const getWorkspaceContext = () => {
     const path = location.pathname;
@@ -48,10 +50,8 @@ const DeveloperLayout = () => {
   };
   
   return (
-    <div className="min-h-screen bg-slate-900 text-white relative">
-      <DeveloperNavigation />
-      
-      <main className="pt-[60px]">
+    <DeveloperSidebar profileName={profile?.full_name}>
+      <main className="pt-4 flex-1">
         <Routes>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<DeveloperDashboard />} />
@@ -66,13 +66,12 @@ const DeveloperLayout = () => {
           <Route path="settings" element={<DeveloperSettings />} />
           <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Routes>
+        {/* Developer AI Assistant */}
+        <div className="fixed bottom-6 right-6 z-[9999]">
+          <UnifiedAIBubble context={aiContext} />
+        </div>
       </main>
-      
-      {/* Developer AI Assistant */}
-      <div className="fixed bottom-6 right-6 z-[9999]">
-        <UnifiedAIBubble context={aiContext} />
-      </div>
-    </div>
+    </DeveloperSidebar>
   );
 };
 
