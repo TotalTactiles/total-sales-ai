@@ -77,7 +77,7 @@ const SalesNavigation = () => {
 
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background px-6 py-4">
-          <div className="space-y-3 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
+          <div className="flex space-x-3 overflow-x-auto whitespace-nowrap" style={{ maxWidth: '100%' }}>
             {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href ||
@@ -89,7 +89,7 @@ const SalesNavigation = () => {
                 key={item.label}
                 to={item.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors w-full ${
+                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent'

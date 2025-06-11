@@ -42,7 +42,7 @@ const SalesRepNavigation = () => {
         </div>
 
         <nav className="hidden md:flex items-center space-x-6">
-          <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
+          <div className="flex space-x-6 overflow-x-auto whitespace-nowrap">
             {navItems.map((item) => {
               const IconComponent = item.icon;
               const isActive = location.pathname === item.href;
