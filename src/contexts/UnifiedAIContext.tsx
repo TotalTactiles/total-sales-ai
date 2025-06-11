@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
@@ -5,6 +6,7 @@ import { masterAIBrain } from '@/services/masterAIBrain';
 import { useManagerAI } from '@/hooks/useManagerAI';
 import { useSalesRepAI } from '@/hooks/useSalesRepAI';
 import { unifiedAIService } from '@/services/ai/unifiedAIService';
+import { agentOrchestrator } from '@/services/agents/AgentOrchestrator';
 
 interface UnifiedAIContextType {
   // Manager AI
@@ -13,7 +15,14 @@ interface UnifiedAIContextType {
   // Sales Rep AI
   salesRepAI: ReturnType<typeof useSalesRepAI>;
   
-  // Unified AI Service
+  // New Agent System
+  executeAgentTask: (
+    agentType: 'salesAgent_v1' | 'managerAgent_v1' | 'automationAgent_v1' | 'developerAgent_v1',
+    taskType: string,
+    context?: any
+  ) => Promise<any>;
+  
+  // Legacy unified AI functions (deprecated but maintained for compatibility)
   generateAIResponse: (prompt: string, context?: string) => Promise<string>;
   generateStrategyResponse: (prompt: string, context?: string) => Promise<string>;
   generateCommunication: (prompt: string, context?: string) => Promise<string>;
@@ -27,6 +36,9 @@ interface UnifiedAIContextType {
   isAIActive: boolean;
   aiErrors: string[];
   clearAIErrors: () => void;
+  
+  // Agent Performance
+  getAgentPerformanceMetrics: () => Map<string, any>;
 }
 
 const UnifiedAIContext = createContext<UnifiedAIContextType | undefined>(undefined);
@@ -81,6 +93,51 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
     }
   };
 
+  // New agent-based execution
+  const executeAgentTask = async (
+    agentType: 'salesAgent_v1' | 'managerAgent_v1' | 'automationAgent_v1' | 'developerAgent_v1',
+    taskType: string,
+    additionalContext?: any
+  ): Promise<any> => {
+    if (!user?.id || !profile?.company_id) {
+      throw new Error('Authentication required');
+    }
+
+    try {
+      const context = {
+        workspace: window.location.pathname.split('/')[1] || 'dashboard',
+        userRole: profile.role,
+        companyId: profile.company_id,
+        userId: user.id,
+        ...additionalContext
+      };
+
+      const task = {
+        agentType,
+        taskType,
+        context,
+        priority: 'medium' as const
+      };
+
+      const result = await agentOrchestrator.executeTask(task);
+      
+      await logAIInteraction('agent_task_execution', {
+        agentType,
+        taskType,
+        success: result.status === 'completed',
+        executionTime: result.execution_time_ms
+      });
+
+      return result;
+
+    } catch (error) {
+      logger.error('Error executing agent task:', error);
+      addAIError(`Failed to execute ${taskType}`);
+      throw error;
+    }
+  };
+
+  // Legacy functions maintained for compatibility
   const generateAIResponse = async (prompt: string, context?: string): Promise<string> => {
     try {
       const response = await unifiedAIService.generateResponse(prompt, undefined, context);
@@ -204,9 +261,14 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
     setAIErrors([]);
   };
 
+  const getAgentPerformanceMetrics = () => {
+    return agentOrchestrator.getPerformanceMetrics();
+  };
+
   const value: UnifiedAIContextType = {
     managerAI,
     salesRepAI,
+    executeAgentTask,
     generateAIResponse,
     generateStrategyResponse,
     generateCommunication,
@@ -215,7 +277,8 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
     getAIRecommendations,
     isAIActive,
     aiErrors,
-    clearAIErrors
+    clearAIErrors,
+    getAgentPerformanceMetrics
   };
 
   return (

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +19,8 @@ import {
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import { useRetellAI } from '@/hooks/useRetellAI';
+import { useAgentIntegration } from '@/hooks/useAgentIntegration';
+import AgentFeedbackButton from '@/components/AI/AgentFeedbackButton';
 
 interface AIAssistantPanelProps {
   currentLead?: Lead | null;
@@ -32,29 +35,32 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
 }) => {
   const [aiQuery, setAiQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const { makeConversationalCall, isLoading: isCallingAI } = useRetellAI();
+  const { executeAgentTask, isExecuting } = useAgentIntegration();
 
-  // Mock AI suggestions based on call context
+  // Generate AI suggestions based on call context
   useEffect(() => {
-    if (currentLead && isCallActive) {
-      const contextSuggestions = [
-        `${currentLead.company} is in ${currentLead.source} industry - emphasize industry-specific ROI`,
-        `Lead score ${currentLead.score}% suggests strong interest - be confident in closing`,
-        `Priority ${currentLead.priority} lead - focus on urgency and timeline`,
-        `Best talk track: Problem → Solution → ROI → Next Steps`
-      ];
-      setSuggestions(contextSuggestions);
-    } else if (currentLead) {
-      const preSuggestions = [
-        `Call at ${new Date().toLocaleTimeString()} has 78% connect rate for this industry`,
-        `Lead is ${currentLead.speedToLead || 60}min old - mention freshness of inquiry`,
-        `${currentLead.conversionLikelihood}% conversion likelihood - tailor approach accordingly`,
-        `Research shows ${currentLead.company} size responds well to efficiency messaging`
-      ];
-      setSuggestions(preSuggestions);
+    if (currentLead) {
+      generateContextualSuggestions();
     }
   }, [currentLead, isCallActive]);
+
+  const generateContextualSuggestions = async () => {
+    const result = await executeAgentTask(
+      'salesAgent_v1',
+      'contextual_suggestions',
+      {
+        currentLead,
+        isCallActive,
+        workspace: 'auto_dialer'
+      }
+    );
+
+    if (result?.output_payload?.suggestions) {
+      setSuggestions(result.output_payload.suggestions);
+    }
+  };
 
   const handleAICall = async () => {
     if (!currentLead) {
@@ -69,21 +75,41 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
     }
   };
 
-  const handleAIQuery = () => {
+  const handleAIQuery = async () => {
     if (!aiQuery.trim()) return;
     
-    // Mock AI response
-    const responses = [
-      "Based on their company size, focus on time savings rather than cost savings.",
-      "This industry typically has budget approval processes - ask about decision timeline.",
-      "Their recent website activity suggests interest in integration capabilities.",
-      "Similar companies in your CRM closed 34% faster with demo-first approach."
-    ];
-    
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
-    onSuggestion(randomResponse);
-    setAiQuery('');
-    toast.success('AI suggestion generated');
+    const result = await executeAgentTask(
+      'salesAgent_v1',
+      'query_response',
+      {
+        query: aiQuery,
+        currentLead,
+        isCallActive,
+        workspace: 'auto_dialer'
+      }
+    );
+
+    if (result?.output_payload?.response) {
+      onSuggestion(result.output_payload.response);
+      setAiQuery('');
+      toast.success('AI suggestion generated');
+    }
+  };
+
+  const handleQuickAction = async (actionType: string) => {
+    const result = await executeAgentTask(
+      'salesAgent_v1',
+      actionType,
+      {
+        currentLead,
+        isCallActive,
+        workspace: 'auto_dialer'
+      }
+    );
+
+    if (result?.output_payload?.response) {
+      onSuggestion(result.output_payload.response);
+    }
   };
 
   const handleVoiceCommand = () => {
@@ -98,38 +124,20 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
     }
   };
 
-  const aiInsights = currentLead ? [
-    {
-      icon: <TrendingUp className="h-4 w-4 text-green-600" />,
-      title: "Conversion Probability",
-      value: `${currentLead.conversionLikelihood}%`,
-      description: "Based on similar profiles"
-    },
-    {
-      icon: <Clock className="h-4 w-4 text-orange-600" />,
-      title: "Optimal Call Time",
-      value: "Now",
-      description: "78% connect rate for this hour"
-    },
-    {
-      icon: <Target className="h-4 w-4 text-blue-600" />,
-      title: "Focus Area",
-      value: "ROI & Efficiency",
-      description: "Most effective for this industry"
-    }
-  ] : [];
-
   return (
     <div className="space-y-4">
       {/* AI Status */}
       <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
         <Brain className="h-5 w-5 text-blue-600" />
         <div>
-          <div className="font-medium text-blue-800">Retell AI Assistant Active</div>
+          <div className="font-medium text-blue-800">Sales AI Agent Active</div>
           <div className="text-xs text-blue-600">
-            {isCallActive ? 'AI conversation in progress' : 'Ready for conversational calls'}
+            {isCallActive ? 'Real-time call assistance enabled' : 'Ready for conversational calls'}
           </div>
         </div>
+        <Badge variant="outline" className="ml-auto">
+          salesAgent_v1
+        </Badge>
       </div>
 
       {/* AI Call Button */}
@@ -165,23 +173,6 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
         </div>
       )}
 
-      {/* AI Insights */}
-      {aiInsights.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="font-medium text-gray-800">AI Insights</h3>
-          {aiInsights.map((insight, index) => (
-            <div key={index} className="p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center gap-2 mb-1">
-                {insight.icon}
-                <span className="text-sm font-medium">{insight.title}</span>
-              </div>
-              <div className="font-semibold">{insight.value}</div>
-              <div className="text-xs text-gray-600">{insight.description}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
       {/* AI Suggestions */}
       {suggestions.length > 0 && (
         <div className="space-y-3">
@@ -190,7 +181,17 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
             <div key={index} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
               <div className="flex items-start gap-2">
                 <Lightbulb className="h-4 w-4 text-yellow-600 mt-0.5" />
-                <p className="text-sm text-yellow-800">{suggestion}</p>
+                <div className="flex-1">
+                  <p className="text-sm text-yellow-800">{suggestion.text}</p>
+                  {suggestion.confidence && (
+                    <div className="text-xs text-yellow-600 mt-1">
+                      Confidence: {suggestion.confidence}%
+                    </div>
+                  )}
+                </div>
+                {suggestion.taskId && (
+                  <AgentFeedbackButton taskId={suggestion.taskId} size="sm" />
+                )}
               </div>
             </div>
           ))}
@@ -199,23 +200,23 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
 
       {/* AI Query Interface */}
       <div className="space-y-3">
-        <h3 className="font-medium text-gray-800">Ask AI Assistant</h3>
+        <h3 className="font-medium text-gray-800">Ask Sales AI Assistant</h3>
         <div className="space-y-2">
           <Textarea
             value={aiQuery}
             onChange={(e) => setAiQuery(e.target.value)}
-            placeholder="Ask AI about this lead, industry insights, or talk tracks..."
+            placeholder="Ask about this lead, industry insights, objection handling, or talk tracks..."
             className="min-h-[80px] text-sm"
           />
           <div className="flex gap-2">
             <Button
               onClick={handleAIQuery}
-              disabled={!aiQuery.trim()}
+              disabled={!aiQuery.trim() || isExecuting}
               size="sm"
               className="flex-1"
             >
               <Send className="h-4 w-4 mr-1" />
-              Ask AI
+              {isExecuting ? 'Processing...' : 'Ask AI'}
             </Button>
             <Button
               onClick={handleVoiceCommand}
@@ -234,39 +235,75 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick AI Actions */}
       <div className="space-y-2">
         <h3 className="font-medium text-gray-800">Quick AI Actions</h3>
         <div className="grid grid-cols-1 gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onSuggestion("Generate objection handling script")}
+            onClick={() => handleQuickAction('objection_handling')}
+            disabled={isExecuting}
             className="justify-start text-xs"
           >
             <MessageSquare className="h-3 w-3 mr-2" />
-            Objection Scripts
+            Generate Objection Scripts
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onSuggestion("Show industry benchmarks")}
+            onClick={() => handleQuickAction('industry_insights')}
+            disabled={isExecuting}
             className="justify-start text-xs"
           >
             <TrendingUp className="h-3 w-3 mr-2" />
-            Industry Data
+            Industry Insights
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onSuggestion("Suggest next best action")}
+            onClick={() => handleQuickAction('next_best_action')}
+            disabled={isExecuting}
             className="justify-start text-xs"
           >
             <Target className="h-3 w-3 mr-2" />
             Next Best Action
           </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('call_summary')}
+            disabled={isExecuting}
+            className="justify-start text-xs"
+          >
+            <Clock className="h-3 w-3 mr-2" />
+            Generate Call Summary
+          </Button>
         </div>
       </div>
+
+      {/* Real-time Call Assistance */}
+      {isCallActive && (
+        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-green-800">Live Call Analysis Active</span>
+          </div>
+          <div className="text-xs text-green-700">
+            AI is listening and will provide real-time suggestions based on conversation flow
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full mt-2 border-green-300 text-green-800"
+            onClick={() => handleQuickAction('real_time_coaching')}
+            disabled={isExecuting}
+          >
+            <Brain className="h-3 w-3 mr-1" />
+            Get Real-Time Coaching
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
