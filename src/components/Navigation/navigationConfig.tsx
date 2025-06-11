@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   BarChart3, 
@@ -18,6 +19,13 @@ export interface NavItem {
   label: string;
   href: string;
   badge?: string;
+  description?: string;
+}
+
+export interface NavigationItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType;
   description?: string;
 }
 
