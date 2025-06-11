@@ -34,7 +34,7 @@ const SalesNavigation = () => {
         </div>
 
         {/* Desktop navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-6" aria-label="Sales navigation">
           {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href ||
@@ -45,6 +45,7 @@ const SalesNavigation = () => {
               <Link
                 key={item.label}
                 to={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
@@ -62,6 +63,8 @@ const SalesNavigation = () => {
         <button
           className="md:hidden p-2 rounded-md hover:bg-accent focus:outline-none"
           onClick={() => setMobileMenuOpen(prev => !prev)}
+          aria-label="Toggle navigation menu"
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -89,6 +92,7 @@ const SalesNavigation = () => {
                 key={item.label}
                 to={item.href}
                 onClick={() => setMobileMenuOpen(false)}
+                aria-current={isActive ? 'page' : undefined}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors w-full ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
