@@ -15,7 +15,7 @@ const SalesRepOS: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <SalesRepNavigation />
-      <main className="pb-[60px]">
+      <main className="pt-16">
         <Routes>
           <Route index element={<SalesRepDashboard />} />
           <Route path="dashboard" element={<SalesRepDashboard />} />
