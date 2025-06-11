@@ -71,6 +71,7 @@ const DeveloperNavigation: React.FC = () => {
           </div>
 
           <div className="hidden md:ml-6 md:flex md:space-x-8">
+            <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.href;
@@ -90,6 +91,7 @@ const DeveloperNavigation: React.FC = () => {
                 </Link>
               );
             })}
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
