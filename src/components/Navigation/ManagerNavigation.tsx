@@ -60,7 +60,8 @@ const ManagerNavigation = () => {
             <span className="my-[8px] mx-[12px]">Manager</span>
           </div>
         </div>
-
+        <nav className="hidden md:flex items-center space-x-6">
+          <div className="flex space-x-6 overflow-x-auto whitespace-nowrap">
         <nav className="hidden md:flex items-center space-x-6" aria-label="Manager navigation">
           <div className="overflow-y-auto" style={{ maxHeight: 'calc(100vh - 60px)' }}>
             {navItems.map(item => {
