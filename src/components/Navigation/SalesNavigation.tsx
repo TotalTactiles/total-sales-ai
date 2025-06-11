@@ -19,6 +19,7 @@ const SalesNavigation: React.FC = () => {
   const { profile } = useAuth();
 
   return (
+    <header className="fixed bottom-0 left-0 right-0 border-t z-50 bg-background border-border shadow-sm">
     <OSNavigation
       items={navItems}
       role="Sales OS"

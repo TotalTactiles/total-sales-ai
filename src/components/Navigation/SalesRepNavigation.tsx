@@ -31,7 +31,7 @@ const SalesRepNavigation = () => {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
+    <header className="fixed bottom-0 left-0 right-0 border-t z-50 bg-background border-border shadow-sm">
       <div className="h-[60px] flex items-center justify-between px-6">
         <div className="flex items-center space-x-2">
           <Logo />
