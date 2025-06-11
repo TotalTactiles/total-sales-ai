@@ -80,14 +80,14 @@ const DeveloperNavigation: React.FC = () => {
                 <Link
                   key={item.href}
                   to={item.href}
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
-                      ? 'border-cyan-400 text-cyan-400'
-                      : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'
+                      ? 'bg-slate-700 text-white'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-700'
                   }`}
                 >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {item.label}
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
