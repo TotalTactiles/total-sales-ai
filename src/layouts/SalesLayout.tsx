@@ -56,7 +56,7 @@ const SalesLayout = () => {
     <div className="min-h-screen bg-slate-50 relative">
       <SalesNavigation />
       
-      <main className="pt-[60px]">
+      <main className="pb-[60px]">
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<SalesRepDashboard />} />
