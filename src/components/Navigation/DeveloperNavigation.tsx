@@ -56,7 +56,7 @@ const DeveloperNavigation: React.FC = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50">
+    <nav className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50" aria-label="Developer navigation">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
@@ -81,6 +81,8 @@ const DeveloperNavigation: React.FC = () => {
                   key={item.href}
                   to={item.href}
                   className={`flex items-center space-x-2 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                     isActive
                       ? 'bg-slate-700 text-white'
                       : 'text-slate-300 hover:text-white hover:bg-slate-700'
