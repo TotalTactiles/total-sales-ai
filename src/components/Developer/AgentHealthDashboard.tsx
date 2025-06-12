@@ -15,29 +15,13 @@ import {
   Clock,
   Zap
 } from 'lucide-react';
-import { relevanceAIConnection } from '@/services/relevance/RelevanceAIConnectionService';
 import { agentOrchestrator } from '@/services/agents/AgentOrchestrator';
-
-interface HealthMetrics {
-  apiConnection: boolean;
-  agentsActive: number;
-  totalAgents: number;
-  avgResponseTime: number;
-  successRate: number;
-  lastUpdate: string;
-}
+import { relevanceAIService } from '@/services/relevance/RelevanceAIService';
 
 const AgentHealthDashboard: React.FC = () => {
-  const [metrics, setMetrics] = useState<HealthMetrics>({
-    apiConnection: false,
-    agentsActive: 0,
-    totalAgents: 4,
-    avgResponseTime: 0,
-    successRate: 0,
-    lastUpdate: ''
-  });
+  const [healthData, setHealthData] = useState<any>(null);
   const [isChecking, setIsChecking] = useState(false);
-  const [agentStatuses, setAgentStatuses] = useState<any[]>([]);
+  const [lastUpdate, setLastUpdate] = useState<string>('');
 
   useEffect(() => {
     performHealthCheck();
@@ -48,44 +32,9 @@ const AgentHealthDashboard: React.FC = () => {
   const performHealthCheck = async () => {
     setIsChecking(true);
     try {
-      // Check API connection
-      const connectionHealth = await relevanceAIConnection.performHealthCheck();
-      
-      // Get performance metrics
-      const performanceMetrics = agentOrchestrator.getPerformanceMetrics();
-      
-      // Calculate averages
-      let totalExecutions = 0;
-      let totalSuccesses = 0;
-      let totalTime = 0;
-      let activeAgents = 0;
-
-      const agentStatusList = connectionHealth.agentsRegistered.map(agent => {
-        const agentMetrics = performanceMetrics.get(`${agent.id}-general`) || {};
-        if (agent.status === 'active') activeAgents++;
-        
-        if (agentMetrics.totalExecutions > 0) {
-          totalExecutions += agentMetrics.totalExecutions;
-          totalSuccesses += agentMetrics.successCount || 0;
-          totalTime += agentMetrics.totalTime || 0;
-        }
-
-        return {
-          ...agent,
-          metrics: agentMetrics
-        };
-      });
-
-      setAgentStatuses(agentStatusList);
-      setMetrics({
-        apiConnection: connectionHealth.apiConnected,
-        agentsActive: activeAgents,
-        totalAgents: connectionHealth.agentsRegistered.length,
-        avgResponseTime: totalExecutions > 0 ? totalTime / totalExecutions : 0,
-        successRate: totalExecutions > 0 ? (totalSuccesses / totalExecutions) * 100 : 0,
-        lastUpdate: new Date().toLocaleTimeString()
-      });
-
+      const health = await agentOrchestrator.getAgentHealth();
+      setHealthData(health);
+      setLastUpdate(new Date().toLocaleTimeString());
     } catch (error) {
       console.error('Health check failed:', error);
     } finally {
@@ -93,23 +42,26 @@ const AgentHealthDashboard: React.FC = () => {
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'inactive': return <XCircle className="h-4 w-4 text-red-500" />;
-      case 'error': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-      default: return <AlertTriangle className="h-4 w-4 text-gray-500" />;
-    }
+  const getStatusIcon = (isHealthy: boolean) => {
+    return isHealthy ? (
+      <CheckCircle className="h-4 w-4 text-green-500" />
+    ) : (
+      <XCircle className="h-4 w-4 text-red-500" />
+    );
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'default';
-      case 'inactive': return 'destructive';
-      case 'error': return 'secondary';
-      default: return 'outline';
-    }
-  };
+  if (!healthData) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" />
+          <p>Loading agent health data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isHealthy = healthData.connectedAgents === healthData.totalAgents;
 
   return (
     <div className="space-y-6 p-6">
@@ -118,7 +70,7 @@ const AgentHealthDashboard: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold">Agent Health Dashboard</h2>
           <p className="text-muted-foreground">
-            Real-time monitoring of Relevance AI agent status and performance
+            Real-time monitoring of AI agent status and performance
           </p>
         </div>
         <Button
@@ -132,16 +84,12 @@ const AgentHealthDashboard: React.FC = () => {
       </div>
 
       {/* Overall Health Status */}
-      <Alert className={metrics.apiConnection ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
-        {metrics.apiConnection ? (
-          <CheckCircle className="h-4 w-4 text-green-600" />
-        ) : (
-          <XCircle className="h-4 w-4 text-red-600" />
-        )}
-        <AlertDescription className={metrics.apiConnection ? 'text-green-800' : 'text-red-800'}>
-          {metrics.apiConnection 
-            ? 'Relevance AI connection is healthy and operational'
-            : 'Relevance AI connection is down or experiencing issues'
+      <Alert className={isHealthy ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+        {getStatusIcon(isHealthy)}
+        <AlertDescription className={isHealthy ? 'text-green-800' : 'text-red-800'}>
+          {isHealthy 
+            ? 'All AI agents are healthy and operational'
+            : `${healthData.connectedAgents}/${healthData.totalAgents} agents connected`
           }
         </AlertDescription>
       </Alert>
@@ -155,10 +103,10 @@ const AgentHealthDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics.apiConnection ? 'Connected' : 'Disconnected'}
+              {healthData.apiKeyConfigured ? 'Connected' : 'Mock Mode'}
             </div>
-            <Badge variant={metrics.apiConnection ? 'default' : 'destructive'} className="mt-1">
-              {metrics.apiConnection ? 'Healthy' : 'Error'}
+            <Badge variant={healthData.apiKeyConfigured ? 'default' : 'secondary'} className="mt-1">
+              {healthData.apiKeyConfigured ? 'Live' : 'Demo'}
             </Badge>
           </CardContent>
         </Card>
@@ -170,10 +118,10 @@ const AgentHealthDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics.agentsActive}/{metrics.totalAgents}
+              {healthData.connectedAgents}/{healthData.totalAgents}
             </div>
             <Progress 
-              value={(metrics.agentsActive / metrics.totalAgents) * 100} 
+              value={(healthData.connectedAgents / healthData.totalAgents) * 100} 
               className="mt-2"
             />
           </CardContent>
@@ -181,15 +129,15 @@ const AgentHealthDashboard: React.FC = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Response</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics.avgResponseTime.toFixed(0)}ms
+              {healthData.totalTasks || 0}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Average task execution time
+              Tasks executed
             </p>
           </CardContent>
         </Card>
@@ -201,9 +149,9 @@ const AgentHealthDashboard: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics.successRate.toFixed(1)}%
+              {((healthData.successRate || 0) * 100).toFixed(1)}%
             </div>
-            <Progress value={metrics.successRate} className="mt-2" />
+            <Progress value={(healthData.successRate || 0) * 100} className="mt-2" />
           </CardContent>
         </Card>
       </div>
@@ -215,28 +163,19 @@ const AgentHealthDashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {agentStatuses.map((agent) => (
+            {relevanceAIService.getAgents().map((agent) => (
               <div key={agent.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
-                  {getStatusIcon(agent.status)}
+                  {getStatusIcon(healthData.apiKeyConfigured)}
                   <div>
                     <div className="font-medium">{agent.name}</div>
-                    <div className="text-sm text-muted-foreground">{agent.id}</div>
+                    <div className="text-sm text-muted-foreground">{agent.description}</div>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  {agent.metrics?.totalExecutions > 0 && (
-                    <div className="text-right text-sm">
-                      <div>{agent.metrics.totalExecutions} tasks</div>
-                      <div className="text-muted-foreground">
-                        {agent.metrics.averageTime?.toFixed(0)}ms avg
-                      </div>
-                    </div>
-                  )}
-                  
-                  <Badge variant={getStatusColor(agent.status)}>
-                    {agent.status}
+                  <Badge variant={healthData.apiKeyConfigured ? 'default' : 'secondary'}>
+                    {healthData.apiKeyConfigured ? 'Active' : 'Mock'}
                   </Badge>
                 </div>
               </div>
@@ -245,9 +184,33 @@ const AgentHealthDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Performance Metrics */}
+      {healthData.performanceMetrics && healthData.performanceMetrics.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Performance Metrics</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {healthData.performanceMetrics.map(([key, metrics]: [string, any]) => (
+                <div key={key} className="flex items-center justify-between p-2 border-b">
+                  <div className="text-sm font-medium">{key}</div>
+                  <div className="text-right text-sm">
+                    <div>{metrics.totalExecutions} executions</div>
+                    <div className="text-muted-foreground">
+                      {metrics.averageTime?.toFixed(0)}ms avg
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Last Update */}
       <div className="text-center text-sm text-muted-foreground">
-        Last updated: {metrics.lastUpdate}
+        Last updated: {lastUpdate}
       </div>
     </div>
   );

@@ -1,171 +1,99 @@
-
-import { logger } from '@/utils/logger';
-
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { AIContextProvider } from '@/contexts/AIContext';
-import { DemoDataProvider } from '@/contexts/DemoDataContext';
-import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from '@/components/ThemeProvider';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import RequireAuth from '@/components/RequireAuth';
-import OnboardingGuard from '@/components/OnboardingGuard';
-import HealthCheck from '@/components/HealthCheck';
-import RoleToggle from '@/components/DeveloperMode/RoleToggle';
-import { Role } from '@/contexts/auth/types';
+import { Toaster } from 'sonner';
+import { ThemeProvider } from 'next-themes';
 
-// Layout components
+import { AuthProvider } from '@/contexts/AuthContext';
+import { AIProvider } from '@/contexts/AIContext';
+import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
+
+import ProtectedRoute from '@/components/ProtectedRoute';
+import LandingPage from '@/pages/LandingPage';
+import LoginPage from '@/pages/LoginPage';
+import SignupPage from '@/pages/SignupPage';
+
+// Layout imports
 import SalesLayout from '@/layouts/SalesLayout';
 import ManagerLayout from '@/layouts/ManagerLayout';
 import DeveloperLayout from '@/layouts/DeveloperLayout';
 
-// Auth pages
-import AuthPage from '@/pages/Auth';
-import Logout from '@/pages/auth/Logout';
+// Agent services
+import { relevanceAIService } from '@/services/relevance/RelevanceAIService';
+import { logger } from '@/utils/logger';
 
-// Landing page
-import NewLandingPage from '@/pages/NewLandingPage';
-
-// Standalone pages
-import LeadWorkspace from '@/pages/LeadWorkspace';
+import './App.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      retry: 1,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      refetchOnWindowFocus: false,
     },
   },
 });
 
-const DashboardRedirect: React.FC = () => {
-  const { profile, isDemoMode, getLastSelectedRole } = useAuth();
-  
-  // Determine the correct role for redirection
-  let targetRole: Role = 'sales_rep'; // Default fallback
-  
-  if (isDemoMode()) {
-    targetRole = getLastSelectedRole() || 'sales_rep';
-    logger.info('Demo mode active, using role:', targetRole);
-  } else if (profile?.role) {
-    targetRole = profile.role as Role;
-    logger.info('Using profile role:', targetRole);
-  }
-  
-  const dashboardUrl = getDashboardUrl({ role: targetRole });
-  logger.info('Redirecting to dashboard:', { targetRole, dashboardUrl, profileRole: profile?.role });
-  
-  return <Navigate to={dashboardUrl} replace />;
-};
-
 function App() {
-  logger.info('App component rendering');
-  
+  useEffect(() => {
+    // Initialize AI services on app startup
+    const initializeAIServices = async () => {
+      try {
+        logger.info('Initializing AI services...');
+        await relevanceAIService.initialize();
+        logger.info('AI services initialized successfully');
+      } catch (error) {
+        logger.error('Failed to initialize AI services:', error);
+      }
+    };
+
+    initializeAIServices();
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <TooltipProvider>
-          <Router>
-            <AuthProvider>
-              <DemoDataProvider>
-                <AIContextProvider>
-                <Routes>
-                  {/* Landing page */}
-                  <Route path="/landing" element={<NewLandingPage />} />
-                  
-                  {/* Auth routes */}
-                  <Route path="/login" element={<AuthPage />} />
-                  <Route path="/signup" element={<AuthPage />} />
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/logout" element={<Logout />} />
-                  
-                  {/* Root redirect - goes to appropriate dashboard */}
-                  <Route path="/" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
-                        <DashboardRedirect />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
-                  
-                  {/* Dashboard redirect for legacy URLs */}
-                  <Route path="/dashboard" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
-                        <DashboardRedirect />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
-                  
-                  {/* Sales OS routes */}
-                  <Route path="/sales/*" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <Router>
+          <AuthProvider>
+            <AIProvider>
+              <UnifiedAIProvider>
+                <div className="min-h-screen bg-background">
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/signup" element={<SignupPage />} />
+                    
+                    {/* Protected routes */}
+                    <Route path="/sales/*" element={
+                      <ProtectedRoute>
                         <SalesLayout />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
-                  
-                  {/* Manager OS routes */}
-                  <Route path="/manager/*" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/manager/*" element={
+                      <ProtectedRoute requiredRole="manager">
                         <ManagerLayout />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
-                  
-                  {/* Developer OS routes */}
-                  <Route path="/developer/*" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
+                      </ProtectedRoute>
+                    } />
+                    
+                    <Route path="/developer/*" element={
+                      <ProtectedRoute requiredRole="developer">
                         <DeveloperLayout />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
+                      </ProtectedRoute>
+                    } />
+                  </Routes>
                   
-                  {/* Standalone lead workspace route */}
-                  <Route path="/lead-workspace/:leadId" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
-                        <LeadWorkspace />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
-                  
-                  {/* Legacy redirects */}
-                  <Route path="/lead-management" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
-                        <Navigate to="/sales/lead-management" replace />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
-                  
-                  {/* Catch all - redirect to appropriate dashboard */}
-                  <Route path="*" element={
-                    <RequireAuth>
-                      <OnboardingGuard>
-                        <DashboardRedirect />
-                      </OnboardingGuard>
-                    </RequireAuth>
-                  } />
-                </Routes>
-                
-                {/* Global components */}
-                <Toaster />
-                <HealthCheck />
-                <RoleToggle />
-              </AIContextProvider>
-              </DemoDataProvider>
-            </AuthProvider>
-          </Router>
-        </TooltipProvider>
+                  <Toaster 
+                    position="top-right" 
+                    expand={false} 
+                    richColors 
+                    closeButton
+                  />
+                </div>
+              </UnifiedAIProvider>
+            </AIProvider>
+          </AuthProvider>
+        </Router>
       </ThemeProvider>
     </QueryClientProvider>
   );

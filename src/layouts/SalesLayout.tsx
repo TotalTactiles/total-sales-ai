@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import SalesNavigation from '@/components/Navigation/SalesNavigation';
+import ResponsiveNavigation from '@/components/Navigation/ResponsiveNavigation';
 
 // Sales pages
 import SalesRepDashboard from '@/pages/sales/Dashboard';
@@ -54,7 +54,7 @@ const SalesLayout = () => {
   
   return (
     <div className="min-h-screen bg-slate-50 relative">
-      <SalesNavigation />
+      <ResponsiveNavigation />
       
       <main className="pt-[60px]">
         <Routes>

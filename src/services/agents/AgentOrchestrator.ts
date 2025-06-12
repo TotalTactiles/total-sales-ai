@@ -1,7 +1,7 @@
 
-import { relevanceAIAgent } from '@/services/relevance/RelevanceAIAgentService';
-import { useAuth } from '@/contexts/AuthContext';
+import { relevanceAIService } from '@/services/relevance/RelevanceAIService';
 import { logger } from '@/utils/logger';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface AgentContext {
   workspace: string;
@@ -13,20 +13,6 @@ export interface AgentContext {
   recentActions?: any[];
   tone?: string;
   industry?: string;
-  
-  // Extended context for enhanced functionality
-  teamComparison?: any;
-  industryBenchmarks?: any;
-  performanceHistory?: any;
-  similarLeadOutcomes?: any;
-  recentFeedback?: any[];
-  
-  // Task-specific context
-  query?: string;
-  isCallActive?: boolean;
-  leadId?: string;
-  scenario?: string;
-  objection?: string;
 }
 
 export interface AgentTask {
@@ -34,6 +20,14 @@ export interface AgentTask {
   taskType: string;
   context: AgentContext;
   priority?: 'low' | 'medium' | 'high';
+}
+
+interface AgentResponse {
+  success: boolean;
+  output: any;
+  executionTime: number;
+  confidence?: number;
+  taskId: string;
 }
 
 class AgentOrchestrator {
@@ -48,35 +42,35 @@ class AgentOrchestrator {
     return AgentOrchestrator.instance;
   }
 
-  async executeTask(task: AgentTask): Promise<any> {
+  async executeTask(task: AgentTask): Promise<AgentResponse> {
     const startTime = Date.now();
     
     try {
-      // Enhanced context with multi-layered awareness
+      // Enhanced context with memory lookup
       const enhancedContext = await this.enrichContext(task.context);
       
-      // Execute the task with the appropriate agent
-      const result = await relevanceAIAgent.executeAgentTask(
-        task.agentType,
-        task.taskType,
-        enhancedContext,
-        task.context.userId,
-        task.context.companyId
-      );
+      // Execute the task with Relevance AI
+      const result = await relevanceAIService.executeTask({
+        agentId: task.agentType,
+        taskType: task.taskType,
+        payload: enhancedContext,
+        context: task.context
+      });
 
-      // Track performance metrics
+      // Store in agent memory
+      await this.storeInAgentMemory(task, result);
+
+      // Track performance
       const executionTime = Date.now() - startTime;
-      this.trackPerformance(task.agentType, task.taskType, executionTime, true);
+      this.trackPerformance(task.agentType, task.taskType, executionTime, result.success);
 
-      // Apply tone adaptation if specified
-      if (task.context.tone && result.output_payload?.response) {
-        result.output_payload.response = await this.adaptTone(
-          result.output_payload.response,
-          task.context.tone
-        );
-      }
-
-      return result;
+      return {
+        success: result.success,
+        output: result.output,
+        executionTime: result.executionTime,
+        confidence: result.output?.confidence || 0.8,
+        taskId: result.taskId
+      };
 
     } catch (error) {
       const executionTime = Date.now() - startTime;
@@ -95,34 +89,101 @@ class AgentOrchestrator {
   private async enrichContext(context: AgentContext): Promise<any> {
     const enriched = { ...context };
 
-    // Add team comparison data for strategic recommendations
-    if (context.userRole === 'manager') {
-      enriched.teamComparison = await this.getTeamComparisonData(context.companyId);
-      enriched.industryBenchmarks = await this.getIndustryBenchmarks(context.industry);
-    }
+    try {
+      // Add agent memory for this user/lead
+      if (context.currentLead?.id) {
+        const { data: salesMemory } = await supabase
+          .from('SalesAgent_Memory')
+          .select('*')
+          .eq('lead_id', context.currentLead.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        enriched.salesHistory = salesMemory;
+      }
 
-    // Add rep performance history for sales agents
-    if (context.userRole === 'sales_rep') {
-      enriched.performanceHistory = await this.getUserPerformanceHistory(context.userId);
-      enriched.similarLeadOutcomes = await this.getSimilarLeadOutcomes(context.currentLead);
-    }
+      // Add recent feedback
+      enriched.recentFeedback = this.feedbackHistory.get(context.userId) || [];
 
-    // Add recent feedback for self-improvement
-    enriched.recentFeedback = this.feedbackHistory.get(context.userId) || [];
+      // Add performance context for managers
+      if (context.userRole === 'manager') {
+        const { data: managerMemory } = await supabase
+          .from('ManagerAgent_Memory')
+          .select('*')
+          .eq('rep_id', context.userId)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        
+        enriched.managerContext = managerMemory?.[0];
+      }
+
+    } catch (error) {
+      logger.error('Failed to enrich context:', error);
+    }
 
     return enriched;
   }
 
-  private async adaptTone(content: string, tone: string): Promise<string> {
-    // Tone adaptation logic - could be enhanced with AI
-    const toneMap = {
-      'formal': content,
-      'friendly': content.replace(/\./g, '!').replace(/However,/g, 'But hey,'),
-      'direct': content.replace(/I think|I believe|Perhaps/g, '').replace(/might/g, 'will'),
-      'aggressive': content.replace(/please/gi, '').replace(/thank you/gi, 'NOW').toUpperCase()
-    };
+  private async storeInAgentMemory(task: AgentTask, result: any): Promise<void> {
+    try {
+      const { agentType, context } = task;
+      
+      switch (agentType) {
+        case 'salesAgent_v1':
+          if (context.currentLead?.id) {
+            await supabase
+              .from('SalesAgent_Memory')
+              .upsert({
+                lead_id: context.currentLead.id,
+                stage: context.currentLead.status,
+                outcome: result.output?.response?.substring(0, 500),
+                follow_up_sent: task.taskType === 'follow_up',
+                last_contact: new Date().toISOString(),
+                notes: `${task.taskType}: ${result.output?.response?.substring(0, 200)}`
+              });
+          }
+          break;
 
-    return toneMap[tone as keyof typeof toneMap] || content;
+        case 'managerAgent_v1':
+          await supabase
+            .from('ManagerAgent_Memory')
+            .upsert({
+              rep_id: context.userId,
+              last_login: new Date().toISOString(),
+              pipeline_health: 'good',
+              task_performance: { [task.taskType]: result.success },
+              feedback_log: { [new Date().toISOString()]: result.output?.response }
+            });
+          break;
+
+        case 'automationAgent_v1':
+          await supabase
+            .from('AutomationAgent_Memory')
+            .insert({
+              event_type: task.taskType,
+              input_data: context,
+              status: result.success ? 'completed' : 'failed',
+              resolution_time: result.executionTime
+            });
+          break;
+
+        case 'developerAgent_v1':
+          if (!result.success) {
+            await supabase
+              .from('DeveloperAgent_Memory')
+              .insert({
+                agent_affected: task.agentType,
+                error_type: task.taskType,
+                error_details: result.output?.error || 'Unknown error',
+                retry_count: 0,
+                escalation_flag: false
+              });
+          }
+          break;
+      }
+    } catch (error) {
+      logger.error('Failed to store agent memory:', error);
+    }
   }
 
   async submitFeedback(
@@ -142,7 +203,7 @@ class AgentOrchestrator {
     userFeedback.push(feedback);
     this.feedbackHistory.set(userId, userFeedback);
 
-    // Trigger self-improvement if multiple similar corrections
+    // Trigger learning if multiple similar corrections
     await this.checkForImprovementTriggers(userId, correction);
   }
 
@@ -154,7 +215,6 @@ class AgentOrchestrator {
       .filter(f => f.correction && f.timestamp > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
       .map(f => f.correction);
 
-    // If similar corrections appear 3+ times, trigger learning
     const correctionCounts = recentCorrections.reduce((acc: Record<string, number>, corr: string) => {
       acc[corr] = (acc[corr] || 0) + 1;
       return acc;
@@ -163,7 +223,19 @@ class AgentOrchestrator {
     for (const [corr, count] of Object.entries(correctionCounts)) {
       if (typeof count === 'number' && count >= 3) {
         logger.info('Triggering agent learning for repeated correction:', { userId, correction: corr });
-        // Here you would implement the learning signal back to the system
+        // Trigger learning via automation agent
+        await this.executeTask({
+          agentType: 'automationAgent_v1',
+          taskType: 'learning_trigger',
+          context: {
+            workspace: 'learning',
+            userId,
+            companyId: 'system',
+            userRole: 'system',
+            correction: corr,
+            frequency: count
+          }
+        });
       }
     }
   }
@@ -197,42 +269,17 @@ class AgentOrchestrator {
     return this.performanceMetrics;
   }
 
-  private async getTeamComparisonData(companyId: string): Promise<any> {
-    // Mock implementation - would fetch real team data
-    return {
-      teamSize: 5,
-      avgCallsPerDay: 45,
-      avgConversionRate: 0.23,
-      topPerformer: { name: 'Sarah', rate: 0.35 }
-    };
-  }
-
-  private async getIndustryBenchmarks(industry?: string): Promise<any> {
-    // Mock implementation - would fetch industry data
-    return {
-      avgResponseTime: '2.3 hours',
-      conversionRate: 0.18,
-      avgDealSize: '$15,400'
-    };
-  }
-
-  private async getUserPerformanceHistory(userId: string): Promise<any> {
-    // Mock implementation - would fetch user performance
-    return {
-      last30Days: { calls: 150, wins: 12, winRate: 0.08 },
-      trending: 'up',
-      bestCallTime: '10:30 AM'
-    };
-  }
-
-  private async getSimilarLeadOutcomes(lead?: any): Promise<any> {
-    if (!lead) return {};
+  async getAgentHealth(): Promise<any> {
+    const relevanceHealth = relevanceAIService.getAgentHealth();
+    const performanceData = Array.from(this.performanceMetrics.entries());
     
-    // Mock implementation - would analyze similar leads
     return {
-      similarCompanyOutcomes: 0.45,
-      industryPattern: 'responds well to ROI focus',
-      recommendedApproach: 'technical demo first'
+      ...relevanceHealth,
+      performanceMetrics: performanceData,
+      totalTasks: performanceData.reduce((sum, [, metrics]) => sum + metrics.totalExecutions, 0),
+      successRate: performanceData.length > 0 
+        ? performanceData.reduce((sum, [, metrics]) => sum + (metrics.successCount / metrics.totalExecutions), 0) / performanceData.length
+        : 0
     };
   }
 }

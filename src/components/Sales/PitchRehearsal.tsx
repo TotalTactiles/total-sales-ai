@@ -5,218 +5,242 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Mic, 
   Play, 
   Pause, 
   RotateCcw, 
+  Mic, 
   Brain,
-  MessageSquare,
-  Target
+  MessageSquare
 } from 'lucide-react';
 import { useAgentIntegration } from '@/hooks/useAgentIntegration';
 import AgentFeedbackButton from '@/components/AI/AgentFeedbackButton';
 
-const PitchRehearsal: React.FC = () => {
-  const { executeAgentTask, isExecuting } = useAgentIntegration();
-  const [scenario, setScenario] = useState('cold_call');
-  const [pitchText, setPitchText] = useState('');
-  const [rehearsalResults, setRehearsalResults] = useState<any>(null);
-  const [currentObjection, setCurrentObjection] = useState<any>(null);
-  const [userResponse, setUserResponse] = useState('');
+interface PitchRehearsalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  leadData?: any;
+}
 
-  const scenarios = [
-    { id: 'cold_call', label: 'Cold Call Opening', difficulty: 'medium' },
-    { id: 'price_objection', label: 'Price Objection', difficulty: 'hard' },
-    { id: 'competitor_comparison', label: 'Competitor Comparison', difficulty: 'hard' },
-    { id: 'demo_request', label: 'Demo Request', difficulty: 'easy' },
-    { id: 'decision_maker', label: 'Finding Decision Maker', difficulty: 'medium' }
-  ];
+const PitchRehearsal: React.FC<PitchRehearsalProps> = ({
+  isOpen,
+  onClose,
+  leadData
+}) => {
+  const [isActive, setIsActive] = useState(false);
+  const [currentPitch, setCurrentPitch] = useState('');
+  const [objections, setObjections] = useState<any[]>([]);
+  const [responses, setResponses] = useState<any[]>([]);
+  const [currentTaskId, setCurrentTaskId] = useState<string>('');
+  
+  const { executeTask, isLoading } = useAgentIntegration('pitch_rehearsal');
 
   const startRehearsal = async () => {
-    const result = await executeAgentTask(
-      'salesAgent_v1',
-      'pitch_rehearsal',
-      {
-        scenario,
-        pitchText,
-        workspace: 'sales_training'
-      }
-    );
+    if (!currentPitch.trim()) return;
 
-    if (result?.output_payload) {
-      setRehearsalResults(result.output_payload);
-      if (result.output_payload.firstObjection) {
-        setCurrentObjection(result.output_payload.firstObjection);
+    try {
+      setIsActive(true);
+      const result = await executeTask('generate_objections', 'salesAgent_v1', {
+        pitch: currentPitch,
+        leadProfile: leadData,
+        scenario: 'rehearsal'
+      });
+
+      if (result.objections) {
+        setObjections(result.objections);
+        setCurrentTaskId(result.taskId || '');
       }
+    } catch (error) {
+      setIsActive(false);
     }
   };
 
-  const handleObjection = async () => {
-    const result = await executeAgentTask(
-      'salesAgent_v1',
-      'objection_response_analysis',
-      {
-        objection: currentObjection.text,
-        userResponse,
-        scenario,
-        workspace: 'sales_training'
-      }
-    );
+  const handleObjection = async (objection: string) => {
+    try {
+      const result = await executeTask('handle_objection', 'salesAgent_v1', {
+        objection,
+        pitch: currentPitch,
+        leadProfile: leadData,
+        context: 'rehearsal'
+      });
 
-    if (result?.output_payload?.nextObjection) {
-      setCurrentObjection(result.output_payload.nextObjection);
-      setUserResponse('');
-    } else {
-      // Rehearsal complete
-      setCurrentObjection(null);
+      setResponses(prev => [...prev, {
+        objection,
+        response: result.response,
+        confidence: result.confidence,
+        taskId: result.taskId
+      }]);
+    } catch (error) {
+      // Error handled in hook
     }
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return 'bg-green-100 text-green-700';
-      case 'medium': return 'bg-yellow-100 text-yellow-700';
-      case 'hard': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
+  const resetRehearsal = () => {
+    setIsActive(false);
+    setObjections([]);
+    setResponses([]);
+    setCurrentPitch('');
   };
+
+  if (!isOpen) return null;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Brain className="h-5 w-5 text-purple-600" />
-          Rehearse Your Pitch
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Scenario Selection */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Select Scenario:</label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            {scenarios.map((s) => (
-              <Button
-                key={s.id}
-                variant={scenario === s.id ? "default" : "outline"}
-                className="justify-between"
-                onClick={() => setScenario(s.id)}
-              >
-                <span>{s.label}</span>
-                <Badge className={getDifficultyColor(s.difficulty)}>
-                  {s.difficulty}
-                </Badge>
-              </Button>
-            ))}
-          </div>
-        </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-600" />
+            AI Pitch Rehearsal
+            <Badge variant="outline">Practice Mode</Badge>
+          </CardTitle>
+          <Button variant="ghost" onClick={onClose}>✕</Button>
+        </CardHeader>
 
-        {/* Pitch Input */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Your Pitch:</label>
-          <Textarea
-            value={pitchText}
-            onChange={(e) => setPitchText(e.target.value)}
-            placeholder="Enter your opening pitch or talking points..."
-            rows={4}
-          />
-        </div>
-
-        {/* Start Rehearsal */}
-        <Button 
-          onClick={startRehearsal} 
-          disabled={!pitchText.trim() || isExecuting}
-          className="w-full"
-        >
-          <Play className="h-4 w-4 mr-2" />
-          {isExecuting ? 'Starting Rehearsal...' : 'Start AI Rehearsal'}
-        </Button>
-
-        {/* Active Objection */}
-        {currentObjection && (
-          <div className="border-2 border-orange-200 rounded-lg p-4 bg-orange-50">
-            <div className="flex items-center gap-2 mb-2">
-              <MessageSquare className="h-4 w-4 text-orange-600" />
-              <span className="font-medium text-orange-800">Buyer Objection:</span>
-            </div>
-            <div className="text-orange-700 mb-3 italic">
-              "{currentObjection.text}"
-            </div>
+        <CardContent className="space-y-6">
+          {/* Pitch Input */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Your Pitch:</label>
+            <Textarea
+              value={currentPitch}
+              onChange={(e) => setCurrentPitch(e.target.value)}
+              placeholder="Enter your sales pitch here. The AI will generate realistic objections for you to practice handling..."
+              className="min-h-[100px]"
+              disabled={isActive}
+            />
             
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Your Response:</label>
-              <Textarea
-                value={userResponse}
-                onChange={(e) => setUserResponse(e.target.value)}
-                placeholder="How would you handle this objection?"
-                rows={3}
-              />
-              <Button 
-                onClick={handleObjection}
-                disabled={!userResponse.trim() || isExecuting}
-                size="sm"
+            <div className="flex gap-2">
+              {!isActive ? (
+                <Button
+                  onClick={startRehearsal}
+                  disabled={!currentPitch.trim() || isLoading}
+                  className="flex items-center gap-2"
+                >
+                  <Play className="h-4 w-4" />
+                  Start Rehearsal
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => setIsActive(false)}
+                  variant="destructive"
+                  className="flex items-center gap-2"
+                >
+                  <Pause className="h-4 w-4" />
+                  Stop
+                </Button>
+              )}
+              
+              <Button
+                onClick={resetRehearsal}
+                variant="outline"
+                className="flex items-center gap-2"
               >
-                Submit Response
+                <RotateCcw className="h-4 w-4" />
+                Reset
               </Button>
             </div>
           </div>
-        )}
 
-        {/* Results */}
-        {rehearsalResults && !currentObjection && (
-          <div className="space-y-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Target className="h-4 w-4 text-green-600" />
-                <span className="font-medium text-green-800">Rehearsal Complete!</span>
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <div className="text-sm font-medium mb-1">Overall Score:</div>
-                  <Badge className="bg-green-600 text-white">
-                    {rehearsalResults.overallScore}/100
-                  </Badge>
-                </div>
-
-                <div>
-                  <div className="text-sm font-medium mb-1">Key Strengths:</div>
-                  <ul className="text-sm text-green-700 space-y-1">
-                    {rehearsalResults.strengths?.map((strength: string, i: number) => (
-                      <li key={i}>• {strength}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div>
-                  <div className="text-sm font-medium mb-1">Areas for Improvement:</div>
-                  <ul className="text-sm text-orange-700 space-y-1">
-                    {rehearsalResults.improvements?.map((improvement: string, i: number) => (
-                      <li key={i}>• {improvement}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center mt-4">
-                <AgentFeedbackButton taskId={rehearsalResults.taskId} />
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setRehearsalResults(null);
-                    setCurrentObjection(null);
-                    setUserResponse('');
-                  }}
-                >
-                  <RotateCcw className="h-3 w-3 mr-1" />
-                  Try Again
-                </Button>
+          {/* Generated Objections */}
+          {objections.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Practice Objections:</h3>
+              <div className="grid gap-3">
+                {objections.map((objection, index) => (
+                  <Card key={index} className="border-orange-200">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <MessageSquare className="h-4 w-4 text-orange-600" />
+                            <span className="text-sm font-medium text-orange-600">
+                              Buyer Objection #{index + 1}
+                            </span>
+                          </div>
+                          <p className="text-gray-800">{objection.text || objection}</p>
+                          {objection.difficulty && (
+                            <Badge variant="outline" className="mt-2">
+                              {objection.difficulty} difficulty
+                            </Badge>
+                          )}
+                        </div>
+                        <Button
+                          onClick={() => handleObjection(objection.text || objection)}
+                          size="sm"
+                          disabled={isLoading}
+                          className="ml-4"
+                        >
+                          Get Response
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          )}
+
+          {/* AI Responses */}
+          {responses.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">AI-Generated Responses:</h3>
+              <div className="space-y-4">
+                {responses.map((item, index) => (
+                  <Card key={index} className="border-green-200">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="text-sm text-gray-600 font-medium">
+                          Objection: "{item.objection}"
+                        </div>
+                        <div className="bg-green-50 p-3 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Brain className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-600">
+                              Suggested Response
+                            </span>
+                            {item.confidence && (
+                              <Badge variant="outline">
+                                {Math.round(item.confidence * 100)}% confidence
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-gray-800">{item.response}</p>
+                        </div>
+                        
+                        {item.taskId && (
+                          <AgentFeedbackButton 
+                            taskId={item.taskId} 
+                            initialResponse={item.response}
+                          />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Instructions */}
+          {!isActive && objections.length === 0 && (
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <Mic className="h-5 w-5 text-blue-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-blue-900 mb-1">How Pitch Rehearsal Works:</h4>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• Enter your sales pitch above</li>
+                      <li>• AI will generate realistic buyer objections</li>
+                      <li>• Practice your responses with AI-suggested improvements</li>
+                      <li>• Get instant feedback and alternative approaches</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

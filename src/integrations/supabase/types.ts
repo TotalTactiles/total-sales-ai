@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_trigger_logs: {
+        Row: {
+          agent_name: string
+          created_at: string | null
+          id: string
+          input_payload: Json | null
+          result_status: string | null
+          timestamp: string | null
+          trigger_type: string
+          triggered_by: string | null
+        }
+        Insert: {
+          agent_name: string
+          created_at?: string | null
+          id?: string
+          input_payload?: Json | null
+          result_status?: string | null
+          timestamp?: string | null
+          trigger_type: string
+          triggered_by?: string | null
+        }
+        Update: {
+          agent_name?: string
+          created_at?: string | null
+          id?: string
+          input_payload?: Json | null
+          result_status?: string | null
+          timestamp?: string | null
+          trigger_type?: string
+          triggered_by?: string | null
+        }
+        Relationships: []
+      }
       ai_agent_personas: {
         Row: {
           created_at: string | null
@@ -219,6 +252,45 @@ export type Database = {
         }
         Relationships: []
       }
+      automationagent_memory: {
+        Row: {
+          automation_id: string
+          created_at: string | null
+          event_type: string
+          id: string
+          input_data: Json | null
+          resolution_time: number | null
+          retry_count: number | null
+          status: string | null
+          trigger_timestamp: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          automation_id?: string
+          created_at?: string | null
+          event_type: string
+          id?: string
+          input_data?: Json | null
+          resolution_time?: number | null
+          retry_count?: number | null
+          status?: string | null
+          trigger_timestamp?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          automation_id?: string
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          input_data?: Json | null
+          resolution_time?: number | null
+          retry_count?: number | null
+          status?: string | null
+          trigger_timestamp?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       call_logs: {
         Row: {
           call_sid: string | null
@@ -402,6 +474,48 @@ export type Database = {
           refresh_token?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      developeragent_memory: {
+        Row: {
+          agent_affected: string
+          created_at: string | null
+          error_details: string | null
+          error_type: string | null
+          escalation_flag: boolean | null
+          id: string
+          log_timestamp: string | null
+          resolution_action: string | null
+          retry_count: number | null
+          task_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          agent_affected: string
+          created_at?: string | null
+          error_details?: string | null
+          error_type?: string | null
+          escalation_flag?: boolean | null
+          id?: string
+          log_timestamp?: string | null
+          resolution_action?: string | null
+          retry_count?: number | null
+          task_id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          agent_affected?: string
+          created_at?: string | null
+          error_details?: string | null
+          error_type?: string | null
+          escalation_flag?: boolean | null
+          id?: string
+          log_timestamp?: string | null
+          resolution_action?: string | null
+          retry_count?: number | null
+          task_id?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -984,6 +1098,42 @@ export type Database = {
         }
         Relationships: []
       }
+      manageragent_memory: {
+        Row: {
+          created_at: string | null
+          escalations: number | null
+          feedback_log: Json | null
+          id: string
+          last_login: string | null
+          pipeline_health: string | null
+          rep_id: string
+          task_performance: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          escalations?: number | null
+          feedback_log?: Json | null
+          id?: string
+          last_login?: string | null
+          pipeline_health?: string | null
+          rep_id: string
+          task_performance?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          escalations?: number | null
+          feedback_log?: Json | null
+          id?: string
+          last_login?: string | null
+          pipeline_health?: string | null
+          rep_id?: string
+          task_performance?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           company_id: string
@@ -1187,6 +1337,45 @@ export type Database = {
           requests_limit?: number
           requests_used?: number
           tier?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      salesagent_memory: {
+        Row: {
+          created_at: string | null
+          escalation_flag: boolean | null
+          follow_up_sent: boolean | null
+          id: string
+          last_contact: string | null
+          lead_id: string
+          notes: string | null
+          outcome: string | null
+          stage: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          escalation_flag?: boolean | null
+          follow_up_sent?: boolean | null
+          id?: string
+          last_contact?: string | null
+          lead_id: string
+          notes?: string | null
+          outcome?: string | null
+          stage?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          escalation_flag?: boolean | null
+          follow_up_sent?: boolean | null
+          id?: string
+          last_contact?: string | null
+          lead_id?: string
+          notes?: string | null
+          outcome?: string | null
+          stage?: string | null
           updated_at?: string | null
         }
         Relationships: []

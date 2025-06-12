@@ -1,101 +1,116 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Send } from 'lucide-react';
 import { useAgentIntegration } from '@/hooks/useAgentIntegration';
 
 interface AgentFeedbackButtonProps {
   taskId: string;
-  size?: 'sm' | 'default';
+  initialResponse?: string;
+  onFeedbackSubmitted?: () => void;
 }
 
-const AgentFeedbackButton: React.FC<AgentFeedbackButtonProps> = ({ 
-  taskId, 
-  size = 'sm' 
+const AgentFeedbackButton: React.FC<AgentFeedbackButtonProps> = ({
+  taskId,
+  initialResponse,
+  onFeedbackSubmitted
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [rating, setRating] = useState<'positive' | 'negative' | null>(null);
   const [correction, setCorrection] = useState('');
-  const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null);
   const { submitFeedback } = useAgentIntegration();
 
-  const handleFeedback = async (rating: 'positive' | 'negative') => {
-    await submitFeedback(taskId, rating, correction || undefined);
-    setFeedbackGiven(rating);
-    setIsOpen(false);
-    setCorrection('');
+  const handleRating = (newRating: 'positive' | 'negative') => {
+    setRating(newRating);
+    if (newRating === 'positive') {
+      // Auto-submit positive feedback
+      handleSubmitFeedback(newRating);
+    } else {
+      setShowFeedback(true);
+    }
   };
 
-  if (feedbackGiven) {
+  const handleSubmitFeedback = async (feedbackRating?: 'positive' | 'negative') => {
+    const finalRating = feedbackRating || rating;
+    if (!finalRating) return;
+
+    try {
+      await submitFeedback(taskId, finalRating, correction.trim() || undefined);
+      setShowFeedback(false);
+      setRating(null);
+      setCorrection('');
+      onFeedbackSubmitted?.();
+    } catch (error) {
+      // Error is handled in the hook
+    }
+  };
+
+  if (rating === 'positive' && !showFeedback) {
     return (
-      <Button 
-        variant="ghost" 
-        size={size}
-        className="text-green-600"
-        disabled
-      >
-        {feedbackGiven === 'positive' ? <ThumbsUp className="h-3 w-3" /> : <ThumbsDown className="h-3 w-3" />}
-      </Button>
+      <div className="flex items-center gap-2 text-green-600 text-sm">
+        <ThumbsUp className="h-4 w-4" />
+        <span>Thanks for your feedback!</span>
+      </div>
     );
   }
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size={size}>
-          <MessageSquare className="h-3 w-3" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80">
-        <div className="space-y-3">
-          <div className="text-sm font-medium">How was this AI response?</div>
-          
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleFeedback('positive')}
-              className="flex-1"
-            >
-              <ThumbsUp className="h-4 w-4 mr-1" />
-              Good
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleFeedback('negative')}
-              className="flex-1"
-            >
-              <ThumbsDown className="h-4 w-4 mr-1" />
-              Needs Work
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs text-muted-foreground">
-              Suggest improvements (optional):
-            </label>
-            <Textarea
-              value={correction}
-              onChange={(e) => setCorrection(e.target.value)}
-              placeholder="What would make this response better?"
-              className="text-xs"
-              rows={3}
-            />
-          </div>
-
+    <div className="mt-4">
+      {!showFeedback ? (
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">Was this helpful?</span>
           <Button
+            variant="ghost"
             size="sm"
-            onClick={() => handleFeedback('negative')}
-            className="w-full"
-            disabled={!correction.trim()}
+            onClick={() => handleRating('positive')}
+            className="text-green-600 hover:text-green-700"
           >
-            Submit Feedback
+            <ThumbsUp className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleRating('negative')}
+            className="text-red-600 hover:text-red-700"
+          >
+            <ThumbsDown className="h-4 w-4" />
           </Button>
         </div>
-      </PopoverContent>
-    </Popover>
+      ) : (
+        <Card className="mt-2">
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <div className="text-sm font-medium">Help us improve this response:</div>
+              <Textarea
+                value={correction}
+                onChange={(e) => setCorrection(e.target.value)}
+                placeholder="What would be a better response? (optional)"
+                className="min-h-[80px]"
+              />
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleSubmitFeedback()}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Send className="h-4 w-4" />
+                  Submit Feedback
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFeedback(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
