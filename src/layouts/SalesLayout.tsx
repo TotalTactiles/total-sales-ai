@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ResponsiveNavigation from '@/components/Navigation/ResponsiveNavigation';
 
@@ -13,7 +13,9 @@ import SalesSettings from '@/pages/sales/Settings';
 import SalesDialer from '@/pages/sales/Dialer';
 import LeadWorkspace from '@/pages/LeadWorkspace';
 
-import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
+
+const UnifiedAIBubble = lazy(() => import('@/components/UnifiedAI/UnifiedAIBubble'));
 import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
 
@@ -51,29 +53,33 @@ const SalesLayout = () => {
     emailContext,
     smsContext
   };
-  
+
   return (
     <div className="min-h-screen bg-slate-50 relative">
       <ResponsiveNavigation />
-      
+
       <main className="pt-[60px]">
-        <Routes>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<SalesRepDashboard />} />
-          <Route path="analytics" element={<SalesAnalytics />} />
-          <Route path="lead-management" element={<SalesLeadManagement />} />
-          <Route path="lead-workspace/:id" element={<LeadWorkspace />} />
-          <Route path="dialer" element={<SalesDialer />} />
-          <Route path="academy" element={<SalesAcademy />} />
-          <Route path="ai" element={<SalesAI />} />
-          <Route path="settings" element={<SalesSettings />} />
-          <Route path="*" element={<Navigate to="dashboard" replace />} />
-        </Routes>
+        <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please refresh or contact support.</div>}>
+          <Routes>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<SalesRepDashboard />} />
+            <Route path="analytics" element={<SalesAnalytics />} />
+            <Route path="lead-management" element={<SalesLeadManagement />} />
+            <Route path="lead-workspace/:id" element={<LeadWorkspace />} />
+            <Route path="dialer" element={<SalesDialer />} />
+            <Route path="academy" element={<SalesAcademy />} />
+            <Route path="ai" element={<SalesAI />} />
+            <Route path="settings" element={<SalesSettings />} />
+            <Route path="*" element={<Navigate to="dashboard" replace />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
-      
+
       {/* Unified AI Bubble - Single AI assistant with fixed positioning */}
       <div className="fixed bottom-6 right-6 z-[9999]">
-        <UnifiedAIBubble context={aiContext} />
+        <Suspense>
+          <UnifiedAIBubble context={aiContext} />
+        </Suspense>
       </div>
     </div>
   );

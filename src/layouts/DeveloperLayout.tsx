@@ -1,5 +1,6 @@
 
 import React from 'react';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { Routes, Route, NavLink } from 'react-router-dom';
 import { 
   Settings, 
@@ -55,9 +56,10 @@ const DeveloperLayout: React.FC = () => {
 
         {/* Main content */}
         <div className="flex-1 bg-slate-50 dark:bg-slate-900">
-          <Routes>
-            <Route index element={<AgentHealthDashboard />} />
-            <Route path="advanced" element={<AdvancedFeatures />} />
+          <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please refresh or contact support.</div>}>
+            <Routes>
+              <Route index element={<AgentHealthDashboard />} />
+              <Route path="advanced" element={<AdvancedFeatures />} />
             <Route 
               path="api" 
               element={
@@ -68,10 +70,10 @@ const DeveloperLayout: React.FC = () => {
                     <p className="text-slate-600 dark:text-slate-400">Advanced API testing and management tools coming soon.</p>
                   </div>
                 </div>
-              } 
+              }
             />
-            <Route 
-              path="testing" 
+            <Route
+              path="testing"
               element={
                 <div className="p-6">
                   <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-8 text-center">
@@ -80,9 +82,10 @@ const DeveloperLayout: React.FC = () => {
                     <p className="text-slate-600 dark:text-slate-400">Comprehensive testing tools and automation coming soon.</p>
                   </div>
                 </div>
-              } 
+              }
             />
-          </Routes>
+            </Routes>
+          </ErrorBoundary>
         </div>
       </div>
     </div>
