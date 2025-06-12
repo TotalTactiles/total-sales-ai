@@ -20,7 +20,7 @@ const SalesRepOS: React.FC = () => {
           <Route index element={<SalesRepDashboard />} />
           <Route path="dashboard" element={<SalesRepDashboard />} />
           <Route path="analytics" element={<SalesRepAnalytics />} />
-          <Route path="leads" element={<SalesRepLeadManagement />} />
+          <Route path="lead-management" element={<SalesRepLeadManagement />} />
           <Route path="academy" element={<SalesRepAcademy />} />
           <Route path="ai" element={<SalesRepAI />} />
           <Route path="settings" element={<SalesRepSettings />} />

@@ -15,14 +15,19 @@ const DeveloperNavigation: React.FC = () => {
 
   const navItems = [
     { href: '/developer/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/developer/agents', label: 'Agent Management', icon: Brain },
-    { href: '/developer/database', label: 'Database', icon: Database },
-    { href: '/developer/monitoring', label: 'Monitoring', icon: Activity },
+    { href: '/developer/system-monitor', label: 'System Monitor', icon: Activity },
+    { href: '/developer/ai-brain-logs', label: 'AI Logs', icon: Brain },
+    { href: '/developer/api-logs', label: 'API Logs', icon: Database },
+    { href: '/developer/error-logs', label: 'Error Logs', icon: Activity },
+    { href: '/developer/qa-checklist', label: 'QA Checklist', icon: Activity },
+    { href: '/developer/testing-sandbox', label: 'Testing Sandbox', icon: Activity },
+    { href: '/developer/version-control', label: 'Version Control', icon: Activity },
+    { href: '/developer/crm-integrations', label: 'CRM Integrations', icon: Database },
     { href: '/developer/settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <nav className="flex items-center gap-4 p-4 bg-white border-b">
+    <nav className="flex items-center gap-4 p-4 bg-slate-800 text-white border-b border-slate-700">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.href;
