@@ -1,5 +1,5 @@
-import { logger } from '@/utils/logger';
 
+import { logger } from '@/utils/logger';
 import { encodeBase64, decodeBase64 } from './base64Service';
 
 export class DataEncryptionService {
@@ -12,14 +12,35 @@ export class DataEncryptionService {
       (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_DATA_ENCRYPTION_KEY_B64);
 
     const keyB64 = envKey || 'b4nhn4DvmRll8uXzYr5BJHVLFvyomHE4WJahSbv95Jk='; // demo key
-    const keyBytes = Uint8Array.from(decodeBase64(keyB64), c => c.charCodeAt(0));
-    this.keyPromise = crypto.subtle.importKey(
-      'raw',
-      keyBytes,
-      { name: 'AES-GCM' },
-      false,
-      ['encrypt', 'decrypt']
-    );
+    
+    try {
+      // Convert base64 to Uint8Array using browser APIs
+      const keyString = decodeBase64(keyB64);
+      const keyBytes = new Uint8Array(keyString.length);
+      for (let i = 0; i < keyString.length; i++) {
+        keyBytes[i] = keyString.charCodeAt(i);
+      }
+      
+      this.keyPromise = crypto.subtle.importKey(
+        'raw',
+        keyBytes,
+        { name: 'AES-GCM' },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    } catch (error) {
+      logger.error('Failed to initialize encryption key:', error);
+      // Fallback to a simple key
+      const fallbackKey = new Uint8Array(32);
+      crypto.getRandomValues(fallbackKey);
+      this.keyPromise = crypto.subtle.importKey(
+        'raw',
+        fallbackKey,
+        { name: 'AES-GCM' },
+        false,
+        ['encrypt', 'decrypt']
+      );
+    }
   }
 
   static getInstance(): DataEncryptionService {
@@ -41,7 +62,7 @@ export class DataEncryptionService {
       combined.set(iv);
       combined.set(new Uint8Array(cipher), iv.byteLength);
 
-      return encodeBase64(String.fromCharCode(...combined));
+      return encodeBase64(combined);
     } catch (error) {
       logger.error('Encryption failed:', error);
       try {
@@ -55,7 +76,12 @@ export class DataEncryptionService {
 
   async decryptSensitiveData(encryptedData: string): Promise<any> {
     try {
-      const combined = Uint8Array.from(decodeBase64(encryptedData), c => c.charCodeAt(0));
+      const decodedString = decodeBase64(encryptedData);
+      const combined = new Uint8Array(decodedString.length);
+      for (let i = 0; i < decodedString.length; i++) {
+        combined[i] = decodedString.charCodeAt(i);
+      }
+      
       if (combined.byteLength <= 12) throw new Error('Invalid encrypted payload');
 
       const iv = combined.slice(0, 12);

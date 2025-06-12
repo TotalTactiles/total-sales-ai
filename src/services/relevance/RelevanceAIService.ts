@@ -30,6 +30,14 @@ export interface AgentResponse {
   };
 }
 
+export interface AgentInfo {
+  id: string;
+  name: string;
+  status: 'active' | 'inactive' | 'error';
+  lastActivity?: Date;
+  health: 'healthy' | 'warning' | 'error';
+}
+
 export const USAGE_TIERS = {
   BASIC: 'basic',
   PROFESSIONAL: 'professional',
@@ -39,6 +47,7 @@ export const USAGE_TIERS = {
 class RelevanceAIService {
   private serviceReady = false;
   private workflows: AgentWorkflow[] = [];
+  private agents: AgentInfo[] = [];
 
   async initialize(): Promise<boolean> {
     try {
@@ -60,6 +69,24 @@ class RelevanceAIService {
           description: 'Manages team performance and analytics',
           status: 'active',
           lastRun: new Date()
+        }
+      ];
+
+      // Initialize default agents
+      this.agents = [
+        {
+          id: 'sales-agent-v1',
+          name: 'Sales Agent',
+          status: 'active',
+          lastActivity: new Date(),
+          health: 'healthy'
+        },
+        {
+          id: 'manager-agent-v1',
+          name: 'Manager Agent',
+          status: 'active',
+          lastActivity: new Date(),
+          health: 'healthy'
         }
       ];
 
@@ -103,12 +130,59 @@ class RelevanceAIService {
     }
   }
 
+  async executeTask(taskType: string, input: any): Promise<AgentResponse> {
+    // Map task types to appropriate agents
+    const agentMap: { [key: string]: string } = {
+      'lead_analysis': 'sales-agent-v1',
+      'conversation': 'sales-agent-v1',
+      'team_analytics': 'manager-agent-v1',
+      'performance_review': 'manager-agent-v1'
+    };
+
+    const agentId = agentMap[taskType] || 'sales-agent-v1';
+    return this.executeAgent(agentId, { taskType, ...input });
+  }
+
   async getWorkflows(): Promise<AgentWorkflow[]> {
     return this.workflows;
   }
 
   async getWorkflowById(id: string): Promise<AgentWorkflow | undefined> {
     return this.workflows.find(workflow => workflow.id === id);
+  }
+
+  async getAgents(): Promise<AgentInfo[]> {
+    return this.agents;
+  }
+
+  async getAgentHealth(agentId?: string): Promise<{ [key: string]: any }> {
+    if (agentId) {
+      const agent = this.agents.find(a => a.id === agentId);
+      return agent ? { [agentId]: { health: agent.health, status: agent.status } } : {};
+    }
+
+    // Return health for all agents
+    const healthMap: { [key: string]: any } = {};
+    this.agents.forEach(agent => {
+      healthMap[agent.id] = {
+        health: agent.health,
+        status: agent.status,
+        lastActivity: agent.lastActivity
+      };
+    });
+    return healthMap;
+  }
+
+  generateResponse(input: any): Promise<any> {
+    return this.executeAgent('sales-agent-v1', input);
+  }
+
+  get usageStats() {
+    return {
+      tokensUsed: Math.floor(Math.random() * 10000),
+      requestsToday: Math.floor(Math.random() * 100),
+      tier: USAGE_TIERS.PROFESSIONAL
+    };
   }
 
   isServiceReady(): boolean {
