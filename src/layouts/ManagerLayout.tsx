@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 
@@ -15,7 +15,9 @@ import SecurityPage from '@/pages/manager/Security';
 import Reports from '@/pages/manager/Reports';
 import ManagerSettings from '@/pages/manager/Settings';
 
-import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
+
+const UnifiedAIBubble = lazy(() => import('@/components/UnifiedAI/UnifiedAIBubble'));
 import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
 
@@ -46,31 +48,35 @@ const ManagerLayout = () => {
     emailContext,
     smsContext
   };
-  
+
   return (
     <div className="min-h-screen bg-background relative">
       <ManagerNavigation />
-      
+
       <main className="pt-[60px]">
-        <Routes>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<ManagerDashboard />} />
-          <Route path="analytics" element={<ManagerAnalytics />} />
-          <Route path="lead-management" element={<ManagerLeadManagement />} />
-          <Route path="company-brain" element={<ManagerCompanyBrain />} />
-          <Route path="ai" element={<ManagerAI />} />
-          <Route path="crm-integrations" element={<ManagerCRMIntegrations />} />
-          <Route path="team-management" element={<TeamManagement />} />
-          <Route path="security" element={<SecurityPage />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="settings" element={<ManagerSettings />} />
-          <Route path="*" element={<Navigate to="dashboard" replace />} />
-        </Routes>
+        <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please refresh or contact support.</div>}>
+          <Routes>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<ManagerDashboard />} />
+            <Route path="analytics" element={<ManagerAnalytics />} />
+            <Route path="lead-management" element={<ManagerLeadManagement />} />
+            <Route path="company-brain" element={<ManagerCompanyBrain />} />
+            <Route path="ai" element={<ManagerAI />} />
+            <Route path="crm-integrations" element={<ManagerCRMIntegrations />} />
+            <Route path="team-management" element={<TeamManagement />} />
+            <Route path="security" element={<SecurityPage />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<ManagerSettings />} />
+            <Route path="*" element={<Navigate to="dashboard" replace />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
-      
+
       {/* Manager AI Assistant */}
       <div className="fixed bottom-6 right-6 z-[9999]">
-        <UnifiedAIBubble context={aiContext} />
+        <Suspense>
+          <UnifiedAIBubble context={aiContext} />
+        </Suspense>
       </div>
     </div>
   );
