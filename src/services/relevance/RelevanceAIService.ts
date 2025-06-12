@@ -111,13 +111,15 @@ class RelevanceAIService {
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const executionTime = Date.now() - startTime;
+      const taskId = crypto.randomUUID();
       
       return {
         success: true,
         output: {
           response: `Agent ${agentId} executed successfully`,
           data: input,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          taskId
         },
         executionTime,
         usage: {
@@ -173,7 +175,7 @@ class RelevanceAIService {
     return healthMap;
   }
 
-  generateResponse(input: any): Promise<any> {
+  async generateResponse(input: any): Promise<AgentResponse> {
     return this.executeAgent('sales-agent-v1', input);
   }
 

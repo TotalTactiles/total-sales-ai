@@ -41,6 +41,10 @@ export const useRelevanceAI = () => {
     }
   }, []);
 
+  const generateResponse = useCallback(async (input: any) => {
+    return await relevanceAI.generateResponse(input);
+  }, []);
+
   const loadWorkflows = useCallback(async () => {
     try {
       const workflowList = await relevanceAI.getWorkflows();
@@ -56,7 +60,9 @@ export const useRelevanceAI = () => {
     workflows,
     executions,
     executeWorkflow,
+    generateResponse,
     loadWorkflows,
+    usageStats: relevanceAI.usageStats,
     USAGE_TIERS
   };
 };

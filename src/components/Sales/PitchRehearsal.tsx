@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mic, Stop, RefreshCcw } from 'lucide-react';
+import { Mic, Square, RefreshCcw } from 'lucide-react';
 import { useRelevanceAI } from '@/hooks/useRelevanceAI';
 import { toast } from 'sonner';
 import AgentFeedbackButton from '@/components/AI/AgentFeedbackButton';
@@ -90,7 +90,7 @@ const PitchRehearsal: React.FC = () => {
             variant="destructive"
             disabled={isLoading}
           >
-            <Stop className="h-4 w-4 mr-2" />
+            <Square className="h-4 w-4 mr-2" />
             Stop Recording
           </Button>
         )}

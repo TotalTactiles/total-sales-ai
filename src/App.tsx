@@ -4,11 +4,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from 'next-themes';
-
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AIProvider } from '@/contexts/AIContext';
+import { DemoDataProvider } from '@/contexts/DemoDataContext';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
-
 import ProtectedRoute from '@/components/ProtectedRoute';
 import LandingPage from '@/pages/LandingPage';
 import LoginPage from '@/pages/LoginPage';
@@ -22,13 +21,12 @@ import DeveloperLayout from '@/layouts/DeveloperLayout';
 // Agent services
 import { relevanceAIService } from '@/services/relevance/RelevanceAIService';
 import { logger } from '@/utils/logger';
-
 import './App.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
     },
   },
@@ -55,44 +53,53 @@ function App() {
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         <Router>
           <AuthProvider>
-            <AIProvider>
-              <UnifiedAIProvider>
-                <div className="min-h-screen bg-background">
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/" element={<LandingPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<SignupPage />} />
-                    
-                    {/* Protected routes */}
-                    <Route path="/sales/*" element={
-                      <ProtectedRoute>
-                        <SalesLayout />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="/manager/*" element={
-                      <ProtectedRoute requiredRole="manager">
-                        <ManagerLayout />
-                      </ProtectedRoute>
-                    } />
-                    
-                    <Route path="/developer/*" element={
-                      <ProtectedRoute requiredRole="admin">
-                        <DeveloperLayout />
-                      </ProtectedRoute>
-                    } />
-                  </Routes>
-                  
-                  <Toaster 
-                    position="top-right" 
-                    expand={false} 
-                    richColors 
-                    closeButton
-                  />
-                </div>
-              </UnifiedAIProvider>
-            </AIProvider>
+            <DemoDataProvider>
+              <AIProvider>
+                <UnifiedAIProvider>
+                  <div className="min-h-screen bg-background">
+                    <Routes>
+                      {/* Public routes */}
+                      <Route path="/" element={<LandingPage />} />
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/signup" element={<SignupPage />} />
+
+                      {/* Protected routes */}
+                      <Route
+                        path="/sales/*"
+                        element={
+                          <ProtectedRoute>
+                            <SalesLayout />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/manager/*"
+                        element={
+                          <ProtectedRoute requiredRole="manager">
+                            <ManagerLayout />
+                          </ProtectedRoute>
+                        }
+                      />
+                      <Route
+                        path="/developer/*"
+                        element={
+                          <ProtectedRoute requiredRole="developer">
+                            <DeveloperLayout />
+                          </ProtectedRoute>
+                        }
+                      />
+                    </Routes>
+
+                    <Toaster
+                      position="top-right"
+                      toastOptions={{
+                        duration: 4000,
+                      }}
+                    />
+                  </div>
+                </UnifiedAIProvider>
+              </AIProvider>
+            </DemoDataProvider>
           </AuthProvider>
         </Router>
       </ThemeProvider>

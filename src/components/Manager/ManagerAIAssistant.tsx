@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useRelevanceAI } from '@/hooks/useRelevanceAI';
 import { toast } from 'sonner';
-import { AgentFeedbackButton } from '@/components/AI/AgentFeedbackButton';
+import AgentFeedbackButton from '@/components/AI/AgentFeedbackButton';
 
 interface ManagerAIAssistantProps {
   teamData: any[];
