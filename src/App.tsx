@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from 'next-themes';
@@ -11,6 +11,7 @@ import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import RequireAuth from '@/components/RequireAuth';
 import LandingPage from '@/pages/LandingPage';
 import AuthPage from '@/pages/auth/AuthPage';
+import Logout from '@/pages/auth/Logout';
 import LoginPage from '@/pages/LoginPage';
 import SignupPage from '@/pages/SignupPage';
 
@@ -61,8 +62,9 @@ function App() {
                       {/* Public routes */}
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/auth" element={<AuthPage />} />
-                      <Route path="/login" element={<LoginPage />} />
-                      <Route path="/signup" element={<SignupPage />} />
+                      <Route path="/logout" element={<Logout />} />
+                      <Route path="/login" element={<Navigate to="/auth" replace />} />
+                      <Route path="/signup" element={<Navigate to="/auth" replace />} />
 
                       {/* Protected routes */}
                       <Route
