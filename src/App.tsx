@@ -14,6 +14,7 @@ import AuthPage from '@/pages/auth/AuthPage';
 import Logout from '@/pages/auth/Logout';
 import LoginPage from '@/pages/LoginPage';
 import SignupPage from '@/pages/SignupPage';
+import NotFound from '@/pages/NotFound';
 
 // Layout imports
 import SalesLayout from '@/layouts/SalesLayout';
@@ -91,6 +92,7 @@ function App() {
                           </RequireAuth>
                         }
                       />
+                      <Route path="*" element={<NotFound />} />
                     </Routes>
 
                     <Toaster
