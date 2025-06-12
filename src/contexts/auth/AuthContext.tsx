@@ -307,6 +307,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('demoMode', 'true');
     localStorage.setItem('demoRole', role);
     setLastSelectedRole(role);
+
+    const { demoUser, demoProfile } = initializeDemoUser(role);
+    setUser(demoUser);
+    setProfile(demoProfile);
+    setSession(null);
     setLoading(false);
   };
 
