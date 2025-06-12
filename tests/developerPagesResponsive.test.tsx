@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
-import { describe, it, beforeEach, expect } from 'vitest'
+import { describe, it, beforeEach, expect, vi } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 
 import AIBrainLogs from '../src/pages/developer/AIBrainLogs'
@@ -14,6 +14,11 @@ import Settings from '../src/pages/developer/Settings'
 import SystemMonitor from '../src/pages/developer/SystemMonitor'
 import TestingSandbox from '../src/pages/developer/TestingSandbox'
 import VersionControl from '../src/pages/developer/VersionControl'
+
+// Mock AuthContext to avoid needing full provider setup
+vi.mock('../src/contexts/AuthContext', () => ({
+  useAuth: () => ({ profile: { role: 'developer' } })
+}))
 
 const pages = [
   { component: AIBrainLogs, title: 'AI Brain Logs' },
