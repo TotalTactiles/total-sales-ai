@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
@@ -360,7 +361,6 @@ const AutoDialerInterface: React.FC<AutoDialerInterfaceProps> = ({
         <AIAssistantPanel
           currentLead={currentLead}
           isCallActive={isInCall}
-          onSuggestion={(suggestion) => toast.info(`AI: ${suggestion}`)}
         />
       </div>
 
