@@ -6,10 +6,14 @@ interface AIContextType {
   isCallActive: boolean;
   emailContext: any;
   smsContext: any;
+  workspace: string;
+  callDuration: number;
   setCurrentLead: (lead: any) => void;
   setCallActive: (active: boolean) => void;
   setEmailContext: (context: any) => void;
   setSmsContext: (context: any) => void;
+  setWorkspace: (workspace: string) => void;
+  setCallDuration: (duration: number) => void;
 }
 
 const AIContext = createContext<AIContextType | undefined>(undefined);
@@ -19,6 +23,8 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isCallActive, setCallActive] = useState(false);
   const [emailContext, setEmailContext] = useState(null);
   const [smsContext, setSmsContext] = useState(null);
+  const [workspace, setWorkspace] = useState('dashboard');
+  const [callDuration, setCallDuration] = useState(0);
 
   return (
     <AIContext.Provider value={{
@@ -26,10 +32,14 @@ export const AIProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
       isCallActive,
       emailContext,
       smsContext,
+      workspace,
+      callDuration,
       setCurrentLead,
       setCallActive,
       setEmailContext,
-      setSmsContext
+      setSmsContext,
+      setWorkspace,
+      setCallDuration
     }}>
       {children}
     </AIContext.Provider>
