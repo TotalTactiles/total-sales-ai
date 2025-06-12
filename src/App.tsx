@@ -8,8 +8,9 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { AIProvider } from '@/contexts/AIContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import RequireAuth from '@/components/RequireAuth';
 import LandingPage from '@/pages/LandingPage';
+import AuthPage from '@/pages/auth/AuthPage';
 import LoginPage from '@/pages/LoginPage';
 import SignupPage from '@/pages/SignupPage';
 
@@ -34,7 +35,6 @@ const queryClient = new QueryClient({
 
 function App() {
   useEffect(() => {
-    // Initialize AI services on app startup
     const initializeAIServices = async () => {
       try {
         logger.info('Initializing AI services...');
@@ -60,6 +60,7 @@ function App() {
                     <Routes>
                       {/* Public routes */}
                       <Route path="/" element={<LandingPage />} />
+                      <Route path="/auth" element={<AuthPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/signup" element={<SignupPage />} />
 
@@ -67,25 +68,25 @@ function App() {
                       <Route
                         path="/sales/*"
                         element={
-                          <ProtectedRoute>
+                          <RequireAuth>
                             <SalesLayout />
-                          </ProtectedRoute>
+                          </RequireAuth>
                         }
                       />
                       <Route
                         path="/manager/*"
                         element={
-                          <ProtectedRoute requiredRole="manager">
+                          <RequireAuth>
                             <ManagerLayout />
-                          </ProtectedRoute>
+                          </RequireAuth>
                         }
                       />
                       <Route
                         path="/developer/*"
                         element={
-                          <ProtectedRoute requiredRole="admin">
+                          <RequireAuth>
                             <DeveloperLayout />
-                          </ProtectedRoute>
+                          </RequireAuth>
                         }
                       />
                     </Routes>
