@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, NavLink } from 'react-router-dom';
 import { 
@@ -13,12 +14,6 @@ import {
 import AgentHealthDashboard from '@/components/Developer/AgentHealthDashboard';
 import AdvancedFeatures from '@/pages/AdvancedFeatures';
 
-interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-}
-
 const DeveloperLayout: React.FC = () => {
   const navigation = [
     { name: 'Agent Health', href: '/developer', icon: Activity },
@@ -28,13 +23,13 @@ const DeveloperLayout: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="flex">
         {/* Sidebar */}
-        <div className="w-64 bg-white shadow-sm">
-          <div className="p-6">
-            <h1 className="text-xl font-bold text-gray-900">Developer Console</h1>
-            <p className="text-sm text-gray-600 mt-1">Advanced AI management</p>
+        <div className="w-64 bg-white dark:bg-slate-800 shadow-sm border-r border-slate-200 dark:border-slate-700">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white">Developer Console</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">Advanced AI management</p>
           </div>
           
           <nav className="mt-6">
@@ -46,8 +41,8 @@ const DeveloperLayout: React.FC = () => {
                 className={({ isActive }) =>
                   `flex items-center px-6 py-3 text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 border-r-2 border-blue-700 dark:border-blue-400'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`
                 }
               >
@@ -59,12 +54,34 @@ const DeveloperLayout: React.FC = () => {
         </div>
 
         {/* Main content */}
-        <div className="flex-1">
+        <div className="flex-1 bg-slate-50 dark:bg-slate-900">
           <Routes>
             <Route index element={<AgentHealthDashboard />} />
             <Route path="advanced" element={<AdvancedFeatures />} />
-            <Route path="api" element={<div className="p-6"><h2>API Console - Coming Soon</h2></div>} />
-            <Route path="testing" element={<div className="p-6"><h2>Testing Suite - Coming Soon</h2></div>} />
+            <Route 
+              path="api" 
+              element={
+                <div className="p-6">
+                  <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-8 text-center">
+                    <Code className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">API Console</h2>
+                    <p className="text-slate-600 dark:text-slate-400">Advanced API testing and management tools coming soon.</p>
+                  </div>
+                </div>
+              } 
+            />
+            <Route 
+              path="testing" 
+              element={
+                <div className="p-6">
+                  <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm p-8 text-center">
+                    <TestTube className="h-12 w-12 text-slate-400 mx-auto mb-4" />
+                    <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Testing Suite</h2>
+                    <p className="text-slate-600 dark:text-slate-400">Comprehensive testing tools and automation coming soon.</p>
+                  </div>
+                </div>
+              } 
+            />
           </Routes>
         </div>
       </div>

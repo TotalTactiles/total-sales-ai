@@ -53,18 +53,18 @@ const ManagerLayout = () => {
       
       <main className="pt-[60px]">
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<ManagerDashboard />} />
-          <Route path="/analytics" element={<ManagerAnalytics />} />
-          <Route path="/lead-management" element={<ManagerLeadManagement />} />
-          <Route path="/company-brain" element={<ManagerCompanyBrain />} />
-          <Route path="/ai" element={<ManagerAI />} />
-          <Route path="/crm-integrations" element={<ManagerCRMIntegrations />} />
-          <Route path="/team-management" element={<TeamManagement />} />
-          <Route path="/security" element={<SecurityPage />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<ManagerSettings />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<ManagerDashboard />} />
+          <Route path="analytics" element={<ManagerAnalytics />} />
+          <Route path="lead-management" element={<ManagerLeadManagement />} />
+          <Route path="company-brain" element={<ManagerCompanyBrain />} />
+          <Route path="ai" element={<ManagerAI />} />
+          <Route path="crm-integrations" element={<ManagerCRMIntegrations />} />
+          <Route path="team-management" element={<TeamManagement />} />
+          <Route path="security" element={<SecurityPage />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="settings" element={<ManagerSettings />} />
+          <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Routes>
       </main>
       

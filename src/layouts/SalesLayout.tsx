@@ -58,16 +58,16 @@ const SalesLayout = () => {
       
       <main className="pt-[60px]">
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<SalesRepDashboard />} />
-          <Route path="/analytics" element={<SalesAnalytics />} />
-          <Route path="/lead-management" element={<SalesLeadManagement />} />
-          <Route path="/lead-workspace/:id" element={<LeadWorkspace />} />
-          <Route path="/dialer" element={<SalesDialer />} />
-          <Route path="/academy" element={<SalesAcademy />} />
-          <Route path="/ai" element={<SalesAI />} />
-          <Route path="/settings" element={<SalesSettings />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<SalesRepDashboard />} />
+          <Route path="analytics" element={<SalesAnalytics />} />
+          <Route path="lead-management" element={<SalesLeadManagement />} />
+          <Route path="lead-workspace/:id" element={<LeadWorkspace />} />
+          <Route path="dialer" element={<SalesDialer />} />
+          <Route path="academy" element={<SalesAcademy />} />
+          <Route path="ai" element={<SalesAI />} />
+          <Route path="settings" element={<SalesSettings />} />
+          <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Routes>
       </main>
       
