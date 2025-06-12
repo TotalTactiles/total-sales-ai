@@ -22,12 +22,23 @@ const AgentHealthDashboard: React.FC = () => {
   const [healthData, setHealthData] = useState<any>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [agents, setAgents] = useState<any[]>([]);
 
   useEffect(() => {
     performHealthCheck();
+    loadAgents();
     const interval = setInterval(performHealthCheck, 30000); // Check every 30 seconds
     return () => clearInterval(interval);
   }, []);
+
+  const loadAgents = async () => {
+    try {
+      const agentList = await relevanceAIService.getAgents();
+      setAgents(agentList);
+    } catch (error) {
+      console.error('Failed to load agents:', error);
+    }
+  };
 
   const performHealthCheck = async () => {
     setIsChecking(true);
@@ -163,13 +174,13 @@ const AgentHealthDashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {relevanceAIService.getAgents().map((agent) => (
+            {agents.map((agent) => (
               <div key={agent.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(healthData.apiKeyConfigured)}
                   <div>
                     <div className="font-medium">{agent.name}</div>
-                    <div className="text-sm text-muted-foreground">{agent.description}</div>
+                    <div className="text-sm text-muted-foreground">Agent ID: {agent.id}</div>
                   </div>
                 </div>
                 

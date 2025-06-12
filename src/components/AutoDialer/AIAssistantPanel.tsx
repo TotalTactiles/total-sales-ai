@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import AgentFeedbackButton from '@/components/AI/AgentFeedbackButton';
 interface AIAssistantPanelProps {
   currentLead: any;
   isCallActive: boolean;
-  callDuration: number;
+  callDuration?: number;
 }
 
 interface Message {
@@ -26,7 +27,7 @@ interface Message {
 const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ 
   currentLead, 
   isCallActive,
-  callDuration 
+  callDuration = 0
 }) => {
   const { executeWorkflow, isLoading } = useRelevanceAI();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -140,7 +141,7 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
           {messages.filter(m => m.sender === 'ai' && m.metadata?.taskId).map(message => (
             <div key={message.id} className="mt-2">
               <AgentFeedbackButton 
-                taskId={message.metadata.taskId}
+                taskId={message.metadata!.taskId!}
                 variant="outline"
               />
             </div>

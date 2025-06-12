@@ -83,7 +83,7 @@ function App() {
                       <Route
                         path="/developer/*"
                         element={
-                          <ProtectedRoute requiredRole="developer">
+                          <ProtectedRoute requiredRole="admin">
                             <DeveloperLayout />
                           </ProtectedRoute>
                         }

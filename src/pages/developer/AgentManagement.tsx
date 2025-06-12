@@ -29,9 +29,13 @@ const AgentManagement: React.FC = () => {
     initializeService();
   }, []);
 
-  const loadAgents = () => {
-    const agentList = relevanceAIService.getAgents();
-    setAgents(agentList);
+  const loadAgents = async () => {
+    try {
+      const agentList = await relevanceAIService.getAgents();
+      setAgents(agentList);
+    } catch (error) {
+      console.error('Failed to load agents:', error);
+    }
   };
 
   const initializeService = async () => {
@@ -111,7 +115,7 @@ const AgentManagement: React.FC = () => {
                       <Brain className="h-6 w-6 text-blue-600" />
                       <div>
                         <CardTitle className="text-lg">{agent.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground">{agent.description}</p>
+                        <p className="text-sm text-muted-foreground">Agent ID: {agent.id}</p>
                       </div>
                     </div>
                     <Badge variant={initStatus === 'connected' ? 'default' : 'secondary'}>
@@ -122,8 +126,8 @@ const AgentManagement: React.FC = () => {
                 <CardContent>
                   <div className="flex items-center justify-between">
                     <div className="text-sm">
-                      <div className="font-medium">Agent ID: {agent.id}</div>
-                      <div className="text-muted-foreground">Role: {agent.role}</div>
+                      <div className="font-medium">Status: {agent.status}</div>
+                      <div className="text-muted-foreground">Health: {agent.health}</div>
                     </div>
                     <Button 
                       onClick={() => testAgent(agent.id)}
