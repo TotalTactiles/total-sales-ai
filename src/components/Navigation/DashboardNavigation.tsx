@@ -5,20 +5,20 @@ import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
   Users, 
-  BarChart3, 
   Target, 
-  Brain 
+  BarChart3, 
+  Settings 
 } from 'lucide-react';
 
-const ManagerNavigation: React.FC = () => {
+const DashboardNavigation: React.FC = () => {
   const location = useLocation();
 
   const navItems = [
-    { href: '/manager/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/manager/team', label: 'Team', icon: Users },
-    { href: '/manager/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/manager/goals', label: 'Goals', icon: Target },
-    { href: '/manager/ai', label: 'AI Insights', icon: Brain },
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/leads', label: 'Leads', icon: Users },
+    { href: '/goals', label: 'Goals', icon: Target },
+    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -43,4 +43,4 @@ const ManagerNavigation: React.FC = () => {
   );
 };
 
-export default ManagerNavigation;
+export default DashboardNavigation;

@@ -13,6 +13,10 @@ export interface AgentContext {
   recentActions?: any[];
   tone?: string;
   industry?: string;
+  salesHistory?: any[];
+  recentFeedback?: any[];
+  managerContext?: any;
+  correction?: string;
 }
 
 export interface AgentTask {
@@ -86,7 +90,7 @@ class AgentOrchestrator {
     }
   }
 
-  private async enrichContext(context: AgentContext): Promise<any> {
+  private async enrichContext(context: AgentContext): Promise<AgentContext> {
     const enriched = { ...context };
 
     try {
@@ -99,7 +103,7 @@ class AgentOrchestrator {
           .order('created_at', { ascending: false })
           .limit(5);
         
-        enriched.salesHistory = salesMemory;
+        enriched.salesHistory = salesMemory || [];
       }
 
       // Add recent feedback
@@ -232,8 +236,7 @@ class AgentOrchestrator {
             userId,
             companyId: 'system',
             userRole: 'system',
-            correction: corr,
-            frequency: count
+            correction: corr
           }
         });
       }

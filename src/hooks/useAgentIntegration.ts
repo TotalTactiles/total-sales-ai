@@ -7,7 +7,9 @@ import { logger } from '@/utils/logger';
 
 interface UseAgentIntegrationResult {
   executeTask: (taskType: string, agentType: AgentTask['agentType'], additionalContext?: any) => Promise<any>;
+  executeAgentTask: (agentType: AgentTask['agentType'], taskType: string, additionalContext?: any) => Promise<any>;
   isLoading: boolean;
+  isExecuting: boolean;
   error: string | null;
   submitFeedback: (taskId: string, rating: 'positive' | 'negative', correction?: string) => Promise<void>;
 }
@@ -67,6 +69,15 @@ export const useAgentIntegration = (workspace: string = 'dashboard'): UseAgentIn
     }
   }, [workspace, user?.id, profile?.company_id, profile?.role]);
 
+  // Alias method with different parameter order for compatibility
+  const executeAgentTask = useCallback(async (
+    agentType: AgentTask['agentType'],
+    taskType: string,
+    additionalContext: any = {}
+  ) => {
+    return executeTask(taskType, agentType, additionalContext);
+  }, [executeTask]);
+
   const submitFeedback = useCallback(async (
     taskId: string, 
     rating: 'positive' | 'negative', 
@@ -85,7 +96,9 @@ export const useAgentIntegration = (workspace: string = 'dashboard'): UseAgentIn
 
   return {
     executeTask,
+    executeAgentTask,
     isLoading,
+    isExecuting: isLoading,
     error,
     submitFeedback
   };

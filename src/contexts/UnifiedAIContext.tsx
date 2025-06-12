@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
@@ -124,8 +123,8 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
       await logAIInteraction('agent_task_execution', {
         agentType,
         taskType,
-        success: result.status === 'completed',
-        executionTime: result.execution_time_ms
+        success: result.success,
+        executionTime: result.executionTime
       });
 
       return result;
