@@ -1,113 +1,115 @@
 
-import React, { useEffect } from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
-import { ThemeProvider } from 'next-themes';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { AIProvider } from '@/contexts/AIContext';
+import { AuthProvider } from '@/contexts/auth/AuthContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
-import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
+import { AIProvider } from '@/contexts/AIContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import RequireAuth from '@/components/RequireAuth';
+import OnboardingGuard from '@/components/OnboardingGuard';
+import LogoutHandler from '@/components/LogoutHandler';
 import LandingPage from '@/pages/LandingPage';
 import AuthPage from '@/pages/auth/AuthPage';
-import Logout from '@/pages/auth/Logout';
-import LoginPage from '@/pages/LoginPage';
-import SignupPage from '@/pages/SignupPage';
-import NotFound from '@/pages/NotFound';
-
-// Layout imports
+import OnboardingPage from '@/pages/onboarding/OnboardingPage';
 import SalesLayout from '@/layouts/SalesLayout';
 import ManagerLayout from '@/layouts/ManagerLayout';
 import DeveloperLayout from '@/layouts/DeveloperLayout';
-
-// Agent services
-import { relevanceAIService } from '@/services/relevance/RelevanceAIService';
-import { logger } from '@/utils/logger';
+import NotFound from '@/pages/NotFound';
+import ErrorBoundary from '@/components/common/ErrorBoundary';
 import './App.css';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,
-      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 1,
     },
   },
 });
 
 function App() {
-  useEffect(() => {
-    const initializeAIServices = async () => {
-      try {
-        logger.info('Initializing AI services...');
-        await relevanceAIService.initialize();
-        logger.info('AI services initialized successfully');
-      } catch (error) {
-        logger.error('Failed to initialize AI services:', error);
-      }
-    };
-
-    initializeAIServices();
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-        <Router>
-          <AuthProvider>
-            <DemoDataProvider>
-              <AIProvider>
-                <UnifiedAIProvider>
-                  <div className="min-h-screen bg-background">
+      <AuthProvider>
+        <DemoDataProvider>
+          <AIProvider>
+            <Router>
+              <div className="min-h-screen bg-background text-foreground">
+                <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please refresh the page.</div>}>
+                  <Suspense fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    </div>
+                  }>
                     <Routes>
                       {/* Public routes */}
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/auth" element={<AuthPage />} />
-                      <Route path="/logout" element={<Logout />} />
-                      <Route path="/login" element={<Navigate to="/auth" replace />} />
-                      <Route path="/signup" element={<Navigate to="/auth" replace />} />
-
+                      <Route path="/logout" element={<LogoutHandler />} />
+                      
+                      {/* Onboarding route */}
+                      <Route 
+                        path="/onboarding" 
+                        element={
+                          <RequireAuth>
+                            <OnboardingPage />
+                          </RequireAuth>
+                        } 
+                      />
+                      
                       {/* Protected routes */}
-                      <Route
-                        path="/sales/*"
+                      <Route 
+                        path="/sales/*" 
                         element={
                           <RequireAuth>
-                            <SalesLayout />
+                            <OnboardingGuard>
+                              <SalesLayout />
+                            </OnboardingGuard>
                           </RequireAuth>
-                        }
+                        } 
                       />
-                      <Route
-                        path="/manager/*"
+                      
+                      <Route 
+                        path="/manager/*" 
                         element={
                           <RequireAuth>
-                            <ManagerLayout />
+                            <OnboardingGuard>
+                              <ManagerLayout />
+                            </OnboardingGuard>
                           </RequireAuth>
-                        }
+                        } 
                       />
-                      <Route
-                        path="/developer/*"
+                      
+                      <Route 
+                        path="/developer/*" 
                         element={
                           <RequireAuth>
-                            <DeveloperLayout />
+                            <OnboardingGuard>
+                              <DeveloperLayout />
+                            </OnboardingGuard>
                           </RequireAuth>
-                        }
+                        } 
                       />
-                      <Route path="*" element={<NotFound />} />
+                      
+                      {/* Catch all route */}
+                      <Route path="/404" element={<NotFound />} />
+                      <Route path="*" element={<Navigate to="/404" replace />} />
                     </Routes>
-
-                    <Toaster
-                      position="top-right"
-                      toastOptions={{
-                        duration: 4000,
-                      }}
-                    />
-                  </div>
-                </UnifiedAIProvider>
-              </AIProvider>
-            </DemoDataProvider>
-          </AuthProvider>
-        </Router>
-      </ThemeProvider>
+                  </Suspense>
+                </ErrorBoundary>
+                
+                <Toaster 
+                  position="top-right" 
+                  richColors 
+                  closeButton 
+                  duration={4000}
+                />
+              </div>
+            </Router>
+          </AIProvider>
+        </DemoDataProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -10,60 +10,62 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   LayoutDashboard, 
   Users, 
-  Phone, 
-  BarChart3,
-  GraduationCap,
+  BarChart3, 
   Brain,
+  Phone,
+  GraduationCap,
+  FileText,
+  Shield,
   Settings,
-  Target
+  Building2,
+  Activity,
+  Database,
+  Code,
+  TestTube
 } from 'lucide-react';
 
 const ResponsiveNavigation: React.FC = () => {
   const location = useLocation();
   const { profile } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  // Get navigation items based on current route
+
   const getNavItems = () => {
-    const path = location.pathname;
-    
-    if (path.startsWith('/sales')) {
-      return [
-        { href: '/sales/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/sales/lead-management', label: 'Leads', icon: Users },
-        { href: '/sales/dialer', label: 'Dialer', icon: Phone },
-        { href: '/sales/analytics', label: 'Analytics', icon: BarChart3 },
-        { href: '/sales/academy', label: 'Academy', icon: GraduationCap },
-        { href: '/sales/ai', label: 'AI Assistant', icon: Brain },
-        { href: '/sales/settings', label: 'Settings', icon: Settings },
-      ];
-    }
-    
-    if (path.startsWith('/manager')) {
+    if (profile?.role === 'manager') {
       return [
         { href: '/manager/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { href: '/manager/analytics', label: 'Analytics', icon: BarChart3 },
         { href: '/manager/lead-management', label: 'Leads', icon: Users },
         { href: '/manager/company-brain', label: 'Company Brain', icon: Brain },
         { href: '/manager/team-management', label: 'Team', icon: Users },
-        { href: '/manager/reports', label: 'Reports', icon: Target },
+        { href: '/manager/crm-integrations', label: 'CRM', icon: Building2 },
+        { href: '/manager/reports', label: 'Reports', icon: FileText },
+        { href: '/manager/security', label: 'Security', icon: Shield },
         { href: '/manager/settings', label: 'Settings', icon: Settings },
       ];
-    }
-    
-    if (path.startsWith('/developer')) {
+    } else if (profile?.role === 'developer') {
       return [
-        { href: '/developer', label: 'Agent Health', icon: LayoutDashboard },
-        { href: '/developer/advanced', label: 'Advanced Features', icon: Settings },
-        { href: '/developer/api', label: 'API Console', icon: Brain },
-        { href: '/developer/testing', label: 'Testing Suite', icon: Target },
+        { href: '/developer', label: 'Agent Health', icon: Activity },
+        { href: '/developer/advanced', label: 'Advanced', icon: Settings },
+        { href: '/developer/api', label: 'API Console', icon: Code },
+        { href: '/developer/testing', label: 'Testing', icon: TestTube },
+      ];
+    } else {
+      // sales_rep
+      return [
+        { href: '/sales/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/sales/analytics', label: 'Analytics', icon: BarChart3 },
+        { href: '/sales/lead-management', label: 'Leads', icon: Users },
+        { href: '/sales/dialer', label: 'Dialer', icon: Phone },
+        { href: '/sales/academy', label: 'Academy', icon: GraduationCap },
+        { href: '/sales/ai', label: 'AI Assistant', icon: Brain },
+        { href: '/sales/settings', label: 'Settings', icon: Settings },
       ];
     }
-    
-    return [];
   };
 
   const navItems = getNavItems();
+  const roleDisplayName = profile?.role === 'sales_rep' ? 'Sales Representative' : 
+                         profile?.role === 'manager' ? 'Manager' : 'Developer';
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
@@ -74,7 +76,7 @@ const ResponsiveNavigation: React.FC = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden lg:flex items-center space-x-4">
           {navItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href;
@@ -90,14 +92,14 @@ const ResponsiveNavigation: React.FC = () => {
                 }`}
               >
                 <IconComponent className="h-4 w-4" />
-                <span>{item.label}</span>
+                <span className="hidden xl:inline">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* Mobile menu button */}
-        <div className="md:hidden">
+        <div className="lg:hidden">
           <Button
             variant="ghost"
             size="icon"
@@ -107,20 +109,20 @@ const ResponsiveNavigation: React.FC = () => {
           </Button>
         </div>
 
-        {/* Right side controls - Desktop only */}
+        {/* Right side controls */}
         <div className="hidden md:flex items-center space-x-4">
           <ThemeToggle />
           <UserProfile 
-            name={profile?.full_name || "User"}
-            role={profile?.role === 'sales_rep' ? "Sales Rep" : profile?.role === 'manager' ? "Manager" : "Developer"}
+            name={profile?.full_name || roleDisplayName}
+            role={roleDisplayName}
           />
         </div>
       </div>
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background">
-          <div className="px-4 py-4 space-y-2">
+        <div className="lg:hidden border-t border-border bg-background">
+          <div className="px-4 py-4 space-y-2 max-h-96 overflow-y-auto">
             {navItems.map((item) => {
               const IconComponent = item.icon;
               const isActive = location.pathname === item.href;
@@ -146,8 +148,8 @@ const ResponsiveNavigation: React.FC = () => {
             <div className="border-t border-border pt-4 mt-4">
               <div className="flex items-center justify-between">
                 <UserProfile 
-                  name={profile?.full_name || "User"}
-                  role={profile?.role === 'sales_rep' ? "Sales Rep" : profile?.role === 'manager' ? "Manager" : "Developer"}
+                  name={profile?.full_name || roleDisplayName}
+                  role={roleDisplayName}
                 />
                 <ThemeToggle />
               </div>

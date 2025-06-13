@@ -1,41 +1,35 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Shield, AlertTriangle, CheckCircle, Lock } from 'lucide-react';
-import AISecurityDashboard from '@/components/Security/AISecurityDashboard';
-import { useAuth } from '@/contexts/AuthContext';
-const SecurityPage: React.FC = () => {
-  const {
-    profile
-  } = useAuth();
+import { Shield } from 'lucide-react';
 
-  // Only allow managers and admins
-  if (profile?.role !== 'manager' && profile?.role !== 'admin') {
-    return <div className="p-6">
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Lock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Access Restricted</h2>
-            <p className="text-muted-foreground">Security dashboard is only available to managers and administrators.</p>
-          </CardContent>
-        </Card>
-      </div>;
-  }
-  return <div className="p-6 space-y-6 mx-[92px]">
+const ManagerSecurity: React.FC = () => {
+  return (
+    <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Security Center</h1>
-          <p className="text-muted-foreground mt-2">
-            Monitor and manage AI security posture, data protection, and access controls
-          </p>
+          <h1 className="text-3xl font-bold text-foreground">Security</h1>
+          <p className="text-muted-foreground">Security settings and permissions</p>
         </div>
-        <Badge className="bg-green-100 text-green-800 border-green-200">
-          <CheckCircle className="h-4 w-4 mr-1" />
-          Secure
-        </Badge>
       </div>
 
-      <AISecurityDashboard />
-    </div>;
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Security Center
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-12">
+            <Shield className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Security Management</h3>
+            <p className="text-muted-foreground">Advanced security controls and permissions coming soon.</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
-export default SecurityPage;
+
+export default ManagerSecurity;

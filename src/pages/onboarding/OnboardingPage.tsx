@@ -1,225 +1,187 @@
-import { logger } from '@/utils/logger';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CheckCircle, ArrowRight, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 import Logo from '@/components/Logo';
-import { motion } from 'framer-motion';
-
-// Import the context and components
-import { OnboardingProvider, CompanySettings, buildDashboardFromSettings } from './OnboardingContext';
-import OnboardingStepContent, { STEPS } from './components/OnboardingStepContent';
-import OnboardingProgress from './components/OnboardingProgress';
-import StepNavigation from './components/StepNavigation';
-import StepIndicator from './components/StepIndicator';
-import AIAssistantHelper from '@/components/AIAssistant/AIAssistantHelper';
 import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
-// Define the tour steps for the guided tutorial
-const DASHBOARD_TOUR_STEPS = [
-  {
-    title: 'Welcome to Your Dashboard',
-    description: 'This is your personalized SalesOS dashboard. Let me show you around!',
-  },
-  {
-    title: 'Navigation',
-    description: 'Use the sidebar to navigate between different sections of the platform.',
-    targetSelector: '.sidebar'
-  },
-  {
-    title: 'Analytics Dashboard',
-    description: 'Here you can track your sales performance and team metrics at a glance.',
-    targetSelector: '.analytics-dashboard'
-  },
-  {
-    title: 'Smart Dialer',
-    description: 'Make AI-assisted calls with real-time coaching and objection handling.',
-    targetSelector: '.dialer-module'
-  },
-  {
-    title: 'AI Brain',
-    description: 'Access your company knowledge and get intelligent answers to your questions.',
-    targetSelector: '.brain-module'
-  },
-  {
-    title: 'Need Help?',
-    description: 'I\'m always here to help. Click on me anytime you have questions!',
-  },
-];
-
 const OnboardingPage: React.FC = () => {
-  const navigate = useNavigate();
   const { profile } = useAuth();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const navigate = useNavigate();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [onboardingData, setOnboardingData] = useState({
+    companyName: '',
+    industry: '',
+    teamSize: '',
+    goals: []
+  });
 
-  // Check if user should be redirected if onboarding is already done
-  useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      if (!profile?.company_id) return;
+  const industries = [
+    'Technology',
+    'Healthcare',
+    'Finance',
+    'Real Estate',
+    'Manufacturing',
+    'Retail',
+    'Education',
+    'Consulting',
+    'Other'
+  ];
 
-      // If we already have the local flag, skip the remote check
-      const localKey = `onboarding_complete_${profile.company_id}`;
-      if (localStorage.getItem(localKey)) {
-        navigate(getDashboardUrl({ role: profile.role }));
-        return;
-      }
+  const teamSizes = [
+    '1-5 people',
+    '6-20 people',
+    '21-50 people',
+    '51-100 people',
+    '100+ people'
+  ];
 
-      try {
-        const { data, error } = await supabase
-          .from('company_settings')
-          .select('onboarding_completed_at')
-          .eq('company_id', profile.company_id)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        // If onboarding is already complete, set flag and redirect to dashboard
-        if (data?.onboarding_completed_at) {
-          localStorage.setItem(localKey, 'true');
-          const redirectPath = getDashboardUrl({ role: profile.role });
-          navigate(redirectPath);
-        }
-      } catch (err) {
-        logger.error('Error checking onboarding status:', err);
-      }
-    };
-
-    checkOnboardingStatus();
-  }, [profile?.company_id, navigate]);
-
-  // Function to build dashboard from settings
-  const buildDashboardFromSettingsHandler = async () => {
-    // In a real implementation, this could trigger a backend process
-    // For now, just simulate a delay
-    return new Promise<void>(resolve => setTimeout(resolve, 1500));
+  const handleNext = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      completeOnboarding();
+    }
   };
 
-  // Complete the onboarding process
-  const completeOnboardingHandler = async (settings: CompanySettings) => {
-    if (!profile?.company_id) {
-      toast.error('Missing company ID. Cannot save settings.');
-      return;
+  const completeOnboarding = () => {
+    if (profile?.company_id) {
+      localStorage.setItem(`onboarding_complete_${profile.company_id}`, 'true');
     }
-    
-    setIsSubmitting(true);
-    
-    try {
-      // Save settings to Supabase
-      const { error } = await supabase
-        .from('company_settings')
-        .insert({
-          ...settings,
-          company_id: profile.company_id,
-          onboarding_completed_at: new Date().toISOString()
-        });
-      
-      if (error) throw error;
-      
-      // Build dashboard from settings
-      await buildDashboardFromSettings({
-        companyId: profile.company_id,
-        settings: settings
-      });
+    toast.success('Welcome to SalesOS! Your account is ready.');
+    const dashboardUrl = getDashboardUrl(profile);
+    navigate(dashboardUrl, { replace: true });
+  };
 
-      // Mark onboarding complete for this company in local storage
-      localStorage.setItem(
-        `onboarding_complete_${profile.company_id}`,
-        'true'
-      );
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <Building2 className="h-16 w-16 text-primary mx-auto mb-4" />
+              <h2 className="text-2xl font-bold">Tell us about your company</h2>
+              <p className="text-muted-foreground">Help us personalize your experience</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="companyName">Company Name</Label>
+                <Input
+                  id="companyName"
+                  value={onboardingData.companyName}
+                  onChange={(e) => setOnboardingData({ ...onboardingData, companyName: e.target.value })}
+                  placeholder="Enter your company name"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="industry">Industry</Label>
+                <Select
+                  value={onboardingData.industry}
+                  onValueChange={(value) => setOnboardingData({ ...onboardingData, industry: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {industries.map((industry) => (
+                      <SelectItem key={industry} value={industry}>
+                        {industry}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="teamSize">Team Size</Label>
+                <Select
+                  value={onboardingData.teamSize}
+                  onValueChange={(value) => setOnboardingData({ ...onboardingData, teamSize: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your team size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamSizes.map((size) => (
+                      <SelectItem key={size} value={size}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        );
       
-      // Show completion state briefly before redirecting
-      setOnboardingComplete(true);
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold">You're all set!</h2>
+              <p className="text-muted-foreground">Your SalesOS workspace is ready</p>
+            </div>
+            
+            <div className="bg-muted p-6 rounded-lg">
+              <h3 className="font-semibold mb-4">What's next?</h3>
+              <ul className="space-y-3">
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <span>Explore your personalized dashboard</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <span>Import your leads and contacts</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <span>Set up your AI assistant preferences</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        );
       
-      // After a delay, redirect to the appropriate dashboard
-      setTimeout(() => {
-        toast.success('Onboarding complete! Welcome to your SalesOS.');
-        navigate(getDashboardUrl({ role: profile.role }));
-      }, 3000);
-      
-    } catch (error: any) {
-      logger.error('Error saving onboarding settings:', error);
-      toast.error('Failed to save settings: ' + error.message);
-      setIsSubmitting(false);
+      default:
+        return null;
     }
   };
 
   return (
-    <OnboardingProvider
-      initialCompanyId={profile?.company_id}
-      completeOnboardingFn={completeOnboardingHandler}
-      isSubmitting={isSubmitting}
-    >
-      {onboardingComplete ? (
-        // Show completion state with assistant before redirect
-        <motion.div 
-          className="min-h-screen bg-gradient-to-br from-background to-slate-50 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-center"
-          >
-            <Logo className="mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-2">Welcome to SalesOS!</h1>
-            <p className="text-muted-foreground">Your personalized sales platform is ready.</p>
-            <p className="text-muted-foreground mt-1">Taking you to your dashboard...</p>
-          </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <Logo />
+          <CardTitle className="mt-4">Welcome to SalesOS</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {renderStep()}
           
-          {/* Show AI Assistant with first-time tour */}
-          <AIAssistantHelper
-            agentName={profile?.company_id ? undefined : 'SalesOS'}
-            introMessage="Welcome to SalesOS! Let me show you around your new dashboard."
-            tourSteps={DASHBOARD_TOUR_STEPS}
-          />
-        </motion.div>
-      ) : (
-        // Normal onboarding flow
-        <div className="min-h-screen bg-gradient-to-br from-background to-slate-50 dark:from-slate-950 dark:to-slate-900 flex flex-col">
-          {/* Header */}
-          <header className="border-b border-border/40 p-4">
-            <div className="container mx-auto flex justify-between items-center">
-              <Logo />
-              <div className="text-sm text-muted-foreground">
-                Company Onboarding
-              </div>
-            </div>
-          </header>
-          
-          {/* Progress bar */}
-          <OnboardingProgress />
-          
-          {/* Main content */}
-          <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
-            <Card className="p-6 shadow-md">
-              {/* Current step content */}
-              <div className="mb-8">
-                <OnboardingStepContent />
-              </div>
-              
-              {/* Navigation buttons */}
-              <StepNavigation />
-            </Card>
-            
-            {/* Step indicator */}
-            <div className="mt-6 flex justify-center">
-              <div className="flex space-x-2">
-                {STEPS.map((_, index) => (
-                  <StepIndicator key={index} stepIndex={index} />
-                ))}
-              </div>
-            </div>
-          </main>
-        </div>
-      )}
-    </OnboardingProvider>
+          <div className="flex justify-between items-center mt-8">
+            <span className="text-sm text-muted-foreground">
+              Step {currentStep} of 2
+            </span>
+            <Button 
+              onClick={handleNext}
+              disabled={currentStep === 1 && (!onboardingData.companyName || !onboardingData.industry)}
+            >
+              {currentStep === 2 ? 'Get Started' : 'Next'}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

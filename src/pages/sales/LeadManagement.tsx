@@ -1,9 +1,35 @@
 
 import React from 'react';
-import LeadManagement from '@/pages/LeadManagement';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Users } from 'lucide-react';
 
-const SalesLeadManagement = () => {
-  return <LeadManagement />;
+const SalesLeadManagement: React.FC = () => {
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Lead Management</h1>
+          <p className="text-muted-foreground">Manage and track your leads</p>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Your Leads
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-12">
+            <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Lead Management System</h3>
+            <p className="text-muted-foreground">Advanced lead tracking and management tools.</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export default SalesLeadManagement;

@@ -1,220 +1,188 @@
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   TrendingUp, 
-  TrendingDown, 
-  Users, 
   Phone, 
   Mail, 
-  DollarSign,
-  Target,
   Calendar,
-  Star,
-  Award
+  Target,
+  Award,
+  BarChart3,
+  Users,
+  DollarSign
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 
-const SalesRepAnalytics: React.FC = () => {
-  const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter'>('month');
+const SalesAnalytics = () => {
+  const personalStats = {
+    callsMade: 156,
+    emailsSent: 89,
+    meetingsBooked: 23,
+    dealsWon: 12,
+    revenue: 245000,
+    conversionRate: 7.7
+  };
 
-  const performanceData = [
-    { name: 'Week 1', calls: 45, emails: 120, meetings: 8, revenue: 12000 },
-    { name: 'Week 2', calls: 52, emails: 98, meetings: 12, revenue: 18000 },
-    { name: 'Week 3', calls: 38, emails: 145, meetings: 6, revenue: 8500 },
-    { name: 'Week 4', calls: 61, emails: 132, meetings: 15, revenue: 25000 }
+  const weeklyGoals = {
+    calls: { current: 47, target: 60, percentage: 78 },
+    emails: { current: 32, target: 45, percentage: 71 },
+    meetings: { current: 8, target: 12, percentage: 67 },
+    deals: { current: 3, target: 5, percentage: 60 }
+  };
+
+  const performanceTrends = [
+    { month: 'Jan', calls: 145, deals: 8, revenue: 180000 },
+    { month: 'Feb', calls: 167, deals: 11, revenue: 220000 },
+    { month: 'Mar', calls: 156, deals: 12, revenue: 245000 }
   ];
 
-  const conversionData = [
-    { stage: 'Prospects', count: 120, percentage: 100 },
-    { stage: 'Qualified', count: 84, percentage: 70 },
-    { stage: 'Demo', count: 42, percentage: 35 },
-    { stage: 'Proposal', count: 21, percentage: 17.5 },
-    { stage: 'Closed Won', count: 8, percentage: 6.7 }
-  ];
-
-  const kpis = [
-    { 
-      title: 'Calls Made', 
-      value: '196', 
-      change: '+12%', 
-      trend: 'up', 
-      icon: Phone,
-      color: 'text-blue-600'
-    },
-    { 
-      title: 'Email Responses', 
-      value: '89', 
-      change: '+8%', 
-      trend: 'up', 
-      icon: Mail,
-      color: 'text-green-600'
-    },
-    { 
-      title: 'Meetings Booked', 
-      value: '41', 
-      change: '+25%', 
-      trend: 'up', 
-      icon: Calendar,
-      color: 'text-purple-600'
-    },
-    { 
-      title: 'Revenue Generated', 
-      value: '$63.5K', 
-      change: '+18%', 
-      trend: 'up', 
-      icon: DollarSign,
-      color: 'text-green-600'
-    }
+  const topLeads = [
+    { name: 'TechCorp Inc.', value: 125000, stage: 'Proposal', probability: 85 },
+    { name: 'Global Solutions', value: 89000, stage: 'Qualified', probability: 65 },
+    { name: 'StartupXYZ', value: 45000, stage: 'Demo', probability: 40 },
+    { name: 'Enterprise Corp', value: 200000, stage: 'Discovery', probability: 25 }
   ];
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Sales Analytics</h1>
-          <p className="text-gray-600">Track your performance and identify opportunities</p>
+          <h1 className="text-3xl font-bold text-foreground">Sales Analytics</h1>
+          <p className="text-muted-foreground">Track your performance and identify opportunities</p>
         </div>
-        <div className="flex gap-2">
-          {['week', 'month', 'quarter'].map((range) => (
-            <button
-              key={range}
-              onClick={() => setTimeRange(range as any)}
-              className={`px-3 py-1 rounded-md text-sm ${
-                timeRange === range
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {range.charAt(0).toUpperCase() + range.slice(1)}
-            </button>
-          ))}
-        </div>
+        <Badge className="bg-green-500 text-white flex items-center gap-1">
+          <TrendingUp className="h-4 w-4" />
+          +23% This Month
+        </Badge>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {kpis.map((kpi, index) => {
-          const Icon = kpi.icon;
-          return (
-            <Card key={index}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
-                <Icon className={`h-4 w-4 ${kpi.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{kpi.value}</div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  {kpi.trend === 'up' ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500" />
-                  )}
-                  <span className={kpi.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
-                    {kpi.change}
-                  </span>
-                  <span>from last month</span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Performance Trends */}
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <Card>
-          <CardHeader>
-            <CardTitle>Performance Trends</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Calls Made</CardTitle>
+            <Phone className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Line type="monotone" dataKey="calls" stroke="#3b82f6" strokeWidth={2} />
-                <Line type="monotone" dataKey="meetings" stroke="#10b981" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+            <div className="text-2xl font-bold">{personalStats.callsMade}</div>
+            <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
 
-        {/* Revenue Chart */}
         <Card>
-          <CardHeader>
-            <CardTitle>Weekly Revenue</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Emails Sent</CardTitle>
+            <Mail className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={performanceData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(value) => [`$${value}`, 'Revenue']} />
-                <Bar dataKey="revenue" fill="#8b5cf6" />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="text-2xl font-bold">{personalStats.emailsSent}</div>
+            <p className="text-xs text-muted-foreground">This month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Meetings</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{personalStats.meetingsBooked}</div>
+            <p className="text-xs text-muted-foreground">Booked</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Deals Won</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{personalStats.dealsWon}</div>
+            <p className="text-xs text-muted-foreground">Closed</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${(personalStats.revenue / 1000).toFixed(0)}K</div>
+            <p className="text-xs text-muted-foreground">Generated</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Conversion</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{personalStats.conversionRate}%</div>
+            <p className="text-xs text-muted-foreground">Rate</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Conversion Funnel */}
+      {/* Weekly Goals */}
       <Card>
         <CardHeader>
-          <CardTitle>Sales Funnel Conversion</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Weekly Goals Progress
+          </CardTitle>
+          <CardDescription>Track your progress towards weekly targets</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {conversionData.map((stage, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">{stage.stage}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">{stage.count} leads</span>
-                    <Badge variant="outline">{stage.percentage}%</Badge>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Object.entries(weeklyGoals).map(([key, goal]) => (
+              <div key={key} className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium capitalize">{key}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {goal.current}/{goal.target}
+                  </span>
                 </div>
-                <Progress value={stage.percentage} className="h-2" />
+                <Progress value={goal.percentage} className="h-2" />
+                <p className="text-xs text-muted-foreground">
+                  {goal.percentage}% complete
+                </p>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Goals & Achievements */}
+      {/* Performance Trends & Top Leads */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-blue-600" />
-              Monthly Goals
+              <BarChart3 className="h-5 w-5" />
+              Performance Trends
             </CardTitle>
+            <CardDescription>Monthly performance overview</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Calls Target</span>
-                <span>196/200</span>
-              </div>
-              <Progress value={98} className="h-2" />
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Revenue Target</span>
-                <span>$63.5K/$80K</span>
-              </div>
-              <Progress value={79} className="h-2" />
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Meetings Target</span>
-                <span>41/50</span>
-              </div>
-              <Progress value={82} className="h-2" />
+          <CardContent>
+            <div className="space-y-4">
+              {performanceTrends.map((month, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <span className="font-medium">{month.month}</span>
+                    <div className="flex gap-4 text-sm text-muted-foreground">
+                      <span>{month.calls} calls</span>
+                      <span>{month.deals} deals</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">${(month.revenue / 1000).toFixed(0)}K</p>
+                    <p className="text-xs text-muted-foreground">revenue</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -222,31 +190,33 @@ const SalesRepAnalytics: React.FC = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-yellow-600" />
-              Recent Achievements
+              <Users className="h-5 w-5" />
+              Top Pipeline Opportunities
             </CardTitle>
+            <CardDescription>Highest value prospects in your pipeline</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center gap-3 p-2 bg-green-50 rounded-lg">
-              <Star className="h-4 w-4 text-yellow-500" />
-              <div>
-                <p className="text-sm font-medium">Top Performer</p>
-                <p className="text-xs text-gray-600">Highest conversion rate this month</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
-              <Phone className="h-4 w-4 text-blue-500" />
-              <div>
-                <p className="text-sm font-medium">Call Champion</p>
-                <p className="text-xs text-gray-600">100+ calls made this month</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 p-2 bg-purple-50 rounded-lg">
-              <DollarSign className="h-4 w-4 text-purple-500" />
-              <div>
-                <p className="text-sm font-medium">Revenue Goal</p>
-                <p className="text-xs text-gray-600">80% of monthly target achieved</p>
-              </div>
+          <CardContent>
+            <div className="space-y-4">
+              {topLeads.map((lead, index) => (
+                <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">{lead.name}</p>
+                    <p className="text-sm text-muted-foreground">{lead.stage}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium">${lead.value.toLocaleString()}</p>
+                    <div className="flex items-center gap-1">
+                      <div className="w-12 bg-gray-200 rounded-full h-1.5">
+                        <div 
+                          className="bg-blue-600 h-1.5 rounded-full" 
+                          style={{ width: `${lead.probability}%` }}
+                        ></div>
+                      </div>
+                      <span className="text-xs text-muted-foreground">{lead.probability}%</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -255,4 +225,4 @@ const SalesRepAnalytics: React.FC = () => {
   );
 };
 
-export default SalesRepAnalytics;
+export default SalesAnalytics;
