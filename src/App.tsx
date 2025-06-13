@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from 'next-themes';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AIProvider } from '@/contexts/AIContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
@@ -12,7 +13,7 @@ import RequireAuth from '@/components/RequireAuth';
 import OnboardingGuard from '@/components/OnboardingGuard';
 import LandingPage from '@/pages/LandingPage';
 import AuthPage from '@/pages/auth/AuthPage';
-import Logout from '@/pages/auth/Logout';
+import LogoutHandler from '@/components/LogoutHandler';
 import NotFound from '@/pages/NotFound';
 
 // Layout imports
@@ -30,6 +31,7 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
+      retry: 1,
     },
   },
 });
@@ -52,62 +54,64 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-        <Router>
-          <AuthProvider>
-            <DemoDataProvider>
-              <AIProvider>
-                <UnifiedAIProvider>
-                  <OnboardingGuard>
-                    <div className="min-h-screen bg-background">
-                      <Routes>
-                        {/* Public routes */}
-                        <Route path="/" element={<LandingPage />} />
-                        <Route path="/auth" element={<AuthPage />} />
-                        <Route path="/logout" element={<Logout />} />
-                        <Route path="/login" element={<Navigate to="/auth" replace />} />
-                        <Route path="/signup" element={<Navigate to="/auth" replace />} />
+        <TooltipProvider>
+          <Router>
+            <AuthProvider>
+              <DemoDataProvider>
+                <AIProvider>
+                  <UnifiedAIProvider>
+                    <OnboardingGuard>
+                      <div className="min-h-screen bg-background">
+                        <Routes>
+                          {/* Public routes */}
+                          <Route path="/" element={<LandingPage />} />
+                          <Route path="/auth" element={<AuthPage />} />
+                          <Route path="/logout" element={<LogoutHandler />} />
+                          <Route path="/login" element={<Navigate to="/auth" replace />} />
+                          <Route path="/signup" element={<Navigate to="/auth" replace />} />
 
-                        {/* Protected routes */}
-                        <Route
-                          path="/sales/*"
-                          element={
-                            <RequireAuth>
-                              <SalesLayout />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/manager/*"
-                          element={
-                            <RequireAuth>
-                              <ManagerLayout />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route
-                          path="/developer/*"
-                          element={
-                            <RequireAuth>
-                              <DeveloperLayout />
-                            </RequireAuth>
-                          }
-                        />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
+                          {/* Protected routes */}
+                          <Route
+                            path="/sales/*"
+                            element={
+                              <RequireAuth>
+                                <SalesLayout />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/manager/*"
+                            element={
+                              <RequireAuth>
+                                <ManagerLayout />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route
+                            path="/developer/*"
+                            element={
+                              <RequireAuth>
+                                <DeveloperLayout />
+                              </RequireAuth>
+                            }
+                          />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
 
-                      <Toaster
-                        position="top-right"
-                        toastOptions={{
-                          duration: 4000,
-                        }}
-                      />
-                    </div>
-                  </OnboardingGuard>
-                </UnifiedAIProvider>
-              </AIProvider>
-            </DemoDataProvider>
-          </AuthProvider>
-        </Router>
+                        <Toaster
+                          position="top-right"
+                          toastOptions={{
+                            duration: 4000,
+                          }}
+                        />
+                      </div>
+                    </OnboardingGuard>
+                  </UnifiedAIProvider>
+                </AIProvider>
+              </DemoDataProvider>
+            </AuthProvider>
+          </Router>
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

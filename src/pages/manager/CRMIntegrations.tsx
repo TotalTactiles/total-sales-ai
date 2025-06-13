@@ -1,69 +1,33 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import CRMIntegrationsPanel from '@/components/CRM/CRMIntegrationsPanel';
-import { Database, TrendingUp, Users } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 
-const ManagerCRMIntegrations = () => {
+const ManagerCRMIntegrations: React.FC = () => {
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">CRM & Data Management</h1>
-          <p className="text-slate-600">
-            Manage integrations and oversee data flow across your sales ecosystem
-          </p>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">CRM Integrations</h1>
+          <p className="text-muted-foreground">Connect and manage CRM systems</p>
         </div>
-
-        <div className="grid gap-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="rounded-lg shadow-md">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Active Integrations</p>
-                    <p className="text-3xl font-bold text-slate-900">3</p>
-                  </div>
-                  <Database className="h-8 w-8 text-blue-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-lg shadow-md">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Leads Synced Today</p>
-                    <p className="text-3xl font-bold text-slate-900">47</p>
-                  </div>
-                  <Users className="h-8 w-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-lg shadow-md">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-slate-600">Sync Success Rate</p>
-                    <p className="text-3xl font-bold text-slate-900">98.5%</p>
-                  </div>
-                  <TrendingUp className="h-8 w-8 text-purple-600" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-
-        <Card className="rounded-lg shadow-md">
-          <CardHeader>
-            <CardTitle>Integration Management</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CRMIntegrationsPanel />
-          </CardContent>
-        </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5" />
+            CRM Connections
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-12">
+            <Building2 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">CRM Integration Hub</h3>
+            <p className="text-muted-foreground">Connect with popular CRM platforms coming soon.</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
