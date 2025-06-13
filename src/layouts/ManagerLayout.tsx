@@ -9,6 +9,7 @@ const ManagerDashboard = lazy(() => import('@/pages/manager/Dashboard'));
 const ManagerAnalytics = lazy(() => import('@/pages/manager/Analytics'));
 const ManagerLeadManagement = lazy(() => import('@/pages/manager/LeadManagement'));
 const ManagerCompanyBrain = lazy(() => import('@/pages/manager/CompanyBrain'));
+const ManagerAI = lazy(() => import('@/pages/manager/AI'));
 const ManagerTeamManagement = lazy(() => import('@/pages/manager/TeamManagement'));
 const ManagerCRMIntegrations = lazy(() => import('@/pages/manager/CRMIntegrations'));
 const ManagerReports = lazy(() => import('@/pages/manager/Reports'));
@@ -33,6 +34,7 @@ const ManagerLayout: React.FC = () => {
               <Route path="analytics" element={<ManagerAnalytics />} />
               <Route path="lead-management" element={<ManagerLeadManagement />} />
               <Route path="company-brain" element={<ManagerCompanyBrain />} />
+              <Route path="ai" element={<ManagerAI />} />
               <Route path="team-management" element={<ManagerTeamManagement />} />
               <Route path="crm-integrations" element={<ManagerCRMIntegrations />} />
               <Route path="reports" element={<ManagerReports />} />
