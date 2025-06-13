@@ -17,6 +17,8 @@ import ManagerLayout from '@/layouts/ManagerLayout';
 import DeveloperLayout from '@/layouts/DeveloperLayout';
 import NotFound from '@/pages/NotFound';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
+import LoadingScreen from '@/components/common/LoadingScreen';
+import FullPageError from '@/components/common/FullPageError';
 import './App.css';
 
 const queryClient = new QueryClient({
@@ -36,12 +38,8 @@ function App() {
           <AIProvider>
             <Router>
               <div className="min-h-screen bg-background text-foreground">
-                <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please refresh the page.</div>}>
-                  <Suspense fallback={
-                    <div className="min-h-screen flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                    </div>
-                  }>
+                <ErrorBoundary fallback={<FullPageError />}>
+                  <Suspense fallback={<LoadingScreen />}>
                     <Routes>
                       {/* Public routes */}
                       <Route path="/" element={<LandingPage />} />
