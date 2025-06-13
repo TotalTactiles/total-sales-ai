@@ -37,13 +37,13 @@ vi.mock('@/contexts/AIContext', () => ({
 
 vi.mock('@/pages/LeadWorkspace', () => ({
   default: () => {
-    const { leadId } = useParams();
-    return <div data-testid="workspace">Lead {leadId}</div>;
+    const { id } = useParams();
+    return <div data-testid="workspace">Lead {id}</div>;
   }
 }));
 
 describe('sales lead workspace routing', () => {
-  it('renders workspace for provided lead id', () => {
+  it('renders workspace for provided lead id', async () => {
     render(
       <MemoryRouter initialEntries={["/sales/lead-workspace/test123"]}>
         <Routes>
@@ -52,6 +52,7 @@ describe('sales lead workspace routing', () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByTestId('workspace').textContent).toContain('test123');
+    const workspace = await screen.findByTestId('workspace');
+    expect(workspace.textContent).toContain('test123');
   });
 });

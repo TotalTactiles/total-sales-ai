@@ -285,12 +285,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(null);
       setLoading(false);
       
-      // Clear storage but preserve role selection
+      // Clear storage entirely for a clean logout
       localStorage.clear();
       sessionStorage.clear();
-      if (lastRole) {
-        setLastSelectedRole(lastRole);
-      }
       
       if (isSupabaseConfigured) {
         const { error } = await supabase.auth.signOut({ scope: 'global' });
@@ -309,9 +306,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
       localStorage.clear();
       sessionStorage.clear();
-      if (lastRole) {
-        setLastSelectedRole(lastRole);
-      }
     }
   };
 
