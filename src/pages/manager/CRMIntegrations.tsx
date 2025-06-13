@@ -10,7 +10,7 @@ import {
   AlertCircle, 
   Settings,
   Zap,
-  Sync,
+  RefreshCcw,
   ExternalLink,
   Clock,
   Users,
@@ -86,7 +86,7 @@ const ManagerCRMIntegrations = () => {
     switch (status) {
       case 'connected': return <CheckCircle className="h-4 w-4" />;
       case 'error': return <AlertCircle className="h-4 w-4" />;
-      case 'syncing': return <Sync className="h-4 w-4 animate-spin" />;
+      case 'syncing': return <RefreshCcw className="h-4 w-4 animate-spin" />;
       default: return <Clock className="h-4 w-4" />;
     }
   };
@@ -196,7 +196,7 @@ const ManagerCRMIntegrations = () => {
                       <Settings className="h-4 w-4" />
                     </Button>
                     <Button size="sm" variant="outline">
-                      <Sync className="h-4 w-4" />
+                      <RefreshCcw className="h-4 w-4" />
                     </Button>
                     <Button size="sm" variant="outline">
                       <ExternalLink className="h-4 w-4" />
