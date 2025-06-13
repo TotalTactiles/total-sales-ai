@@ -51,16 +51,16 @@ const AuthPage = () => {
     return <AuthLoadingScreen role={selectedRole} isDemoMode={isDemoMode()} />;
   }
 
-  // Redirect if user is already authenticated
-  if (user && profile && !isTransitioning) {
-    logger.info("AuthPage: User is logged in, redirecting");
+  // Only redirect if we're not in a transitioning state and user is fully authenticated
+  if (user && profile && !isTransitioning && !loading) {
+    logger.info("AuthPage: User is authenticated, redirecting to dashboard");
     const redirectPath = getDashboardUrl(profile);
     const from = location.state?.from?.pathname || redirectPath;
     return <Navigate to={from} replace />;
   }
 
-  // Check demo mode and redirect
-  if (isDemoMode() && !user) {
+  // Handle demo mode redirect
+  if (isDemoMode() && !user && !loading) {
     const demoRole = localStorage.getItem('demoRole') as Role | null;
     if (demoRole) {
       const redirectPath = getDashboardUrl({ role: demoRole });

@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
@@ -76,8 +75,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setSession(null);
               setUser(null);
               setProfile(null);
+              // Clear storage but keep selected role for next login
+              const lastRole = getLastSelectedRole();
               localStorage.clear();
               sessionStorage.clear();
+              if (lastRole) {
+                setLastSelectedRole(lastRole);
+              }
               if (mounted) setLoading(false);
               return;
             }
@@ -86,7 +90,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(session?.user || null);
             
             if (session?.user) {
-              // Use setTimeout to avoid potential deadlock
               setTimeout(() => {
                 fetchProfile(session.user.id);
               }, 0);
@@ -98,14 +101,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         );
 
-        //  Then check for existing session
+        // Then check for existing session
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           logger.error('Error getting session:', error);
         } else if (session && mounted) {
           setSession(session);
           setUser(session.user);
-          // Use setTimeout to avoid potential deadlock
           setTimeout(() => {
             fetchProfile(session.user.id);
           }, 0);
@@ -276,13 +278,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       logger.info('SignOut: Starting logout process...');
       
+      // Clear state immediately
+      const lastRole = getLastSelectedRole();
       setUser(null);
       setProfile(null);
       setSession(null);
       setLoading(false);
       
-      localStorage.clear();  
+      // Clear storage but preserve role selection
+      localStorage.clear();
       sessionStorage.clear();
+      if (lastRole) {
+        setLastSelectedRole(lastRole);
+      }
       
       if (isSupabaseConfigured) {
         const { error } = await supabase.auth.signOut({ scope: 'global' });
@@ -293,12 +301,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
     } catch (error) {
       logger.error('Sign out error:', error);
+      // Force cleanup even if error occurs
+      const lastRole = getLastSelectedRole();
       setUser(null);
       setProfile(null);
       setSession(null);
       setLoading(false);
       localStorage.clear();
       sessionStorage.clear();
+      if (lastRole) {
+        setLastSelectedRole(lastRole);
+      }
     }
   };
 
