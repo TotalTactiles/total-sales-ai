@@ -58,18 +58,6 @@ const SalesLayout = () => {
 
       <main className="pt-[60px]">
         <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please refresh or contact support.</div>}>
-          <Routes>
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<SalesRepDashboard />} />
-            <Route path="analytics" element={<SalesAnalytics />} />
-            <Route path="lead-management" element={<SalesLeadManagement />} />
-            <Route path="lead-workspace/:leadId" element={<LeadWorkspace />} />
-            <Route path="dialer" element={<SalesDialer />} />
-            <Route path="academy" element={<SalesAcademy />} />
-            <Route path="ai" element={<SalesAI />} />
-            <Route path="settings" element={<SalesSettings />} />
-            <Route path="*" element={<Navigate to="dashboard" replace />} />
-          </Routes>
           <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
