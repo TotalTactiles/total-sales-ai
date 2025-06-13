@@ -57,7 +57,7 @@ const SalesDashboard = () => {
   }));
 
   const handleLeadClick = (leadId: string) => {
-    navigate(`/lead-workspace/${leadId}`);
+    navigate(`/sales/lead-workspace/${leadId}`);
   };
 
   const victories = [

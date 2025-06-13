@@ -65,7 +65,7 @@ const SalesLayout = () => {
             <Route path="dashboard" element={<SalesRepDashboard />} />
             <Route path="analytics" element={<SalesAnalytics />} />
             <Route path="lead-management" element={<SalesLeadManagement />} />
-            <Route path="lead-workspace/:id" element={<LeadWorkspace />} />
+            <Route path="lead-workspace/:leadId" element={<LeadWorkspace />} />
             <Route path="dialer" element={<SalesDialer />} />
             <Route path="academy" element={<SalesAcademy />} />
             <Route path="ai" element={<SalesAI />} />

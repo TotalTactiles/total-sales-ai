@@ -64,12 +64,12 @@ const LeadWorkspace: React.FC = () => {
   }, [leadId, isDemoMode, databaseLeads]);
 
   const handleClose = () => {
-    navigate('/lead-management');
+    navigate('/sales/lead-management');
   };
 
   if (!leadId || !lead) {
     // If no lead, redirect back to lead management
-    navigate('/lead-management');
+    navigate('/sales/lead-management');
     return null;
   }
 
