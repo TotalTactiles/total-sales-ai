@@ -1,13 +1,12 @@
+
 import { logger } from '@/utils/logger';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { initializeDemoUser } from './demoMode';
 import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
 import { AuthContextType, Profile, Role } from './types';
 import { toast } from 'sonner';
 import { setLastSelectedRole, getLastSelectedRole, setLastSelectedCompanyId, getLastSelectedCompanyId } from './localStorage';
-import { useNavigate } from 'react-router-dom';
-import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -28,79 +27,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    let mounted = true;
-
-    const getSession = async () => {
-      try {
-        if (!isSupabaseConfigured) {
-          setLoading(false);
-          return;
-        }
-
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          logger.error('Error getting session:', error);
-          if (mounted) setLoading(false);
-          return;
-        }
-        
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user || null);
-          
-          if (session?.user) {
-            await fetchProfile(session.user.id);
-          }
-        }
-      } catch (error) {
-        logger.error('Error getting session:', error);
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    };
-
-    getSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-
-        logger.info('Auth state changed:', event, session?.user?.email);
-        
-        if (event === 'SIGNED_OUT') {
-          setSession(null);
-          setUser(null);
-          setProfile(null);
-          setLoading(false);
-          localStorage.clear();
-          sessionStorage.clear();
-          return;
-        }
-        
-        setSession(session);
-        setUser(session?.user || null);
-        
-        if (session?.user) {
-          await fetchProfile(session.user.id);
-        } else {
-          setProfile(null);
-        }
-        
-        setLoading(false);
-      }
-    );
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -125,7 +53,81 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.error('Error in fetchProfile:', error);
       return null;
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        if (!isSupabaseConfigured) {
+          if (mounted) setLoading(false);
+          return;
+        }
+
+        // Set up auth state listener first
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+
+            logger.info('Auth state changed:', event, session?.user?.email);
+            
+            if (event === 'SIGNED_OUT') {
+              setSession(null);
+              setUser(null);
+              setProfile(null);
+              localStorage.clear();
+              sessionStorage.clear();
+              if (mounted) setLoading(false);
+              return;
+            }
+            
+            setSession(session);
+            setUser(session?.user || null);
+            
+            if (session?.user) {
+              // Use setTimeout to avoid potential deadlock
+              setTimeout(() => {
+                fetchProfile(session.user.id);
+              }, 0);
+            } else {
+              setProfile(null);
+            }
+            
+            if (mounted) setLoading(false);
+          }
+        );
+
+        //  Then check for existing session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          logger.error('Error getting session:', error);
+        } else if (session && mounted) {
+          setSession(session);
+          setUser(session.user);
+          // Use setTimeout to avoid potential deadlock
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+          }, 0);
+        }
+
+        if (mounted) setLoading(false);
+
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        logger.error('Error initializing auth:', error);
+        if (mounted) setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+    };
+  }, [fetchProfile]);
 
   const signIn = async (
     email: string,
@@ -201,15 +203,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: metadata,
-          emailRedirectTo: `${window.location.origin}/`
-        }
-      });
-
       if (!isSupabaseConfigured) {
         const role: Role = metadata?.role ?? (email.includes('manager') ? 'manager' : 'sales_rep');
         const { demoUser, demoProfile } = initializeDemoUser(role);
@@ -222,6 +215,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         toast.success('Demo account created successfully');
         return {};
       }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata,
+          emailRedirectTo: `${window.location.origin}/auth`
+        }
+      });
 
       if (error) {
         toast.error(error.message);
@@ -279,13 +281,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(null);
       setLoading(false);
       
-      localStorage.clear();
+      localStorage.clear();  
       sessionStorage.clear();
       
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
-      
-      if (error) {
-        logger.error('Supabase sign out error:', error);
+      if (isSupabaseConfigured) {
+        const { error } = await supabase.auth.signOut({ scope: 'global' });
+        if (error) {
+          logger.error('Supabase sign out error:', error);
+        }
       }
       
     } catch (error) {

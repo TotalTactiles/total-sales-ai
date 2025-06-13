@@ -5,7 +5,7 @@ import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Role } from '@/contexts/auth/types';
-import { ThemeToggle } from '@/components/ThemeProvider';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import Logo from '@/components/Logo';
 import AuthLoginForm from './components/AuthLoginForm';
 import AuthSignupForm from './components/AuthSignupForm';
@@ -91,15 +91,15 @@ const AuthPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gradient-secondary">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-purple-50">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
       
-      <Card className="max-w-md w-full mx-4 p-8 shadow-xl border-0 rounded-2xl gradient-card backdrop-blur-sm">
+      <Card className="max-w-md w-full mx-4 p-8 shadow-xl border-0 rounded-2xl bg-white backdrop-blur-sm">
         <div className="text-center mb-8">
           <Logo />
-          <h2 className="text-2xl font-bold mt-6 text-foreground font-poppins">Welcome to TSAM</h2>
+          <h2 className="text-2xl font-bold mt-6 text-foreground font-poppins">Welcome to SalesOS</h2>
           <p className="text-muted-foreground mt-2 text-sm">Your AI-powered sales acceleration platform</p>
         </div>
       

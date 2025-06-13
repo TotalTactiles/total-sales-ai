@@ -9,11 +9,10 @@ import { AIProvider } from '@/contexts/AIContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import RequireAuth from '@/components/RequireAuth';
+import OnboardingGuard from '@/components/OnboardingGuard';
 import LandingPage from '@/pages/LandingPage';
 import AuthPage from '@/pages/auth/AuthPage';
 import Logout from '@/pages/auth/Logout';
-import LoginPage from '@/pages/LoginPage';
-import SignupPage from '@/pages/SignupPage';
 import NotFound from '@/pages/NotFound';
 
 // Layout imports
@@ -58,50 +57,52 @@ function App() {
             <DemoDataProvider>
               <AIProvider>
                 <UnifiedAIProvider>
-                  <div className="min-h-screen bg-background">
-                    <Routes>
-                      {/* Public routes */}
-                      <Route path="/" element={<LandingPage />} />
-                      <Route path="/auth" element={<AuthPage />} />
-                      <Route path="/logout" element={<Logout />} />
-                      <Route path="/login" element={<Navigate to="/auth" replace />} />
-                      <Route path="/signup" element={<Navigate to="/auth" replace />} />
+                  <OnboardingGuard>
+                    <div className="min-h-screen bg-background">
+                      <Routes>
+                        {/* Public routes */}
+                        <Route path="/" element={<LandingPage />} />
+                        <Route path="/auth" element={<AuthPage />} />
+                        <Route path="/logout" element={<Logout />} />
+                        <Route path="/login" element={<Navigate to="/auth" replace />} />
+                        <Route path="/signup" element={<Navigate to="/auth" replace />} />
 
-                      {/* Protected routes */}
-                      <Route
-                        path="/sales/*"
-                        element={
-                          <RequireAuth>
-                            <SalesLayout />
-                          </RequireAuth>
-                        }
-                      />
-                      <Route
-                        path="/manager/*"
-                        element={
-                          <RequireAuth>
-                            <ManagerLayout />
-                          </RequireAuth>
-                        }
-                      />
-                      <Route
-                        path="/developer/*"
-                        element={
-                          <RequireAuth>
-                            <DeveloperLayout />
-                          </RequireAuth>
-                        }
-                      />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
+                        {/* Protected routes */}
+                        <Route
+                          path="/sales/*"
+                          element={
+                            <RequireAuth>
+                              <SalesLayout />
+                            </RequireAuth>
+                          }
+                        />
+                        <Route
+                          path="/manager/*"
+                          element={
+                            <RequireAuth>
+                              <ManagerLayout />
+                            </RequireAuth>
+                          }
+                        />
+                        <Route
+                          path="/developer/*"
+                          element={
+                            <RequireAuth>
+                              <DeveloperLayout />
+                            </RequireAuth>
+                          }
+                        />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
 
-                    <Toaster
-                      position="top-right"
-                      toastOptions={{
-                        duration: 4000,
-                      }}
-                    />
-                  </div>
+                      <Toaster
+                        position="top-right"
+                        toastOptions={{
+                          duration: 4000,
+                        }}
+                      />
+                    </div>
+                  </OnboardingGuard>
                 </UnifiedAIProvider>
               </AIProvider>
             </DemoDataProvider>

@@ -9,24 +9,30 @@ interface AuthLoadingScreenProps {
 }
 
 const AuthLoadingScreen: React.FC<AuthLoadingScreenProps> = ({ role, isDemoMode }) => {
+  const getRoleDisplayName = (role: Role) => {
+    switch (role) {
+      case 'manager':
+        return 'Manager';
+      case 'developer':
+        return 'Developer';
+      case 'sales_rep':
+      default:
+        return 'Sales Rep';
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-salesBlue-dark text-white">
-      <div className="max-w-md w-full p-8 text-center">
-        <div className="animate-pulse mb-8">
-          <Logo />
-        </div>
-        
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-salesCyan mx-auto mb-6"></div>
-        
-        <div className="typewriter">
-          <h2 className="text-xl font-medium mb-2">
-            {isDemoMode ? "Loading demo workspace..." : "Loading your workspace..."}
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-purple-50">
+      <div className="text-center">
+        <Logo />
+        <div className="mt-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">
+            Loading {getRoleDisplayName(role)} Dashboard
           </h2>
-          {role === 'manager' ? (
-            <p className="text-salesCyan">Preparing manager dashboard and team analytics</p>
-          ) : (
-            <p className="text-salesCyan">Optimizing your sales toolkit for maximum results</p>
-          )}
+          <p className="text-muted-foreground">
+            {isDemoMode ? 'Initializing demo environment...' : 'Preparing your workspace...'}
+          </p>
         </div>
       </div>
     </div>
