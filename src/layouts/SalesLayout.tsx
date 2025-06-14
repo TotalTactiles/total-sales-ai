@@ -5,6 +5,7 @@ import ResponsiveNavigation from '@/components/Navigation/ResponsiveNavigation';
 import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
+import LoadingScreen from '@/components/common/LoadingScreen';
 
 // Lazy load pages to prevent blocking issues
 const SalesDashboard = lazy(() => import('@/pages/sales/Dashboard'));
@@ -57,12 +58,8 @@ const SalesLayout = () => {
       <ResponsiveNavigation />
 
       <main className="pt-[60px]">
-        <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please refresh or contact support.</div>}>
-          <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            </div>
-          }>
+        <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please reload the page.</div>}>
+          <Suspense fallback={<LoadingScreen />}>
             <Routes>
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<SalesDashboard />} />
@@ -81,7 +78,7 @@ const SalesLayout = () => {
 
       {/* Unified AI Bubble */}
       <div className="fixed bottom-6 right-6 z-[9999]">
-        <Suspense>
+        <Suspense fallback={null}>
           <UnifiedAIBubble context={aiContext} />
         </Suspense>
       </div>
