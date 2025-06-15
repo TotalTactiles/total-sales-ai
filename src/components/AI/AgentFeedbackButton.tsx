@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 interface AgentFeedbackButtonProps {
   taskId: string;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
   className?: string;
 }
 

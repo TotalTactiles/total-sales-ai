@@ -29,7 +29,7 @@ const PitchRehearsal: React.FC = () => {
   const handleObjectionResponse = async () => {
     const result = await executeSalesAgent('objection_handling', {
       userResponse,
-      context: 'pitch_rehearsal'
+      workspace: 'pitch_rehearsal'
     });
 
     if (result?.output_payload) {

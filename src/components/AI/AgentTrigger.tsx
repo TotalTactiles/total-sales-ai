@@ -10,7 +10,7 @@ interface AgentTriggerProps {
   taskType: string;
   context?: any;
   variant?: 'default' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'default' | 'sm' | 'lg' | 'icon';
   children?: React.ReactNode;
   className?: string;
 }
@@ -20,7 +20,7 @@ const AgentTrigger: React.FC<AgentTriggerProps> = ({
   taskType,
   context,
   variant = 'default',
-  size = 'md',
+  size = 'default',
   children,
   className
 }) => {
