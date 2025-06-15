@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
@@ -64,52 +65,54 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <Router>
-          <AuthProvider>
-            <DemoDataProvider>
-              <UnifiedAIProvider>
-                <OnboardingGuard>
-                  <div className="min-h-screen bg-background">
-                    <Routes>
-                      {/* Public routes */}
-                      <Route path="/auth" element={<AuthPage />} />
-                      
-                      {/* Protected routes */}
-                      <Route path="/sales/*" element={
-                        <RequireAuth>
-                          <SalesRepOS />
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/manager/*" element={
-                        <RequireAuth>
-                          <ManagerOS />
-                        </RequireAuth>
-                      } />
-                      
-                      <Route path="/developer" element={
-                        <RequireAuth>
-                          <RelevanceAIDeveloperPage />
-                        </RequireAuth>
-                      } />
-                      
-                      {/* Default redirects */}
-                      <Route path="/" element={<Navigate to="/sales" replace />} />
-                      <Route path="*" element={<Navigate to="/sales" replace />} />
-                    </Routes>
-                  </div>
-                </OnboardingGuard>
-                
-                <Toaster 
-                  position="bottom-right"
-                  expand={true}
-                  richColors
-                  closeButton
-                />
-              </UnifiedAIProvider>
-            </DemoDataProvider>
-          </AuthProvider>
-        </Router>
+        <TooltipProvider>
+          <Router>
+            <AuthProvider>
+              <DemoDataProvider>
+                <UnifiedAIProvider>
+                  <OnboardingGuard>
+                    <div className="min-h-screen bg-background">
+                      <Routes>
+                        {/* Public routes */}
+                        <Route path="/auth" element={<AuthPage />} />
+                        
+                        {/* Protected routes */}
+                        <Route path="/sales/*" element={
+                          <RequireAuth>
+                            <SalesRepOS />
+                          </RequireAuth>
+                        } />
+                        
+                        <Route path="/manager/*" element={
+                          <RequireAuth>
+                            <ManagerOS />
+                          </RequireAuth>
+                        } />
+                        
+                        <Route path="/developer" element={
+                          <RequireAuth>
+                            <RelevanceAIDeveloperPage />
+                          </RequireAuth>
+                        } />
+                        
+                        {/* Default redirects */}
+                        <Route path="/" element={<Navigate to="/sales" replace />} />
+                        <Route path="*" element={<Navigate to="/sales" replace />} />
+                      </Routes>
+                    </div>
+                  </OnboardingGuard>
+                  
+                  <Toaster 
+                    position="bottom-right"
+                    expand={true}
+                    richColors
+                    closeButton
+                  />
+                </UnifiedAIProvider>
+              </DemoDataProvider>
+            </AuthProvider>
+          </Router>
+        </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );

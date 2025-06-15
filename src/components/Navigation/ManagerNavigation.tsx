@@ -11,17 +11,12 @@ const ManagerNavigation = () => {
   const location = useLocation();
   const { profile } = useAuth();
 
-  // Primary navigation items (always visible)
-  const primaryNavItems = [
+  const navItems = [
     { label: 'Dashboard', href: '/manager/dashboard', icon: BarChart3 },
     { label: 'Analytics', href: '/manager/analytics', icon: BarChart3 },
     { label: 'Leads', href: '/manager/lead-management', icon: Users },
     { label: 'Knowledge', href: '/manager/company-brain', icon: Database },
     { label: 'AI', href: '/manager/ai', icon: Brain },
-  ];
-
-  // Secondary navigation items (in dropdown for smaller screens)
-  const secondaryNavItems = [
     { label: 'CRM', href: '/manager/crm-integrations', icon: Database },
     { label: 'Team', href: '/manager/team-management', icon: Users },
     { label: 'Security', href: '/manager/security', icon: Shield },
@@ -41,9 +36,9 @@ const ManagerNavigation = () => {
           </div>
         </div>
 
-        {/* Center - Primary Navigation */}
-        <nav className="hidden lg:flex items-center space-x-4 xl:space-x-6 flex-1 justify-center max-w-4xl">
-          {primaryNavItems.map(item => {
+        {/* Center - Navigation Icons */}
+        <nav className="flex items-center space-x-1 sm:space-x-2 flex-1 justify-center max-w-4xl overflow-x-auto">
+          {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href;
             
@@ -51,37 +46,14 @@ const ManagerNavigation = () => {
               <Link
                 key={item.label}
                 to={item.href}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-md transition-colors ${
                   isActive
                     ? 'bg-primary text-primary-foreground'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent'
                 }`}
+                title={item.label}
               >
-                <IconComponent className="h-4 w-4" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Mobile/Tablet Navigation */}
-        <nav className="flex lg:hidden items-center space-x-2 flex-1 justify-center max-w-md overflow-x-auto">
-          {primaryNavItems.slice(0, 3).map(item => {
-            const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <Link
-                key={item.label}
-                to={item.href}
-                className={`flex items-center space-x-1 px-2 py-2 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                }`}
-              >
-                <IconComponent className="h-3 w-3" />
-                <span className="hidden sm:inline">{item.label}</span>
+                <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
               </Link>
             );
           })}
@@ -94,33 +66,6 @@ const ManagerNavigation = () => {
             name={profile?.full_name || "Manager"} 
             role="Sales Manager" 
           />
-        </div>
-      </div>
-
-      {/* Secondary navigation for larger screens */}
-      <div className="hidden xl:block border-t border-border">
-        <div className="h-[40px] flex items-center justify-center px-6">
-          <nav className="flex items-center space-x-6">
-            {secondaryNavItems.map(item => {
-              const IconComponent = item.icon;
-              const isActive = location.pathname === item.href;
-              
-              return (
-                <Link
-                  key={item.label}
-                  to={item.href}
-                  className={`flex items-center space-x-1 px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                  }`}
-                >
-                  <IconComponent className="h-3 w-3" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
         </div>
       </div>
     </header>
