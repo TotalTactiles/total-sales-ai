@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,9 @@ import {
   MicOff,
   Volume2,
   Settings,
-  AlertTriangle
+  AlertTriangle,
+  Plus,
+  Star
 } from 'lucide-react';
 import { useDemoData } from '@/contexts/DemoDataContext';
 
