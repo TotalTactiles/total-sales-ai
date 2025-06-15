@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Role } from '@/contexts/auth/types';
@@ -10,27 +11,16 @@ import AuthLoginForm from './components/AuthLoginForm';
 import AuthSignupForm from './components/AuthSignupForm';
 import AuthDemoOptions from './components/AuthDemoOptions';
 import AuthLoadingScreen from './components/AuthLoadingScreen';
-import { logger } from '@/utils/logger';
-import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
+
 const AuthPage = () => {
-  const {
-    user,
-    profile,
-    loading,
-    setLastSelectedRole,
-    getLastSelectedRole,
-    initializeDemoMode,
-    isDemoMode
-  } = useAuth();
-  const navigate = useNavigate();
+  const { user, profile, loading, isDemoMode } = useAuth();
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
-  const [selectedRole, setSelectedRole] = useState<Role>(getLastSelectedRole());
+  const [selectedRole, setSelectedRole] = useState<Role>('sales_rep');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: 'sales.rep@company.com',
+    password: 'fulluser123',
     fullName: ''
   });
 
@@ -50,54 +40,50 @@ const AuthPage = () => {
     return <AuthLoadingScreen role={selectedRole} isDemoMode={isDemoMode()} />;
   }
 
-  // Redirect based on actual profile role if logged in
+  // Redirect if user is already authenticated
   if (user && profile && !isTransitioning) {
-    logger.info("AuthPage: User is logged in, profile role:", profile.role);
-
-    // Check if this is a new user (no previous login)
-    const isNewUser = !localStorage.getItem('hasCompletedOnboarding');
-    if (isNewUser && !showOnboarding) {
-      setShowOnboarding(true);
-    }
-    const redirectPath = getDashboardUrl(profile);
+    const roleRoutes = {
+      developer: '/developer',
+      admin: '/developer',
+      manager: '/manager',
+      sales_rep: '/sales'
+    };
+    
+    const redirectPath = roleRoutes[profile.role] || '/sales';
     const from = location.state?.from?.pathname || redirectPath;
-    logger.info("AuthPage: Redirecting to:", from);
     return <Navigate to={from} replace />;
   }
 
-  // Check if demo mode is active and redirect accordingly
+  // Handle demo mode redirect
   if (isDemoMode() && !user) {
     const demoRole = localStorage.getItem('demoRole') as Role | null;
     if (demoRole) {
-      const redirectPath = getDashboardUrl({ role: demoRole });
-      logger.info("AuthPage: Demo mode active, redirecting to", redirectPath);
+      const roleRoutes = {
+        developer: '/developer',
+        admin: '/developer',
+        manager: '/manager',
+        sales_rep: '/sales'
+      };
+      const redirectPath = roleRoutes[demoRole] || '/sales';
       return <Navigate to={redirectPath} replace />;
     }
   }
+
   const handleRoleChange = (role: Role) => {
-    logger.info("AuthPage: Role changed to", role);
     setSelectedRole(role);
-    setLastSelectedRole(role);
   };
-  const simulateLoginTransition = (roleParam?: Role) => {
+
+  const simulateLoginTransition = () => {
     setIsTransitioning(true);
-    // Simulate loading and transition to dashboard
-    setTimeout(() => {
-      const roleToUse = roleParam || selectedRole;
-      const redirectPath = getDashboardUrl({ role: roleToUse });
-      logger.info("AuthPage: Transitioning to", redirectPath);
-      navigate(redirectPath, {
-        replace: true
-      });
-      setIsTransitioning(false);
-    }, 1500);
   };
 
   // If transitioning, show loading screen
   if (isTransitioning) {
     return <AuthLoadingScreen role={selectedRole} isDemoMode={isDemoMode()} />;
   }
-  return <div className="min-h-screen flex flex-col items-center justify-center gradient-secondary">
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gradient-secondary">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
@@ -141,38 +127,49 @@ const AuthPage = () => {
             </div>
             
             <div className="flex flex-col space-y-4">
-              {isLogin ? <AuthLoginForm selectedRole={selectedRole} setIsTransitioning={setIsTransitioning} simulateLoginTransition={simulateLoginTransition} formData={{
-              email: formData.email,
-              password: formData.password
-            }} setFormData={(data: {
-              email: string;
-              password: string;
-            }) => {
-              setFormData(prev => ({
-                ...prev,
-                ...data
-              }));
-            }} /> : <AuthSignupForm selectedRole={selectedRole} setIsLogin={setIsLogin} />}
+              {isLogin ? (
+                <AuthLoginForm 
+                  selectedRole={selectedRole} 
+                  setIsTransitioning={setIsTransitioning} 
+                  simulateLoginTransition={simulateLoginTransition} 
+                  formData={{
+                    email: formData.email,
+                    password: formData.password
+                  }} 
+                  setFormData={(data) => {
+                    setFormData(prev => ({ ...prev, ...data }));
+                  }} 
+                />
+              ) : (
+                <AuthSignupForm 
+                  selectedRole={selectedRole} 
+                  setIsLogin={setIsLogin} 
+                />
+              )}
               
               <div className="flex items-center justify-center">
-                <button onClick={() => setIsLogin(!isLogin)} className="text-sm text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer font-medium">
+                <button 
+                  onClick={() => setIsLogin(!isLogin)} 
+                  className="text-sm text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer font-medium"
+                >
                   {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
                 </button>
               </div>
             </div>
             
-            <AuthDemoOptions selectedRole={selectedRole} setIsTransitioning={setIsTransitioning} simulateLoginTransition={simulateLoginTransition} setFormData={(data: {
-            email: string;
-            password: string;
-          }) => {
-            setFormData(prev => ({
-              ...prev,
-              ...data
-            }));
-          }} />
+            <AuthDemoOptions 
+              selectedRole={selectedRole} 
+              setIsTransitioning={setIsTransitioning} 
+              simulateLoginTransition={simulateLoginTransition} 
+              setFormData={(data) => {
+                setFormData(prev => ({ ...prev, ...data }));
+              }} 
+            />
           </div>
         </Tabs>
       </Card>
-    </div>;
+    </div>
+  );
 };
+
 export default AuthPage;

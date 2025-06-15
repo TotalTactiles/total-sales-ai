@@ -4,15 +4,16 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
-import RequireAuth from '@/components/RequireAuth';
+import RouteGuard from '@/components/auth/RouteGuard';
 import OnboardingGuard from '@/components/OnboardingGuard';
 import AuthPage from '@/pages/auth/AuthPage';
 import SalesRepOS from '@/layouts/SalesRepOS';
 import ManagerOS from '@/layouts/ManagerOS';
 import RelevanceAIDeveloperPage from '@/pages/developer/RelevanceAIDeveloper';
+import LogoutHandler from '@/components/LogoutHandler';
 import { envConfig } from '@/utils/envConfig';
 import { logger } from '@/utils/logger';
 
@@ -75,24 +76,25 @@ function App() {
                       <Routes>
                         {/* Public routes */}
                         <Route path="/auth" element={<AuthPage />} />
+                        <Route path="/logout" element={<LogoutHandler />} />
                         
-                        {/* Protected routes */}
+                        {/* Protected routes with role-based access */}
                         <Route path="/sales/*" element={
-                          <RequireAuth>
+                          <RouteGuard allowedRoles={['sales_rep']}>
                             <SalesRepOS />
-                          </RequireAuth>
+                          </RouteGuard>
                         } />
                         
                         <Route path="/manager/*" element={
-                          <RequireAuth>
+                          <RouteGuard allowedRoles={['manager']}>
                             <ManagerOS />
-                          </RequireAuth>
+                          </RouteGuard>
                         } />
                         
                         <Route path="/developer" element={
-                          <RequireAuth>
+                          <RouteGuard allowedRoles={['developer', 'admin']}>
                             <RelevanceAIDeveloperPage />
-                          </RequireAuth>
+                          </RouteGuard>
                         } />
                         
                         {/* Default redirects */}

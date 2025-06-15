@@ -1,6 +1,4 @@
 
-import { logger } from '@/utils/logger';
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LogOut, Settings, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface UserProfileProps {
   name: string;
@@ -22,10 +21,10 @@ export interface UserProfileProps {
 
 const UserProfile: React.FC<UserProfileProps> = ({ name, role }) => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
-    logger.info('Logout requested');
-    navigate('/logout');
+  const handleLogout = async () => {
+    await signOut();
   };
 
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();

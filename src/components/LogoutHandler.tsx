@@ -1,56 +1,19 @@
-import { logger } from '@/utils/logger';
 
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 const LogoutHandler = () => {
   const { signOut } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const handleLogout = async () => {
-      try {
-        logger.info('LogoutHandler: Starting logout process');
-        
-        // Clear all local storage and session storage first
-        localStorage.clear();
-        sessionStorage.clear();
-        
-        // Clear any cached data
-        if ('caches' in window) {
-          caches.keys().then(names => {
-            names.forEach(name => {
-              caches.delete(name);
-            });
-          });
-        }
-        
-        // Sign out from auth
-        await signOut();
-        
-        logger.info('LogoutHandler: Forcing redirect to auth');
-        
-        // Navigate to auth without full page reload
-        setTimeout(() => navigate('/auth', { replace: true }), 100);
-        
-      } catch (error) {
-        logger.error('LogoutHandler error:', error);
-        // Force redirect even on error
-        localStorage.clear();
-        sessionStorage.clear();
-        setTimeout(() => navigate('/auth', { replace: true }), 100);
-      }
-    };
-
-    handleLogout();
-  }, [signOut, navigate]);
+    signOut();
+  }, [signOut]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+    <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Logging out...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Logging out...</p>
       </div>
     </div>
   );
