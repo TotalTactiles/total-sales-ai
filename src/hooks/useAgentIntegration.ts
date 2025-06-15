@@ -1,82 +1,86 @@
 
-import { useState, useCallback } from 'react';
-import { agentOrchestrator, AgentTask, AgentContext } from '@/services/agents/AgentOrchestrator';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { relevanceAgentService } from '@/services/relevance/RelevanceAgentService';
+import { agentOrchestrator, AgentContext } from '@/services/agents/AgentOrchestrator';
 import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 export const useAgentIntegration = () => {
   const { user, profile } = useAuth();
   const [isExecuting, setIsExecuting] = useState(false);
   const [lastResult, setLastResult] = useState<any>(null);
 
-  const executeAgentTask = useCallback(async (
+  const executeAgentTask = async (
     agentType: 'salesAgent_v1' | 'managerAgent_v1' | 'automationAgent_v1' | 'developerAgent_v1',
     taskType: string,
-    additionalContext: Partial<AgentContext> = {}
+    additionalContext?: Partial<AgentContext>
   ) => {
     if (!user?.id || !profile?.company_id) {
-      toast.error('Authentication required');
+      toast.error('Authentication required for AI agents');
       return null;
     }
 
     setIsExecuting(true);
-    
+
     try {
-      const baseContext: AgentContext = {
+      const context: AgentContext = {
         workspace: window.location.pathname.split('/')[1] || 'dashboard',
         userRole: profile.role,
         companyId: profile.company_id,
         userId: user.id,
-        tone: 'professional', // Default tone, could be from user settings
         ...additionalContext
       };
 
-      const task: AgentTask = {
+      const task = {
         agentType,
         taskType,
-        context: baseContext,
-        priority: 'medium'
+        context,
+        priority: 'medium' as const
       };
 
       const result = await agentOrchestrator.executeTask(task);
       setLastResult(result);
-      
+
       if (result.status === 'completed') {
-        toast.success(`${taskType.replace('_', ' ')} completed successfully`);
-      } else {
-        toast.error(`Failed to complete ${taskType.replace('_', ' ')}`);
+        toast.success(`AI Agent completed: ${taskType}`);
+      } else if (result.status === 'failed') {
+        toast.error(`AI Agent failed: ${result.error_message}`);
       }
 
       return result;
 
     } catch (error) {
-      console.error('Agent execution error:', error);
-      toast.error('AI agent encountered an error');
+      logger.error('Agent integration error:', error);
+      toast.error('AI Agent execution failed');
       return null;
     } finally {
       setIsExecuting(false);
     }
-  }, [user?.id, profile?.company_id, profile?.role]);
+  };
 
-  const submitFeedback = useCallback(async (
-    taskId: string,
-    rating: 'positive' | 'negative',
-    correction?: string
-  ) => {
-    if (!user?.id) return;
+  const executeSalesAgent = async (taskType: string, context?: Partial<AgentContext>) => {
+    return executeAgentTask('salesAgent_v1', taskType, context);
+  };
 
-    try {
-      await agentOrchestrator.submitFeedback(user.id, taskId, rating, correction);
-      toast.success('Feedback submitted - AI will learn from this');
-    } catch (error) {
-      console.error('Feedback submission error:', error);
-      toast.error('Failed to submit feedback');
-    }
-  }, [user?.id]);
+  const executeManagerAgent = async (taskType: string, context?: Partial<AgentContext>) => {
+    return executeAgentTask('managerAgent_v1', taskType, context);
+  };
+
+  const executeAutomationAgent = async (taskType: string, context?: Partial<AgentContext>) => {
+    return executeAgentTask('automationAgent_v1', taskType, context);
+  };
+
+  const executeDeveloperAgent = async (taskType: string, context?: Partial<AgentContext>) => {
+    return executeAgentTask('developerAgent_v1', taskType, context);
+  };
 
   return {
     executeAgentTask,
-    submitFeedback,
+    executeSalesAgent,
+    executeManagerAgent,
+    executeAutomationAgent,
+    executeDeveloperAgent,
     isExecuting,
     lastResult
   };

@@ -33,15 +33,13 @@ interface LeadRouting {
 }
 
 const SmartLeadRouting: React.FC = () => {
-  const { executeAgentTask, isExecuting } = useAgentIntegration();
+  const { executeManagerAgent, isExecuting } = useAgentIntegration();
   const [routingRecommendations, setRoutingRecommendations] = useState<LeadRouting[]>([]);
 
   const generateRoutingRecommendations = async () => {
-    const result = await executeAgentTask(
-      'managerAgent_v1',
-      'smart_lead_routing',
-      { workspace: 'lead_management' }
-    );
+    const result = await executeManagerAgent('smart_lead_routing', {
+      workspace: 'lead_management'
+    });
 
     if (result?.output_payload?.recommendations) {
       setRoutingRecommendations(result.output_payload.recommendations);
@@ -50,15 +48,11 @@ const SmartLeadRouting: React.FC = () => {
 
   const assignLead = async (leadId: string, agentId: string) => {
     // Execute assignment logic
-    await executeAgentTask(
-      'automationAgent_v1',
-      'assign_lead',
-      { 
-        leadId, 
-        agentId,
-        workspace: 'lead_assignment'
-      }
-    );
+    await executeManagerAgent('assign_lead', { 
+      leadId, 
+      agentId,
+      workspace: 'lead_assignment'
+    });
   };
 
   return (

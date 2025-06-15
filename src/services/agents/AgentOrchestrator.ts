@@ -1,4 +1,3 @@
-
 import { relevanceAIAgent } from '@/services/relevance/RelevanceAIAgentService';
 import { useAuth } from '@/contexts/AuthContext';
 import { logger } from '@/utils/logger';
@@ -21,12 +20,15 @@ export interface AgentContext {
   similarLeadOutcomes?: any;
   recentFeedback?: any[];
   
-  // Task-specific context
+  // Task-specific context - now properly typed
   query?: string;
   isCallActive?: boolean;
   leadId?: string;
   scenario?: string;
   objection?: string;
+  agentId?: string;
+  pitchText?: string;
+  userResponse?: string;
 }
 
 export interface AgentTask {

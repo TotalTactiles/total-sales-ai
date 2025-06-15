@@ -4,98 +4,125 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
-import { useAgentIntegration } from '@/hooks/useAgentIntegration';
+import { agentOrchestrator } from '@/services/agents/AgentOrchestrator';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface AgentFeedbackButtonProps {
   taskId: string;
-  size?: 'sm' | 'default';
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
-const AgentFeedbackButton: React.FC<AgentFeedbackButtonProps> = ({ 
-  taskId, 
-  size = 'sm' 
+const AgentFeedbackButton: React.FC<AgentFeedbackButtonProps> = ({
+  taskId,
+  size = 'sm',
+  className
 }) => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [correction, setCorrection] = useState('');
-  const [feedbackGiven, setFeedbackGiven] = useState<'positive' | 'negative' | null>(null);
-  const { submitFeedback } = useAgentIntegration();
+  const [feedback, setFeedback] = useState('');
+  const [rating, setRating] = useState<'positive' | 'negative' | null>(null);
 
-  const handleFeedback = async (rating: 'positive' | 'negative') => {
-    await submitFeedback(taskId, rating, correction || undefined);
-    setFeedbackGiven(rating);
-    setIsOpen(false);
-    setCorrection('');
+  const handleSubmitFeedback = async () => {
+    if (!user?.id || !rating) return;
+
+    try {
+      await agentOrchestrator.submitFeedback(
+        user.id,
+        taskId,
+        rating,
+        feedback || undefined
+      );
+
+      toast.success('Feedback submitted - AI will learn from this');
+      setIsOpen(false);
+      setFeedback('');
+      setRating(null);
+    } catch (error) {
+      toast.error('Failed to submit feedback');
+    }
   };
 
-  if (feedbackGiven) {
-    return (
-      <Button 
-        variant="ghost" 
-        size={size}
-        className="text-green-600"
-        disabled
-      >
-        {feedbackGiven === 'positive' ? <ThumbsUp className="h-3 w-3" /> : <ThumbsDown className="h-3 w-3" />}
-      </Button>
-    );
-  }
+  const handleQuickFeedback = async (quickRating: 'positive' | 'negative') => {
+    if (!user?.id) return;
+
+    try {
+      await agentOrchestrator.submitFeedback(user.id, taskId, quickRating);
+      toast.success(`${quickRating === 'positive' ? 'Positive' : 'Negative'} feedback recorded`);
+    } catch (error) {
+      toast.error('Failed to submit feedback');
+    }
+  };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size={size}>
-          <MessageSquare className="h-3 w-3" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80">
-        <div className="space-y-3">
-          <div className="text-sm font-medium">How was this AI response?</div>
-          
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleFeedback('positive')}
-              className="flex-1"
-            >
-              <ThumbsUp className="h-4 w-4 mr-1" />
-              Good
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleFeedback('negative')}
-              className="flex-1"
-            >
-              <ThumbsDown className="h-4 w-4 mr-1" />
-              Needs Work
-            </Button>
-          </div>
+    <div className={`flex items-center gap-1 ${className}`}>
+      <Button
+        variant="ghost"
+        size={size}
+        onClick={() => handleQuickFeedback('positive')}
+        className="text-green-600 hover:text-green-700"
+      >
+        <ThumbsUp className="h-3 w-3" />
+      </Button>
 
-          <div className="space-y-2">
-            <label className="text-xs text-muted-foreground">
-              Suggest improvements (optional):
-            </label>
-            <Textarea
-              value={correction}
-              onChange={(e) => setCorrection(e.target.value)}
-              placeholder="What would make this response better?"
-              className="text-xs"
-              rows={3}
-            />
-          </div>
+      <Button
+        variant="ghost"
+        size={size}
+        onClick={() => handleQuickFeedback('negative')}
+        className="text-red-600 hover:text-red-700"
+      >
+        <ThumbsDown className="h-3 w-3" />
+      </Button>
 
-          <Button
-            size="sm"
-            onClick={() => handleFeedback('negative')}
-            className="w-full"
-            disabled={!correction.trim()}
-          >
-            Submit Feedback
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size={size} className="text-blue-600 hover:text-blue-700">
+            <MessageSquare className="h-3 w-3" />
           </Button>
-        </div>
-      </PopoverContent>
-    </Popover>
+        </PopoverTrigger>
+        <PopoverContent className="w-80">
+          <div className="space-y-3">
+            <div className="text-sm font-medium">Provide detailed feedback</div>
+            
+            <div className="flex gap-2">
+              <Button
+                variant={rating === 'positive' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setRating('positive')}
+              >
+                <ThumbsUp className="h-3 w-3 mr-1" />
+                Good
+              </Button>
+              <Button
+                variant={rating === 'negative' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setRating('negative')}
+              >
+                <ThumbsDown className="h-3 w-3 mr-1" />
+                Needs work
+              </Button>
+            </div>
+
+            <Textarea
+              placeholder="What should the AI do differently next time?"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              className="min-h-20"
+            />
+
+            <Button
+              onClick={handleSubmitFeedback}
+              disabled={!rating}
+              size="sm"
+              className="w-full"
+            >
+              Submit Feedback
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };
 
