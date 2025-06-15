@@ -1,22 +1,21 @@
 
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import ResponsiveNavigation from '@/components/Navigation/ResponsiveNavigation';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
+import SalesNavigation from '@/components/Navigation/SalesNavigation';
+
+// Sales pages
+import SalesRepDashboard from '@/pages/sales/Dashboard';
+import SalesAnalytics from '@/pages/sales/Analytics';
+import SalesLeadManagement from '@/pages/sales/LeadManagement';
+import SalesAcademy from '@/pages/sales/Academy';
+import SalesAI from '@/pages/sales/AI';
+import SalesSettings from '@/pages/sales/Settings';
+import SalesDialer from '@/pages/sales/Dialer';
+import LeadWorkspace from '@/pages/LeadWorkspace';
+
+import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
 import { useAIContext } from '@/contexts/AIContext';
 import { useLocation } from 'react-router-dom';
-import LoadingScreen from '@/components/common/LoadingScreen';
-
-// Lazy load pages to prevent blocking issues
-const SalesDashboard = lazy(() => import('@/pages/sales/Dashboard'));
-const SalesAnalytics = lazy(() => import('@/pages/sales/Analytics'));
-const SalesLeadManagement = lazy(() => import('@/pages/sales/LeadManagement'));
-const SalesAcademy = lazy(() => import('@/pages/sales/Academy'));
-const SalesAI = lazy(() => import('@/pages/sales/AI'));
-const SalesSettings = lazy(() => import('@/pages/sales/Settings'));
-const SalesDialer = lazy(() => import('@/pages/sales/Dialer'));
-const LeadWorkspace = lazy(() => import('@/pages/LeadWorkspace'));
-const UnifiedAIBubble = lazy(() => import('@/components/UnifiedAI/UnifiedAIBubble'));
 
 const SalesLayout = () => {
   const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
@@ -52,35 +51,29 @@ const SalesLayout = () => {
     emailContext,
     smsContext
   };
-
+  
   return (
     <div className="min-h-screen bg-slate-50 relative">
-      <ResponsiveNavigation />
-
+      <SalesNavigation />
+      
       <main className="pt-[60px]">
-        <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please reload the page.</div>}>
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<SalesDashboard />} />
-              <Route path="analytics" element={<SalesAnalytics />} />
-              <Route path="lead-management" element={<SalesLeadManagement />} />
-              <Route path="lead-workspace/:id" element={<LeadWorkspace />} />
-              <Route path="dialer" element={<SalesDialer />} />
-              <Route path="academy" element={<SalesAcademy />} />
-              <Route path="ai" element={<SalesAI />} />
-              <Route path="settings" element={<SalesSettings />} />
-              <Route path="*" element={<Navigate to="dashboard" replace />} />
-            </Routes>
-          </Suspense>
-        </ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<SalesRepDashboard />} />
+          <Route path="/analytics" element={<SalesAnalytics />} />
+          <Route path="/lead-management" element={<SalesLeadManagement />} />
+          <Route path="/lead-workspace/:id" element={<LeadWorkspace />} />
+          <Route path="/dialer" element={<SalesDialer />} />
+          <Route path="/academy" element={<SalesAcademy />} />
+          <Route path="/ai" element={<SalesAI />} />
+          <Route path="/settings" element={<SalesSettings />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
       </main>
-
-      {/* Unified AI Bubble */}
+      
+      {/* Unified AI Bubble - Single AI assistant with fixed positioning */}
       <div className="fixed bottom-6 right-6 z-[9999]">
-        <Suspense fallback={null}>
-          <UnifiedAIBubble context={aiContext} />
-        </Suspense>
+        <UnifiedAIBubble context={aiContext} />
       </div>
     </div>
   );

@@ -1,11 +1,14 @@
 import { logger } from '@/utils/logger';
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '@/integrations/supabase/client';
 import { initializeDemoUser } from './demoMode';
 import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
 import { AuthContextType, Profile, Role } from './types';
 import { toast } from 'sonner';
 import { setLastSelectedRole, getLastSelectedRole, setLastSelectedCompanyId, getLastSelectedCompanyId } from './localStorage';
+import { useNavigate } from 'react-router-dom';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -26,8 +29,72 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
+  const navigate = useNavigate();
 
-  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+  useEffect(() => {
+    // Get initial session
+    const getSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          logger.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        logger.info('Initial session:', session?.user?.email || 'No session');
+        setSession(session);
+        setUser(session?.user || null);
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        }
+      } catch (error) {
+        logger.error('Error getting session:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        logger.info('Auth state changed:', event, session?.user?.email);
+        
+        if (event === 'SIGNED_OUT') {
+          // Immediately clear all state on sign out
+          logger.info('Clearing all auth state');
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          
+          // Clear all storage including demo mode
+          localStorage.clear();
+          sessionStorage.clear();
+          
+          return;
+        }
+        
+        setSession(session);
+        setUser(session?.user || null);
+        
+        if (session?.user) {
+          await fetchProfile(session.user.id);
+        } else {
+          setProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -43,8 +110,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.info('Fetched profile:', data);
       setProfile(data);
       
+      // Update local storage with the actual role from database
       if (data?.role) {
         setLastSelectedRole(data.role);
+        logger.info('Updated lastSelectedRole to:', data.role);
       }
       
       return data;
@@ -52,84 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.error('Error in fetchProfile:', error);
       return null;
     }
-  }, []);
-
-  useEffect(() => {
-    let mounted = true;
-
-    const initializeAuth = async () => {
-      try {
-        if (!isSupabaseConfigured) {
-          if (mounted) setLoading(false);
-          return;
-        }
-
-        // Set up auth state listener first
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            if (!mounted) return;
-
-            logger.info('Auth state changed:', event, session?.user?.email);
-            
-            if (event === 'SIGNED_OUT') {
-              setSession(null);
-              setUser(null);
-              setProfile(null);
-              // Clear storage but keep selected role for next login
-              const lastRole = getLastSelectedRole();
-              localStorage.clear();
-              sessionStorage.clear();
-              if (lastRole) {
-                setLastSelectedRole(lastRole);
-              }
-              if (mounted) setLoading(false);
-              return;
-            }
-            
-            setSession(session);
-            setUser(session?.user || null);
-            
-            if (session?.user) {
-              setTimeout(() => {
-                fetchProfile(session.user.id);
-              }, 0);
-            } else {
-              setProfile(null);
-            }
-            
-            if (mounted) setLoading(false);
-          }
-        );
-
-        // Then check for existing session
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) {
-          logger.error('Error getting session:', error);
-        } else if (session && mounted) {
-          setSession(session);
-          setUser(session.user);
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-          }, 0);
-        }
-
-        if (mounted) setLoading(false);
-
-        return () => {
-          subscription.unsubscribe();
-        };
-      } catch (error) {
-        logger.error('Error initializing auth:', error);
-        if (mounted) setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    return () => {
-      mounted = false;
-    };
-  }, [fetchProfile]);
+  };
 
   const signIn = async (
     email: string,
@@ -138,13 +130,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
 
-      // Clear demo mode before signing in
+      // Clear any existing demo mode or cached roles before signing in
       localStorage.removeItem('demoMode');
       localStorage.removeItem('demoRole');
 
+      // If Supabase isn't configured, fall back to local demo mode
       if (!isSupabaseConfigured) {
-        let role: Role = 'sales_rep';
+        let role: Role = 'sales_rep'; // Default fallback
         
+        // Determine role based on email for demo mode
         if (email.includes('krishdev') || email.includes('developer')) {
           role = 'developer';
         } else if (email.includes('manager')) {
@@ -183,6 +177,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         fetchedProfile = await fetchProfile(user.id);
         if (fetchedProfile) {
           setLastSelectedRole(fetchedProfile.role);
+          logger.info('Sign in successful, role set to:', fetchedProfile.role);
         }
       }
 
@@ -205,6 +200,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: metadata
+        }
+      });
+
+      // If Supabase isn't configured, fall back to local demo mode
       if (!isSupabaseConfigured) {
         const role: Role = metadata?.role ?? (email.includes('manager') ? 'manager' : 'sales_rep');
         const { demoUser, demoProfile } = initializeDemoUser(role);
@@ -218,18 +222,88 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return {};
       }
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: metadata,
-          emailRedirectTo: `${window.location.origin}/auth`
-        }
-      });
-
       if (error) {
         toast.error(error.message);
         return { error };
+      }
+
+      const userId = data.user?.id;
+
+      if (metadata?.role === 'manager' && userId) {
+        // Fetch the newly created profile to get company_id (set by DB trigger)
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('company_id')
+          .eq('id', userId)
+          .single();
+
+        const companyId = profileData?.company_id || userId;
+
+        if (!profileError) {
+          const defaultSettings = {
+            company_id: companyId,
+            industry: '',
+            sales_model: [],
+            team_roles: [],
+            tone: {
+              humor: 50,
+              formality: 50,
+              pushiness: 30,
+              detail: 60,
+            },
+            pain_points: [],
+            agent_name: 'SalesOS',
+            enabled_modules: {
+              dialer: true,
+              brain: true,
+              leads: true,
+              analytics: true,
+              missions: false,
+              tools: false,
+              aiAgent: true,
+            },
+            original_goal: '',
+            personalization_flags: {
+              dashboardCustomized: false,
+              welcomeMessageSent: false,
+              guidedTourShown: false,
+            },
+          };
+
+          const { error: companyError } = await supabase
+            .from('company_settings')
+            .insert(defaultSettings);
+
+          if (companyError) {
+            logger.error('Error creating company settings:', companyError);
+            toast.error('Company setup failed: ' + companyError.message);
+          }
+        } else {
+          logger.error('Error fetching profile after sign up:', profileError);
+          toast.error('Company setup failed: ' + profileError.message);
+        }
+      }
+
+      const session = data.session;
+      const newUser = data.user;
+
+      if (session && newUser) {
+        setSession(session);
+        setUser(newUser);
+        const fetchedProfile = await fetchProfile(newUser.id);
+        if (fetchedProfile) {
+          setLastSelectedRole(fetchedProfile.role);
+
+          const needsOnboarding =
+            fetchedProfile.company_id &&
+            !localStorage.getItem(`onboarding_complete_${fetchedProfile.company_id}`);
+
+          if (needsOnboarding) {
+            navigate('/onboarding');
+          } else {
+            navigate(getDashboardUrl(fetchedProfile));
+          }
+        }
       }
 
       toast.success('Check your email for verification link');
@@ -278,28 +352,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       logger.info('SignOut: Starting logout process...');
       
-      // Clear state immediately
-      const lastRole = getLastSelectedRole();
+      // Clear state immediately to prevent any redirects during logout
       setUser(null);
       setProfile(null);
       setSession(null);
       setLoading(false);
       
-      // Clear storage entirely for a clean logout
+      // Clear all storage immediately including demo mode
       localStorage.clear();
       sessionStorage.clear();
       
-      if (isSupabaseConfigured) {
-        const { error } = await supabase.auth.signOut({ scope: 'global' });
-        if (error) {
-          logger.error('Supabase sign out error:', error);
-        }
+      // Sign out from Supabase (this will trigger the SIGNED_OUT event)
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      if (error) {
+        logger.error('Supabase sign out error:', error);
       }
+      
+      logger.info('SignOut: Logout completed');
       
     } catch (error) {
       logger.error('Sign out error:', error);
-      // Force cleanup even if error occurs
-      const lastRole = getLastSelectedRole();
+      // Clear state even on error
       setUser(null);
       setProfile(null);
       setSession(null);
@@ -317,11 +391,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.setItem('demoMode', 'true');
     localStorage.setItem('demoRole', role);
     setLastSelectedRole(role);
-
-    const { demoUser, demoProfile } = initializeDemoUser(role);
-    setUser(demoUser);
-    setProfile(demoProfile);
-    setSession(null);
     setLoading(false);
   };
 

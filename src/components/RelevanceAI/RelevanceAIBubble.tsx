@@ -61,18 +61,15 @@ const RelevanceAIBubble: React.FC<RelevanceAIBubbleProps> = ({ context, classNam
 
     try {
       // Generate AI response with context
-      const aiResponse = await generateResponse({
-        message,
-        context: {
-          ...context,
-          conversationHistory: conversation.slice(-5) // Last 5 messages for context
-        }
+      const aiResponse = await generateResponse(message, {
+        ...context,
+        conversationHistory: conversation.slice(-5) // Last 5 messages for context
       });
 
-      if (aiResponse && aiResponse.output) {
+      if (aiResponse) {
         const assistantMessage = {
           role: 'assistant' as const,
-          content: aiResponse.output.response || 'No response available',
+          content: aiResponse,
           timestamp: new Date()
         };
         
@@ -97,7 +94,7 @@ const RelevanceAIBubble: React.FC<RelevanceAIBubbleProps> = ({ context, classNam
           {/* Usage indicator */}
           {usageStats && (
             <div className="absolute -top-8 right-0 bg-white/90 backdrop-blur-sm rounded-full px-2 py-1 text-xs border">
-              {usageStats.requestsToday}/100
+              {usageStats.requestsUsed}/{usageStats.requestsLimit}
             </div>
           )}
           
@@ -138,7 +135,7 @@ const RelevanceAIBubble: React.FC<RelevanceAIBubbleProps> = ({ context, classNam
               <CardTitle className="text-sm">Relevance AI</CardTitle>
               {usageStats && (
                 <Badge variant="outline" className="text-xs">
-                  {usageStats.tier}
+                  {usageStats.currentTier}
                 </Badge>
               )}
             </div>
@@ -217,9 +214,9 @@ const RelevanceAIBubble: React.FC<RelevanceAIBubbleProps> = ({ context, classNam
           </div>
 
           {/* Usage warning */}
-          {usageStats && usageStats.requestsToday >= 90 && (
+          {usageStats && usageStats.percentageUsed >= 90 && (
             <div className="text-xs text-orange-600 mt-1">
-              ⚠️ {100 - usageStats.requestsToday} requests remaining
+              ⚠️ {usageStats.requestsLimit - usageStats.requestsUsed} requests remaining
             </div>
           )}
         </CardContent>

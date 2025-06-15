@@ -1,50 +1,77 @@
 
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import ResponsiveNavigation from '@/components/Navigation/ResponsiveNavigation';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
+import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 
-// Manager pages - lazy load to prevent blocking
-const ManagerDashboard = lazy(() => import('@/pages/manager/Dashboard'));
-const ManagerAnalytics = lazy(() => import('@/pages/manager/Analytics'));
-const ManagerLeadManagement = lazy(() => import('@/pages/manager/LeadManagement'));
-const ManagerCompanyBrain = lazy(() => import('@/pages/manager/CompanyBrain'));
-const ManagerAI = lazy(() => import('@/pages/manager/AI'));
-const ManagerTeamManagement = lazy(() => import('@/pages/manager/TeamManagement'));
-const ManagerCRMIntegrations = lazy(() => import('@/pages/manager/CRMIntegrations'));
-const ManagerReports = lazy(() => import('@/pages/manager/Reports'));
-const ManagerSecurity = lazy(() => import('@/pages/manager/Security'));
-const ManagerSettings = lazy(() => import('@/pages/manager/Settings'));
+// Manager pages
+import ManagerDashboard from '@/pages/manager/Dashboard';
+import ManagerAnalytics from '@/pages/manager/Analytics';
+import ManagerLeadManagement from '@/pages/manager/LeadManagement';
+import ManagerCompanyBrain from '@/pages/manager/CompanyBrain';
+import ManagerAI from '@/pages/manager/AI';
+import ManagerCRMIntegrations from '@/pages/manager/CRMIntegrations';
+import TeamManagement from '@/pages/manager/TeamManagement';
+import SecurityPage from '@/pages/manager/Security';
+import Reports from '@/pages/manager/Reports';
+import ManagerSettings from '@/pages/manager/Settings';
 
-const ManagerLayout: React.FC = () => {
+import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
+import { useAIContext } from '@/contexts/AIContext';
+import { useLocation } from 'react-router-dom';
+
+const ManagerLayout = () => {
+  const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
+  const location = useLocation();
+  
+  const getWorkspaceContext = () => {
+    const path = location.pathname;
+    
+    if (path.includes('/lead-management')) {
+      return 'manager_leads';
+    } else if (path.includes('/company-brain')) {
+      return 'company_brain';
+    } else if (path.includes('/analytics')) {
+      return 'manager_analytics';
+    } else if (path.includes('/dashboard')) {
+      return 'manager_dashboard';
+    } else {
+      return 'manager_dashboard';
+    }
+  };
+
+  const aiContext = {
+    workspace: getWorkspaceContext() as any,
+    currentLead,
+    isCallActive,
+    emailContext,
+    smsContext
+  };
+  
   return (
-    <div className="min-h-screen bg-slate-50 relative">
-      <ResponsiveNavigation />
-
+    <div className="min-h-screen bg-background relative">
+      <ManagerNavigation />
+      
       <main className="pt-[60px]">
-        <ErrorBoundary fallback={<div className="p-4">Something went wrong. Please refresh or contact support.</div>}>
-          <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-            </div>
-          }>
-            <Routes>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<ManagerDashboard />} />
-              <Route path="analytics" element={<ManagerAnalytics />} />
-              <Route path="lead-management" element={<ManagerLeadManagement />} />
-              <Route path="company-brain" element={<ManagerCompanyBrain />} />
-              <Route path="ai" element={<ManagerAI />} />
-              <Route path="team-management" element={<ManagerTeamManagement />} />
-              <Route path="crm-integrations" element={<ManagerCRMIntegrations />} />
-              <Route path="reports" element={<ManagerReports />} />
-              <Route path="security" element={<ManagerSecurity />} />
-              <Route path="settings" element={<ManagerSettings />} />
-              <Route path="*" element={<Navigate to="dashboard" replace />} />
-            </Routes>
-          </Suspense>
-        </ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<ManagerDashboard />} />
+          <Route path="/analytics" element={<ManagerAnalytics />} />
+          <Route path="/lead-management" element={<ManagerLeadManagement />} />
+          <Route path="/company-brain" element={<ManagerCompanyBrain />} />
+          <Route path="/ai" element={<ManagerAI />} />
+          <Route path="/crm-integrations" element={<ManagerCRMIntegrations />} />
+          <Route path="/team-management" element={<TeamManagement />} />
+          <Route path="/security" element={<SecurityPage />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/settings" element={<ManagerSettings />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
       </main>
+      
+      {/* Manager AI Assistant */}
+      <div className="fixed bottom-6 right-6 z-[9999]">
+        <UnifiedAIBubble context={aiContext} />
+      </div>
     </div>
   );
 };

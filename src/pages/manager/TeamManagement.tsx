@@ -1,35 +1,79 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users } from 'lucide-react';
-
-const ManagerTeamManagement: React.FC = () => {
-  return (
-    <div className="p-6 space-y-6">
+import { Users, UserPlus, TrendingUp, Award } from 'lucide-react';
+const TeamManagement: React.FC = () => {
+  return <div className="space-y-6 my-[20px] mx-[150px]">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Team Management</h1>
-          <p className="text-muted-foreground">Manage your sales team</p>
-        </div>
+        <h1 className="text-3xl font-bold text-foreground dark:text-white">
+          Team Management
+        </h1>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Team Members</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground">
+              +2 from last month
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Reps</CardTitle>
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">10</div>
+            <p className="text-xs text-muted-foreground">
+              83% team activity rate
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Performance Score</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">85%</div>
+            <p className="text-xs text-muted-foreground">
+              +5% from last quarter
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Top Performer</CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">Sarah J.</div>
+            <p className="text-xs text-muted-foreground">
+              150% quota achievement
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Team Overview
-          </CardTitle>
+          <CardTitle>Team Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-12">
-            <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Team Management System</h3>
-            <p className="text-muted-foreground">Comprehensive team management tools coming soon.</p>
-          </div>
+          <p className="text-muted-foreground dark:text-gray-400">
+            Detailed team management features will be implemented here, including
+            performance tracking, goal setting, and team collaboration tools.
+          </p>
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>;
 };
-
-export default ManagerTeamManagement;
+export default TeamManagement;

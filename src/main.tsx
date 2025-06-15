@@ -3,7 +3,6 @@ import { logger } from '@/utils/logger';
 import { setupAPIInterceptors } from './utils/apiInterceptor';
 
 import React from 'react';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
@@ -99,37 +98,29 @@ window.addEventListener('unhandledrejection', (event) => {
 try {
   root.render(
     <React.StrictMode>
-      <ErrorBoundary>
-        <React.Suspense
-          fallback={
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                minHeight: '100vh'
-              }}
-            >
-              <div style={{ textAlign: 'center' }}>
-                <div
-                  style={{
-                    width: '40px',
-                    height: '40px',
-                    border: '4px solid #f3f4f6',
-                    borderTop: '4px solid #3b82f6',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                    margin: '0 auto 16px'
-                  }}
-                ></div>
-                <p style={{ color: '#6b7280' }}>Loading application...</p>
-              </div>
-            </div>
-          }
-        >
-          <App />
-        </React.Suspense>
-      </ErrorBoundary>
+      <React.Suspense fallback={
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          minHeight: '100vh' 
+        }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ 
+              width: '40px', 
+              height: '40px', 
+              border: '4px solid #f3f4f6', 
+              borderTop: '4px solid #3b82f6', 
+              borderRadius: '50%', 
+              animation: 'spin 1s linear infinite',
+              margin: '0 auto 16px'
+            }}></div>
+            <p style={{ color: '#6b7280' }}>Loading application...</p>
+          </div>
+        </div>
+      }>
+        <App />
+      </React.Suspense>
     </React.StrictMode>
   );
   logger.info('App rendered successfully');

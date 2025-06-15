@@ -1,154 +1,310 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { MessageCircle, X } from 'lucide-react';
-import { useRelevanceAI } from '@/hooks/useRelevanceAI';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Brain, 
+  MessageSquare, 
+  Lightbulb, 
+  TrendingUp,
+  Clock,
+  Target,
+  Send,
+  Mic,
+  MicOff,
+  Phone,
+  Zap
+} from 'lucide-react';
+import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
+import { useRetellAI } from '@/hooks/useRetellAI';
+import { useAgentIntegration } from '@/hooks/useAgentIntegration';
 import AgentFeedbackButton from '@/components/AI/AgentFeedbackButton';
 
 interface AIAssistantPanelProps {
-  currentLead: any;
+  currentLead?: Lead | null;
   isCallActive: boolean;
-  callDuration?: number;
+  onSuggestion: (suggestion: string) => void;
 }
 
-interface Message {
-  id: string;
-  content: string;
-  sender: 'user' | 'ai';
-  timestamp: Date;
-  metadata?: {
-    taskId?: string;
-  };
-}
-
-const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ 
-  currentLead, 
+const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
+  currentLead,
   isCallActive,
-  callDuration = 0
+  onSuggestion
 }) => {
-  const { executeWorkflow, isLoading } = useRelevanceAI();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [inputMessage, setInputMessage] = useState('');
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [aiQuery, setAiQuery] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const { makeConversationalCall, isLoading: isCallingAI } = useRetellAI();
+  const { executeAgentTask, isExecuting } = useAgentIntegration();
 
+  // Generate AI suggestions based on call context
   useEffect(() => {
-    if (!isCallActive) {
-      setMessages([]);
+    if (currentLead) {
+      generateContextualSuggestions();
     }
-  }, [isCallActive]);
+  }, [currentLead, isCallActive]);
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
-
-    const userMessage: Message = {
-      id: crypto.randomUUID(),
-      content: inputMessage,
-      sender: 'user',
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
-
-    try {
-      const result = await executeWorkflow('sales-agent-v1', {
-        message: inputMessage.trim(),
-        lead: currentLead,
-        callDuration,
-        context: 'dialer_chat'
-      });
-
-      if (result.success) {
-        const aiMessage: Message = {
-          id: crypto.randomUUID(),
-          content: result.output.response || 'AI response received',
-          sender: 'ai',
-          timestamp: new Date(),
-          metadata: { taskId: result.output.taskId || crypto.randomUUID() }
-        };
-        setMessages(prev => [...prev, aiMessage]);
+  const generateContextualSuggestions = async () => {
+    const result = await executeAgentTask(
+      'salesAgent_v1',
+      'contextual_suggestions',
+      {
+        currentLead,
+        isCallActive,
+        workspace: 'auto_dialer'
       }
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      toast.error('Failed to get AI response');
+    );
+
+    if (result?.output_payload?.suggestions) {
+      setSuggestions(result.output_payload.suggestions);
     }
   };
 
-  const handleAIAssist = async (assistType: string) => {
-    if (!currentLead) return;
+  const handleAICall = async () => {
+    if (!currentLead) {
+      toast.error('No lead selected');
+      return;
+    }
 
-    try {
-      const result = await executeWorkflow('sales-agent-v1', {
-        type: assistType,
-        lead: currentLead,
-        callDuration,
-        context: 'dialer_assist'
-      });
+    const result = await makeConversationalCall(currentLead);
+    
+    if (result.success) {
+      onSuggestion(`AI Assistant is now calling ${currentLead.name}. Call ID: ${result.callId}`);
+    }
+  };
 
-      if (result.success) {
-        const aiMessage: Message = {
-          id: crypto.randomUUID(),
-          content: result.output.response || `AI assistance for ${assistType} completed`,
-          sender: 'ai',
-          timestamp: new Date(),
-          metadata: { taskId: result.output.taskId || crypto.randomUUID() }
-        };
-        setMessages(prev => [...prev, aiMessage]);
+  const handleAIQuery = async () => {
+    if (!aiQuery.trim()) return;
+    
+    const result = await executeAgentTask(
+      'salesAgent_v1',
+      'query_response',
+      {
+        query: aiQuery,
+        currentLead,
+        isCallActive,
+        workspace: 'auto_dialer'
       }
-    } catch (error) {
-      console.error('AI assistance failed:', error);
-      toast.error('AI assistance temporarily unavailable');
+    );
+
+    if (result?.output_payload?.response) {
+      onSuggestion(result.output_payload.response);
+      setAiQuery('');
+      toast.success('AI suggestion generated');
+    }
+  };
+
+  const handleQuickAction = async (actionType: string) => {
+    const result = await executeAgentTask(
+      'salesAgent_v1',
+      actionType,
+      {
+        currentLead,
+        isCallActive,
+        workspace: 'auto_dialer'
+      }
+    );
+
+    if (result?.output_payload?.response) {
+      onSuggestion(result.output_payload.response);
+    }
+  };
+
+  const handleVoiceCommand = () => {
+    setIsListening(!isListening);
+    if (!isListening) {
+      // Simulate voice listening
+      setTimeout(() => {
+        setAiQuery("What's the best approach for this lead?");
+        setIsListening(false);
+        toast.success('Voice command captured');
+      }, 2000);
     }
   };
 
   return (
-    <Card className={`w-80 transition-all duration-300 ${isMinimized ? 'h-12' : 'h-96'}`}>
-      <CardHeader className="flex justify-between items-center">
-        <CardTitle>AI Assistant</CardTitle>
-        <Button variant="ghost" size="icon" onClick={() => setIsMinimized(!isMinimized)}>
-          <X className="h-4 w-4" />
-        </Button>
-      </CardHeader>
-      
-      {!isMinimized && (
-        <CardContent className="p-4 flex flex-col h-full">
-          <div className="flex-grow overflow-y-auto">
-            {messages.map(message => (
-              <div key={message.id} className={`mb-2 ${message.sender === 'user' ? 'text-right' : 'text-left'}`}>
-                <div className={`inline-block p-2 rounded-lg ${message.sender === 'user' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                  {message.content}
+    <div className="space-y-4">
+      {/* AI Status */}
+      <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+        <Brain className="h-5 w-5 text-blue-600" />
+        <div>
+          <div className="font-medium text-blue-800">Sales AI Agent Active</div>
+          <div className="text-xs text-blue-600">
+            {isCallActive ? 'Real-time call assistance enabled' : 'Ready for conversational calls'}
+          </div>
+        </div>
+        <Badge variant="outline" className="ml-auto">
+          salesAgent_v1
+        </Badge>
+      </div>
+
+      {/* AI Call Button */}
+      {currentLead && !isCallActive && (
+        <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <div className="font-semibold text-purple-800">AI Conversation Call</div>
+              <div className="text-sm text-purple-600">Let AI have a full conversation with {currentLead.name}</div>
+            </div>
+            <Zap className="h-8 w-8 text-purple-600" />
+          </div>
+          <Button
+            onClick={handleAICall}
+            disabled={isCallingAI}
+            className="w-full bg-purple-600 hover:bg-purple-700"
+          >
+            {isCallingAI ? (
+              <>
+                <Mic className="h-4 w-4 mr-2 animate-pulse" />
+                Initiating AI Call...
+              </>
+            ) : (
+              <>
+                <Phone className="h-4 w-4 mr-2" />
+                Start AI Conversation
+              </>
+            )}
+          </Button>
+          <div className="text-xs text-purple-600 mt-2">
+            ✨ AI will handle the entire conversation, qualify the lead, and provide analysis
+          </div>
+        </div>
+      )}
+
+      {/* AI Suggestions */}
+      {suggestions.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="font-medium text-gray-800">AI Suggestions</h3>
+          {suggestions.map((suggestion, index) => (
+            <div key={index} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-start gap-2">
+                <Lightbulb className="h-4 w-4 text-yellow-600 mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm text-yellow-800">{suggestion.text}</p>
+                  {suggestion.confidence && (
+                    <div className="text-xs text-yellow-600 mt-1">
+                      Confidence: {suggestion.confidence}%
+                    </div>
+                  )}
                 </div>
+                {suggestion.taskId && (
+                  <AgentFeedbackButton taskId={suggestion.taskId} size="sm" />
+                )}
               </div>
-            ))}
-          </div>
-          
-          <div className="mt-3 flex items-center">
-            <Input
-              type="text"
-              placeholder="Type your message..."
-              value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
-              className="flex-grow mr-2"
-            />
-            <Button onClick={handleSendMessage} disabled={isLoading}>
-              <MessageCircle className="h-4 w-4 mr-1" />
-              Send
-            </Button>
-          </div>
-          
-          {messages.filter(m => m.sender === 'ai' && m.metadata?.taskId).map(message => (
-            <div key={message.id} className="mt-2">
-              <AgentFeedbackButton 
-                taskId={message.metadata!.taskId!}
-                variant="outline"
-              />
             </div>
           ))}
-        </CardContent>
+        </div>
       )}
-    </Card>
+
+      {/* AI Query Interface */}
+      <div className="space-y-3">
+        <h3 className="font-medium text-gray-800">Ask Sales AI Assistant</h3>
+        <div className="space-y-2">
+          <Textarea
+            value={aiQuery}
+            onChange={(e) => setAiQuery(e.target.value)}
+            placeholder="Ask about this lead, industry insights, objection handling, or talk tracks..."
+            className="min-h-[80px] text-sm"
+          />
+          <div className="flex gap-2">
+            <Button
+              onClick={handleAIQuery}
+              disabled={!aiQuery.trim() || isExecuting}
+              size="sm"
+              className="flex-1"
+            >
+              <Send className="h-4 w-4 mr-1" />
+              {isExecuting ? 'Processing...' : 'Ask AI'}
+            </Button>
+            <Button
+              onClick={handleVoiceCommand}
+              variant={isListening ? "destructive" : "outline"}
+              size="sm"
+            >
+              {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+            </Button>
+          </div>
+          {isListening && (
+            <div className="text-xs text-gray-500 flex items-center gap-1">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              Listening for voice command...
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Quick AI Actions */}
+      <div className="space-y-2">
+        <h3 className="font-medium text-gray-800">Quick AI Actions</h3>
+        <div className="grid grid-cols-1 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('objection_handling')}
+            disabled={isExecuting}
+            className="justify-start text-xs"
+          >
+            <MessageSquare className="h-3 w-3 mr-2" />
+            Generate Objection Scripts
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('industry_insights')}
+            disabled={isExecuting}
+            className="justify-start text-xs"
+          >
+            <TrendingUp className="h-3 w-3 mr-2" />
+            Industry Insights
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('next_best_action')}
+            disabled={isExecuting}
+            className="justify-start text-xs"
+          >
+            <Target className="h-3 w-3 mr-2" />
+            Next Best Action
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAction('call_summary')}
+            disabled={isExecuting}
+            className="justify-start text-xs"
+          >
+            <Clock className="h-3 w-3 mr-2" />
+            Generate Call Summary
+          </Button>
+        </div>
+      </div>
+
+      {/* Real-time Call Assistance */}
+      {isCallActive && (
+        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-sm font-medium text-green-800">Live Call Analysis Active</span>
+          </div>
+          <div className="text-xs text-green-700">
+            AI is listening and will provide real-time suggestions based on conversation flow
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="w-full mt-2 border-green-300 text-green-800"
+            onClick={() => handleQuickAction('real_time_coaching')}
+            disabled={isExecuting}
+          >
+            <Brain className="h-3 w-3 mr-1" />
+            Get Real-Time Coaching
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };
 

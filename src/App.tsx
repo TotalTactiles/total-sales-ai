@@ -1,25 +1,38 @@
 
-import React, { Suspense } from 'react';
+import { logger } from '@/utils/logger';
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { AuthProvider } from '@/contexts/auth/AuthContext';
-import { DemoDataProvider } from '@/contexts/DemoDataContext';
-import { AIProvider } from '@/contexts/AIContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { AIContextProvider } from '@/contexts/AIContext';
+import { DemoDataProvider } from '@/contexts/DemoDataContext';
+import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from '@/components/ThemeProvider';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import RequireAuth from '@/components/RequireAuth';
 import OnboardingGuard from '@/components/OnboardingGuard';
-import LogoutHandler from '@/components/LogoutHandler';
-import LandingPage from '@/pages/LandingPage';
-import AuthPage from '@/pages/auth/AuthPage';
-import OnboardingPage from '@/pages/onboarding/OnboardingPage';
+import HealthCheck from '@/components/HealthCheck';
+import RoleToggle from '@/components/DeveloperMode/RoleToggle';
+import { Role } from '@/contexts/auth/types';
+
+// Layout components
 import SalesLayout from '@/layouts/SalesLayout';
 import ManagerLayout from '@/layouts/ManagerLayout';
 import DeveloperLayout from '@/layouts/DeveloperLayout';
-import NotFound from '@/pages/NotFound';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
-import LoadingScreen from '@/components/common/LoadingScreen';
-import FullPageError from '@/components/common/FullPageError';
-import './App.css';
+
+// Auth pages
+import AuthPage from '@/pages/Auth';
+import Logout from '@/pages/auth/Logout';
+
+// Landing page
+import NewLandingPage from '@/pages/NewLandingPage';
+
+// Standalone pages
+import LeadWorkspace from '@/pages/LeadWorkspace';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,84 +43,130 @@ const queryClient = new QueryClient({
   },
 });
 
+const DashboardRedirect: React.FC = () => {
+  const { profile, isDemoMode, getLastSelectedRole } = useAuth();
+  
+  // Determine the correct role for redirection
+  let targetRole: Role = 'sales_rep'; // Default fallback
+  
+  if (isDemoMode()) {
+    targetRole = getLastSelectedRole() || 'sales_rep';
+    logger.info('Demo mode active, using role:', targetRole);
+  } else if (profile?.role) {
+    targetRole = profile.role as Role;
+    logger.info('Using profile role:', targetRole);
+  }
+  
+  const dashboardUrl = getDashboardUrl({ role: targetRole });
+  logger.info('Redirecting to dashboard:', { targetRole, dashboardUrl, profileRole: profile?.role });
+  
+  return <Navigate to={dashboardUrl} replace />;
+};
+
 function App() {
+  logger.info('App component rendering');
+  
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <DemoDataProvider>
-          <AIProvider>
-            <Router>
-              <div className="min-h-screen bg-background text-foreground">
-                <ErrorBoundary fallback={<FullPageError />}>
-                  <Suspense fallback={<LoadingScreen />}>
-                    <Routes>
-                      {/* Public routes */}
-                      <Route path="/" element={<LandingPage />} />
-                      <Route path="/auth" element={<AuthPage />} />
-                      <Route path="/logout" element={<LogoutHandler />} />
-                      
-                      {/* Onboarding route */}
-                      <Route 
-                        path="/onboarding" 
-                        element={
-                          <RequireAuth>
-                            <OnboardingPage />
-                          </RequireAuth>
-                        } 
-                      />
-                      
-                      {/* Protected routes */}
-                      <Route 
-                        path="/sales/*" 
-                        element={
-                          <RequireAuth>
-                            <OnboardingGuard>
-                              <SalesLayout />
-                            </OnboardingGuard>
-                          </RequireAuth>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/manager/*" 
-                        element={
-                          <RequireAuth>
-                            <OnboardingGuard>
-                              <ManagerLayout />
-                            </OnboardingGuard>
-                          </RequireAuth>
-                        } 
-                      />
-                      
-                      <Route 
-                        path="/developer/*" 
-                        element={
-                          <RequireAuth>
-                            <OnboardingGuard>
-                              <DeveloperLayout />
-                            </OnboardingGuard>
-                          </RequireAuth>
-                        } 
-                      />
-                      
-                      {/* Catch all route */}
-                      <Route path="/404" element={<NotFound />} />
-                      <Route path="*" element={<Navigate to="/404" replace />} />
-                    </Routes>
-                  </Suspense>
-                </ErrorBoundary>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <TooltipProvider>
+          <Router>
+            <AuthProvider>
+              <DemoDataProvider>
+                <AIContextProvider>
+                <Routes>
+                  {/* Landing page */}
+                  <Route path="/landing" element={<NewLandingPage />} />
+                  
+                  {/* Auth routes */}
+                  <Route path="/login" element={<AuthPage />} />
+                  <Route path="/signup" element={<AuthPage />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/logout" element={<Logout />} />
+                  
+                  {/* Root redirect - goes to appropriate dashboard */}
+                  <Route path="/" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <DashboardRedirect />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Dashboard redirect for legacy URLs */}
+                  <Route path="/dashboard" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <DashboardRedirect />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Sales OS routes */}
+                  <Route path="/sales/*" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <SalesLayout />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Manager OS routes */}
+                  <Route path="/manager/*" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <ManagerLayout />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Developer OS routes */}
+                  <Route path="/developer/*" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <DeveloperLayout />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Standalone lead workspace route */}
+                  <Route path="/lead-workspace/:leadId" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <LeadWorkspace />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Legacy redirects */}
+                  <Route path="/lead-management" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <Navigate to="/sales/lead-management" replace />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                  
+                  {/* Catch all - redirect to appropriate dashboard */}
+                  <Route path="*" element={
+                    <RequireAuth>
+                      <OnboardingGuard>
+                        <DashboardRedirect />
+                      </OnboardingGuard>
+                    </RequireAuth>
+                  } />
+                </Routes>
                 
-                <Toaster 
-                  position="top-right" 
-                  richColors 
-                  closeButton 
-                  duration={4000}
-                />
-              </div>
-            </Router>
-          </AIProvider>
-        </DemoDataProvider>
-      </AuthProvider>
+                {/* Global components */}
+                <Toaster />
+                <HealthCheck />
+                <RoleToggle />
+              </AIContextProvider>
+              </DemoDataProvider>
+            </AuthProvider>
+          </Router>
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

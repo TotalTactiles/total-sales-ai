@@ -1,120 +1,84 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, 
   Search, 
   Filter, 
-  Plus,
-  Eye,
-  Edit,
-  Phone,
-  Mail,
-  Calendar,
-  DollarSign
+  Download, 
+  Brain,
+  TrendingUp,
+  AlertTriangle,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
+import { useLeads } from '@/hooks/useLeads';
+import { useDemoData } from '@/contexts/DemoDataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ManagerLeadManagement = () => {
+  const { leads } = useLeads();
+  const { leads: demoLeads } = useDemoData();
+  const { isDemoMode } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
 
-  const leads = [
-    {
-      id: '1',
-      name: 'TechCorp Inc.',
-      contact: 'John Smith',
-      email: 'john@techcorp.com',
-      phone: '+1 555-0123',
-      status: 'qualified',
-      value: 125000,
-      assignedTo: 'Sarah Johnson',
-      lastContact: '2024-01-15',
-      priority: 'high'
-    },
-    {
-      id: '2',
-      name: 'Global Solutions',
-      contact: 'Maria Rodriguez',
-      email: 'maria@globalsol.com',
-      phone: '+1 555-0124',
-      status: 'proposal',
-      value: 85000,
-      assignedTo: 'Michael Chen',
-      lastContact: '2024-01-14',
-      priority: 'high'
-    },
-    {
-      id: '3',
-      name: 'StartupXYZ',
-      contact: 'Alex Kim',
-      email: 'alex@startupxyz.com',
-      phone: '+1 555-0125',
-      status: 'contacted',
-      value: 45000,
-      assignedTo: 'Jasmine Lee',
-      lastContact: '2024-01-13',
-      priority: 'medium'
-    },
-    {
-      id: '4',
-      name: 'Enterprise Corp',
-      contact: 'David Wilson',
-      email: 'david@enterprise.com',
-      phone: '+1 555-0126',
-      status: 'new',
-      value: 200000,
-      assignedTo: 'David Park',
-      lastContact: '2024-01-12',
-      priority: 'high'
-    }
-  ];
+  const displayLeads = isDemoMode() ? demoLeads : leads;
+
+  const teamLeads = displayLeads.map(lead => ({
+    ...lead,
+    assignedTo: ['Sarah Chen', 'Mike Johnson', 'Emma Davis', 'James Wilson'][Math.floor(Math.random() * 4)],
+    lastActivity: ['Called', 'Emailed', 'Demo scheduled', 'Proposal sent'][Math.floor(Math.random() * 4)],
+    daysInPipeline: Math.floor(Math.random() * 30) + 1
+  }));
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'new': return 'bg-blue-500';
-      case 'contacted': return 'bg-yellow-500';
-      case 'qualified': return 'bg-green-500';
-      case 'proposal': return 'bg-purple-500';
-      case 'closed': return 'bg-gray-500';
-      default: return 'bg-gray-500';
+      case 'new': return 'bg-blue-100 text-blue-800';
+      case 'contacted': return 'bg-purple-100 text-purple-800';
+      case 'qualified': return 'bg-green-100 text-green-800';
+      case 'closed': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-500';
-      case 'medium': return 'bg-yellow-500';
-      case 'low': return 'bg-green-500';
-      default: return 'bg-gray-500';
+      case 'high': return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case 'medium': return <Clock className="h-4 w-4 text-yellow-500" />;
+      case 'low': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      default: return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
-
-  const filteredLeads = leads.filter(lead => {
-    const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.contact.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.assignedTo.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Lead Management</h1>
-          <p className="text-muted-foreground">Manage and track all team leads</p>
+          <h1 className="text-3xl font-bold text-foreground">Team Lead Management</h1>
+          <p className="text-muted-foreground">Monitor and manage your team's lead pipeline</p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Lead
-        </Button>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+            <Brain className="h-3 w-3 mr-1" />
+            AI Insights Active
+          </Badge>
+          <Button variant="outline">
+            <Filter className="h-4 w-4 mr-2" />
+            Filters
+          </Button>
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
       </div>
 
-      {/* Summary Cards */}
+      {/* Team Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -122,144 +86,240 @@ const ManagerLeadManagement = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{leads.length}</div>
-            <p className="text-xs text-muted-foreground">Active pipeline</p>
+            <div className="text-2xl font-bold">{teamLeads.length}</div>
+            <p className="text-xs text-muted-foreground">
+              +12% from last week
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">High Priority</CardTitle>
-            <Badge className="bg-red-500 text-white">!</Badge>
+            <CardTitle className="text-sm font-medium">Hot Leads</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{leads.filter(l => l.priority === 'high').length}</div>
-            <p className="text-xs text-muted-foreground">Require attention</p>
+            <div className="text-2xl font-bold">{teamLeads.filter(l => l.priority === 'high').length}</div>
+            <p className="text-xs text-muted-foreground">
+              Require immediate attention
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pipeline Value</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Stalled Deals</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${leads.reduce((sum, lead) => sum + lead.value, 0).toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Total potential</p>
+            <div className="text-2xl font-bold">{teamLeads.filter(l => l.daysInPipeline > 20).length}</div>
+            <p className="text-xs text-muted-foreground">
+              20+ days in pipeline
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Qualified</CardTitle>
-            <Badge className="bg-green-500 text-white">✓</Badge>
+            <CardTitle className="text-sm font-medium">Team Avg Score</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{leads.filter(l => l.status === 'qualified' || l.status === 'proposal').length}</div>
-            <p className="text-xs text-muted-foreground">Ready to close</p>
+            <div className="text-2xl font-bold">{Math.round(teamLeads.reduce((acc, lead) => acc + lead.score, 0) / teamLeads.length)}%</div>
+            <p className="text-xs text-muted-foreground">
+              +5% improvement
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Search */}
+      {/* AI Manager Insights */}
       <Card>
         <CardHeader>
-          <CardTitle>Lead Pipeline</CardTitle>
-          <CardDescription>Track and manage all team leads</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-blue-600" />
+            AI Manager Insights
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search leads..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="font-medium text-green-800">High Performer Alert</h4>
+              <p className="text-sm text-green-700 mt-1">
+                Sarah Chen has the highest lead conversion rate (31%) this month. Consider having her mentor other team members.
+              </p>
             </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border rounded-md"
-            >
-              <option value="all">All Status</option>
-              <option value="new">New</option>
-              <option value="contacted">Contacted</option>
-              <option value="qualified">Qualified</option>
-              <option value="proposal">Proposal</option>
-              <option value="closed">Closed</option>
-            </select>
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <h4 className="font-medium text-yellow-800">Pipeline Bottleneck</h4>
+              <p className="text-sm text-yellow-700 mt-1">
+                8 high-value leads have been stalled for 15+ days. AI suggests scheduling manager review calls.
+              </p>
+            </div>
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="font-medium text-blue-800">Opportunity Distribution</h4>
+              <p className="text-sm text-blue-700 mt-1">
+                Enterprise leads ($50K+) are concentrated with 2 reps. Consider redistributing for better coverage.
+              </p>
+            </div>
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <h4 className="font-medium text-purple-800">Follow-up Optimization</h4>
+              <p className="text-sm text-purple-700 mt-1">
+                Email sequences outperforming calls by 23%. Recommend increasing email automation usage.
+              </p>
+            </div>
           </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Assigned To</TableHead>
-                <TableHead>Last Contact</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredLeads.map((lead) => (
-                <TableRow key={lead.id}>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{lead.name}</p>
-                      <p className="text-sm text-muted-foreground">{lead.contact}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="text-sm">{lead.email}</p>
-                      <p className="text-sm text-muted-foreground">{lead.phone}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`${getStatusColor(lead.status)} text-white capitalize`}>
-                      {lead.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={`${getPriorityColor(lead.priority)} text-white capitalize`}>
-                      {lead.priority}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium">${lead.value.toLocaleString()}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{lead.assignedTo}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm">{lead.lastContact}</span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Phone className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="outline">
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         </CardContent>
       </Card>
+
+      {/* Lead Management Tabs */}
+      <Tabs defaultValue="all-leads" className="space-y-6">
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="all-leads">All Leads</TabsTrigger>
+            <TabsTrigger value="by-rep">By Rep</TabsTrigger>
+            <TabsTrigger value="hot-leads">Hot Leads</TabsTrigger>
+            <TabsTrigger value="stalled">Stalled</TabsTrigger>
+          </TabsList>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search leads..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-80"
+            />
+          </div>
+        </div>
+
+        <TabsContent value="all-leads">
+          <Card>
+            <CardHeader>
+              <CardTitle>All Team Leads</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {teamLeads.slice(0, 10).map((lead) => (
+                  <div key={lead.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        {getPriorityIcon(lead.priority)}
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{lead.name}</h4>
+                        <p className="text-sm text-muted-foreground">{lead.company} • {lead.email}</p>
+                        <p className="text-xs text-muted-foreground">Assigned to: {lead.assignedTo}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="text-sm font-medium">Score: {lead.score}%</p>
+                        <p className="text-xs text-muted-foreground">{lead.daysInPipeline} days in pipeline</p>
+                        <p className="text-xs text-muted-foreground">Last: {lead.lastActivity}</p>
+                      </div>
+                      <Badge className={getStatusColor(lead.status)}>
+                        {lead.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="by-rep">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {['Sarah Chen', 'Mike Johnson', 'Emma Davis', 'James Wilson'].map((rep) => {
+              const repLeads = teamLeads.filter(lead => lead.assignedTo === rep);
+              return (
+                <Card key={rep}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>{rep}</span>
+                      <Badge variant="secondary">{repLeads.length} leads</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {repLeads.slice(0, 5).map((lead) => (
+                        <div key={lead.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <div>
+                            <p className="font-medium text-sm">{lead.name}</p>
+                            <p className="text-xs text-muted-foreground">{lead.company}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">{lead.score}%</span>
+                            <Badge className={getStatusColor(lead.status)}>
+                              {lead.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="hot-leads">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-red-500" />
+                High Priority Leads
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {teamLeads.filter(lead => lead.priority === 'high').map((lead) => (
+                  <div key={lead.id} className="flex items-center justify-between p-4 border-l-4 border-red-400 bg-red-50 rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{lead.name}</h4>
+                      <p className="text-sm text-muted-foreground">{lead.company} • Assigned to: {lead.assignedTo}</p>
+                      <p className="text-xs text-muted-foreground">Score: {lead.score}% • {lead.daysInPipeline} days in pipeline</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="destructive">High Priority</Badge>
+                      <Button variant="outline">Review</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="stalled">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                Stalled Deals (20+ days)
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {teamLeads.filter(lead => lead.daysInPipeline > 20).map((lead) => (
+                  <div key={lead.id} className="flex items-center justify-between p-4 border-l-4 border-yellow-400 bg-yellow-50 rounded-lg">
+                    <div>
+                      <h4 className="font-medium">{lead.name}</h4>
+                      <p className="text-sm text-muted-foreground">{lead.company} • Assigned to: {lead.assignedTo}</p>
+                      <p className="text-xs text-muted-foreground">Last activity: {lead.lastActivity} • {lead.daysInPipeline} days ago</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-yellow-100 text-yellow-800">Stalled</Badge>
+                      <Button variant="outline">Escalate</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

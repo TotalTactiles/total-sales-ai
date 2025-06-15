@@ -1,163 +1,172 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-import Logo from '@/components/Logo';
-import UserProfile from '@/components/UserProfile';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  LayoutDashboard, 
-  Users, 
-  BarChart3, 
-  Brain,
-  Phone,
-  GraduationCap,
-  FileText,
-  Shield,
+  Menu, 
+  X, 
+  Brain, 
+  Activity, 
+  TestTube, 
   Settings,
-  Building2,
-  Activity,
   Database,
-  Code,
-  TestTube
+  Zap,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-const ResponsiveNavigation: React.FC = () => {
-  const location = useLocation();
-  const { profile } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+interface NavigationTab {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+  component: React.ReactNode;
+}
 
-  const getNavItems = () => {
-    if (profile?.role === 'manager') {
-      return [
-        { href: '/manager/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/manager/analytics', label: 'Analytics', icon: BarChart3 },
-        { href: '/manager/lead-management', label: 'Leads', icon: Users },
-        { href: '/manager/company-brain', label: 'Company Brain', icon: Brain },
-        { href: '/manager/team-management', label: 'Team', icon: Users },
-        { href: '/manager/crm-integrations', label: 'CRM', icon: Building2 },
-        { href: '/manager/reports', label: 'Reports', icon: FileText },
-        { href: '/manager/security', label: 'Security', icon: Shield },
-        { href: '/manager/settings', label: 'Settings', icon: Settings },
-      ];
-    } else if (profile?.role === 'developer') {
-      return [
-        { href: '/developer', label: 'Agent Health', icon: Activity },
-        { href: '/developer/advanced', label: 'Advanced', icon: Settings },
-        { href: '/developer/api', label: 'API Console', icon: Code },
-        { href: '/developer/testing', label: 'Testing', icon: TestTube },
-      ];
-    } else {
-      // sales_rep
-      return [
-        { href: '/sales/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { href: '/sales/analytics', label: 'Analytics', icon: BarChart3 },
-        { href: '/sales/lead-management', label: 'Leads', icon: Users },
-        { href: '/sales/dialer', label: 'Dialer', icon: Phone },
-        { href: '/sales/academy', label: 'Academy', icon: GraduationCap },
-        { href: '/sales/ai', label: 'AI Assistant', icon: Brain },
-        { href: '/sales/settings', label: 'Settings', icon: Settings },
-      ];
-    }
-  };
+interface ResponsiveNavigationProps {
+  tabs: NavigationTab[];
+  defaultTab?: string;
+  className?: string;
+}
 
-  const navItems = getNavItems();
-  const roleDisplayName = profile?.role === 'sales_rep' ? 'Sales Representative' : 
-                         profile?.role === 'manager' ? 'Manager' : 'Developer';
+const ResponsiveNavigation: React.FC<ResponsiveNavigationProps> = ({
+  tabs,
+  defaultTab,
+  className = ''
+}) => {
+  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const activeTabData = tabs.find(tab => tab.id === activeTab);
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
-      <div className="h-[60px] flex items-center justify-between px-6">
-        {/* Logo */}
-        <div className="flex items-center">
-          <Logo />
-        </div>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center space-x-4">
-          {navItems.map((item) => {
-            const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <Link
-                key={item.label}
-                to={item.href}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                }`}
-              >
-                <IconComponent className="h-4 w-4" />
-                <span className="hidden xl:inline">{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Mobile menu button */}
-        <div className="lg:hidden">
+    <div className={cn("flex h-screen w-full", className)}>
+      {/* Desktop Sidebar */}
+      <div className={cn(
+        "hidden md:flex flex-col bg-background border-r transition-all duration-300",
+        isCollapsed ? "w-16" : "w-64"
+      )}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          {!isCollapsed && (
+            <div className="flex items-center gap-2">
+              <Brain className="h-6 w-6 text-primary" />
+              <span className="font-semibold">Relevance AI</span>
+              <Badge variant="outline" className="text-xs">
+                v1
+              </Badge>
+            </div>
+          )}
           <Button
             variant="ghost"
-            size="icon"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            size="sm"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="h-8 w-8"
           >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
         </div>
 
-        {/* Right side controls */}
-        <div className="hidden md:flex items-center space-x-4">
-          <ThemeToggle />
-          <UserProfile 
-            name={profile?.full_name || roleDisplayName}
-            role={roleDisplayName}
-          />
+        {/* Navigation Tabs */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-2 space-y-1">
+            {tabs.map((tab) => (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? "default" : "ghost"}
+                className={cn(
+                  "w-full justify-start gap-2",
+                  isCollapsed ? "px-2" : "px-3"
+                )}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.icon}
+                {!isCollapsed && <span className="truncate">{tab.label}</span>}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {/* Status Indicator */}
+        <div className="p-4 border-t">
+          <div className={cn(
+            "flex items-center gap-2",
+            isCollapsed && "justify-center"
+          )}>
+            <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+            {!isCollapsed && (
+              <span className="text-xs text-muted-foreground">AI Active</span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-border bg-background">
-          <div className="px-4 py-4 space-y-2 max-h-96 overflow-y-auto">
-            {navItems.map((item) => {
-              const IconComponent = item.icon;
-              const isActive = location.pathname === item.href;
-              
-              return (
-                <Link
-                  key={item.label}
-                  to={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                  }`}
-                >
-                  <IconComponent className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-            
-            {/* Mobile user section */}
-            <div className="border-t border-border pt-4 mt-4">
+      {/* Mobile Header */}
+      <div className="md:hidden flex items-center justify-between p-4 border-b bg-background">
+        <div className="flex items-center gap-2">
+          <Brain className="h-6 w-6 text-primary" />
+          <span className="font-semibold">Relevance AI</span>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        >
+          {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        </Button>
+      </div>
+
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black/50">
+          <div className="absolute top-0 left-0 w-64 h-full bg-background border-r">
+            <div className="p-4 border-b">
               <div className="flex items-center justify-between">
-                <UserProfile 
-                  name={profile?.full_name || roleDisplayName}
-                  role={roleDisplayName}
-                />
-                <ThemeToggle />
+                <div className="flex items-center gap-2">
+                  <Brain className="h-6 w-6 text-primary" />
+                  <span className="font-semibold">Relevance AI</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
+            </div>
+
+            <div className="p-2 space-y-1">
+              {tabs.map((tab) => (
+                <Button
+                  key={tab.id}
+                  variant={activeTab === tab.id ? "default" : "ghost"}
+                  className="w-full justify-start gap-2"
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  {tab.icon}
+                  <span className="truncate">{tab.label}</span>
+                </Button>
+              ))}
             </div>
           </div>
         </div>
       )}
-    </header>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-hidden">
+        {activeTabData && (
+          <div className="h-full overflow-y-auto">
+            {activeTabData.component}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

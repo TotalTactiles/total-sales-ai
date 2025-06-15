@@ -1,51 +1,77 @@
 
 import React from 'react';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import ResponsiveNavigation from '@/components/Navigation/ResponsiveNavigation';
+import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+
+// Developer pages
 import DeveloperDashboard from '@/pages/developer/Dashboard';
-import AdvancedFeatures from '@/pages/AdvancedFeatures';
-import { Code, TestTube } from 'lucide-react';
+import DeveloperSystemMonitor from '@/pages/developer/SystemMonitor';
+import DeveloperAILogs from '@/pages/developer/AIBrainLogs';
+import DeveloperAPILogs from '@/pages/developer/APILogs';
+import DeveloperErrorLogs from '@/pages/developer/ErrorLogs';
+import DeveloperQAChecklist from '@/pages/developer/QAChecklist';
+import DeveloperTestingSandbox from '@/pages/developer/TestingSandbox';
+import DeveloperVersionControl from '@/pages/developer/VersionControl';
+import DeveloperSettings from '@/pages/developer/Settings';
+import DeveloperCRMIntegrations from '@/pages/developer/CRMIntegrations';
 
-const DeveloperLayout: React.FC = () => {
+import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
+import { useAIContext } from '@/contexts/AIContext';
+import { useLocation } from 'react-router-dom';
+
+const DeveloperLayout = () => {
+  const { currentLead, isCallActive, emailContext, smsContext } = useAIContext();
+  const location = useLocation();
+  
+  const getWorkspaceContext = () => {
+    const path = location.pathname;
+    
+    if (path.includes('/ai-brain-logs')) {
+      return 'developer_ai_logs';
+    } else if (path.includes('/system-monitor')) {
+      return 'developer_system';
+    } else if (path.includes('/testing-sandbox')) {
+      return 'developer_testing';
+    } else if (path.includes('/dashboard')) {
+      return 'developer_dashboard';
+    } else {
+      return 'developer_dashboard';
+    }
+  };
+
+  const aiContext = {
+    workspace: getWorkspaceContext() as any,
+    currentLead,
+    isCallActive,
+    emailContext,
+    smsContext
+  };
+  
   return (
-    <div className="min-h-screen bg-slate-900">
-      <ResponsiveNavigation />
-
+    <div className="min-h-screen bg-slate-900 text-white relative">
+      <DeveloperNavigation />
+      
       <main className="pt-[60px]">
-        <ErrorBoundary fallback={<div className="p-4 text-white">Something went wrong. Please refresh or contact support.</div>}>
-          <Routes>
-            <Route index element={<DeveloperDashboard />} />
-            <Route path="dashboard" element={<DeveloperDashboard />} />
-            <Route path="advanced" element={<AdvancedFeatures />} />
-            <Route 
-              path="api" 
-              element={
-                <div className="p-6">
-                  <div className="bg-slate-800 rounded-lg shadow-sm p-8 text-center">
-                    <Code className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-white mb-2">API Console</h2>
-                    <p className="text-slate-400">Advanced API testing and management tools coming soon.</p>
-                  </div>
-                </div>
-              }
-            />
-            <Route
-              path="testing"
-              element={
-                <div className="p-6">
-                  <div className="bg-slate-800 rounded-lg shadow-sm p-8 text-center">
-                    <TestTube className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-white mb-2">Testing Suite</h2>
-                    <p className="text-slate-400">Comprehensive testing tools and automation coming soon.</p>
-                  </div>
-                </div>
-              }
-            />
-            <Route path="*" element={<Navigate to="dashboard" replace />} />
-          </Routes>
-        </ErrorBoundary>
+        <Routes>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DeveloperDashboard />} />
+          <Route path="system-monitor" element={<DeveloperSystemMonitor />} />
+          <Route path="ai-brain-logs" element={<DeveloperAILogs />} />
+          <Route path="api-logs" element={<DeveloperAPILogs />} />
+          <Route path="error-logs" element={<DeveloperErrorLogs />} />
+          <Route path="qa-checklist" element={<DeveloperQAChecklist />} />
+          <Route path="testing-sandbox" element={<DeveloperTestingSandbox />} />
+          <Route path="version-control" element={<DeveloperVersionControl />} />
+          <Route path="crm-integrations" element={<DeveloperCRMIntegrations />} />
+          <Route path="settings" element={<DeveloperSettings />} />
+          <Route path="*" element={<Navigate to="dashboard" replace />} />
+        </Routes>
       </main>
+      
+      {/* Developer AI Assistant */}
+      <div className="fixed bottom-6 right-6 z-[9999]">
+        <UnifiedAIBubble context={aiContext} />
+      </div>
     </div>
   );
 };

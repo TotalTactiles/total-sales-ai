@@ -1,5 +1,5 @@
-
 import { logger } from '@/utils/logger';
+
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,11 +23,8 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
   // Show loading spinner while determining auth state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -41,13 +38,13 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
   // If no user and not in demo mode, redirect to auth
   if (!user) {
     logger.info('RequireAuth: No user, redirecting to auth');
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   // If user is authenticated but no profile, redirect to auth for completion
   if (!profile) {
     logger.info('RequireAuth: User but no profile, redirecting to auth');
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   logger.info('RequireAuth: Access granted');

@@ -1,130 +1,241 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  Activity, 
   CheckCircle, 
+  XCircle, 
   AlertTriangle, 
-  XCircle,
-  Zap,
+  RefreshCw,
+  Brain,
+  Activity,
   Clock,
-  TrendingUp,
-  Server
+  Zap
 } from 'lucide-react';
+import { relevanceAIConnection } from '@/services/relevance/RelevanceAIConnectionService';
+import { agentOrchestrator } from '@/services/agents/AgentOrchestrator';
+
+interface HealthMetrics {
+  apiConnection: boolean;
+  agentsActive: number;
+  totalAgents: number;
+  avgResponseTime: number;
+  successRate: number;
+  lastUpdate: string;
+}
 
 const AgentHealthDashboard: React.FC = () => {
-  const agentMetrics = [
-    { name: 'Sales Assistant', status: 'healthy', uptime: '99.9%', response: '120ms' },
-    { name: 'Lead Qualifier', status: 'warning', uptime: '98.2%', response: '340ms' },
-    { name: 'Email Agent', status: 'healthy', uptime: '99.7%', response: '95ms' },
-    { name: 'Call Coach', status: 'error', uptime: '85.1%', response: '1200ms' },
-  ];
+  const [metrics, setMetrics] = useState<HealthMetrics>({
+    apiConnection: false,
+    agentsActive: 0,
+    totalAgents: 4,
+    avgResponseTime: 0,
+    successRate: 0,
+    lastUpdate: ''
+  });
+  const [isChecking, setIsChecking] = useState(false);
+  const [agentStatuses, setAgentStatuses] = useState<any[]>([]);
+
+  useEffect(() => {
+    performHealthCheck();
+    const interval = setInterval(performHealthCheck, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const performHealthCheck = async () => {
+    setIsChecking(true);
+    try {
+      // Check API connection
+      const connectionHealth = await relevanceAIConnection.performHealthCheck();
+      
+      // Get performance metrics
+      const performanceMetrics = agentOrchestrator.getPerformanceMetrics();
+      
+      // Calculate averages
+      let totalExecutions = 0;
+      let totalSuccesses = 0;
+      let totalTime = 0;
+      let activeAgents = 0;
+
+      const agentStatusList = connectionHealth.agentsRegistered.map(agent => {
+        const agentMetrics = performanceMetrics.get(`${agent.id}-general`) || {};
+        if (agent.status === 'active') activeAgents++;
+        
+        if (agentMetrics.totalExecutions > 0) {
+          totalExecutions += agentMetrics.totalExecutions;
+          totalSuccesses += agentMetrics.successCount || 0;
+          totalTime += agentMetrics.totalTime || 0;
+        }
+
+        return {
+          ...agent,
+          metrics: agentMetrics
+        };
+      });
+
+      setAgentStatuses(agentStatusList);
+      setMetrics({
+        apiConnection: connectionHealth.apiConnected,
+        agentsActive: activeAgents,
+        totalAgents: connectionHealth.agentsRegistered.length,
+        avgResponseTime: totalExecutions > 0 ? totalTime / totalExecutions : 0,
+        successRate: totalExecutions > 0 ? (totalSuccesses / totalExecutions) * 100 : 0,
+        lastUpdate: new Date().toLocaleTimeString()
+      });
+
+    } catch (error) {
+      console.error('Health check failed:', error);
+    } finally {
+      setIsChecking(false);
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
-      case 'error': return <XCircle className="h-4 w-4 text-red-500" />;
-      default: return <Activity className="h-4 w-4 text-gray-500" />;
+      case 'active': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'inactive': return <XCircle className="h-4 w-4 text-red-500" />;
+      case 'error': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      default: return <AlertTriangle className="h-4 w-4 text-gray-500" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'warning': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'error': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+      case 'active': return 'default';
+      case 'inactive': return 'destructive';
+      case 'error': return 'secondary';
+      default: return 'outline';
     }
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Agent Health Dashboard</h1>
-        <p className="text-slate-600 dark:text-slate-400 mt-2">
-          Monitor AI agent performance, uptime, and system health metrics
-        </p>
+    <div className="space-y-6 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Agent Health Dashboard</h2>
+          <p className="text-muted-foreground">
+            Real-time monitoring of Relevance AI agent status and performance
+          </p>
+        </div>
+        <Button
+          onClick={performHealthCheck}
+          disabled={isChecking}
+          variant="outline"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isChecking ? 'animate-spin' : ''}`} />
+          {isChecking ? 'Checking...' : 'Refresh'}
+        </Button>
       </div>
 
-      {/* System Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <Card className="bg-white dark:bg-slate-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Total Agents</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">4</p>
-              </div>
-              <Server className="h-8 w-8 text-blue-500" />
+      {/* Overall Health Status */}
+      <Alert className={metrics.apiConnection ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+        {metrics.apiConnection ? (
+          <CheckCircle className="h-4 w-4 text-green-600" />
+        ) : (
+          <XCircle className="h-4 w-4 text-red-600" />
+        )}
+        <AlertDescription className={metrics.apiConnection ? 'text-green-800' : 'text-red-800'}>
+          {metrics.apiConnection 
+            ? 'Relevance AI connection is healthy and operational'
+            : 'Relevance AI connection is down or experiencing issues'
+          }
+        </AlertDescription>
+      </Alert>
+
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">API Connection</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metrics.apiConnection ? 'Connected' : 'Disconnected'}
             </div>
+            <Badge variant={metrics.apiConnection ? 'default' : 'destructive'} className="mt-1">
+              {metrics.apiConnection ? 'Healthy' : 'Error'}
+            </Badge>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Healthy</p>
-                <p className="text-2xl font-bold text-green-600">2</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-500" />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
+            <Brain className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metrics.agentsActive}/{metrics.totalAgents}
             </div>
+            <Progress 
+              value={(metrics.agentsActive / metrics.totalAgents) * 100} 
+              className="mt-2"
+            />
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Avg Response</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">439ms</p>
-              </div>
-              <Zap className="h-8 w-8 text-yellow-500" />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Response</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metrics.avgResponseTime.toFixed(0)}ms
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Average task execution time
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="bg-white dark:bg-slate-800">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400">Uptime</p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">95.7%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-green-500" />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+            <Zap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {metrics.successRate.toFixed(1)}%
             </div>
+            <Progress value={metrics.successRate} className="mt-2" />
           </CardContent>
         </Card>
       </div>
 
-      {/* Agent Status List */}
-      <Card className="bg-white dark:bg-slate-800">
+      {/* Agent Status Details */}
+      <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
-            <Activity className="h-5 w-5" />
-            Agent Status
-          </CardTitle>
+          <CardTitle>Agent Status Details</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {agentMetrics.map((agent, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border border-slate-200 dark:border-slate-700 rounded-lg">
+            {agentStatuses.map((agent) => (
+              <div key={agent.id} className="flex items-center justify-between p-3 border rounded-lg">
                 <div className="flex items-center gap-3">
                   {getStatusIcon(agent.status)}
                   <div>
-                    <h3 className="font-medium text-slate-900 dark:text-white">{agent.name}</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400">Response: {agent.response}</p>
+                    <div className="font-medium">{agent.name}</div>
+                    <div className="text-sm text-muted-foreground">{agent.id}</div>
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-slate-900 dark:text-white">{agent.uptime}</p>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">Uptime</p>
-                  </div>
-                  <Badge className={getStatusColor(agent.status)}>
+                <div className="flex items-center gap-3">
+                  {agent.metrics?.totalExecutions > 0 && (
+                    <div className="text-right text-sm">
+                      <div>{agent.metrics.totalExecutions} tasks</div>
+                      <div className="text-muted-foreground">
+                        {agent.metrics.averageTime?.toFixed(0)}ms avg
+                      </div>
+                    </div>
+                  )}
+                  
+                  <Badge variant={getStatusColor(agent.status)}>
                     {agent.status}
                   </Badge>
                 </div>
@@ -134,42 +245,10 @@ const AgentHealthDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Recent Activity */}
-      <Card className="bg-white dark:bg-slate-800">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-slate-900 dark:text-white">
-            <Clock className="h-5 w-5" />
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-              <CheckCircle className="h-4 w-4 text-green-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-900 dark:text-white">Sales Assistant restarted successfully</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">2 minutes ago</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-              <AlertTriangle className="h-4 w-4 text-yellow-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-900 dark:text-white">Lead Qualifier experiencing high latency</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">15 minutes ago</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700 rounded-lg">
-              <XCircle className="h-4 w-4 text-red-500" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-slate-900 dark:text-white">Call Coach agent connection failed</p>
-                <p className="text-xs text-slate-600 dark:text-slate-400">1 hour ago</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Last Update */}
+      <div className="text-center text-sm text-muted-foreground">
+        Last updated: {metrics.lastUpdate}
+      </div>
     </div>
   );
 };

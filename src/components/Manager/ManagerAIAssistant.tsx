@@ -1,204 +1,196 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useRelevanceAI } from '@/hooks/useRelevanceAI';
-import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import { 
+  Brain, 
+  Send, 
+  TrendingUp, 
+  Users, 
+  Target,
+  Lightbulb,
+  BarChart3
+} from 'lucide-react';
+import { useAgentIntegration } from '@/hooks/useAgentIntegration';
 import AgentFeedbackButton from '@/components/AI/AgentFeedbackButton';
 
-interface ManagerAIAssistantProps {
-  teamData: any[];
-}
+const ManagerAIAssistant: React.FC = () => {
+  const { executeAgentTask, isExecuting } = useAgentIntegration();
+  const [query, setQuery] = useState('');
+  const [conversation, setConversation] = useState<Array<{
+    role: 'user' | 'ai';
+    content: string;
+    timestamp: string;
+    taskId?: string;
+  }>>([
+    {
+      role: 'ai',
+      content: 'Hello! I\'m your AI Manager Assistant powered by managerAgent_v1. I can help you analyze team performance, predict risks, optimize workflows, and provide strategic insights.',
+      timestamp: new Date().toLocaleTimeString()
+    }
+  ]);
 
-interface Insight {
-  id: string;
-  type: 'performance_summary' | 'risk_assessment' | 'opportunity_detection';
-  title: string;
-  description: string;
-  priority: 'high' | 'medium' | 'low';
-  actionable: boolean;
-  timestamp: Date;
-  taskId?: string;
-}
+  const quickActions = [
+    {
+      label: 'Summarize Team Performance',
+      taskType: 'team_summary',
+      icon: <Users className="h-4 w-4" />
+    },
+    {
+      label: 'Top 3 Agent Improvements',
+      taskType: 'agent_improvements',
+      icon: <TrendingUp className="h-4 w-4" />
+    },
+    {
+      label: 'Risk Prediction Analysis',
+      taskType: 'risk_prediction',
+      icon: <Target className="h-4 w-4" />
+    },
+    {
+      label: 'Workflow Optimization',
+      taskType: 'workflow_optimization',
+      icon: <BarChart3 className="h-4 w-4" />
+    }
+  ];
 
-const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ teamData }) => {
-  const { executeWorkflow, isLoading } = useRelevanceAI();
-  const [insights, setInsights] = useState<Insight[]>([]);
-  const [activeTab, setActiveTab] = useState('overview');
+  const handleQuickAction = async (taskType: string) => {
+    const userMessage = {
+      role: 'user' as const,
+      content: `Execute: ${taskType.replace('_', ' ')}`,
+      timestamp: new Date().toLocaleTimeString()
+    };
 
-  useEffect(() => {
-    generateInsights();
-  }, [teamData]);
+    setConversation(prev => [...prev, userMessage]);
 
-  const generateInsights = async () => {
-    if (!teamData) return;
+    const result = await executeAgentTask(
+      'managerAgent_v1',
+      taskType,
+      { workspace: 'manager_dashboard' }
+    );
 
-    try {
-      const result = await executeWorkflow('manager-agent-v1', {
-        type: 'team_performance_analysis',
-        teamData,
-        context: 'manager_assistant'
-      });
-
-      if (result.success) {
-        const newInsight: Insight = {
-          id: crypto.randomUUID(),
-          type: 'performance_summary',
-          title: 'Team Performance Summary',
-          description: result.output.response || 'Generated team performance summary',
-          priority: 'high',
-          actionable: true,
-          timestamp: new Date(),
-          taskId: result.output.taskId || crypto.randomUUID()
-        };
-        setInsights(prev => [newInsight, ...prev]);
-      }
-    } catch (error) {
-      console.error('Failed to generate insights:', error);
-      toast.error('Failed to generate team performance insights');
+    if (result?.output_payload?.response) {
+      const aiMessage = {
+        role: 'ai' as const,
+        content: result.output_payload.response,
+        timestamp: new Date().toLocaleTimeString(),
+        taskId: result.id
+      };
+      setConversation(prev => [...prev, aiMessage]);
     }
   };
 
-  const handleGetRecommendation = async (type: string) => {
-    try {
-      const result = await executeWorkflow('manager-agent-v1', {
-        type: `recommendation_${type}`,
-        teamData,
-        context: 'manager_assistant'
-      });
+  const handleSendMessage = async () => {
+    if (!query.trim()) return;
 
-      if (result.success) {
-        const newInsight: Insight = {
-          id: crypto.randomUUID(),
-          type: type as any,
-          title: `${type.replace('_', ' ')} Recommendation`,
-          description: result.output.response || `Generated recommendation for ${type}`,
-          priority: 'medium',
-          actionable: true,
-          timestamp: new Date(),
-          taskId: result.output.taskId || crypto.randomUUID()
-        };
-        setInsights(prev => [newInsight, ...prev]);
+    const userMessage = {
+      role: 'user' as const,
+      content: query,
+      timestamp: new Date().toLocaleTimeString()
+    };
+
+    setConversation(prev => [...prev, userMessage]);
+    setQuery('');
+
+    const result = await executeAgentTask(
+      'managerAgent_v1',
+      'general_query',
+      { 
+        query,
+        workspace: 'manager_dashboard'
       }
-    } catch (error) {
-      console.error('Failed to get recommendation:', error);
-      toast.error('Failed to generate recommendation');
+    );
+
+    if (result?.output_payload?.response) {
+      const aiMessage = {
+        role: 'ai' as const,
+        content: result.output_payload.response,
+        timestamp: new Date().toLocaleTimeString(),
+        taskId: result.id
+      };
+      setConversation(prev => [...prev, aiMessage]);
     }
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>AI Assistant</CardTitle>
-        <TabsList>
-          <TabsTrigger value="overview" onClick={() => setActiveTab('overview')}>
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="recommendations" onClick={() => setActiveTab('recommendations')}>
-            Recommendations
-          </TabsTrigger>
-        </TabsList>
+    <Card className="h-[600px] flex flex-col">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2">
+          <Brain className="h-5 w-5 text-purple-600" />
+          Manager AI Assistant
+          <Badge variant="outline" className="ml-auto">
+            managerAgent_v1
+          </Badge>
+        </CardTitle>
       </CardHeader>
-      
-      <CardContent className="p-6">
-        {activeTab === 'overview' && (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Team Performance Insights</h3>
-            {insights.length === 0 ? (
-              <p className="text-muted-foreground">No insights generated yet.</p>
-            ) : (
-              insights.map((insight) => (
-                <div key={insight.id} className="border-b pb-4 mb-4 last:border-b-0">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="text-lg font-medium">{insight.title}</h4>
-                      <p className="text-sm text-muted-foreground">{insight.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Generated on {insight.timestamp.toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Badge variant={insight.priority === 'high' ? 'destructive' : 'secondary'}>
-                      {insight.priority}
-                    </Badge>
-                  </div>
-                  
-                  <div className="mt-3">
-                    {insight.actionable && (
-                      <Button size="sm">Take Action</Button>
-                    )}
-                  </div>
-                  
-                  <div className="mt-3">
-                    <AgentFeedbackButton 
-                      taskId={insight.taskId!}
-                      variant="outline"
-                    />
-                  </div>
+
+      <CardContent className="flex-1 flex flex-col space-y-4 overflow-hidden">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-2">
+          {quickActions.map((action, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              size="sm"
+              onClick={() => handleQuickAction(action.taskType)}
+              disabled={isExecuting}
+              className="justify-start text-xs h-8"
+            >
+              {action.icon}
+              <span className="ml-1 truncate">{action.label}</span>
+            </Button>
+          ))}
+        </div>
+
+        {/* Conversation */}
+        <div className="flex-1 overflow-y-auto space-y-3 pr-2">
+          {conversation.map((message, index) => (
+            <div
+              key={index}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[85%] p-3 rounded-lg ${
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted'
+                }`}
+              >
+                <div className="text-sm leading-relaxed">{message.content}</div>
+                <div className="flex items-center justify-between mt-2">
+                  <div className="text-xs opacity-70">{message.timestamp}</div>
+                  {message.role === 'ai' && message.taskId && (
+                    <AgentFeedbackButton taskId={message.taskId} size="sm" />
+                  )}
                 </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {activeTab === 'recommendations' && (
-          <div className="space-y-4">
-            <h3 className="text-xl font-semibold">Get Recommendations</h3>
-            <p className="text-muted-foreground">
-              Generate AI-driven recommendations to improve team performance.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Card>
-                <CardContent className="p-4">
-                  <h4 className="text-lg font-medium mb-2">Improve Sales Strategy</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Get recommendations on how to improve your team's sales strategy.
-                  </p>
-                  <Button 
-                    className="mt-4" 
-                    onClick={() => handleGetRecommendation('sales_strategy')}
-                    disabled={isLoading}
-                  >
-                    Generate Recommendation
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <h4 className="text-lg font-medium mb-2">Enhance Customer Engagement</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Discover new ways to engage with your customers more effectively.
-                  </p>
-                  <Button 
-                    className="mt-4"
-                    onClick={() => handleGetRecommendation('customer_engagement')}
-                    disabled={isLoading}
-                  >
-                    Generate Recommendation
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <h4 className="text-lg font-medium mb-2">Optimize Lead Generation</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Find opportunities to optimize your lead generation process.
-                  </p>
-                  <Button 
-                    className="mt-4"
-                    onClick={() => handleGetRecommendation('lead_generation')}
-                    disabled={isLoading}
-                  >
-                    Generate Recommendation
-                  </Button>
-                </CardContent>
-              </Card>
+              </div>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
+
+        {/* Input */}
+        <div className="flex gap-2">
+          <Textarea
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Ask about team performance, strategy, or management insights..."
+            className="min-h-10 resize-none"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!query.trim() || isExecuting}
+            size="icon"
+          >
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
