@@ -3,6 +3,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Role } from '@/contexts/auth/types';
+import { logger } from '@/utils/logger';
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -32,21 +33,26 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
 
   // Allow demo mode access
   if (isDemoMode()) {
+    logger.info('Demo mode active, allowing access');
     return <>{children}</>;
   }
 
   // If auth is required but no user, redirect to auth
   if (requireAuth && !user) {
+    logger.info('No user found, redirecting to auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // If user exists but no profile, redirect to auth for completion
   if (requireAuth && user && !profile) {
+    logger.info('User found but no profile, redirecting to auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // Check role-based access
   if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
+    logger.info(`User role ${profile.role} not in allowed roles ${allowedRoles.join(', ')}`);
+    
     // Redirect to appropriate dashboard based on actual role
     const roleRoutes = {
       developer: '/developer',

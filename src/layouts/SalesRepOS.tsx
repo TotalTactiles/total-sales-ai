@@ -18,7 +18,7 @@ const SalesRepOS: React.FC = () => {
       <SalesRepNavigation />
       <main className="pt-16">
         <Routes>
-          <Route index element={<SalesRepDashboard />} />
+          <Route index element={<Navigate to="/sales/dashboard" replace />} />
           <Route path="dashboard" element={<SalesRepDashboard />} />
           <Route path="analytics" element={<SalesRepAnalytics />} />
           <Route path="leads" element={<SalesRepLeadManagement />} />

@@ -13,7 +13,6 @@ import AuthPage from '@/pages/auth/AuthPage';
 import SalesRepOS from '@/layouts/SalesRepOS';
 import ManagerOS from '@/layouts/ManagerOS';
 import DeveloperOS from '@/layouts/DeveloperOS';
-import RelevanceAIDeveloperPage from '@/pages/developer/RelevanceAIDeveloper';
 import LogoutHandler from '@/components/LogoutHandler';
 import { envConfig } from '@/utils/envConfig';
 import { logger } from '@/utils/logger';
@@ -98,15 +97,9 @@ function App() {
                           </RouteGuard>
                         } />
                         
-                        <Route path="/developer" element={
-                          <RouteGuard allowedRoles={['developer', 'admin']}>
-                            <RelevanceAIDeveloperPage />
-                          </RouteGuard>
-                        } />
-                        
                         {/* Default redirects */}
-                        <Route path="/" element={<Navigate to="/sales" replace />} />
-                        <Route path="*" element={<Navigate to="/sales" replace />} />
+                        <Route path="/" element={<Navigate to="/auth" replace />} />
+                        <Route path="*" element={<Navigate to="/auth" replace />} />
                       </Routes>
                     </div>
                   </OnboardingGuard>

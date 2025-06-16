@@ -7,6 +7,7 @@ export interface Profile {
   id: string;
   full_name: string | null;
   role: Role;
+  email?: string | null;
   email_provider?: string | null;
   email_account?: string | null;
   created_at?: string;
@@ -14,6 +15,7 @@ export interface Profile {
   last_login?: string | null;
   company_id?: string | null;
   email_connected?: boolean;
+  ai_assistant_name?: string | null;
 }
 
 export interface AuthContextType {
