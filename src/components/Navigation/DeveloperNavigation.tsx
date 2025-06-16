@@ -1,126 +1,84 @@
-import { logger } from '@/utils/logger';
 
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
-  Code, 
+  BarChart3, 
+  Settings, 
   Monitor, 
   Brain, 
-  Activity, 
+  Database, 
   AlertTriangle, 
   CheckSquare, 
-  TestTube, 
-  GitBranch, 
-  Settings,
-  LogOut,
-  User,
-  Database,
-  Zap,
-  RefreshCw
+  TestTube,
+  GitBranch,
+  Building2
 } from 'lucide-react';
+import Logo from '@/components/Logo';
+import UserProfile from '@/components/UserProfile';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
 
-const DeveloperNavigation: React.FC = () => {
+const DeveloperNavigation = () => {
   const location = useLocation();
   const { profile } = useAuth();
-  const navigate = useNavigate();
-  const [testMode, setTestMode] = useState('developer');
 
   const navItems = [
-    { href: '/developer/dashboard', label: 'Dashboard', icon: Monitor },
-    { href: '/developer/ai-brain-logs', label: 'AI Brain Hub', icon: Brain },
-    { href: '/developer/system-monitor', label: 'System Monitor', icon: Activity },
-    { href: '/developer/api-logs', label: 'API Logs', icon: Code },
-    { href: '/developer/error-logs', label: 'Error Logs', icon: AlertTriangle },
-    { href: '/developer/crm-integrations', label: 'CRM Integration Dashboard', icon: Database },
-    { href: '/developer/qa-checklist', label: 'QA Checklist', icon: CheckSquare },
-    { href: '/developer/testing-sandbox', label: 'Testing Tools', icon: TestTube },
-    { href: '/developer/version-control', label: 'Version Control', icon: GitBranch },
-    { href: '/developer/settings', label: 'Settings', icon: Settings }
+    { label: 'Dashboard', href: '/developer/dashboard', icon: BarChart3 },
+    { label: 'System Monitor', href: '/developer/system-monitor', icon: Monitor },
+    { label: 'AI Logs', href: '/developer/ai-brain-logs', icon: Brain },
+    { label: 'API Logs', href: '/developer/api-logs', icon: Database },
+    { label: 'Error Logs', href: '/developer/error-logs', icon: AlertTriangle },
+    { label: 'QA Checklist', href: '/developer/qa-checklist', icon: CheckSquare },
+    { label: 'Testing', href: '/developer/testing-sandbox', icon: TestTube },
+    { label: 'Version Control', href: '/developer/version-control', icon: GitBranch },
+    { label: 'Settings', href: '/developer/settings', icon: Settings },
   ];
 
-  const toggleTestMode = () => {
-    const modes = ['developer', 'manager', 'sales_rep'];
-    const currentIndex = modes.indexOf(testMode);
-    const nextMode = modes[(currentIndex + 1) % modes.length];
-    setTestMode(nextMode);
-    
-    // In Developer OS, we can simulate different OS views for testing
-    logger.info(`Developer Testing: Simulating ${nextMode} experience`);
-  };
-
-  const handleLogout = () => {
-    navigate('/logout');
-  };
-
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-slate-800 border-b border-slate-700 z-50">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Code className="h-8 w-8 text-cyan-400" />
-              <span className="ml-2 text-xl font-bold text-white">Developer OS</span>
-              <Badge className="ml-2 bg-cyan-500 text-white">
-                <Zap className="h-3 w-3 mr-1" />
-                TESTING MODE
-              </Badge>
-            </div>
-          </div>
-
-          <div className="hidden md:ml-6 md:flex md:space-x-8">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.href;
-              
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'border-cyan-400 text-cyan-400'
-                      : 'border-transparent text-slate-300 hover:border-slate-300 hover:text-white'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center space-x-4">
-            {/* Developer-only role simulation toggle */}
-            <Button
-              onClick={toggleTestMode}
-              variant="outline"
-              size="sm"
-              className="text-white border-slate-600 hover:bg-slate-700"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Test as {testMode === 'developer' ? 'Manager' : testMode === 'manager' ? 'Sales Rep' : 'Developer'}
-            </Button>
-
-            <div className="flex items-center space-x-2 text-white">
-              <User className="h-4 w-4" />
-              <span className="text-sm">{profile?.full_name || 'Developer'}</span>
-            </div>
-
-            <Button
-              onClick={handleLogout}
-              variant="ghost"
-              size="sm"
-              className="text-slate-300 hover:text-white"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
+    <header className="fixed top-0 left-0 right-0 z-50 bg-slate-800 border-b border-slate-700 shadow-sm">
+      <div className="h-[60px] flex items-center justify-between px-4 lg:px-6">
+        {/* Left side - Logo and role indicator */}
+        <div className="flex items-center space-x-2 min-w-0">
+          <Logo />
+          <div className="hidden sm:flex items-center space-x-1 text-sm text-slate-300">
+            <Building2 className="h-4 w-4" />
+            <span className="my-[8px] mx-[8px]">Developer</span>
           </div>
         </div>
+
+        {/* Center - Navigation Icons */}
+        <nav className="flex items-center space-x-1 sm:space-x-2 flex-1 justify-center max-w-4xl overflow-x-auto">
+          {navItems.map(item => {
+            const IconComponent = item.icon;
+            const isActive = location.pathname === item.href;
+            
+            return (
+              <Link
+                key={item.label}
+                to={item.href}
+                className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-md transition-colors ${
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                }`}
+                title={item.label}
+              >
+                <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Right side - Theme toggle and user profile */}
+        <div className="flex items-center space-x-2 lg:space-x-4 min-w-0">
+          <ThemeToggle />
+          <UserProfile 
+            name={profile?.full_name || "Developer"} 
+            role="Developer" 
+          />
+        </div>
       </div>
-    </nav>
+    </header>
   );
 };
 

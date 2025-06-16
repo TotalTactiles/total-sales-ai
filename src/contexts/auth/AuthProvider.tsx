@@ -40,8 +40,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     const targetRoute = roleRoutes[userProfile.role] || '/sales';
     
-    // Don't redirect if already on correct route
-    if (!location.pathname.startsWith(targetRoute)) {
+    // Don't redirect if already on correct route or auth page
+    if (!location.pathname.startsWith(targetRoute) && !location.pathname.startsWith('/auth')) {
       navigate(targetRoute, { replace: true });
     }
   };

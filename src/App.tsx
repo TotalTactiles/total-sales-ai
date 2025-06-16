@@ -12,6 +12,7 @@ import OnboardingGuard from '@/components/OnboardingGuard';
 import AuthPage from '@/pages/auth/AuthPage';
 import SalesRepOS from '@/layouts/SalesRepOS';
 import ManagerOS from '@/layouts/ManagerOS';
+import DeveloperOS from '@/layouts/DeveloperOS';
 import RelevanceAIDeveloperPage from '@/pages/developer/RelevanceAIDeveloper';
 import LogoutHandler from '@/components/LogoutHandler';
 import { envConfig } from '@/utils/envConfig';
@@ -88,6 +89,12 @@ function App() {
                         <Route path="/manager/*" element={
                           <RouteGuard allowedRoles={['manager']}>
                             <ManagerOS />
+                          </RouteGuard>
+                        } />
+                        
+                        <Route path="/developer/*" element={
+                          <RouteGuard allowedRoles={['developer', 'admin']}>
+                            <DeveloperOS />
                           </RouteGuard>
                         } />
                         
