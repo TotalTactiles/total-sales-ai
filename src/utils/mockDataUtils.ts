@@ -18,7 +18,7 @@ interface MockLead {
   createdAt: string;
   updatedAt: string;
   companyId: string;
-  isSensitive: boolean;
+  isSensitive?: boolean; // Made optional to match mock data
   // Optional properties that might be missing
   notes?: string;
   value?: number;
@@ -45,7 +45,7 @@ export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
     createdAt: mockLead.createdAt,
     updatedAt: mockLead.updatedAt,
     companyId: mockLead.companyId,
-    isSensitive: mockLead.isSensitive,
+    isSensitive: mockLead.isSensitive || false, // Provide default value if missing
     notes: mockLead.notes || '',
     value: mockLead.value || 0,
     sentiment: mockLead.sentiment || 'neutral',
