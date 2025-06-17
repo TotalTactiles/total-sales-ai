@@ -13,7 +13,7 @@ interface MockLead {
   score: number;
   conversionLikelihood: number;
   lastContact: string;
-  speedToLead: number;
+  speedToLead?: number; // Made optional to match mock data
   tags: string[];
   createdAt: string;
   updatedAt: string;
@@ -40,7 +40,7 @@ export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
     score: mockLead.score,
     conversionLikelihood: mockLead.conversionLikelihood,
     lastContact: mockLead.lastContact,
-    speedToLead: mockLead.speedToLead,
+    speedToLead: mockLead.speedToLead || 0, // Provide default value if missing
     tags: mockLead.tags,
     createdAt: mockLead.createdAt,
     updatedAt: mockLead.updatedAt,
