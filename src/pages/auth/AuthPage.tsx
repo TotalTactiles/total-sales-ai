@@ -18,21 +18,25 @@ const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>('sales_rep');
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [formData, setFormData] = useState({
-    email: 'sales.rep@company.com',
-    password: 'fulluser123',
-    fullName: ''
-  });
 
-  // Prefill credentials based on selected role
-  useEffect(() => {
-    if (selectedRole === 'developer') {
-      setFormData({ email: 'krishdev@tsam.com', password: 'badabing2024', fullName: '' });
-    } else if (selectedRole === 'manager') {
-      setFormData({ email: 'manager@salesos.com', password: 'manager123', fullName: '' });
-    } else {
-      setFormData({ email: 'sales.rep@company.com', password: 'fulluser123', fullName: '' });
+  // Get default credentials based on selected role
+  const getDefaultCredentials = (role: Role) => {
+    switch (role) {
+      case 'developer':
+        return { email: 'krishdev@tsam.com', password: 'badabing2024', fullName: 'Krish Developer' };
+      case 'manager':
+        return { email: 'manager@salesos.com', password: 'manager123', fullName: 'Sales Manager' };
+      case 'sales_rep':
+      default:
+        return { email: 'rep@salesos.com', password: 'sales123', fullName: 'Sales Rep' };
     }
+  };
+
+  const [formData, setFormData] = useState(getDefaultCredentials(selectedRole));
+
+  // Update credentials when role changes
+  useEffect(() => {
+    setFormData(getDefaultCredentials(selectedRole));
   }, [selectedRole]);
 
   // Show loading screen while auth state is being determined

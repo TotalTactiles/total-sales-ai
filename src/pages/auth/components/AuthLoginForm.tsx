@@ -29,10 +29,23 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   selectedRole
 }) => {
   const { signIn } = useAuth();
-  const [internalFormData, setInternalFormData] = useState({
-    email: 'sales.rep@company.com',
-    password: 'fulluser123'
-  });
+  
+  // Get default credentials based on selected role
+  const getDefaultCredentials = (role: Role) => {
+    switch (role) {
+      case 'developer':
+        return { email: 'krishdev@tsam.com', password: 'badabing2024' };
+      case 'manager':
+        return { email: 'manager@salesos.com', password: 'manager123' };
+      case 'sales_rep':
+      default:
+        return { email: 'rep@salesos.com', password: 'sales123' };
+    }
+  };
+
+  const defaultCredentials = getDefaultCredentials(selectedRole || 'sales_rep');
+  
+  const [internalFormData, setInternalFormData] = useState(defaultCredentials);
   const [isLoading, setIsLoading] = useState(false);
 
   // Use either external or internal form data based on what's provided
@@ -109,14 +122,14 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         ) : (
           <>
             <LogIn className="mr-2 h-4 w-4" /> 
-            Login as {selectedRole === 'developer' ? 'Developer' : 'Full User'}
+            Login as {selectedRole === 'developer' ? 'Developer' : selectedRole === 'manager' ? 'Manager' : 'Sales Rep'}
           </>
         )}
       </Button>
       
       <div className="text-center">
         <p className="text-xs text-muted-foreground">
-          Auto-filled with full user credentials
+          Auto-filled with {selectedRole === 'developer' ? 'developer' : selectedRole === 'manager' ? 'manager' : 'sales rep'} credentials
         </p>
       </div>
     </form>
