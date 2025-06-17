@@ -1,13 +1,18 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { mockLeads } from '@/data/mockData';
+import { mockLeads, mockTeamMembers, mockRecommendations, mockCalls, mockAIInsights } from '@/data/mockData';
 import { Lead } from '@/types/lead';
+import { convertMockLeadToLead } from '@/utils/mockDataUtils';
 
 interface DemoDataContextType {
   leads: Lead[];
   setLeads: (leads: Lead[]) => void;
   isDemoMode: boolean;
+  teamMembers: any[];
+  recommendations: any[];
+  calls: any[];
+  aiInsights: any[];
 }
 
 const DemoDataContext = createContext<DemoDataContextType | undefined>(undefined);
@@ -27,7 +32,9 @@ export const DemoDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     // Only load demo data if no user is authenticated or in demo mode
     if (!user || isDemoMode()) {
-      setLeads(mockLeads);
+      // Convert mockLeads to proper Lead type
+      const convertedLeads = mockLeads.map(convertMockLeadToLead);
+      setLeads(convertedLeads);
     } else {
       setLeads([]);
     }
@@ -36,7 +43,11 @@ export const DemoDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const value = {
     leads,
     setLeads,
-    isDemoMode: isDemoMode()
+    isDemoMode: isDemoMode(),
+    teamMembers: mockTeamMembers || [],
+    recommendations: mockRecommendations || [],
+    calls: mockCalls || [],
+    aiInsights: mockAIInsights || []
   };
 
   return (

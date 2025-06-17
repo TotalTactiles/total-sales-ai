@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
@@ -21,6 +22,9 @@ const ManagerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [demoMode, setDemoMode] = useState(false);
 
+  // Get demo data from context
+  const demoData = useDemoData();
+
   // Check if in demo mode
   useEffect(() => {
     if (isDemoMode()) {
@@ -31,11 +35,9 @@ const ManagerDashboard = () => {
     }
   }, [user]);
 
-  const { teamMembers: demoTeam, recommendations: demoRecs } = useDemoData();
-
   const initializeDemoData = () => {
-    setTeamMembers(demoTeam);
-    setRecommendations(demoRecs);
+    setTeamMembers(demoData.teamMembers);
+    setRecommendations(demoData.recommendations);
     setLoading(false);
   };
 
