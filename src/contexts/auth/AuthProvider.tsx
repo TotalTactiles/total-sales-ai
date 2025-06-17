@@ -61,24 +61,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         logger.error('Error fetching profile:', error);
         
-        // If profile doesn't exist, try to get user data from auth
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-          // Create a basic profile from auth user data
-          const basicProfile: Profile = {
-            id: authUser.id,
-            full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
-            role: (authUser.user_metadata?.role as Role) || 'sales_rep',
-            email: authUser.email || null,
-            created_at: authUser.created_at,
-            updated_at: new Date().toISOString()
-          };
-          
-          logger.info('Created basic profile from auth user:', basicProfile);
-          setProfile(basicProfile);
-          return basicProfile;
+        // If profile doesn't exist, try to get user data from auth and create basic profile
+        if (error.code === 'PGRST116') {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            const basicProfile: Profile = {
+              id: authUser.id,
+              full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+              role: (authUser.user_metadata?.role as Role) || 'sales_rep',
+              email: authUser.email || null,
+              created_at: authUser.created_at,
+              updated_at: new Date().toISOString(),
+              company_id: authUser.id
+            };
+            
+            logger.info('Created basic profile from auth user:', basicProfile);
+            setProfile(basicProfile);
+            return basicProfile;
+          }
         }
-        
         return null;
       }
 

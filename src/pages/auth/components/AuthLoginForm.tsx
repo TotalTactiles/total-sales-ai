@@ -47,12 +47,14 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   
   const [internalFormData, setInternalFormData] = useState(defaultCredentials);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Use either external or internal form data based on what's provided
   const formData = externalFormData || internalFormData;
   const setFormData = externalSetFormData || setInternalFormData;
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null); // Clear error when user types
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -62,18 +64,20 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setIsTransitioning(true);
+    setError(null);
     
     try {
-      const { error } = await signIn(formData.email, formData.password);
+      const { error: authError } = await signIn(formData.email, formData.password);
       
-      if (error) {
-        throw error;
+      if (authError) {
+        setError(authError.message || 'Login failed');
+        setIsTransitioning(false);
       }
 
-      // The AuthProvider will handle routing automatically
+      // The AuthProvider will handle routing automatically on success
     } catch (error: any) {
       console.error('Authentication error:', error);
+      setError('An unexpected error occurred');
       setIsTransitioning(false);
     } finally {
       setIsLoading(false);
@@ -82,6 +86,12 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
 
   return (
     <form onSubmit={handleAuthSubmit} className="space-y-4">
+      {error && (
+        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+          {error}
+        </div>
+      )}
+      
       <div>
         <Label htmlFor="email">Email</Label>
         <Input 
