@@ -19,6 +19,12 @@ interface MockLead {
   updatedAt: string;
   companyId: string;
   isSensitive: boolean;
+  // Optional properties that might be missing
+  notes?: string;
+  value?: number;
+  sentiment?: string;
+  objection?: string;
+  doNotCall?: boolean;
 }
 
 export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
@@ -39,6 +45,11 @@ export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
     createdAt: mockLead.createdAt,
     updatedAt: mockLead.updatedAt,
     companyId: mockLead.companyId,
-    isSensitive: mockLead.isSensitive
+    isSensitive: mockLead.isSensitive,
+    notes: mockLead.notes || '',
+    value: mockLead.value || 0,
+    sentiment: mockLead.sentiment || 'neutral',
+    objection: mockLead.objection || '',
+    doNotCall: mockLead.doNotCall || false
   };
 };

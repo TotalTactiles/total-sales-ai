@@ -283,3 +283,53 @@ export const mockKnowledgeBase = [
     tags: ['features', 'benefits', 'technical']
   }
 ];
+
+export const mockTeamMembers = [
+  {
+    id: 'tm-1',
+    full_name: 'Sarah Johnson',
+    last_login: new Date().toISOString(),
+    role: 'sales_rep',
+    stats: {
+      call_count: 172,
+      win_count: 45,
+      current_streak: 5,
+      burnout_risk: 10,
+      last_active: new Date().toISOString(),
+      mood_score: 85,
+    },
+  },
+  {
+    id: 'tm-2',
+    full_name: 'Michael Chen',
+    last_login: new Date(Date.now() - 3600000).toISOString(),
+    role: 'sales_rep',
+    stats: {
+      call_count: 143,
+      win_count: 32,
+      current_streak: 0,
+      burnout_risk: 75,
+      last_active: new Date(Date.now() - 3600000).toISOString(),
+      mood_score: 45,
+    },
+  },
+];
+
+export const mockRecommendations = [
+  {
+    id: 'rec-1',
+    type: 'follow-up',
+    rep_name: 'Sarah Johnson',
+    rep_id: 'tm-1',
+    message: 'Sarah missed 3 follow-ups with Enterprise leads this week',
+    action: 'Assign Recovery Mode',
+  },
+  {
+    id: 'rec-2',
+    type: 'burnout',
+    rep_name: 'Michael Chen',
+    rep_id: 'tm-2',
+    message: 'Michael worked 12+ hours overtime this week and mood score is dropping',
+    action: 'Schedule 1-on-1',
+  },
+];

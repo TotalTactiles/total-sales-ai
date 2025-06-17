@@ -32,8 +32,15 @@ export const DemoDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     // Only load demo data if no user is authenticated or in demo mode
     if (!user || isDemoMode()) {
-      // Convert mockLeads to proper Lead type
-      const convertedLeads = mockLeads.map(convertMockLeadToLead);
+      // Convert mockLeads to proper Lead type with additional required properties
+      const convertedLeads = mockLeads.map(mockLead => 
+        convertMockLeadToLead({
+          ...mockLead,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          companyId: 'demo-company'
+        })
+      );
       setLeads(convertedLeads);
     } else {
       setLeads([]);
