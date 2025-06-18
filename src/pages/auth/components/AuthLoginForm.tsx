@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 import { Role } from '@/contexts/auth/types';
+import { logger } from '@/utils/logger';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
@@ -65,18 +66,21 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setIsTransitioning(true);
     
     try {
+      logger.info('Attempting to sign in with:', formData.email);
       const { error: authError } = await signIn(formData.email, formData.password);
       
       if (authError) {
+        logger.error('Authentication failed:', authError.message);
         setError(authError.message || 'Login failed');
         setIsTransitioning(false);
       }
 
       // The AuthProvider will handle routing automatically on success
     } catch (error: any) {
-      console.error('Authentication error:', error);
+      logger.error('Authentication error:', error);
       setError('An unexpected error occurred');
       setIsTransitioning(false);
     } finally {

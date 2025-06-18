@@ -1,12 +1,11 @@
 
-import { logger } from '@/utils/logger';
-
 import React from 'react';
 import { Role } from '@/contexts/auth/types';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { logger } from '@/utils/logger';
 
 interface AuthDemoOptionsProps {
   selectedRole: Role;
@@ -43,25 +42,29 @@ const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({
   };
   
   const handleDirectDemoLogin = () => {
-    // Clear any existing auth data first
-    localStorage.clear();
-    sessionStorage.clear();
+    try {
+      // Clear any existing auth data first
+      localStorage.clear();
+      sessionStorage.clear();
 
-    // Skip the form and directly log in with demo mode
-    logger.info("Direct demo login with role:", selectedRole);
-    if (selectedRole === 'developer') {
-      return;
+      // Skip the form and directly log in with demo mode
+      logger.info("Direct demo login with role:", selectedRole);
+      if (selectedRole === 'developer') {
+        return;
+      }
+      initializeDemoMode(selectedRole);
+      setIsTransitioning(true);
+      
+      // Direct navigation based on role - using correct existing routes
+      const redirectPath = selectedRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+      logger.info("Redirecting to:", redirectPath);
+      
+      setTimeout(() => {
+        navigate(redirectPath);
+      }, 1500);
+    } catch (error) {
+      logger.error('Error in direct demo login:', error);
     }
-    initializeDemoMode(selectedRole);
-    setIsTransitioning(true);
-    
-    // Direct navigation based on role - using correct existing routes
-    const redirectPath = selectedRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
-    logger.info("Redirecting to:", redirectPath);
-    
-    setTimeout(() => {
-      navigate(redirectPath);
-    }, 1500);
   };
 
   return (

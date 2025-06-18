@@ -1,10 +1,9 @@
 
-import { logger } from '@/utils/logger';
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useDemoData } from '@/contexts/DemoDataContext';
+import { logger } from '@/utils/logger';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerOverviewCards from '@/components/Manager/ManagerOverviewCards';
 import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
@@ -12,6 +11,7 @@ import ManagerAIAssistant from '@/components/ManagerAI/ManagerAIAssistant';
 import ManagerRecognitionEngine from '@/components/Manager/ManagerRecognitionEngine';
 import ManagerEscalationCenter from '@/components/Manager/ManagerEscalationCenter';
 import ManagerBookingSystem from '@/components/Manager/ManagerBookingSystem';
+import ErrorBoundary from '@/components/auth/ErrorBoundary';
 
 import type { DemoTeamMember, DemoAIRecommendation } from '@/data/demoData';
 
@@ -20,6 +20,7 @@ const ManagerDashboard = () => {
   const [teamMembers, setTeamMembers] = useState<DemoTeamMember[]>([]);
   const [recommendations, setRecommendations] = useState<DemoAIRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [demoMode, setDemoMode] = useState(false);
 
   // Get demo data from context
@@ -36,15 +37,27 @@ const ManagerDashboard = () => {
   }, [user]);
 
   const initializeDemoData = () => {
-    setTeamMembers(demoData.teamMembers);
-    setRecommendations(demoData.recommendations);
-    setLoading(false);
+    try {
+      setTeamMembers(demoData.teamMembers);
+      setRecommendations(demoData.recommendations);
+      setError(null);
+    } catch (err) {
+      logger.error('Error initializing demo data:', err);
+      setError('Failed to load demo data');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchData = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     try {
+      setError(null);
+      
       // In a real implementation, we would fetch all team members for the manager
       // and their associated stats
       
@@ -95,6 +108,7 @@ const ManagerDashboard = () => {
       
     } catch (error) {
       logger.error('Error fetching data:', { error });
+      setError('Failed to fetch team data');
     } finally {
       setLoading(false);
     }
@@ -108,36 +122,67 @@ const ManagerDashboard = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <h2 className="text-xl font-semibold text-foreground">Error Loading Dashboard</h2>
+          <p className="text-muted-foreground">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <ManagerNavigation />
-      
-      <main className="pt-[60px]">
-        <div className="flex-1 px-4 md:px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <ManagerOverviewCards 
-              teamMembers={teamMembers}
-              recommendations={recommendations}
-              demoMode={demoMode}
-              profile={profile}
-            />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-              <div className="lg:col-span-2 space-y-6">
-                <ManagerTeamTable teamMembers={teamMembers} />
-                <ManagerRecognitionEngine />
-              </div>
+    <ErrorBoundary>
+      <div className="min-h-screen bg-background">
+        <ManagerNavigation />
+        
+        <main className="pt-[60px]">
+          <div className="flex-1 px-4 md:px-6 py-6">
+            <div className="max-w-7xl mx-auto">
+              <ErrorBoundary>
+                <ManagerOverviewCards 
+                  teamMembers={teamMembers}
+                  recommendations={recommendations}
+                  demoMode={demoMode}
+                  profile={profile}
+                />
+              </ErrorBoundary>
               
-              <div className="space-y-6">
-                <ManagerAIAssistant />
-                <ManagerBookingSystem demoMode={demoMode} />
-                <ManagerEscalationCenter demoMode={demoMode} />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <ErrorBoundary>
+                    <ManagerTeamTable teamMembers={teamMembers} />
+                  </ErrorBoundary>
+                  <ErrorBoundary>
+                    <ManagerRecognitionEngine />
+                  </ErrorBoundary>
+                </div>
+                
+                <div className="space-y-6">
+                  <ErrorBoundary>
+                    <ManagerAIAssistant />
+                  </ErrorBoundary>
+                  <ErrorBoundary>
+                    <ManagerBookingSystem demoMode={demoMode} />
+                  </ErrorBoundary>
+                  <ErrorBoundary>
+                    <ManagerEscalationCenter demoMode={demoMode} />
+                  </ErrorBoundary>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+    </ErrorBoundary>
   );
 };
 

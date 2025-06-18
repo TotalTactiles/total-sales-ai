@@ -1,24 +1,32 @@
 
 import { useState, useEffect } from 'react';
 import { useDemoData } from '@/contexts/DemoDataContext';
+import { logger } from '@/utils/logger';
 
 export const useManagerAI = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [insights, setInsights] = useState<any[]>([]);
   const [contextualInsights, setContextualInsights] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const demoData = useDemoData();
 
   useEffect(() => {
-    if (demoData.isDemoMode) {
-      // Use demo data for insights
-      setInsights(demoData.aiInsights);
-      setContextualInsights(demoData.aiInsights);
+    try {
+      if (demoData.isDemoMode) {
+        // Use demo data for insights
+        setInsights(demoData.aiInsights);
+        setContextualInsights(demoData.aiInsights);
+      }
+    } catch (err) {
+      logger.error('Error loading demo insights:', err);
+      setError('Failed to load AI insights');
     }
   }, [demoData.isDemoMode, demoData.aiInsights]);
 
   const analyzeTeamPerformance = async () => {
     setIsAnalyzing(true);
+    setError(null);
     
     try {
       // In demo mode, return mock insights
@@ -33,7 +41,8 @@ export const useManagerAI = () => {
       // Real implementation would go here
       setInsights([]);
     } catch (error) {
-      console.error('Error analyzing team performance:', error);
+      logger.error('Error analyzing team performance:', error);
+      setError('Failed to analyze team performance');
     } finally {
       setIsAnalyzing(false);
     }
@@ -41,6 +50,7 @@ export const useManagerAI = () => {
 
   const getContextualInsights = async (currentPath: string) => {
     setIsGenerating(true);
+    setError(null);
     
     try {
       // Generate contextual insights based on current page
@@ -49,7 +59,8 @@ export const useManagerAI = () => {
       );
       setContextualInsights(pathInsights);
     } catch (error) {
-      console.error('Error getting contextual insights:', error);
+      logger.error('Error getting contextual insights:', error);
+      setError('Failed to get contextual insights');
     } finally {
       setIsGenerating(false);
     }
@@ -57,13 +68,15 @@ export const useManagerAI = () => {
 
   const generateManagerReport = async () => {
     setIsGenerating(true);
+    setError(null);
     
     try {
       // Mock report generation
       await new Promise(resolve => setTimeout(resolve, 2000));
       return 'Manager report generated successfully';
     } catch (error) {
-      console.error('Error generating manager report:', error);
+      logger.error('Error generating manager report:', error);
+      setError('Failed to generate report');
       throw error;
     } finally {
       setIsGenerating(false);
@@ -72,13 +85,15 @@ export const useManagerAI = () => {
 
   const askJarvis = async (question: string) => {
     setIsGenerating(true);
+    setError(null);
     
     try {
       // Mock AI response
       await new Promise(resolve => setTimeout(resolve, 1500));
       return `AI Response to: ${question}`;
     } catch (error) {
-      console.error('Error asking Jarvis:', error);
+      logger.error('Error asking Jarvis:', error);
+      setError('AI temporarily unavailable');
       throw error;
     } finally {
       setIsGenerating(false);
@@ -90,14 +105,15 @@ export const useManagerAI = () => {
     isGenerating,
     insights,
     contextualInsights,
+    error,
     analyzeTeamPerformance,
     getContextualInsights,
     generateManagerReport,
     askJarvis,
-    // Provide access to demo data
-    calls: demoData.calls,
-    recommendations: demoData.recommendations,
-    teamMembers: demoData.teamMembers,
-    aiInsights: demoData.aiInsights
+    // Provide access to demo data with fallbacks
+    calls: demoData.calls || [],
+    recommendations: demoData.recommendations || [],
+    teamMembers: demoData.teamMembers || [],
+    aiInsights: demoData.aiInsights || []
   };
 };

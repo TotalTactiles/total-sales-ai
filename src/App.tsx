@@ -9,6 +9,7 @@ import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
 import RouteGuard from '@/components/auth/RouteGuard';
 import OnboardingGuard from '@/components/OnboardingGuard';
+import ErrorBoundary from '@/components/auth/ErrorBoundary';
 import AuthPage from '@/pages/auth/AuthPage';
 import SalesRepOS from '@/layouts/SalesRepOS';
 import ManagerOS from '@/layouts/ManagerOS';
@@ -19,48 +20,6 @@ import { logger } from '@/utils/logger';
 
 // Initialize environment configuration
 envConfig.initialize();
-
-// Global error boundary
-class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; error?: Error }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error('App error boundary caught error:', { error, errorInfo });
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center space-y-4">
-            <h1 className="text-2xl font-bold text-foreground">Something went wrong</h1>
-            <p className="text-muted-foreground">
-              An unexpected error occurred. Please refresh the page.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-            >
-              Refresh Page
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    return this.props.children;
-  }
-}
 
 function App() {
   return (
@@ -81,19 +40,25 @@ function App() {
                         {/* Protected routes with role-based access */}
                         <Route path="/sales/*" element={
                           <RouteGuard allowedRoles={['sales_rep']}>
-                            <SalesRepOS />
+                            <ErrorBoundary>
+                              <SalesRepOS />
+                            </ErrorBoundary>
                           </RouteGuard>
                         } />
                         
                         <Route path="/manager/*" element={
                           <RouteGuard allowedRoles={['manager']}>
-                            <ManagerOS />
+                            <ErrorBoundary>
+                              <ManagerOS />
+                            </ErrorBoundary>
                           </RouteGuard>
                         } />
                         
                         <Route path="/developer/*" element={
                           <RouteGuard allowedRoles={['developer', 'admin']}>
-                            <DeveloperOS />
+                            <ErrorBoundary>
+                              <DeveloperOS />
+                            </ErrorBoundary>
                           </RouteGuard>
                         } />
                         

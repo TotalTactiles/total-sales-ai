@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { mockLeads, mockTeamMembers, mockRecommendations, mockCalls, mockAIInsights } from '@/data/mockData';
 import { Lead } from '@/types/lead';
 import { convertMockLeadToLead } from '@/utils/mockDataUtils';
+import { logger } from '@/utils/logger';
 
 interface DemoDataContextType {
   leads: Lead[];
@@ -13,6 +14,7 @@ interface DemoDataContextType {
   recommendations: any[];
   calls: any[];
   aiInsights: any[];
+  error: string | null;
 }
 
 const DemoDataContext = createContext<DemoDataContextType | undefined>(undefined);
@@ -28,22 +30,29 @@ export const useDemoData = () => {
 export const DemoDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isDemoMode } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Only load demo data if no user is authenticated or in demo mode
-    if (!user || isDemoMode()) {
-      // Convert mockLeads to proper Lead type with additional required properties
-      const convertedLeads = mockLeads.map(mockLead => 
-        convertMockLeadToLead({
-          ...mockLead,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          companyId: 'demo-company'
-        })
-      );
-      setLeads(convertedLeads);
-    } else {
-      setLeads([]);
+    try {
+      // Only load demo data if no user is authenticated or in demo mode
+      if (!user || isDemoMode()) {
+        // Convert mockLeads to proper Lead type with additional required properties
+        const convertedLeads = mockLeads.map(mockLead => 
+          convertMockLeadToLead({
+            ...mockLead,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            companyId: 'demo-company'
+          })
+        );
+        setLeads(convertedLeads);
+        setError(null);
+      } else {
+        setLeads([]);
+      }
+    } catch (err) {
+      logger.error('Error loading demo data:', err);
+      setError('Failed to load demo data');
     }
   }, [user, isDemoMode]);
 
@@ -54,7 +63,8 @@ export const DemoDataProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     teamMembers: mockTeamMembers || [],
     recommendations: mockRecommendations || [],
     calls: mockCalls || [],
-    aiInsights: mockAIInsights || []
+    aiInsights: mockAIInsights || [],
+    error
   };
 
   return (
