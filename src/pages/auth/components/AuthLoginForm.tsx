@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LogIn } from 'lucide-react';
+import { LogIn, AlertCircle } from 'lucide-react';
 import { Role } from '@/contexts/auth/types';
 import { logger } from '@/utils/logger';
 
@@ -64,6 +64,12 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
 
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.email || !formData.password) {
+      setError('Please enter both email and password');
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     setIsTransitioning(true);
@@ -74,14 +80,24 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       
       if (authError) {
         logger.error('Authentication failed:', authError.message);
-        setError(authError.message || 'Login failed');
+        
+        // Provide helpful error messages
+        if (authError.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.');
+        } else if (authError.message.includes('Email not confirmed')) {
+          setError('Please check your email and click the confirmation link before signing in.');
+        } else {
+          setError(authError.message || 'Login failed');
+        }
+        
         setIsTransitioning(false);
+      } else {
+        logger.info('Authentication successful');
+        // The AuthProvider will handle routing automatically on success
       }
-
-      // The AuthProvider will handle routing automatically on success
     } catch (error: any) {
       logger.error('Authentication error:', error);
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again.');
       setIsTransitioning(false);
     } finally {
       setIsLoading(false);
@@ -91,8 +107,9 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   return (
     <form onSubmit={handleAuthSubmit} className="space-y-4">
       {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
-          {error}
+        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          <span>{error}</span>
         </div>
       )}
       
@@ -106,7 +123,8 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           onChange={handleFormChange} 
           required 
           disabled={isLoading}
-          autoComplete="email" 
+          autoComplete="email"
+          placeholder="Enter your email"
         />
       </div>
       <div>
@@ -119,13 +137,14 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           onChange={handleFormChange} 
           required 
           disabled={isLoading}
-          autoComplete="current-password" 
+          autoComplete="current-password"
+          placeholder="Enter your password"
         />
       </div>
       
       <Button 
         type="submit" 
-        disabled={isLoading} 
+        disabled={isLoading || !formData.email || !formData.password} 
         className="w-full bg-indigo-600 hover:bg-indigo-500 text-white"
       >
         {isLoading ? (
@@ -143,7 +162,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       
       <div className="text-center">
         <p className="text-xs text-muted-foreground">
-          Auto-filled with {selectedRole === 'developer' ? 'developer' : selectedRole === 'manager' ? 'manager' : 'sales rep'} credentials
+          Pre-filled with {selectedRole === 'developer' ? 'developer' : selectedRole === 'manager' ? 'manager' : 'sales rep'} credentials
         </p>
       </div>
     </form>
