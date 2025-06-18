@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LogIn, AlertCircle } from 'lucide-react';
+import { LogIn, AlertCircle, CheckCircle } from 'lucide-react';
 import { Role } from '@/contexts/auth/types';
 import { logger } from '@/utils/logger';
 
@@ -49,6 +49,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   const [internalFormData, setInternalFormData] = useState(defaultCredentials);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   // Use either external or internal form data based on what's provided
   const formData = externalFormData || internalFormData;
@@ -56,6 +57,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null); // Clear error when user types
+    setSuccess(null); // Clear success when user types
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -72,11 +74,12 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
 
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
     setIsTransitioning(true);
     
     try {
       logger.info('Attempting to sign in with:', formData.email);
-      const { error: authError } = await signIn(formData.email, formData.password);
+      const { error: authError, profile } = await signIn(formData.email, formData.password);
       
       if (authError) {
         logger.error('Authentication failed:', authError.message);
@@ -86,6 +89,8 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           setError('Invalid email or password. Please check your credentials and try again.');
         } else if (authError.message.includes('Email not confirmed')) {
           setError('Please check your email and click the confirmation link before signing in.');
+        } else if (authError.message.includes('Too many requests')) {
+          setError('Too many login attempts. Please wait a moment before trying again.');
         } else {
           setError(authError.message || 'Login failed');
         }
@@ -93,6 +98,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         setIsTransitioning(false);
       } else {
         logger.info('Authentication successful');
+        setSuccess('Login successful! Redirecting...');
         // The AuthProvider will handle routing automatically on success
       }
     } catch (error: any) {
@@ -113,6 +119,13 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         </div>
       )}
       
+      {success && (
+        <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 flex-shrink-0" />
+          <span>{success}</span>
+        </div>
+      )}
+      
       <div>
         <Label htmlFor="email">Email</Label>
         <Input 
@@ -125,6 +138,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           disabled={isLoading}
           autoComplete="email"
           placeholder="Enter your email"
+          className="font-mono text-sm"
         />
       </div>
       <div>
@@ -139,6 +153,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           disabled={isLoading}
           autoComplete="current-password"
           placeholder="Enter your password"
+          className="font-mono text-sm"
         />
       </div>
       
@@ -163,6 +178,9 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       <div className="text-center">
         <p className="text-xs text-muted-foreground">
           Pre-filled with {selectedRole === 'developer' ? 'developer' : selectedRole === 'manager' ? 'manager' : 'sales rep'} credentials
+        </p>
+        <p className="text-xs text-green-600 mt-1">
+          ✅ Demo accounts are auto-created
         </p>
       </div>
     </form>

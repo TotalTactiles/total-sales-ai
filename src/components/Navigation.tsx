@@ -11,7 +11,6 @@ const Navigation = () => {
   const location = useLocation();
   const { profile } = useAuth();
   const [activeItem, setActiveItem] = useState('dashboard');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Create dashboard URL function with current profile
   const dashboardUrl = () => getDashboardUrl(profile);
@@ -26,13 +25,7 @@ const Navigation = () => {
   return (
     <div className="bg-sidebar text-sidebar-foreground shadow-lg">
       <DesktopNavigation navItems={navItems} activeItem={activeItem} />
-      <MobileNavigation 
-        navItems={navItems} 
-        activeItem={activeItem}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        getDashboardUrl={dashboardUrl}
-      />
+      <MobileNavigation />
     </div>
   );
 };
