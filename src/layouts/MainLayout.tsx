@@ -5,7 +5,7 @@ import SalesRepOS from './SalesRepOS';
 import ManagerOS from './ManagerOS';
 import DeveloperOS from './DeveloperOS';
 import NavigationFallback from '@/components/Navigation/NavigationFallback';
-import EnhancedErrorBoundary from '@/components/ErrorBoundary/EnhancedErrorBoundary';
+import ErrorBoundary from '@/components/auth/ErrorBoundary';
 import { logger } from '@/utils/logger';
 
 const MainLayout: React.FC = () => {
@@ -17,7 +17,7 @@ const MainLayout: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center space-y-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Loading your dashboard...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -31,21 +31,21 @@ const MainLayout: React.FC = () => {
     switch (demoRole) {
       case 'manager':
         return (
-          <EnhancedErrorBoundary>
+          <ErrorBoundary>
             <ManagerOS />
-          </EnhancedErrorBoundary>
+          </ErrorBoundary>
         );
       case 'sales_rep':
         return (
-          <EnhancedErrorBoundary>
+          <ErrorBoundary>
             <SalesRepOS />
-          </EnhancedErrorBoundary>
+          </ErrorBoundary>
         );
       case 'developer':
         return (
-          <EnhancedErrorBoundary>
+          <ErrorBoundary>
             <DeveloperOS />
-          </EnhancedErrorBoundary>
+          </ErrorBoundary>
         );
       default:
         return <NavigationFallback />;
@@ -59,22 +59,22 @@ const MainLayout: React.FC = () => {
     switch (profile.role) {
       case 'manager':
         return (
-          <EnhancedErrorBoundary>
+          <ErrorBoundary>
             <ManagerOS />
-          </EnhancedErrorBoundary>
+          </ErrorBoundary>
         );
       case 'sales_rep':
         return (
-          <EnhancedErrorBoundary>
+          <ErrorBoundary>
             <SalesRepOS />
-          </EnhancedErrorBoundary>
+          </ErrorBoundary>
         );
       case 'developer':
       case 'admin':
         return (
-          <EnhancedErrorBoundary>
+          <ErrorBoundary>
             <DeveloperOS />
-          </EnhancedErrorBoundary>
+          </ErrorBoundary>
         );
       default:
         logger.warn('Unknown user role:', profile.role);
