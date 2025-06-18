@@ -6,9 +6,10 @@ import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
 import ProductionReadinessMonitor from '@/components/SystemHealth/ProductionReadinessMonitor';
 import UserAccountManager from '@/components/Developer/UserAccountManager';
 import ErrorBoundary from '@/components/auth/ErrorBoundary';
+import { Badge } from '@/components/ui/badge';
 
 const DeveloperDashboard = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, isDemoMode } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -19,13 +20,23 @@ const DeveloperDashboard = () => {
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
             <div className="border-b pb-6">
-              <h1 className="text-3xl font-bold text-foreground">Developer Dashboard</h1>
-              <p className="text-muted-foreground mt-2">
-                System monitoring, user management, and production readiness tools
-              </p>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold text-foreground">Developer Dashboard</h1>
+                  <p className="text-muted-foreground mt-2">
+                    System monitoring, user management, and production readiness tools
+                  </p>
+                </div>
+                {isDemoMode() && (
+                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                    Demo Mode
+                  </Badge>
+                )}
+              </div>
               {profile && (
                 <div className="mt-4 text-sm text-muted-foreground">
                   Logged in as: <span className="font-medium">{profile.full_name}</span> ({profile.role})
+                  {isDemoMode() && <span className="ml-2 text-yellow-600">(Demo User)</span>}
                 </div>
               )}
             </div>
@@ -37,7 +48,7 @@ const DeveloperDashboard = () => {
                 <ProductionReadinessMonitor />
               </ErrorBoundary>
               
-              {/* User Management */}
+              {/* User Management - Only show in real mode or for demo purposes */}
               <ErrorBoundary>
                 <UserAccountManager />
               </ErrorBoundary>
@@ -59,15 +70,15 @@ const DeveloperDashboard = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="font-medium">Current Route</p>
+                      <p className="font-medium">Mode</p>
                       <p className="text-muted-foreground">
-                        {window.location.pathname}
+                        {isDemoMode() ? 'Demo' : 'Live'}
                       </p>
                     </div>
                     <div>
                       <p className="font-medium">User ID</p>
                       <p className="text-muted-foreground font-mono text-xs">
-                        {user?.id || 'Not authenticated'}
+                        {user?.id || profile?.id || 'Demo User'}
                       </p>
                     </div>
                     <div>

@@ -100,6 +100,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         logger.info('Initializing auth...');
         
+        // Check for demo mode first
+        if (isDemoMode()) {
+          const demoRole = localStorage.getItem('demoRole') as Role;
+          if (demoRole && mounted) {
+            const demoProfile = createDemoProfile(demoRole);
+            setProfile(demoProfile);
+            setLoading(false);
+            routeByRole(demoProfile);
+            return;
+          }
+        }
+        
         // Get current session
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
@@ -175,6 +187,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       subscription.unsubscribe();
     };
   }, [navigate, location.pathname]);
+
+  // Create demo profile helper
+  const createDemoProfile = (role: Role): Profile => {
+    const profiles = {
+      developer: {
+        id: 'demo-developer-id',
+        full_name: 'Krish Developer',
+        role: 'developer' as Role,
+        email: 'krishdev@tsam.com',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        company_id: 'demo-company-id'
+      },
+      manager: {
+        id: 'demo-manager-id',
+        full_name: 'Sales Manager',
+        role: 'manager' as Role,
+        email: 'manager@salesos.com',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        company_id: 'demo-company-id'
+      },
+      sales_rep: {
+        id: 'demo-sales-rep-id',
+        full_name: 'Sales Representative',
+        role: 'sales_rep' as Role,
+        email: 'rep@salesos.com',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        company_id: 'demo-company-id'
+      }
+    };
+    
+    return profiles[role] || profiles.sales_rep;
+  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -275,6 +322,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       logger.info('Starting logout process...');
       
+      // Clear demo mode if active
+      if (isDemoMode()) {
+        localStorage.removeItem('demoMode');
+        localStorage.removeItem('demoRole');
+      }
+      
       // Clear state immediately
       setUser(null);
       setProfile(null);
@@ -315,7 +368,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const initializeDemoMode = (role: Role): void => {
     localStorage.setItem('demoMode', 'true');
     localStorage.setItem('demoRole', role);
+    const demoProfile = createDemoProfile(role);
+    setProfile(demoProfile);
     setLoading(false);
+    routeByRole(demoProfile);
   };
 
   // Legacy storage functions
