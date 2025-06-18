@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { createAllDemoUsers, DEMO_USERS } from '@/utils/createDemoUsers';
 import { logger } from '@/utils/logger';
 import { toast } from 'sonner';
-import { CheckCircle, AlertCircle, User } from 'lucide-react';
+import { CheckCircle, AlertCircle, User, RefreshCw, AlertTriangle } from 'lucide-react';
 
 const UserAccountManager = () => {
   const [isCreating, setIsCreating] = useState(false);
@@ -25,6 +25,8 @@ const UserAccountManager = () => {
     setIsCreating(true);
     try {
       logger.info('Starting demo user creation process...');
+      toast.info('Creating demo users... Please wait.');
+      
       const creationResults = await createAllDemoUsers();
       setResults(creationResults);
       
@@ -32,11 +34,11 @@ const UserAccountManager = () => {
       const totalCount = creationResults.length;
       
       if (successCount === totalCount) {
-        toast.success(`All ${successCount} demo users are ready for login!`);
+        toast.success(`🎉 All ${successCount} demo users are ready! You can now login at /auth`);
       } else if (successCount > 0) {
         toast.success(`${successCount}/${totalCount} demo users processed successfully`);
       } else {
-        toast.error('Failed to create demo users - check console for details');
+        toast.error('❌ Failed to create demo users - check console for details');
       }
       
       logger.info('Demo user creation process completed', { successCount, totalCount });
@@ -56,8 +58,8 @@ const UserAccountManager = () => {
 
   const getStatusBadge = (result: any) => {
     if (!result) return <Badge variant="secondary">Pending</Badge>;
-    if (result.success) return <Badge variant="default" className="bg-green-500">Ready</Badge>;
-    return <Badge variant="destructive">Error</Badge>;
+    if (result.success) return <Badge variant="default" className="bg-green-500">✅ Ready</Badge>;
+    return <Badge variant="destructive">❌ Error</Badge>;
   };
 
   return (
@@ -89,7 +91,9 @@ const UserAccountManager = () => {
                     <div>
                       <p className="font-medium">{user.full_name}</p>
                       <p className="text-sm text-muted-foreground">{user.email}</p>
-                      <p className="text-xs text-muted-foreground">Password: {user.password}</p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        Password: {user.password}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -104,27 +108,49 @@ const UserAccountManager = () => {
           disabled={isCreating}
           className="w-full"
         >
-          {isCreating ? 'Creating Users...' : 'Recreate Demo Users'}
+          {isCreating ? (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+              Creating Users...
+            </>
+          ) : (
+            'Recreate Demo Users'
+          )}
         </Button>
         
         {results.length > 0 && (
-          <div className="mt-4 p-3 bg-muted rounded-lg text-sm">
-            <h4 className="font-medium mb-2">Creation Results:</h4>
+          <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Creation Results:
+            </h4>
             {results.map((result, index) => (
-              <div key={index} className="text-xs mb-1">
-                <span className="font-mono">{result.email}</span>: {' '}
-                {result.success ? (
-                  <span className="text-green-600">✅ Ready for login</span>
-                ) : (
-                  <span className="text-red-600">❌ {result.error?.message || 'Failed'}</span>
+              <div key={index} className="text-xs mb-2 p-2 border rounded">
+                <div className="font-mono font-medium">{result.email}</div>
+                <div className="mt-1">
+                  {result.success ? (
+                    <span className="text-green-600 font-medium">✅ Ready for login</span>
+                  ) : (
+                    <span className="text-red-600 font-medium">
+                      ❌ {result.error?.message || 'Failed'}
+                    </span>
+                  )}
+                </div>
+                {result.message && (
+                  <div className="text-muted-foreground mt-1">
+                    💡 {result.message}
+                  </div>
                 )}
-                {result.message && <span className="text-muted-foreground"> - {result.message}</span>}
               </div>
             ))}
             
-            <div className="mt-2 pt-2 border-t border-muted-foreground/20">
-              <p className="text-xs text-muted-foreground">
-                <strong>Next step:</strong> Go to <a href="/auth" className="text-primary hover:underline">/auth</a> and login with any of the credentials above.
+            <div className="mt-4 pt-3 border-t border-muted-foreground/20">
+              <p className="text-xs text-muted-foreground font-medium">
+                🚀 <strong>Next step:</strong> Go to{' '}
+                <a href="/auth" className="text-primary hover:underline font-mono">
+                  /auth
+                </a>
+                {' '}and login with any of the credentials above.
               </p>
             </div>
           </div>
