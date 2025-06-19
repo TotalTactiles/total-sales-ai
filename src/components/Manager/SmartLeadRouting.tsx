@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,7 +49,7 @@ const SmartLeadRouting: React.FC = () => {
     // Execute assignment logic
     await executeManagerAgent('assign_lead', { 
       leadId, 
-      agentId,
+      metadata: { agentId },
       workspace: 'lead_assignment'
     });
   };

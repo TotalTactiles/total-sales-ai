@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -48,8 +47,9 @@ const AgentHealthDashboard: React.FC = () => {
   const performHealthCheck = async () => {
     setIsChecking(true);
     try {
-      // Check API connection
-      const connectionHealth = await relevanceAIConnection.performHealthCheck();
+      // Check API connection and get health status
+      const isHealthy = await relevanceAIConnection.performHealthCheck();
+      const connectionHealth = relevanceAIConnection.getHealthStatus();
       
       // Get performance metrics
       const performanceMetrics = agentOrchestrator.getPerformanceMetrics();
