@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 
 import { User } from '@supabase/supabase-js';
@@ -29,7 +28,9 @@ export const initializeDemoUser = (role: Role): {
     company_id: 'demo-company',
     email_connected: false,
     created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    updated_at: new Date().toISOString(),
+    email: role === 'manager' ? 'manager@salesos.com' : 'rep@salesos.com',
+    ai_assistant_name: 'SalesOS AI'
   };
 
   logger.info("Setting demo user:", demoUser);

@@ -20,8 +20,9 @@ export const convertDatabaseLeadToLead = (dbLead: DatabaseLead): Lead => {
     isSensitive: dbLead.is_sensitive || false,
     notes: dbLead.notes || '',
     value: dbLead.value || 0,
-    createdAt: dbLead.created_at,
-    updatedAt: dbLead.updated_at
+    createdAt: dbLead.created_at || new Date().toISOString(),
+    updatedAt: dbLead.updated_at || new Date().toISOString(),
+    companyId: dbLead.company_id || 'demo-company'
   };
 };
 
@@ -37,7 +38,7 @@ export const convertLeadToDatabaseLead = (lead: Lead): DatabaseLead => {
     priority: lead.priority || 'medium',
     score: lead.score || 0,
     tags: lead.tags || [],
-    company_id: 'demo-company', // Will be set properly in production
+    company_id: lead.companyId || 'demo-company',
     last_contact: lead.lastContact || '',
     conversion_likelihood: lead.conversionLikelihood || 0,
     speed_to_lead: lead.speedToLead || 0,

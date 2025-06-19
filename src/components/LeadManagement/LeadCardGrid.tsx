@@ -199,7 +199,8 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
             <SelectItem value="new">New</SelectItem>
             <SelectItem value="contacted">Contacted</SelectItem>
             <SelectItem value="qualified">Qualified</SelectItem>
-            <SelectItem value="closed">Closed</SelectItem>
+            <SelectItem value="closed_won">Closed Won</SelectItem>
+            <SelectItem value="closed_lost">Closed Lost</SelectItem>
           </SelectContent>
         </Select>
         
