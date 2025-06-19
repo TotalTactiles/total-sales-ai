@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -61,6 +60,43 @@ class RelevanceAIConnectionService {
     } catch (error) {
       logger.error('Failed to initialize Relevance AI connection:', error);
       return false;
+    }
+  }
+
+  getHealthStatus(): ConnectionHealth {
+    return this.healthStatus;
+  }
+
+  getAgentStatus(agentId: string): AgentStatus | null {
+    return this.healthStatus.agentsRegistered.find(agent => agent.id === agentId) || null;
+  }
+
+  async recordAgentSuccess(agentId: string): Promise<void> {
+    const agent = this.healthStatus.agentsRegistered.find(a => a.id === agentId);
+    if (agent) {
+      agent.successCount++;
+      agent.status = 'active';
+      agent.lastHealthCheck = new Date();
+      await this.updateAgentStatus(agent);
+    }
+  }
+
+  async recordAgentError(agentId: string, error: string): Promise<void> {
+    const agent = this.healthStatus.agentsRegistered.find(a => a.id === agentId);
+    if (agent) {
+      agent.errorCount++;
+      agent.status = agent.errorCount > 3 ? 'error' : 'active';
+      agent.lastHealthCheck = new Date();
+      await this.updateAgentStatus(agent);
+      
+      logger.error(`Agent ${agentId} error recorded:`, error);
+    }
+  }
+
+  shutdown(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
     }
   }
 
@@ -225,43 +261,6 @@ class RelevanceAIConnectionService {
     this.healthCheckInterval = setInterval(() => {
       this.performHealthCheck();
     }, 30000);
-  }
-
-  getHealthStatus(): ConnectionHealth {
-    return this.healthStatus;
-  }
-
-  getAgentStatus(agentId: string): AgentStatus | null {
-    return this.healthStatus.agentsRegistered.find(agent => agent.id === agentId) || null;
-  }
-
-  async recordAgentSuccess(agentId: string): Promise<void> {
-    const agent = this.healthStatus.agentsRegistered.find(a => a.id === agentId);
-    if (agent) {
-      agent.successCount++;
-      agent.status = 'active';
-      agent.lastHealthCheck = new Date();
-      await this.updateAgentStatus(agent);
-    }
-  }
-
-  async recordAgentError(agentId: string, error: string): Promise<void> {
-    const agent = this.healthStatus.agentsRegistered.find(a => a.id === agentId);
-    if (agent) {
-      agent.errorCount++;
-      agent.status = agent.errorCount > 3 ? 'error' : 'active';
-      agent.lastHealthCheck = new Date();
-      await this.updateAgentStatus(agent);
-      
-      logger.error(`Agent ${agentId} error recorded:`, error);
-    }
-  }
-
-  shutdown(): void {
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-      this.healthCheckInterval = null;
-    }
   }
 }
 

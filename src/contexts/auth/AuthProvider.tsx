@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,10 +10,15 @@ interface AuthContextType {
   loading: boolean;
   session: Session | null;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null; profile?: Profile }>;
+  signUp: (email: string, password: string, userData?: any) => Promise<{ error: AuthError | null }>;
+  signUpWithOAuth: (provider: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
   isDemoMode: () => boolean;
   setDemoRole: (role: Role) => void;
   getDemoRole: () => Role | null;
+  initializeDemoMode: (role: Role) => void;
+  setLastSelectedRole: (role: Role) => void;
+  setLastSelectedCompanyId: (companyId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -161,6 +165,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const signUp = async (email: string, password: string, userData?: any) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: userData
+        }
+      });
+
+      if (error) {
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: error as AuthError };
+    }
+  };
+
+  const signUpWithOAuth = async (provider: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider as any
+      });
+
+      if (error) {
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error) {
+      return { error: error as AuthError };
+    }
+  };
+
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -211,16 +251,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return role as Role | null;
   };
 
+  const initializeDemoMode = (role: Role) => {
+    setDemoRole(role);
+    setLoading(false);
+  };
+
+  const setLastSelectedRole = (role: Role) => {
+    localStorage.setItem('lastSelectedRole', role);
+  };
+
+  const setLastSelectedCompanyId = (companyId: string) => {
+    localStorage.setItem('lastSelectedCompanyId', companyId);
+  };
+
   const value: AuthContextType = {
     user,
     profile,
     loading,
     session,
     signIn,
+    signUp,
+    signUpWithOAuth,
     signOut,
     isDemoMode,
     setDemoRole,
-    getDemoRole
+    getDemoRole,
+    initializeDemoMode,
+    setLastSelectedRole,
+    setLastSelectedCompanyId
   };
 
   return (

@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { relevanceAIConnection } from '@/services/relevance/RelevanceAIConnectionService';
@@ -12,6 +11,11 @@ export interface AgentContext {
   isCallActive?: boolean;
   callDuration?: number;
   metadata?: Record<string, any>;
+  query?: string;
+  leadId?: string;
+  pitchText?: string;
+  userResponse?: string;
+  scenario?: string;
 }
 
 export interface AgentTask {
@@ -25,6 +29,8 @@ export interface AgentExecutionResult {
   taskId: string;
   status: 'pending' | 'completed' | 'failed' | 'retry';
   output?: any;
+  output_payload?: any; // Legacy compatibility
+  id?: string; // Task ID for feedback
   error_message?: string;
   execution_time_ms?: number;
   retry_count?: number;
@@ -54,6 +60,7 @@ class AgentOrchestrator {
         logger.warn('Task already processing, skipping duplicate:', taskKey);
         return {
           taskId,
+          id: taskId,
           status: 'pending',
           error_message: 'Task already processing'
         };
@@ -98,8 +105,10 @@ class AgentOrchestrator {
 
       return {
         taskId,
+        id: taskId,
         status: 'completed',
         output: result,
+        output_payload: result, // Legacy compatibility
         execution_time_ms: executionTime
       };
 
@@ -128,11 +137,45 @@ class AgentOrchestrator {
 
       return {
         taskId,
+        id: taskId,
         status: 'failed',
         error_message: errorMessage,
         execution_time_ms: executionTime,
         retry_count: retryCount
       };
+    }
+  }
+
+  async submitFeedback(
+    userId: string,
+    taskId: string,
+    rating: 'positive' | 'negative',
+    feedback?: string
+  ): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('ai_agent_tasks')
+        .update({
+          metadata: {
+            feedback: {
+              rating,
+              feedback,
+              submitted_at: new Date().toISOString(),
+              user_id: userId
+            }
+          }
+        })
+        .eq('id', taskId);
+
+      if (error) {
+        logger.error('Failed to submit feedback:', error);
+        throw error;
+      }
+
+      logger.info('Feedback submitted successfully', { taskId, rating, userId });
+    } catch (error) {
+      logger.error('Error submitting feedback:', error);
+      throw error;
     }
   }
 
