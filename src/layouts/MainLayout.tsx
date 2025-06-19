@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAppState } from '@/hooks/useAppState';
 import SalesRepOS from './SalesRepOS';
 import ManagerOS from './ManagerOS';
 import DeveloperOS from './DeveloperOS';
@@ -10,6 +11,7 @@ import { logger } from '@/utils/logger';
 
 const MainLayout: React.FC = () => {
   const { user, profile, loading, isDemoMode } = useAuth();
+  const { setError } = useAppState();
 
   // Show loading state
   if (loading) {
@@ -28,27 +30,32 @@ const MainLayout: React.FC = () => {
     const demoRole = localStorage.getItem('demoRole') as 'manager' | 'sales_rep' | 'developer' | null;
     logger.info('Demo mode active with role:', demoRole);
     
-    switch (demoRole) {
-      case 'manager':
-        return (
-          <EnhancedErrorBoundary>
-            <ManagerOS />
-          </EnhancedErrorBoundary>
-        );
-      case 'sales_rep':
-        return (
-          <EnhancedErrorBoundary>
-            <SalesRepOS />
-          </EnhancedErrorBoundary>
-        );
-      case 'developer':
-        return (
-          <EnhancedErrorBoundary>
-            <DeveloperOS />
-          </EnhancedErrorBoundary>
-        );
-      default:
-        return <NavigationFallback />;
+    try {
+      switch (demoRole) {
+        case 'manager':
+          return (
+            <EnhancedErrorBoundary onError={setError}>
+              <ManagerOS />
+            </EnhancedErrorBoundary>
+          );
+        case 'sales_rep':
+          return (
+            <EnhancedErrorBoundary onError={setError}>
+              <SalesRepOS />
+            </EnhancedErrorBoundary>
+          );
+        case 'developer':
+          return (
+            <EnhancedErrorBoundary onError={setError}>
+              <DeveloperOS />
+            </EnhancedErrorBoundary>
+          );
+        default:
+          return <NavigationFallback />;
+      }
+    } catch (error) {
+      logger.error('Error in demo mode layout:', error);
+      return <NavigationFallback />;
     }
   }
 
@@ -56,29 +63,35 @@ const MainLayout: React.FC = () => {
   if (user && profile) {
     logger.info('Authenticated user with role:', profile.role);
     
-    switch (profile.role) {
-      case 'manager':
-        return (
-          <EnhancedErrorBoundary>
-            <ManagerOS />
-          </EnhancedErrorBoundary>
-        );
-      case 'sales_rep':
-        return (
-          <EnhancedErrorBoundary>
-            <SalesRepOS />
-          </EnhancedErrorBoundary>
-        );
-      case 'developer':
-      case 'admin':
-        return (
-          <EnhancedErrorBoundary>
-            <DeveloperOS />
-          </EnhancedErrorBoundary>
-        );
-      default:
-        logger.warn('Unknown user role:', profile.role);
-        return <NavigationFallback />;
+    try {
+      switch (profile.role) {
+        case 'manager':
+          return (
+            <EnhancedErrorBoundary onError={setError}>
+              <ManagerOS />
+            </EnhancedErrorBoundary>
+          );
+        case 'sales_rep':
+          return (
+            <EnhancedErrorBoundary onError={setError}>
+              <SalesRepOS />
+            </EnhancedErrorBoundary>
+          );
+        case 'developer':
+        case 'admin':
+          return (
+            <EnhancedErrorBoundary onError={setError}>
+              <DeveloperOS />
+            </EnhancedErrorBoundary>
+          );
+        default:
+          logger.warn('Unknown user role:', profile.role);
+          return <NavigationFallback />;
+      }
+    } catch (error) {
+      logger.error('Error in authenticated layout:', error);
+      setError('Failed to load dashboard');
+      return <NavigationFallback />;
     }
   }
 

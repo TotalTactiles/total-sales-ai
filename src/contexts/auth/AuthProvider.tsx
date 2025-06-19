@@ -1,25 +1,11 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
-import { Profile, Role } from './types';
-
-interface AuthContextType {
-  user: User | null;
-  profile: Profile | null;
-  loading: boolean;
-  session: Session | null;
-  signIn: (email: string, password: string) => Promise<{ error: AuthError | null; profile?: Profile }>;
-  signUp: (email: string, password: string, userData?: any) => Promise<{ error: AuthError | null }>;
-  signUpWithOAuth: (provider: string) => Promise<{ error: AuthError | null }>;
-  signOut: () => Promise<{ error: AuthError | null }>;
-  isDemoMode: () => boolean;
-  setDemoRole: (role: Role) => void;
-  getDemoRole: () => Role | null;
-  initializeDemoMode: (role: Role) => void;
-  setLastSelectedRole: (role: Role) => void;
-  setLastSelectedCompanyId: (companyId: string) => void;
-}
+import { AuthContextType, Profile, Role } from './types';
+import { initializeDemoUser, isDemoMode, setDemoMode, clearDemoMode } from './demoMode';
+import { getLastSelectedRole, setLastSelectedRole, getLastSelectedCompanyId, setLastSelectedCompanyId } from './localStorage';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -41,8 +27,85 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Profile management functions
+  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+    try {
+      const { data: existingProfile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (existingProfile && !error) {
+        return existingProfile;
+      }
+      return null;
+    } catch (error) {
+      logger.error('Error fetching profile:', error);
+      return null;
+    }
+  };
+
+  const createProfile = async (user: User): Promise<Profile | null> => {
+    try {
+      const profileData = {
+        id: user.id,
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+        role: (user.user_metadata?.role as Role) || 'sales_rep',
+        company_id: user.id,
+        email_connected: false,
+        email: user.email || '',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: newProfile, error } = await supabase
+        .from('profiles')
+        .insert(profileData)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return newProfile;
+    } catch (error) {
+      logger.error('Error creating profile:', error);
+      return null;
+    }
+  };
+
+  const fetchOrCreateProfile = async (user: User) => {
+    try {
+      let userProfile = await fetchProfile(user.id);
+      
+      if (!userProfile) {
+        userProfile = await createProfile(user);
+      }
+
+      if (userProfile) {
+        setProfile(userProfile);
+        logger.info('Profile loaded:', { userId: user.id, role: userProfile.role });
+      } else {
+        // Fallback profile to prevent auth loops
+        const fallbackProfile: Profile = {
+          id: user.id,
+          full_name: user.email?.split('@')[0] || 'User',
+          role: 'sales_rep',
+          company_id: user.id,
+          email_connected: false,
+          email: user.email || '',
+          ai_assistant_name: 'SalesOS AI',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        setProfile(fallbackProfile);
+      }
+    } catch (error) {
+      logger.error('Error in fetchOrCreateProfile:', error);
+    }
+  };
+
+  // Auth state management
   useEffect(() => {
-    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         logger.info('Auth state changed', { event, userId: session?.user?.id });
@@ -51,13 +114,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch or create profile
-          setTimeout(async () => {
-            try {
-              await fetchOrCreateProfile(session.user);
-            } catch (error) {
-              logger.error('Error fetching profile:', error);
-            }
+          setTimeout(() => {
+            fetchOrCreateProfile(session.user);
           }, 0);
         } else {
           setProfile(null);
@@ -67,7 +125,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     );
 
-    // Then check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setSession(session);
@@ -81,63 +139,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchOrCreateProfile = async (user: User) => {
-    try {
-      // First, try to fetch existing profile
-      const { data: existingProfile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-      if (existingProfile && !fetchError) {
-        setProfile(existingProfile);
-        logger.info('Profile loaded:', { userId: user.id, role: existingProfile.role });
-        return;
-      }
-
-      // If no profile exists, create one
-      logger.info('Creating new profile for user:', user.id);
-      
-      const profileData = {
-        id: user.id,
-        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-        role: (user.user_metadata?.role as Role) || 'sales_rep',
-        company_id: user.id,
-        email_connected: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
-
-      const { data: newProfile, error: createError } = await supabase
-        .from('profiles')
-        .insert(profileData)
-        .select()
-        .single();
-
-      if (createError) {
-        logger.error('Failed to create profile:', createError);
-        throw createError;
-      }
-
-      setProfile(newProfile);
-      logger.info('Profile created successfully:', { userId: user.id, role: newProfile.role });
-
-    } catch (error) {
-      logger.error('Error in fetchOrCreateProfile:', error);
-      // Set a minimal profile to prevent auth loops
-      setProfile({
-        id: user.id,
-        full_name: user.email?.split('@')[0] || 'User',
-        role: 'sales_rep',
-        company_id: user.id,
-        email_connected: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      });
-    }
-  };
-
+  // Auth actions
   const signIn = async (email: string, password: string) => {
     try {
       logger.info('Attempting sign in:', { email });
@@ -153,7 +155,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       if (data.user) {
-        // Profile will be fetched automatically by the auth state change listener
         logger.info('Sign in successful:', { userId: data.user.id });
         return { error: null };
       }
@@ -167,18 +168,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
+      const redirectUrl = `${window.location.origin}/`;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: userData
+          data: userData,
+          emailRedirectTo: redirectUrl
         }
       });
 
-      if (error) {
-        return { error };
-      }
-
+      if (error) return { error };
       return { error: null };
     } catch (error) {
       return { error: error as AuthError };
@@ -187,14 +188,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUpWithOAuth = async (provider: string) => {
     try {
+      const redirectUrl = `${window.location.origin}/`;
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: provider as any
+        provider: provider as any,
+        options: {
+          redirectTo: redirectUrl
+        }
       });
 
-      if (error) {
-        return { error };
-      }
-
+      if (error) return { error };
       return { error: null };
     } catch (error) {
       return { error: error as AuthError };
@@ -209,7 +212,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null);
         setProfile(null);
         setSession(null);
-        localStorage.removeItem('demoRole');
+        clearDemoMode();
         logger.info('Sign out successful');
       }
       
@@ -220,48 +223,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const isDemoMode = () => {
-    return !!localStorage.getItem('demoRole');
-  };
-
-  const setDemoRole = (role: Role) => {
-    localStorage.setItem('demoRole', role);
-    setProfile({
-      id: 'demo-user',
-      full_name: `Demo ${role.charAt(0).toUpperCase() + role.slice(1)}`,
-      role,
-      company_id: 'demo-company',
-      email_connected: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    });
-    setUser({
-      id: 'demo-user',
-      email: `demo-${role}@example.com`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      app_metadata: {},
-      user_metadata: { role },
-      aud: 'authenticated'
-    } as User);
-  };
-
-  const getDemoRole = (): Role | null => {
-    const role = localStorage.getItem('demoRole');
-    return role as Role | null;
-  };
-
+  // Demo mode functions
   const initializeDemoMode = (role: Role) => {
-    setDemoRole(role);
+    const { demoUser, demoProfile } = initializeDemoUser(role);
+    setDemoMode(role);
+    setUser(demoUser);
+    setProfile(demoProfile);
     setLoading(false);
   };
 
-  const setLastSelectedRole = (role: Role) => {
-    localStorage.setItem('lastSelectedRole', role);
+  const setDemoRole = (role: Role) => {
+    const { demoUser, demoProfile } = initializeDemoUser(role);
+    setDemoMode(role);
+    setUser(demoUser);
+    setProfile(demoProfile);
   };
 
-  const setLastSelectedCompanyId = (companyId: string) => {
-    localStorage.setItem('lastSelectedCompanyId', companyId);
+  const getDemoRole = (): Role | null => {
+    return localStorage.getItem('demoRole') as Role | null;
   };
 
   const value: AuthContextType = {
@@ -278,7 +257,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     getDemoRole,
     initializeDemoMode,
     setLastSelectedRole,
-    setLastSelectedCompanyId
+    setLastSelectedCompanyId,
+    fetchProfile,
+    getLastSelectedRole,
+    getLastSelectedCompanyId
   };
 
   return (
