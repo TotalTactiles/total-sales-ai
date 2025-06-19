@@ -30,6 +30,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Profile management functions
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
+      logger.info('Fetching profile for user:', userId);
       const { data: existingProfile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -37,8 +38,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (existingProfile && !error) {
+        logger.info('Profile found:', existingProfile);
         return existingProfile;
       }
+      
+      if (error && error.code !== 'PGRST116') {
+        logger.error('Error fetching profile:', error);
+      }
+      
       return null;
     } catch (error) {
       logger.error('Error fetching profile:', error);
@@ -48,15 +55,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const createProfile = async (user: User): Promise<Profile | null> => {
     try {
+      logger.info('Creating profile for user:', user.id);
+      
+      // Extract role from user metadata or default to sales_rep
+      const userRole = user.user_metadata?.role as Role || 'sales_rep';
+      const fullName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+      
       const profileData = {
         id: user.id,
-        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
-        role: (user.user_metadata?.role as Role) || 'sales_rep',
+        full_name: fullName,
+        role: userRole,
         company_id: user.id,
         email_connected: false,
         email: user.email || '',
+        ai_assistant_name: 'SalesOS AI',
         created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
+        last_login: new Date().toISOString()
       };
 
       const { data: newProfile, error } = await supabase
@@ -65,7 +80,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        logger.error('Error creating profile:', error);
+        throw error;
+      }
+      
+      logger.info('Profile created successfully:', newProfile);
       return newProfile;
     } catch (error) {
       logger.error('Error creating profile:', error);
@@ -83,9 +103,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (userProfile) {
         setProfile(userProfile);
-        logger.info('Profile loaded:', { userId: user.id, role: userProfile.role });
+        logger.info('Profile set:', { userId: user.id, role: userProfile.role });
+        
+        // Update last login
+        await supabase
+          .from('profiles')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', user.id);
       } else {
-        // Fallback profile to prevent auth loops
+        logger.error('Failed to create or fetch profile');
+        // Create a fallback profile to prevent auth loops
         const fallbackProfile: Profile = {
           id: user.id,
           full_name: user.email?.split('@')[0] || 'User',
@@ -106,14 +133,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Auth state management
   useEffect(() => {
+    logger.info('Setting up auth state listener');
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        logger.info('Auth state changed', { event, userId: session?.user?.id });
+        logger.info('Auth state changed:', { event, userId: session?.user?.id });
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Use setTimeout to prevent recursive auth calls
           setTimeout(() => {
             fetchOrCreateProfile(session.user);
           }, 0);
@@ -126,15 +156,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setSession(session);
-        setUser(session.user);
-        fetchOrCreateProfile(session.user);
-      } else {
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          logger.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        if (session) {
+          logger.info('Existing session found');
+          setSession(session);
+          setUser(session.user);
+          await fetchOrCreateProfile(session.user);
+        } else {
+          logger.info('No existing session');
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        logger.error('Error initializing auth:', error);
         setLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     return () => subscription.unsubscribe();
   }, []);
@@ -168,6 +216,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
+      logger.info('Attempting sign up:', { email, userData });
       const redirectUrl = `${window.location.origin}/`;
       
       const { data, error } = await supabase.auth.signUp({
@@ -179,9 +228,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       });
 
-      if (error) return { error };
+      if (error) {
+        logger.error('Sign up error:', error);
+        return { error };
+      }
+      
+      logger.info('Sign up successful:', { userId: data.user?.id });
       return { error: null };
     } catch (error) {
+      logger.error('Sign up exception:', error);
       return { error: error as AuthError };
     }
   };
@@ -206,6 +261,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
+      logger.info('Attempting sign out');
       const { error } = await supabase.auth.signOut();
       
       if (!error) {

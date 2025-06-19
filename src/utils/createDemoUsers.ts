@@ -5,167 +5,148 @@ import { logger } from '@/utils/logger';
 export interface DemoUser {
   email: string;
   password: string;
-  role: string;
   full_name: string;
+  role: 'developer' | 'manager' | 'sales_rep';
 }
 
 export const DEMO_USERS: DemoUser[] = [
   {
     email: 'krishdev@tsam.com',
     password: 'badabing2024',
-    role: 'developer',
-    full_name: 'Krish Developer'
+    full_name: 'Krish Developer',
+    role: 'developer'
   },
   {
     email: 'manager@salesos.com',
     password: 'manager123',
-    role: 'manager',
-    full_name: 'Sales Manager'
+    full_name: 'Sales Manager',
+    role: 'manager'
   },
   {
     email: 'rep@salesos.com',
     password: 'sales123',
-    role: 'sales_rep',
-    full_name: 'Sales Representative'
+    full_name: 'Sales Rep',
+    role: 'sales_rep'
   }
 ];
 
-export const createDemoUser = async (userData: DemoUser) => {
+export const createDemoUser = async (user: DemoUser) => {
   try {
-    logger.info(`Creating/verifying user: ${userData.email}`);
+    logger.info(`Creating demo user: ${user.email}`);
     
-    // First try to sign in to check if user exists
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email: userData.email,
-      password: userData.password
-    });
+    // First check if user already exists
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('email', user.email)
+      .single();
 
-    if (signInData.user && !signInError) {
-      logger.info(`User ${userData.email} already exists and credentials work`);
-      
-      // Check if profile exists and is correct
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', signInData.user.id)
-        .single();
-
-      if (profileError || !profileData || profileData.role !== userData.role) {
-        // Create or update profile
-        const profilePayload = {
-          id: signInData.user.id,
-          full_name: userData.full_name,
-          role: userData.role as any,
-          company_id: signInData.user.id,
-          email_connected: false,
-          created_at: profileData?.created_at || new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-
-        const { error: upsertError } = await supabase
-          .from('profiles')
-          .upsert(profilePayload);
-
-        if (upsertError) {
-          logger.error(`Profile upsert failed for ${userData.email}:`, upsertError);
-        } else {
-          logger.info(`Profile updated for ${userData.email}`);
-        }
-      }
-
-      // Sign out after verification
-      await supabase.auth.signOut();
-      
-      return { 
-        success: true, 
-        message: 'User verified and ready',
-        email: userData.email 
+    if (existingProfile) {
+      logger.info(`User ${user.email} already exists`);
+      return {
+        success: true,
+        email: user.email,
+        message: 'User already exists and is ready for login'
       };
     }
 
-    // User doesn't exist or wrong password, try to create
-    logger.info(`Creating new user: ${userData.email}`);
-    
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: userData.email,
-      password: userData.password,
+    // Try to sign up the user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: user.email,
+      password: user.password,
       options: {
         data: {
-          role: userData.role,
-          full_name: userData.full_name
+          full_name: user.full_name,
+          role: user.role
         }
       }
     });
 
-    if (signUpError) {
-      logger.error(`Sign up failed for ${userData.email}:`, signUpError);
-      return { 
-        success: false, 
-        error: signUpError,
-        email: userData.email 
-      };
-    }
+    if (authError) {
+      // If user already exists in auth but not in profiles, create profile
+      if (authError.message.includes('already registered')) {
+        logger.info(`User ${user.email} exists in auth, creating profile`);
+        
+        // Get the user ID from auth
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: user.password
+        });
 
-    if (signUpData.user) {
-      // Ensure profile is created
-      const profilePayload = {
-        id: signUpData.user.id,
-        full_name: userData.full_name,
-        role: userData.role as any,
-        company_id: signUpData.user.id,
-        email_connected: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+        if (signInError) {
+          throw signInError;
+        }
 
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .upsert(profilePayload);
+        if (signInData.user) {
+          // Create the profile
+          const profileData = {
+            id: signInData.user.id,
+            full_name: user.full_name,
+            role: user.role,
+            company_id: signInData.user.id,
+            email_connected: false,
+            email: user.email,
+            ai_assistant_name: 'SalesOS AI',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
 
-      if (profileError) {
-        logger.error(`Profile creation failed for ${userData.email}:`, profileError);
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .upsert(profileData);
+
+          if (profileError) {
+            throw profileError;
+          }
+
+          // Sign out after creating profile
+          await supabase.auth.signOut();
+
+          return {
+            success: true,
+            email: user.email,
+            message: 'Profile created for existing user'
+          };
+        }
       }
-
-      // Sign out the newly created user
-      await supabase.auth.signOut();
       
-      logger.info(`User created successfully: ${userData.email}`);
-      return { 
-        success: true, 
-        data: signUpData,
-        email: userData.email 
-      };
+      throw authError;
     }
 
-    return { 
-      success: false, 
-      error: new Error('Unknown error occurred'),
-      email: userData.email 
-    };
+    logger.info(`Demo user created successfully: ${user.email}`);
     
+    // Sign out the newly created user
+    await supabase.auth.signOut();
+
+    return {
+      success: true,
+      email: user.email,
+      message: 'User created successfully'
+    };
+
   } catch (error) {
-    logger.error(`Failed to create user ${userData.email}:`, error);
-    return { 
-      success: false, 
-      error,
-      email: userData.email 
+    logger.error(`Error creating demo user ${user.email}:`, error);
+    return {
+      success: false,
+      email: user.email,
+      error: error
     };
   }
 };
 
 export const createAllDemoUsers = async () => {
-  logger.info('Starting comprehensive demo user creation...');
+  logger.info('Creating all demo users...');
+  
   const results = [];
   
   for (const user of DEMO_USERS) {
-    logger.info(`Processing user: ${user.email}`);
     const result = await createDemoUser(user);
     results.push(result);
     
-    // Small delay between creations
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Add delay between user creation to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
   
-  logger.info('Demo user creation completed');
+  logger.info('Demo user creation completed:', results);
   return results;
 };

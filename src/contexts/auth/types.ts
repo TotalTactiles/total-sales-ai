@@ -1,3 +1,4 @@
+
 import { User, Session } from '@supabase/supabase-js';
 
 export type Role = 'developer' | 'admin' | 'manager' | 'sales_rep';
@@ -8,13 +9,13 @@ export interface Profile {
   role: Role;
   company_id: string | null;
   email_connected: boolean;
+  email: string | null;
+  ai_assistant_name?: string | null;
   created_at: string;
   updated_at: string;
   last_login?: string | null;
   email_account?: string | null;
   email_provider?: string | null;
-  ai_assistant_name?: string | null;
-  email?: string | null;
 }
 
 export interface AuthContextType {

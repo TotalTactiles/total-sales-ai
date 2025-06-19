@@ -7,11 +7,14 @@ import ManagerOS from './ManagerOS';
 import DeveloperOS from './DeveloperOS';
 import NavigationFallback from '@/components/Navigation/NavigationFallback';
 import EnhancedErrorBoundary from '@/components/ErrorBoundary/EnhancedErrorBoundary';
+import UnifiedAIAssistant from '@/components/AI/UnifiedAIAssistant';
 import { logger } from '@/utils/logger';
+import { useLocation } from 'react-router-dom';
 
 const MainLayout: React.FC = () => {
   const { user, profile, loading, isDemoMode } = useAuth();
   const { setError } = useAppState();
+  const location = useLocation();
 
   // Show loading state
   if (loading) {
@@ -31,23 +34,31 @@ const MainLayout: React.FC = () => {
     logger.info('Demo mode active with role:', demoRole);
     
     try {
+      const getAIContext = () => ({
+        workspace: location.pathname.split('/')[1] || 'dashboard',
+        userRole: demoRole || 'sales_rep'
+      });
+
       switch (demoRole) {
         case 'manager':
           return (
             <EnhancedErrorBoundary>
               <ManagerOS />
+              <UnifiedAIAssistant context={getAIContext()} />
             </EnhancedErrorBoundary>
           );
         case 'sales_rep':
           return (
             <EnhancedErrorBoundary>
               <SalesRepOS />
+              <UnifiedAIAssistant context={getAIContext()} />
             </EnhancedErrorBoundary>
           );
         case 'developer':
           return (
             <EnhancedErrorBoundary>
               <DeveloperOS />
+              <UnifiedAIAssistant context={getAIContext()} />
             </EnhancedErrorBoundary>
           );
         default:
@@ -64,17 +75,26 @@ const MainLayout: React.FC = () => {
     logger.info('Authenticated user with role:', profile.role);
     
     try {
+      const getAIContext = () => ({
+        workspace: location.pathname.split('/')[1] || 'dashboard',
+        userRole: profile.role,
+        userId: user.id,
+        companyId: profile.company_id
+      });
+
       switch (profile.role) {
         case 'manager':
           return (
             <EnhancedErrorBoundary>
               <ManagerOS />
+              <UnifiedAIAssistant context={getAIContext()} />
             </EnhancedErrorBoundary>
           );
         case 'sales_rep':
           return (
             <EnhancedErrorBoundary>
               <SalesRepOS />
+              <UnifiedAIAssistant context={getAIContext()} />
             </EnhancedErrorBoundary>
           );
         case 'developer':
@@ -82,6 +102,7 @@ const MainLayout: React.FC = () => {
           return (
             <EnhancedErrorBoundary>
               <DeveloperOS />
+              <UnifiedAIAssistant context={getAIContext()} />
             </EnhancedErrorBoundary>
           );
         default:

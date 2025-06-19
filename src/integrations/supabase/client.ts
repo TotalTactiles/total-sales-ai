@@ -8,7 +8,7 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const isSupabaseConfigured = !!supabaseUrl && !!supabaseKey;
 
 if (!supabaseUrl || !supabaseKey) {
-  logger.warn('Supabase credentials not found, using demo mode');
+  logger.warn('Supabase credentials not found, using fallback configuration');
 }
 
 export const supabase = createClient(
@@ -23,3 +23,12 @@ export const supabase = createClient(
     }
   }
 );
+
+// Test connection on initialization
+supabase.auth.getSession().then(({ data, error }) => {
+  if (error) {
+    logger.error('Supabase connection error:', error);
+  } else {
+    logger.info('Supabase connected successfully');
+  }
+});

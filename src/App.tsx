@@ -1,89 +1,97 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'sonner';
+import { Suspense, useEffect } from 'react';
+import { useRoutes, RouteObject } from 'react-router-dom';
+
+import { AuthProvider } from '@/contexts/AuthContext';
+import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { AuthProvider } from '@/contexts/auth/AuthProvider';
-import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
-import { DemoDataProvider } from '@/contexts/DemoDataContext';
-import RouteGuard from '@/components/auth/RouteGuard';
-import OnboardingGuard from '@/components/OnboardingGuard';
-import ErrorBoundary from '@/components/auth/ErrorBoundary';
-import AuthPage from '@/pages/auth/AuthPage';
-import MainLayout from '@/layouts/MainLayout';
-import LogoutHandler from '@/components/LogoutHandler';
-import { envConfig } from '@/utils/envConfig';
+import { Toaster } from '@/components/ui/sonner';
+import { agentConnectionService } from '@/services/ai/AgentConnectionService';
 import { logger } from '@/utils/logger';
 
-// Initialize environment configuration
-envConfig.initialize();
+import Index from '@/pages/Index';
+import AuthPage from '@/pages/auth/AuthPage';
+import MainLayout from '@/layouts/MainLayout';
+import RouteGuard from '@/components/auth/RouteGuard';
 
-function App() {
+const routes: RouteObject[] = [
+  {
+    path: "/",
+    element: <Index />,
+  },
+  {
+    path: "/auth",
+    element: <AuthPage />,
+  },
+  {
+    path: "/sales/*",
+    element: (
+      <RouteGuard allowedRoles={['sales_rep']}>
+        <MainLayout />
+      </RouteGuard>
+    ),
+  },
+  {
+    path: "/manager/*",
+    element: (
+      <RouteGuard allowedRoles={['manager']}>
+        <MainLayout />
+      </RouteGuard>
+    ),
+  },
+  {
+    path: "/developer/*",
+    element: (
+      <RouteGuard allowedRoles={['developer', 'admin']}>
+        <MainLayout />
+      </RouteGuard>
+    ),
+  },
+];
+
+const AppContent = () => {
+  const routing = useRoutes(routes);
+
+  useEffect(() => {
+    // Initialize AI agent connection service
+    const initializeAgents = async () => {
+      try {
+        logger.info('Initializing AI agents...');
+        const initialized = await agentConnectionService.initialize();
+        
+        if (initialized) {
+          logger.info('AI agents initialized successfully');
+        } else {
+          logger.warn('AI agents initialization completed with warnings');
+        }
+      } catch (error) {
+        logger.error('Failed to initialize AI agents:', error);
+      }
+    };
+
+    initializeAgents();
+  }, []);
+
   return (
-    <ErrorBoundary>
-      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-        <TooltipProvider>
-          <Router>
-            <AuthProvider>
-              <DemoDataProvider>
-                <UnifiedAIProvider>
-                  <OnboardingGuard>
-                    <ErrorBoundary>
-                      <div className="min-h-screen bg-background">
-                        <Routes>
-                          {/* Public routes */}
-                          <Route path="/auth" element={<AuthPage />} />
-                          <Route path="/logout" element={<LogoutHandler />} />
-                          
-                          {/* Protected main application routes */}
-                          <Route path="/sales/*" element={
-                            <RouteGuard allowedRoles={['sales_rep']}>
-                              <MainLayout />
-                            </RouteGuard>
-                          } />
-                          
-                          <Route path="/manager/*" element={
-                            <RouteGuard allowedRoles={['manager']}>
-                              <MainLayout />
-                            </RouteGuard>
-                          } />
-                          
-                          <Route path="/developer/*" element={
-                            <RouteGuard allowedRoles={['developer', 'admin']}>
-                              <MainLayout />
-                            </RouteGuard>
-                          } />
-                          
-                          {/* Catch-all protected route */}
-                          <Route path="/app" element={
-                            <RouteGuard>
-                              <MainLayout />
-                            </RouteGuard>
-                          } />
-                          
-                          {/* Default redirects */}
-                          <Route path="/" element={<Navigate to="/auth" replace />} />
-                          <Route path="*" element={<Navigate to="/auth" replace />} />
-                        </Routes>
-                      </div>
-                    </ErrorBoundary>
-                  </OnboardingGuard>
-                  
-                  <Toaster 
-                    position="bottom-right"
-                    expand={true}
-                    richColors
-                    closeButton
-                  />
-                </UnifiedAIProvider>
-              </DemoDataProvider>
-            </AuthProvider>
-          </Router>
-        </TooltipProvider>
-      </ThemeProvider>
-    </ErrorBoundary>
+    <div className="min-h-screen bg-background font-sans antialiased">
+      <Suspense fallback={<div>Loading...</div>}>
+        {routing}
+      </Suspense>
+      <Toaster />
+    </div>
   );
-}
+};
+
+const App = () => {
+  return (
+    <HelmetProvider>
+      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </HelmetProvider>
+  );
+};
 
 export default App;
