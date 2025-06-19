@@ -1,5 +1,6 @@
+
 import { Suspense, useEffect } from 'react';
-import { useRoutes, RouteObject } from 'react-router-dom';
+import { useRoutes, RouteObject, BrowserRouter } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -86,7 +87,9 @@ const App = () => {
     <HelmetProvider>
       <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
         <AuthProvider>
-          <AppContent />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
     </HelmetProvider>
