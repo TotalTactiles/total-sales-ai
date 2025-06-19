@@ -1,9 +1,8 @@
-
 import { Suspense, useEffect } from 'react';
 import { useRoutes, RouteObject } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 
 import { AuthProvider } from '@/contexts/AuthContext';
-import { HelmetProvider } from 'react-helmet-async';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
 import { agentConnectionService } from '@/services/ai/AgentConnectionService';
