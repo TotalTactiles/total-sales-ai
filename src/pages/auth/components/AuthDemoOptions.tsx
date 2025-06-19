@@ -1,120 +1,72 @@
 
 import React from 'react';
-import { Role } from '@/contexts/auth/types';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { Role } from '@/contexts/auth/types';
+import { Zap, Play } from 'lucide-react';
 import { logger } from '@/utils/logger';
 
 interface AuthDemoOptionsProps {
   selectedRole: Role;
-  setIsTransitioning: (value: boolean) => void;
-  simulateLoginTransition: (role?: Role) => void;
-  setFormData: (data: { email: string; password: string }) => void;
+  setIsTransitioning: (transitioning: boolean) => void;
+  simulateLoginTransition: () => void;
+  setFormData: (data: any) => void;
 }
 
 const AuthDemoOptions: React.FC<AuthDemoOptionsProps> = ({ 
   selectedRole, 
   setIsTransitioning, 
   simulateLoginTransition,
-  setFormData
+  setFormData 
 }) => {
-  const navigate = useNavigate();
   const { initializeDemoMode } = useAuth();
-  
-  const handleDemoLogin = () => {
-    // First fill in the form with demo credentials
-    const email =
-      selectedRole === 'manager'
-        ? 'manager@salesos.com'
-        : selectedRole === 'developer'
-        ? 'krishdev@tsam.com'
-        : 'rep@salesos.com';
-    const password =
-      selectedRole === 'manager'
-        ? 'manager123'
-        : selectedRole === 'developer'
-        ? 'badabing2024'
-        : 'sales123';
 
-    setFormData({ email, password });
-  };
-  
-  const handleDirectDemoLogin = () => {
-    try {
-      // Clear any existing auth data first
-      localStorage.clear();
-      sessionStorage.clear();
-
-      // Skip the form and directly log in with demo mode
-      logger.info("Direct demo login with role:", selectedRole);
-      if (selectedRole === 'developer') {
-        return;
-      }
-      initializeDemoMode(selectedRole);
-      setIsTransitioning(true);
-      
-      // Direct navigation based on role - using correct existing routes
-      const redirectPath = selectedRole === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
-      logger.info("Redirecting to:", redirectPath);
-      
-      setTimeout(() => {
-        navigate(redirectPath);
-      }, 1500);
-    } catch (error) {
-      logger.error('Error in direct demo login:', error);
-    }
+  const handleDemoAccess = () => {
+    logger.info('Initializing demo mode for role:', selectedRole);
+    
+    setIsTransitioning(true);
+    simulateLoginTransition();
+    
+    // Initialize demo mode
+    initializeDemoMode(selectedRole);
+    
+    // Set form data for demo
+    const demoCredentials = {
+      developer: { email: 'krishdev@tsam.com', password: 'badabing2024', fullName: 'Krish Developer' },
+      manager: { email: 'manager@salesos.com', password: 'manager123', fullName: 'Sales Manager' },
+      sales_rep: { email: 'rep@salesos.com', password: 'sales123', fullName: 'Sales Rep' }
+    };
+    
+    const credentials = demoCredentials[selectedRole] || demoCredentials.sales_rep;
+    setFormData(credentials);
   };
 
   return (
-    <div className="mt-6 pt-6 border-t border-muted">
-      <p className="text-center text-sm mb-4">
-        Try the <span className="font-semibold">demo version</span> instead
-      </p>
-      
-      <div className="flex flex-col space-y-3">
-        <Button
-          onClick={handleDemoLogin}
-          variant="outline"
-          className="w-full py-2 border border-border hover:bg-accent text-sm font-medium transition-colors"
-        >
-          Fill in Demo Credentials
-        </Button>
-        
-        {selectedRole !== 'developer' ? (
-          <Button
-            onClick={handleDirectDemoLogin}
-            variant="default"
-            className="w-full py-2 bg-salesBlue hover:bg-salesBlue/90 text-sm font-medium transition-colors"
-          >
-            Quick Demo Login
-          </Button>
-        ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="default"
-                disabled
-                className="w-full py-2 bg-salesBlue text-sm font-medium opacity-50 cursor-not-allowed"
-              >
-                Quick Demo Login
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Developer quick demo login is not available</p>
-            </TooltipContent>
-          </Tooltip>
-        )}
+    <div className="pt-4 border-t">
+      <div className="text-center mb-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">Try Demo Mode</h3>
+        <p className="text-xs text-gray-500">
+          Explore the platform with sample data and full functionality
+        </p>
       </div>
-
-      <p className="text-xs text-center text-muted-foreground mt-3">
-        {selectedRole === 'manager'
-          ? 'Demo Manager Account'
-          : selectedRole === 'developer'
-          ? 'Developer quick demo login unavailable. Use your credentials.'
-          : 'Demo Sales Rep Account'}
-      </p>
+      
+      <Button 
+        onClick={handleDemoAccess}
+        variant="outline" 
+        className="w-full border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+      >
+        <Play className="h-4 w-4 mr-2" />
+        Launch {selectedRole === 'sales_rep' ? 'Sales Rep' : selectedRole === 'manager' ? 'Manager' : 'Developer'} Demo
+      </Button>
+      
+      <div className="mt-3 text-center">
+        <div className="inline-flex items-center px-3 py-1 rounded-full bg-blue-50 border border-blue-200">
+          <Zap className="h-3 w-3 text-blue-600 mr-1" />
+          <span className="text-xs text-blue-700 font-medium">
+            Instant access • No signup required
+          </span>
+        </div>
+      </div>
     </div>
   );
 };

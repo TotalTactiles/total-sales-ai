@@ -4,28 +4,24 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
 
 // Sales Rep Pages
-import SalesRepDashboard from '@/pages/sales/Dashboard';
-import SalesRepAnalytics from '@/pages/sales/Analytics';
-import SalesRepLeadManagement from '@/pages/sales/LeadManagement';
-import SalesRepAcademy from '@/pages/sales/Academy';
-import SalesRepAI from '@/pages/sales/AI';
-import SalesRepSettings from '@/pages/sales/Settings';
-import Dialer from '@/pages/Dialer';
+import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
+import LeadManagement from '@/pages/LeadManagement';
+import LeadWorkspace from '@/pages/LeadWorkspace';
+import AutoDialerInterface from '@/components/AutoDialer/AutoDialerInterface';
+import CompanyBrainSalesRep from '@/components/CompanyBrain/CompanyBrainSalesRep';
 
 const SalesRepOS: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <SalesRepNavigation />
-      <main className="pt-16">
+      <main className="pt-[60px]">
         <Routes>
           <Route index element={<Navigate to="/sales/dashboard" replace />} />
           <Route path="dashboard" element={<SalesRepDashboard />} />
-          <Route path="analytics" element={<SalesRepAnalytics />} />
-          <Route path="leads" element={<SalesRepLeadManagement />} />
-          <Route path="dialer" element={<Dialer />} />
-          <Route path="academy" element={<SalesRepAcademy />} />
-          <Route path="ai" element={<SalesRepAI />} />
-          <Route path="settings" element={<SalesRepSettings />} />
+          <Route path="leads" element={<LeadManagement />} />
+          <Route path="leads/:leadId" element={<LeadWorkspace />} />
+          <Route path="dialer" element={<AutoDialerInterface />} />
+          <Route path="brain" element={<CompanyBrainSalesRep />} />
           <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
         </Routes>
       </main>

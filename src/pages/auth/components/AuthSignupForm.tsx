@@ -4,133 +4,183 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Github } from 'lucide-react';
-import { Provider } from '@supabase/supabase-js';
-import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Role } from '@/contexts/auth/types';
+import { Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 interface AuthSignupFormProps {
-  selectedRole?: Role;
-  setIsLogin?: (value: boolean) => void;
+  selectedRole: Role;
+  setIsLogin: (isLogin: boolean) => void;
 }
 
-const AuthSignupForm: React.FC<AuthSignupFormProps> = ({
-  selectedRole,
-  setIsLogin
-}) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const {
-    signUp,
-    signUpWithOAuth
-  } = useAuth();
+const AuthSignupForm: React.FC<AuthSignupFormProps> = ({ selectedRole, setIsLogin }) => {
+  const { signUp, signUpWithOAuth } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailPattern.test(email)) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-    if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-    setIsLoading(true);
+    setError(null);
+    setLoading(true);
+
     try {
-      const {
-        error
-      } = await signUp(email, password, {
-        role: selectedRole
-      });
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Account created successfully! Please check your email.');
-        if (setIsLogin) setIsLogin(true);
+      if (formData.password !== formData.confirmPassword) {
+        throw new Error('Passwords do not match');
       }
-    } catch (error) {
-      toast.error('An unexpected error occurred');
+
+      if (formData.password.length < 6) {
+        throw new Error('Password must be at least 6 characters');
+      }
+
+      const { error } = await signUp(formData.email, formData.password, {
+        role: selectedRole,
+        full_name: formData.fullName
+      });
+
+      if (error) {
+        if (error.message.includes('already registered')) {
+          setError('This email is already registered. Please try logging in instead.');
+        } else {
+          setError(error.message);
+        }
+      } else {
+        logger.info('Signup successful, redirecting...');
+        // User will be automatically redirected by the auth state change
+      }
+    } catch (error: any) {
+      logger.error('Signup error:', error);
+      setError(error.message || 'An error occurred during signup');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleOAuth = async (provider: Provider) => {
-    setIsLoading(true);
+  const handleGoogleSignup = async () => {
+    setError(null);
+    setLoading(true);
+
     try {
-      const { error } = await signUpWithOAuth(provider);
+      const { error } = await signUpWithOAuth('google');
       if (error) {
-        toast.error(error.message);
+        setError(error.message);
       }
-    } catch (error) {
-      toast.error('An unexpected error occurred');
+    } catch (error: any) {
+      logger.error('Google signup error:', error);
+      setError(error.message || 'An error occurred during Google signup');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader>
-        <CardTitle>Create Account</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input 
-              id="email" 
-              type="email" 
-              value={email} 
-              onChange={e => setEmail(e.target.value)} 
-              required 
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input 
-              id="password" 
-              type="password" 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              required 
-            />
-          </div>
-          <div>
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input 
-              id="confirmPassword" 
-              type="password" 
-              value={confirmPassword} 
-              onChange={e => setConfirmPassword(e.target.value)} 
-              required 
-            />
-          </div>
-          <Button 
-            type="submit" 
-            disabled={isLoading} 
-            className="w-full bg-indigo-700 hover:bg-indigo-600"
-          >
-            {isLoading ? 'Creating Account...' : 'Sign Up'}
-          </Button>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-          <div className="flex flex-col space-y-2 pt-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => handleOAuth('github')} 
-              disabled={isLoading}
-            >
-              <Github className="mr-2 h-4 w-4" /> Sign Up with GitHub
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+      <div className="space-y-2">
+        <Label htmlFor="fullName">Full Name</Label>
+        <div className="relative">
+          <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="fullName"
+            type="text"
+            placeholder="Enter your full name"
+            value={formData.fullName}
+            onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+            className="pl-10"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <div className="relative">
+          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="email"
+            type="email"
+            placeholder="Enter your email"
+            value={formData.email}
+            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+            className="pl-10"
+            required
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <div className="relative">
+          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="password"
+            type="password"
+            placeholder="Create a password"
+            value={formData.password}
+            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+            className="pl-10"
+            required
+            minLength={6}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <div className="relative">
+          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            id="confirmPassword"
+            type="password"
+            placeholder="Confirm your password"
+            value={formData.confirmPassword}
+            onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+            className="pl-10"
+            required
+            minLength={6}
+          />
+        </div>
+      </div>
+
+      <Button 
+        type="submit" 
+        className="w-full" 
+        disabled={loading}
+      >
+        {loading ? 'Creating Account...' : 'Sign Up'}
+      </Button>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+        </div>
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        className="w-full"
+        onClick={handleGoogleSignup}
+        disabled={loading}
+      >
+        Continue with Google
+      </Button>
+    </form>
   );
 };
 

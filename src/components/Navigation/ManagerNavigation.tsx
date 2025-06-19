@@ -1,74 +1,107 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Users, Settings, Brain, Building2, Database, Shield, FileText } from 'lucide-react';
-import Logo from '@/components/Logo';
-import UserProfile from '@/components/UserProfile';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { 
+  LayoutDashboard, 
+  Users, 
+  BarChart3, 
+  Target,
+  LogOut,
+  Settings
+} from 'lucide-react';
+import Logo from '@/components/Logo';
 
-const ManagerNavigation = () => {
+const ManagerNavigation: React.FC = () => {
+  const { profile, signOut } = useAuth();
   const location = useLocation();
-  const { profile } = useAuth();
 
-  const navItems = [
-    { label: 'Dashboard', href: '/manager/dashboard', icon: BarChart3 },
-    { label: 'Analytics', href: '/manager/analytics', icon: BarChart3 },
-    { label: 'Leads', href: '/manager/lead-management', icon: Users },
-    { label: 'Knowledge', href: '/manager/company-brain', icon: Database },
-    { label: 'AI', href: '/manager/ai', icon: Brain },
-    { label: 'CRM', href: '/manager/crm-integrations', icon: Database },
-    { label: 'Team', href: '/manager/team-management', icon: Users },
-    { label: 'Security', href: '/manager/security', icon: Shield },
-    { label: 'Reports', href: '/manager/reports', icon: FileText },
-    { label: 'Settings', href: '/manager/settings', icon: Settings },
+  const navigationItems = [
+    { path: '/manager/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/manager/team', label: 'Team', icon: Users },
+    { path: '/manager/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/manager/leads', label: 'Leads', icon: Target },
   ];
 
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
-      <div className="h-[60px] flex items-center justify-between px-4 lg:px-6">
-        {/* Left side - Logo and role indicator */}
-        <div className="flex items-center space-x-2 min-w-0">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-[60px]">
+      <div className="flex items-center justify-between h-full px-6">
+        {/* Logo and Navigation */}
+        <div className="flex items-center space-x-8">
           <Logo />
-          <div className="hidden sm:flex items-center space-x-1 text-sm text-muted-foreground">
-            <Building2 className="h-4 w-4" />
-            <span className="my-[8px] mx-[8px]">Manager</span>
+          
+          <div className="flex items-center space-x-6">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path || 
+                             (item.path !== '/manager/dashboard' && location.pathname.startsWith(item.path));
+              
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
 
-        {/* Center - Navigation Icons */}
-        <nav className="flex items-center space-x-1 sm:space-x-2 flex-1 justify-center max-w-4xl overflow-x-auto">
-          {navItems.map(item => {
-            const IconComponent = item.icon;
-            const isActive = location.pathname === item.href;
-            
-            return (
-              <Link
-                key={item.label}
-                to={item.href}
-                className={`flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-md transition-colors ${
-                  isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                }`}
-                title={item.label}
-              >
-                <IconComponent className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Right side - Theme toggle and user profile */}
-        <div className="flex items-center space-x-2 lg:space-x-4 min-w-0">
-          <ThemeToggle />
-          <UserProfile 
-            name={profile?.full_name || "Manager"} 
-            role="Sales Manager" 
-          />
+        {/* User Menu */}
+        <div className="flex items-center space-x-4">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="" alt="" />
+                  <AvatarFallback>
+                    {profile?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <div className="flex flex-col space-y-1 p-2">
+                <p className="text-sm font-medium leading-none">{profile?.full_name}</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  Manager
+                </p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
-    </header>
+    </nav>
   );
 };
 

@@ -1,5 +1,5 @@
 
-import { User, Session, AuthError, Provider } from '@supabase/supabase-js';
+import { User, Session } from '@supabase/supabase-js';
 
 export type Role = 'developer' | 'admin' | 'manager' | 'sales_rep';
 
@@ -7,31 +7,31 @@ export interface Profile {
   id: string;
   full_name: string | null;
   role: Role;
-  email?: string | null;
-  email_provider?: string | null;
-  email_account?: string | null;
-  created_at?: string;
-  updated_at?: string;
+  company_id: string | null;
+  email_connected: boolean;
+  created_at: string;
+  updated_at: string;
   last_login?: string | null;
-  company_id?: string | null;
-  email_connected?: boolean;
-  ai_assistant_name?: string | null;
+  email_account?: string | null;
+  email_provider?: string | null;
 }
 
 export interface AuthContextType {
   user: User | null;
   profile: Profile | null;
-  session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error?: AuthError; profile?: Profile | null }>;
-  signUp: (email: string, password: string, metadata?: any) => Promise<{ error?: AuthError }>;
-  signUpWithOAuth: (provider: Provider) => Promise<{ error?: AuthError }>;
-  signOut: () => Promise<void>;
-  fetchProfile: (userId: string) => Promise<Profile | null>;
+  session: Session | null;
+  signIn: (email: string, password: string) => Promise<{ error: any | null; profile?: Profile }>;
+  signUp: (email: string, password: string, userData?: any) => Promise<{ error: any | null }>;
+  signUpWithOAuth: (provider: string) => Promise<{ error: any | null }>;
+  signOut: () => Promise<{ error: any | null }>;
   isDemoMode: () => boolean;
-  setLastSelectedRole: (role: Role) => void;
-  getLastSelectedRole: () => Role;
-  setLastSelectedCompanyId: (companyId: string) => void;
-  getLastSelectedCompanyId: () => string | null;
+  setDemoRole: (role: Role) => void;
+  getDemoRole: () => Role | null;
   initializeDemoMode: (role: Role) => void;
+  setLastSelectedRole: (role: Role) => void;
+  setLastSelectedCompanyId: (companyId: string) => void;
+  fetchProfile: (userId: string) => Promise<Profile | null>;
+  getLastSelectedRole: () => Role;
+  getLastSelectedCompanyId: () => string | null;
 }
