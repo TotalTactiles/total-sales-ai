@@ -34,19 +34,19 @@ const MainLayout: React.FC = () => {
       switch (demoRole) {
         case 'manager':
           return (
-            <EnhancedErrorBoundary onError={setError}>
+            <EnhancedErrorBoundary>
               <ManagerOS />
             </EnhancedErrorBoundary>
           );
         case 'sales_rep':
           return (
-            <EnhancedErrorBoundary onError={setError}>
+            <EnhancedErrorBoundary>
               <SalesRepOS />
             </EnhancedErrorBoundary>
           );
         case 'developer':
           return (
-            <EnhancedErrorBoundary onError={setError}>
+            <EnhancedErrorBoundary>
               <DeveloperOS />
             </EnhancedErrorBoundary>
           );
@@ -67,20 +67,20 @@ const MainLayout: React.FC = () => {
       switch (profile.role) {
         case 'manager':
           return (
-            <EnhancedErrorBoundary onError={setError}>
+            <EnhancedErrorBoundary>
               <ManagerOS />
             </EnhancedErrorBoundary>
           );
         case 'sales_rep':
           return (
-            <EnhancedErrorBoundary onError={setError}>
+            <EnhancedErrorBoundary>
               <SalesRepOS />
             </EnhancedErrorBoundary>
           );
         case 'developer':
         case 'admin':
           return (
-            <EnhancedErrorBoundary onError={setError}>
+            <EnhancedErrorBoundary>
               <DeveloperOS />
             </EnhancedErrorBoundary>
           );
