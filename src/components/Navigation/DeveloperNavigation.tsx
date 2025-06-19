@@ -11,7 +11,9 @@ import {
   CheckSquare, 
   TestTube,
   GitBranch,
-  Building2
+  Building2,
+  Activity,
+  FileText
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import UserProfile from '@/components/UserProfile';
@@ -25,12 +27,12 @@ const DeveloperNavigation = () => {
   const navItems = [
     { label: 'Dashboard', href: '/developer/dashboard', icon: BarChart3 },
     { label: 'System Monitor', href: '/developer/system-monitor', icon: Monitor },
-    { label: 'AI Logs', href: '/developer/ai-brain-logs', icon: Brain },
+    { label: 'Agent Health', href: '/developer/agent-health', icon: Brain },
     { label: 'API Logs', href: '/developer/api-logs', icon: Database },
     { label: 'Error Logs', href: '/developer/error-logs', icon: AlertTriangle },
-    { label: 'QA Checklist', href: '/developer/qa-checklist', icon: CheckSquare },
-    { label: 'Testing', href: '/developer/testing-sandbox', icon: TestTube },
-    { label: 'Version Control', href: '/developer/version-control', icon: GitBranch },
+    { label: 'AI Monitor', href: '/developer/ai-monitor', icon: Activity },
+    { label: 'Users', href: '/developer/users', icon: CheckSquare },
+    { label: 'System Health', href: '/developer/system', icon: TestTube },
     { label: 'Settings', href: '/developer/settings', icon: Settings },
   ];
 
