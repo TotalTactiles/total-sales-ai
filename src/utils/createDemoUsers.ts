@@ -11,6 +11,12 @@ export interface DemoUser {
 
 export const DEMO_USERS: DemoUser[] = [
   {
+    email: 'krishdev@tsam.com',
+    password: 'badabing2024',
+    role: 'developer',
+    full_name: 'Krish Developer'
+  },
+  {
     email: 'manager@salesos.com',
     password: 'manager123',
     role: 'manager',
@@ -21,20 +27,65 @@ export const DEMO_USERS: DemoUser[] = [
     password: 'sales123',
     role: 'sales_rep',
     full_name: 'Sales Representative'
-  },
-  {
-    email: 'krishdev@tsam.com',
-    password: 'badabing2024',
-    role: 'developer',
-    full_name: 'Krish Developer'
   }
 ];
 
 export const createDemoUser = async (userData: DemoUser) => {
   try {
-    logger.info(`Starting creation process for: ${userData.email}`);
+    logger.info(`Creating/verifying user: ${userData.email}`);
     
-    // First, try to sign up the user
+    // First try to sign in to check if user exists
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: userData.email,
+      password: userData.password
+    });
+
+    if (signInData.user && !signInError) {
+      logger.info(`User ${userData.email} already exists and credentials work`);
+      
+      // Check if profile exists and is correct
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', signInData.user.id)
+        .single();
+
+      if (profileError || !profileData || profileData.role !== userData.role) {
+        // Create or update profile
+        const profilePayload = {
+          id: signInData.user.id,
+          full_name: userData.full_name,
+          role: userData.role as any,
+          company_id: signInData.user.id,
+          email_connected: false,
+          created_at: profileData?.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        const { error: upsertError } = await supabase
+          .from('profiles')
+          .upsert(profilePayload);
+
+        if (upsertError) {
+          logger.error(`Profile upsert failed for ${userData.email}:`, upsertError);
+        } else {
+          logger.info(`Profile updated for ${userData.email}`);
+        }
+      }
+
+      // Sign out after verification
+      await supabase.auth.signOut();
+      
+      return { 
+        success: true, 
+        message: 'User verified and ready',
+        email: userData.email 
+      };
+    }
+
+    // User doesn't exist or wrong password, try to create
+    logger.info(`Creating new user: ${userData.email}`);
+    
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: userData.email,
       password: userData.password,
@@ -42,68 +93,11 @@ export const createDemoUser = async (userData: DemoUser) => {
         data: {
           role: userData.role,
           full_name: userData.full_name
-        },
-        emailRedirectTo: `${window.location.origin}/auth`
+        }
       }
     });
 
     if (signUpError) {
-      if (signUpError.message.includes('already registered')) {
-        logger.info(`User ${userData.email} already exists, checking profile...`);
-        
-        // Try to sign in to verify the user exists and works
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: userData.email,
-          password: userData.password
-        });
-        
-        if (signInError) {
-          logger.error(`Sign in failed for ${userData.email}:`, signInError);
-          return { 
-            success: false, 
-            error: signInError,
-            email: userData.email 
-          };
-        }
-        
-        // Check if profile exists
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', signInData.user.id)
-          .single();
-        
-        if (profileError || !profileData) {
-          // Create profile manually if it doesn't exist
-          const { error: insertError } = await supabase
-            .from('profiles')
-            .insert({
-              id: signInData.user.id,
-              full_name: userData.full_name,
-              role: userData.role as any,
-              company_id: signInData.user.id
-            });
-          
-          if (insertError) {
-            logger.error(`Profile creation failed for ${userData.email}:`, insertError);
-            return { 
-              success: false, 
-              error: insertError,
-              email: userData.email 
-            };
-          }
-        }
-        
-        // Sign out after verification
-        await supabase.auth.signOut();
-        
-        return { 
-          success: true, 
-          message: 'User verified and ready for login',
-          email: userData.email 
-        };
-      }
-      
       logger.error(`Sign up failed for ${userData.email}:`, signUpError);
       return { 
         success: false, 
@@ -113,41 +107,29 @@ export const createDemoUser = async (userData: DemoUser) => {
     }
 
     if (signUpData.user) {
-      logger.info(`User created successfully: ${userData.email}`);
-      
-      // Verify profile was created by trigger
-      const { data: profileData, error: profileError } = await supabase
+      // Ensure profile is created
+      const profilePayload = {
+        id: signUpData.user.id,
+        full_name: userData.full_name,
+        role: userData.role as any,
+        company_id: signUpData.user.id,
+        email_connected: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { error: profileError } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('id', signUpData.user.id)
-        .single();
-      
+        .upsert(profilePayload);
+
       if (profileError) {
-        logger.warn(`Profile not found for ${userData.email}, creating manually...`);
-        
-        // Create profile manually
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: signUpData.user.id,
-            full_name: userData.full_name,
-            role: userData.role as any,
-            company_id: signUpData.user.id
-          });
-        
-        if (insertError) {
-          logger.error(`Manual profile creation failed for ${userData.email}:`, insertError);
-          return { 
-            success: false, 
-            error: insertError,
-            email: userData.email 
-          };
-        }
+        logger.error(`Profile creation failed for ${userData.email}:`, profileError);
       }
-      
+
       // Sign out the newly created user
       await supabase.auth.signOut();
       
+      logger.info(`User created successfully: ${userData.email}`);
       return { 
         success: true, 
         data: signUpData,
@@ -172,7 +154,7 @@ export const createDemoUser = async (userData: DemoUser) => {
 };
 
 export const createAllDemoUsers = async () => {
-  logger.info('Starting demo user creation process...');
+  logger.info('Starting comprehensive demo user creation...');
   const results = [];
   
   for (const user of DEMO_USERS) {
@@ -180,10 +162,10 @@ export const createAllDemoUsers = async () => {
     const result = await createDemoUser(user);
     results.push(result);
     
-    // Add a small delay between user creations
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Small delay between creations
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
   
-  logger.info('Demo user creation process completed');
+  logger.info('Demo user creation completed');
   return results;
 };

@@ -1,31 +1,35 @@
 
 import { logger } from '@/utils/logger';
+import { supabase } from '@/integrations/supabase/client';
 
-interface AgentStatus {
+export interface AgentStatus {
   id: string;
   name: string;
   status: 'active' | 'inactive' | 'error';
-  lastPing?: string;
-  errorMessage?: string;
+  lastHealthCheck: Date;
+  responseTimeMs?: number;
+  errorCount: number;
+  successCount: number;
 }
 
-interface ConnectionHealth {
+export interface ConnectionHealth {
   apiConnected: boolean;
   agentsRegistered: AgentStatus[];
-  lastHealthCheck: string;
-  errors: string[];
+  lastUpdate: Date;
 }
 
 class RelevanceAIConnectionService {
   private static instance: RelevanceAIConnectionService;
-  private apiKey: string | null = null;
-  private baseUrl = 'https://api-bcbe36.stack.tryrelevance.com/latest';
-  private healthStatus: ConnectionHealth = {
-    apiConnected: false,
-    agentsRegistered: [],
-    lastHealthCheck: '',
-    errors: []
-  };
+  private healthStatus: ConnectionHealth;
+  private healthCheckInterval: NodeJS.Timeout | null = null;
+
+  constructor() {
+    this.healthStatus = {
+      apiConnected: false,
+      agentsRegistered: [],
+      lastUpdate: new Date()
+    };
+  }
 
   static getInstance(): RelevanceAIConnectionService {
     if (!RelevanceAIConnectionService.instance) {
@@ -36,171 +40,227 @@ class RelevanceAIConnectionService {
 
   async initialize(): Promise<boolean> {
     try {
-      // Get API key from environment or Supabase secrets
-      this.apiKey = process.env.RELEVANCE_API_KEY || 
-                    (typeof window !== 'undefined' ? localStorage.getItem('relevance_api_key') : null);
-
-      if (!this.apiKey) {
-        throw new Error('Relevance AI API key not found');
+      logger.info('Initializing Relevance AI connection...');
+      
+      // Initialize default agents
+      await this.registerDefaultAgents();
+      
+      // Start health check monitoring
+      this.startHealthMonitoring();
+      
+      // Perform initial health check
+      const isHealthy = await this.performHealthCheck();
+      
+      if (isHealthy) {
+        logger.info('Relevance AI connection initialized successfully');
+        return true;
+      } else {
+        logger.warn('Relevance AI connection initialized with warnings');
+        return false;
       }
-
-      // Test connection
-      const connected = await this.testConnection();
-      if (connected) {
-        await this.registerAgents();
-        await this.performHealthCheck();
-      }
-
-      return connected;
     } catch (error) {
       logger.error('Failed to initialize Relevance AI connection:', error);
-      this.healthStatus.errors.push(`Initialization failed: ${error}`);
       return false;
     }
   }
 
-  async testConnection(): Promise<boolean> {
+  private async registerDefaultAgents(): Promise<void> {
+    const defaultAgents: Omit<AgentStatus, 'lastHealthCheck'>[] = [
+      {
+        id: 'salesAgent_v1',
+        name: 'Sales Agent',
+        status: 'active',
+        errorCount: 0,
+        successCount: 0
+      },
+      {
+        id: 'managerAgent_v1',
+        name: 'Manager Agent',
+        status: 'active',
+        errorCount: 0,
+        successCount: 0
+      },
+      {
+        id: 'automationAgent_v1',
+        name: 'Automation Agent',
+        status: 'active',
+        errorCount: 0,
+        successCount: 0
+      },
+      {
+        id: 'developerAgent_v1',
+        name: 'Developer Agent',
+        status: 'active',
+        errorCount: 0,
+        successCount: 0
+      }
+    ];
+
+    this.healthStatus.agentsRegistered = defaultAgents.map(agent => ({
+      ...agent,
+      lastHealthCheck: new Date()
+    }));
+
+    // Update database
+    for (const agent of this.healthStatus.agentsRegistered) {
+      await this.updateAgentStatus(agent);
+    }
+  }
+
+  private async updateAgentStatus(agent: AgentStatus): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/health`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        }
+      const { error } = await supabase
+        .from('ai_agent_status')
+        .upsert({
+          agent_name: agent.id,
+          status: agent.status,
+          last_health_check: agent.lastHealthCheck.toISOString(),
+          response_time_ms: agent.responseTimeMs || null,
+          error_count: agent.errorCount,
+          success_count: agent.successCount,
+          metadata: {
+            name: agent.name,
+            lastUpdate: new Date().toISOString()
+          },
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        logger.error('Failed to update agent status:', error);
+      }
+    } catch (error) {
+      logger.error('Error updating agent status:', error);
+    }
+  }
+
+  async performHealthCheck(): Promise<boolean> {
+    try {
+      logger.info('Performing Relevance AI health check...');
+      
+      // Test Relevance AI connection
+      const connectionTest = await this.testRelevanceConnection();
+      this.healthStatus.apiConnected = connectionTest;
+      
+      // Check each agent
+      for (const agent of this.healthStatus.agentsRegistered) {
+        const agentHealth = await this.checkAgentHealth(agent.id);
+        agent.status = agentHealth.status;
+        agent.lastHealthCheck = new Date();
+        agent.responseTimeMs = agentHealth.responseTimeMs;
+        
+        // Update database
+        await this.updateAgentStatus(agent);
+      }
+      
+      this.healthStatus.lastUpdate = new Date();
+      
+      const healthyAgents = this.healthStatus.agentsRegistered.filter(a => a.status === 'active').length;
+      const totalAgents = this.healthStatus.agentsRegistered.length;
+      
+      logger.info('Health check completed', {
+        apiConnected: this.healthStatus.apiConnected,
+        healthyAgents: `${healthyAgents}/${totalAgents}`
+      });
+      
+      return this.healthStatus.apiConnected && healthyAgents > 0;
+    } catch (error) {
+      logger.error('Health check failed:', error);
+      this.healthStatus.apiConnected = false;
+      return false;
+    }
+  }
+
+  private async testRelevanceConnection(): Promise<boolean> {
+    try {
+      // Test with a simple function call to relevance-ai edge function
+      const { data, error } = await supabase.functions.invoke('relevance-ai', {
+        body: { action: 'health_check' }
       });
 
-      this.healthStatus.apiConnected = response.ok;
-      this.healthStatus.lastHealthCheck = new Date().toISOString();
-
-      if (!response.ok) {
-        const error = await response.text();
-        this.healthStatus.errors.push(`API connection failed: ${error}`);
+      if (error) {
+        logger.warn('Relevance AI connection test failed:', error);
         return false;
       }
 
-      logger.info('Relevance AI connection successful');
       return true;
     } catch (error) {
-      logger.error('Relevance AI connection test failed:', error);
-      this.healthStatus.apiConnected = false;
-      this.healthStatus.errors.push(`Connection test failed: ${error}`);
+      logger.error('Relevance AI connection test error:', error);
       return false;
     }
   }
 
-  private async registerAgents(): Promise<void> {
-    const requiredAgents = [
-      { id: 'salesAgent_v1', name: 'Sales Rep Assistant', role: 'sales' },
-      { id: 'managerAgent_v1', name: 'Manager Performance AI', role: 'management' },
-      { id: 'automationAgent_v1', name: 'Background Trigger AI', role: 'automation' },
-      { id: 'developerAgent_v1', name: 'Debug & Audit AI', role: 'development' }
-    ];
-
-    this.healthStatus.agentsRegistered = [];
-
-    for (const agent of requiredAgents) {
-      try {
-        const status = await this.checkAgentStatus(agent.id);
-        this.healthStatus.agentsRegistered.push({
-          id: agent.id,
-          name: agent.name,
-          status: status ? 'active' : 'inactive',
-          lastPing: new Date().toISOString()
-        });
-      } catch (error) {
-        this.healthStatus.agentsRegistered.push({
-          id: agent.id,
-          name: agent.name,
-          status: 'error',
-          errorMessage: `${error}`,
-          lastPing: new Date().toISOString()
-        });
-      }
-    }
-  }
-
-  private async checkAgentStatus(agentId: string): Promise<boolean> {
+  private async checkAgentHealth(agentId: string): Promise<{ status: 'active' | 'inactive' | 'error', responseTimeMs?: number }> {
+    const startTime = Date.now();
+    
     try {
-      const response = await fetch(`${this.baseUrl}/agents/${agentId}/status`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
+      // Simulate agent health check - in production this would call the actual agent
+      const { data, error } = await supabase.functions.invoke('relevance-ai', {
+        body: { 
+          action: 'agent_health_check',
+          agentId 
         }
       });
 
-      return response.ok;
+      const responseTime = Date.now() - startTime;
+
+      if (error) {
+        return { status: 'error', responseTimeMs: responseTime };
+      }
+
+      return { status: 'active', responseTimeMs: responseTime };
     } catch (error) {
-      logger.error(`Failed to check status for agent ${agentId}:`, error);
-      return false;
+      const responseTime = Date.now() - startTime;
+      logger.error(`Agent ${agentId} health check failed:`, error);
+      return { status: 'error', responseTimeMs: responseTime };
     }
   }
 
-  async performHealthCheck(): Promise<ConnectionHealth> {
-    await this.testConnection();
-    if (this.healthStatus.apiConnected) {
-      await this.registerAgents();
+  private startHealthMonitoring(): void {
+    // Clear existing interval
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
     }
-    return this.healthStatus;
+
+    // Start new monitoring every 30 seconds
+    this.healthCheckInterval = setInterval(() => {
+      this.performHealthCheck();
+    }, 30000);
   }
 
   getHealthStatus(): ConnectionHealth {
     return this.healthStatus;
   }
 
-  async executeAgentTask(
-    agentId: string,
-    taskType: string,
-    payload: any
-  ): Promise<any> {
-    if (!this.healthStatus.apiConnected) {
-      throw new Error('Relevance AI is not connected');
-    }
+  getAgentStatus(agentId: string): AgentStatus | null {
+    return this.healthStatus.agentsRegistered.find(agent => agent.id === agentId) || null;
+  }
 
-    try {
-      const response = await fetch(`${this.baseUrl}/agents/${agentId}/execute`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          task_type: taskType,
-          payload: payload,
-          timestamp: new Date().toISOString()
-        })
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Agent execution failed: ${error}`);
-      }
-
-      const result = await response.json();
-      return result;
-    } catch (error) {
-      logger.error(`Agent task execution failed for ${agentId}:`, error);
-      throw error;
+  async recordAgentSuccess(agentId: string): Promise<void> {
+    const agent = this.healthStatus.agentsRegistered.find(a => a.id === agentId);
+    if (agent) {
+      agent.successCount++;
+      agent.status = 'active';
+      agent.lastHealthCheck = new Date();
+      await this.updateAgentStatus(agent);
     }
   }
 
-  async retryFailedTask(taskId: string, maxRetries = 3): Promise<any> {
-    // Implement exponential backoff retry logic
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
-        await new Promise(resolve => setTimeout(resolve, delay));
-        
-        // Retry the task
-        // This would need the original task parameters stored
-        logger.info(`Retrying task ${taskId}, attempt ${attempt}`);
-        return { success: true, attempt };
-      } catch (error) {
-        if (attempt === maxRetries) {
-          throw error;
-        }
-        logger.warn(`Retry attempt ${attempt} failed for task ${taskId}`);
-      }
+  async recordAgentError(agentId: string, error: string): Promise<void> {
+    const agent = this.healthStatus.agentsRegistered.find(a => a.id === agentId);
+    if (agent) {
+      agent.errorCount++;
+      agent.status = agent.errorCount > 3 ? 'error' : 'active';
+      agent.lastHealthCheck = new Date();
+      await this.updateAgentStatus(agent);
+      
+      logger.error(`Agent ${agentId} error recorded:`, error);
+    }
+  }
+
+  shutdown(): void {
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
     }
   }
 }

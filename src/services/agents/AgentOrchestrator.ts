@@ -1,47 +1,40 @@
-import { relevanceAIAgent } from '@/services/relevance/RelevanceAIAgentService';
-import { useAuth } from '@/contexts/AuthContext';
+
 import { logger } from '@/utils/logger';
+import { supabase } from '@/integrations/supabase/client';
+import { relevanceAIConnection } from '@/services/relevance/RelevanceAIConnectionService';
 
 export interface AgentContext {
   workspace: string;
-  currentLead?: any;
-  teamData?: any;
   userRole: string;
   companyId: string;
   userId: string;
-  recentActions?: any[];
-  tone?: string;
-  industry?: string;
-  
-  // Extended context for enhanced functionality
-  teamComparison?: any;
-  industryBenchmarks?: any;
-  performanceHistory?: any;
-  similarLeadOutcomes?: any;
-  recentFeedback?: any[];
-  
-  // Task-specific context - now properly typed
-  query?: string;
+  currentLead?: any;
   isCallActive?: boolean;
-  leadId?: string;
-  scenario?: string;
-  objection?: string;
-  agentId?: string;
-  pitchText?: string;
-  userResponse?: string;
+  callDuration?: number;
+  metadata?: Record<string, any>;
 }
 
 export interface AgentTask {
   agentType: 'salesAgent_v1' | 'managerAgent_v1' | 'automationAgent_v1' | 'developerAgent_v1';
   taskType: string;
   context: AgentContext;
-  priority?: 'low' | 'medium' | 'high';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+}
+
+export interface AgentExecutionResult {
+  taskId: string;
+  status: 'pending' | 'completed' | 'failed' | 'retry';
+  output?: any;
+  error_message?: string;
+  execution_time_ms?: number;
+  retry_count?: number;
 }
 
 class AgentOrchestrator {
   private static instance: AgentOrchestrator;
-  private feedbackHistory: Map<string, any[]> = new Map();
   private performanceMetrics: Map<string, any> = new Map();
+  private retryQueue: AgentTask[] = [];
+  private processingQueue: Set<string> = new Set();
 
   static getInstance(): AgentOrchestrator {
     if (!AgentOrchestrator.instance) {
@@ -50,147 +43,305 @@ class AgentOrchestrator {
     return AgentOrchestrator.instance;
   }
 
-  async executeTask(task: AgentTask): Promise<any> {
+  async executeTask(task: AgentTask): Promise<AgentExecutionResult> {
+    const taskId = crypto.randomUUID();
     const startTime = Date.now();
-    
+
     try {
-      // Enhanced context with multi-layered awareness
-      const enhancedContext = await this.enrichContext(task.context);
-      
-      // Execute the task with the appropriate agent
-      const result = await relevanceAIAgent.executeAgentTask(
-        task.agentType,
-        task.taskType,
-        enhancedContext,
-        task.context.userId,
-        task.context.companyId
-      );
-
-      // Track performance metrics
-      const executionTime = Date.now() - startTime;
-      this.trackPerformance(task.agentType, task.taskType, executionTime, true);
-
-      // Apply tone adaptation if specified
-      if (task.context.tone && result.output_payload?.response) {
-        result.output_payload.response = await this.adaptTone(
-          result.output_payload.response,
-          task.context.tone
-        );
+      // Prevent duplicate task execution
+      const taskKey = `${task.agentType}-${task.taskType}-${JSON.stringify(task.context)}`;
+      if (this.processingQueue.has(taskKey)) {
+        logger.warn('Task already processing, skipping duplicate:', taskKey);
+        return {
+          taskId,
+          status: 'pending',
+          error_message: 'Task already processing'
+        };
       }
 
-      return result;
+      this.processingQueue.add(taskKey);
+
+      // Log task start
+      await this.logAgentTask(taskId, task, 'pending', startTime);
+
+      // Execute the agent task based on type
+      let result: any;
+      switch (task.agentType) {
+        case 'salesAgent_v1':
+          result = await this.executeSalesAgent(task);
+          break;
+        case 'managerAgent_v1':
+          result = await this.executeManagerAgent(task);
+          break;
+        case 'automationAgent_v1':
+          result = await this.executeAutomationAgent(task);
+          break;
+        case 'developerAgent_v1':
+          result = await this.executeDeveloperAgent(task);
+          break;
+        default:
+          throw new Error(`Unknown agent type: ${task.agentType}`);
+      }
+
+      const executionTime = Date.now() - startTime;
+
+      // Record success
+      await relevanceAIConnection.recordAgentSuccess(task.agentType);
+      
+      // Update performance metrics
+      this.updatePerformanceMetrics(task.agentType, executionTime, true);
+      
+      // Log completion
+      await this.logAgentTask(taskId, task, 'completed', startTime, result, executionTime);
+
+      this.processingQueue.delete(taskKey);
+
+      return {
+        taskId,
+        status: 'completed',
+        output: result,
+        execution_time_ms: executionTime
+      };
 
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      this.trackPerformance(task.agentType, task.taskType, executionTime, false);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
-      logger.error('Agent task execution failed:', { 
-        task: task.taskType, 
-        agent: task.agentType, 
-        error 
-      });
+      // Record error
+      await relevanceAIConnection.recordAgentError(task.agentType, errorMessage);
       
-      throw error;
-    }
-  }
+      // Update performance metrics
+      this.updatePerformanceMetrics(task.agentType, executionTime, false);
+      
+      // Log failure
+      await this.logAgentTask(taskId, task, 'failed', startTime, null, executionTime, errorMessage);
 
-  private async enrichContext(context: AgentContext): Promise<any> {
-    const enriched = { ...context };
-
-    // Add team comparison data for strategic recommendations
-    if (context.userRole === 'manager') {
-      enriched.teamComparison = await this.getTeamComparisonData(context.companyId);
-      enriched.industryBenchmarks = await this.getIndustryBenchmarks(context.industry);
-    }
-
-    // Add rep performance history for sales agents
-    if (context.userRole === 'sales_rep') {
-      enriched.performanceHistory = await this.getUserPerformanceHistory(context.userId);
-      enriched.similarLeadOutcomes = await this.getSimilarLeadOutcomes(context.currentLead);
-    }
-
-    // Add recent feedback for self-improvement
-    enriched.recentFeedback = this.feedbackHistory.get(context.userId) || [];
-
-    return enriched;
-  }
-
-  private async adaptTone(content: string, tone: string): Promise<string> {
-    // Tone adaptation logic - could be enhanced with AI
-    const toneMap = {
-      'formal': content,
-      'friendly': content.replace(/\./g, '!').replace(/However,/g, 'But hey,'),
-      'direct': content.replace(/I think|I believe|Perhaps/g, '').replace(/might/g, 'will'),
-      'aggressive': content.replace(/please/gi, '').replace(/thank you/gi, 'NOW').toUpperCase()
-    };
-
-    return toneMap[tone as keyof typeof toneMap] || content;
-  }
-
-  async submitFeedback(
-    userId: string, 
-    taskId: string, 
-    rating: 'positive' | 'negative', 
-    correction?: string
-  ): Promise<void> {
-    const feedback = {
-      taskId,
-      rating,
-      correction,
-      timestamp: new Date().toISOString()
-    };
-
-    const userFeedback = this.feedbackHistory.get(userId) || [];
-    userFeedback.push(feedback);
-    this.feedbackHistory.set(userId, userFeedback);
-
-    // Trigger self-improvement if multiple similar corrections
-    await this.checkForImprovementTriggers(userId, correction);
-  }
-
-  private async checkForImprovementTriggers(userId: string, correction?: string): Promise<void> {
-    if (!correction) return;
-
-    const userFeedback = this.feedbackHistory.get(userId) || [];
-    const recentCorrections = userFeedback
-      .filter(f => f.correction && f.timestamp > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-      .map(f => f.correction);
-
-    // If similar corrections appear 3+ times, trigger learning
-    const correctionCounts = recentCorrections.reduce((acc: Record<string, number>, corr: string) => {
-      acc[corr] = (acc[corr] || 0) + 1;
-      return acc;
-    }, {});
-
-    for (const [corr, count] of Object.entries(correctionCounts)) {
-      if (typeof count === 'number' && count >= 3) {
-        logger.info('Triggering agent learning for repeated correction:', { userId, correction: corr });
-        // Here you would implement the learning signal back to the system
+      // Add to retry queue if not too many retries
+      const retryCount = (task as any).retryCount || 0;
+      if (retryCount < 3) {
+        (task as any).retryCount = retryCount + 1;
+        this.retryQueue.push(task);
+        logger.info(`Task ${taskId} added to retry queue (attempt ${retryCount + 1})`);
       }
+
+      this.processingQueue.delete(`${task.agentType}-${task.taskType}-${JSON.stringify(task.context)}`);
+
+      return {
+        taskId,
+        status: 'failed',
+        error_message: errorMessage,
+        execution_time_ms: executionTime,
+        retry_count: retryCount
+      };
     }
   }
 
-  private trackPerformance(
-    agentType: string, 
-    taskType: string, 
-    executionTime: number, 
-    success: boolean
-  ): void {
-    const key = `${agentType}-${taskType}`;
+  private async executeSalesAgent(task: AgentTask): Promise<any> {
+    logger.info('Executing sales agent task:', task.taskType);
+    
+    // Call Relevance AI function
+    const { data, error } = await supabase.functions.invoke('relevance-ai', {
+      body: {
+        action: 'execute_workflow',
+        data: {
+          workflowId: 'salesAgent_v1',
+          input: {
+            taskType: task.taskType,
+            context: task.context,
+            timestamp: new Date().toISOString()
+          },
+          userId: task.context.userId
+        }
+      }
+    });
+
+    if (error) {
+      throw new Error(`Sales agent execution failed: ${error.message}`);
+    }
+
+    // Update sales agent memory if needed
+    if (task.context.currentLead) {
+      await this.updateSalesAgentMemory(task.context.currentLead.id, {
+        last_contact: new Date().toISOString(),
+        stage: task.taskType,
+        notes: data?.result?.summary || 'AI task completed',
+        outcome: data?.result?.outcome || 'processed',
+        follow_up_sent: task.taskType.includes('follow_up'),
+        escalation_flag: data?.result?.needsEscalation || false
+      });
+    }
+
+    return data?.result || { success: true, message: 'Sales agent task completed' };
+  }
+
+  private async executeManagerAgent(task: AgentTask): Promise<any> {
+    logger.info('Executing manager agent task:', task.taskType);
+    
+    const { data, error } = await supabase.functions.invoke('relevance-ai', {
+      body: {
+        action: 'execute_workflow',
+        data: {
+          workflowId: 'managerAgent_v1',
+          input: {
+            taskType: task.taskType,
+            context: task.context,
+            timestamp: new Date().toISOString()
+          },
+          userId: task.context.userId
+        }
+      }
+    });
+
+    if (error) {
+      throw new Error(`Manager agent execution failed: ${error.message}`);
+    }
+
+    return data?.result || { success: true, message: 'Manager agent task completed' };
+  }
+
+  private async executeAutomationAgent(task: AgentTask): Promise<any> {
+    logger.info('Executing automation agent task:', task.taskType);
+    
+    const { data, error } = await supabase.functions.invoke('relevance-ai', {
+      body: {
+        action: 'execute_workflow',
+        data: {
+          workflowId: 'automationAgent_v1',
+          input: {
+            taskType: task.taskType,
+            context: task.context,
+            timestamp: new Date().toISOString()
+          },
+          userId: task.context.userId
+        }
+      }
+    });
+
+    if (error) {
+      throw new Error(`Automation agent execution failed: ${error.message}`);
+    }
+
+    // Log to automation agent memory
+    await this.updateAutomationAgentMemory(crypto.randomUUID(), {
+      event_type: task.taskType,
+      input_data: task.context,
+      status: 'completed',
+      trigger_timestamp: new Date().toISOString(),
+      resolution_time: data?.execution_time || 1000
+    });
+
+    return data?.result || { success: true, message: 'Automation agent task completed' };
+  }
+
+  private async executeDeveloperAgent(task: AgentTask): Promise<any> {
+    logger.info('Executing developer agent task:', task.taskType);
+    
+    const { data, error } = await supabase.functions.invoke('relevance-ai', {
+      body: {
+        action: 'execute_workflow',
+        data: {
+          workflowId: 'developerAgent_v1',
+          input: {
+            taskType: task.taskType,
+            context: task.context,
+            timestamp: new Date().toISOString()
+          },
+          userId: task.context.userId
+        }
+      }
+    });
+
+    if (error) {
+      throw new Error(`Developer agent execution failed: ${error.message}`);
+    }
+
+    return data?.result || { success: true, message: 'Developer agent task completed' };
+  }
+
+  private async updateSalesAgentMemory(leadId: string, data: any): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('salesagent_memory')
+        .upsert({
+          lead_id: leadId,
+          ...data,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        logger.error('Failed to update sales agent memory:', error);
+      }
+    } catch (error) {
+      logger.error('Error updating sales agent memory:', error);
+    }
+  }
+
+  private async updateAutomationAgentMemory(automationId: string, data: any): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('automationagent_memory')
+        .upsert({
+          automation_id: automationId,
+          ...data,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        logger.error('Failed to update automation agent memory:', error);
+      }
+    } catch (error) {
+      logger.error('Error updating automation agent memory:', error);
+    }
+  }
+
+  private async logAgentTask(
+    taskId: string,
+    task: AgentTask,
+    status: string,
+    startTime: number,
+    output?: any,
+    executionTime?: number,
+    errorMessage?: string
+  ): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('ai_agent_tasks')
+        .upsert({
+          id: taskId,
+          agent_type: task.agentType,
+          task_type: task.taskType,
+          status,
+          input_payload: task.context,
+          output_payload: output,
+          user_id: task.context.userId,
+          company_id: task.context.companyId,
+          execution_time_ms: executionTime,
+          error_message: errorMessage,
+          started_at: new Date(startTime).toISOString(),
+          completed_at: status === 'completed' || status === 'failed' ? new Date().toISOString() : null
+        });
+
+      if (error) {
+        logger.error('Failed to log agent task:', error);
+      }
+    } catch (error) {
+      logger.error('Error logging agent task:', error);
+    }
+  }
+
+  private updatePerformanceMetrics(agentType: string, executionTime: number, success: boolean): void {
+    const key = `${agentType}-general`;
     const current = this.performanceMetrics.get(key) || {
       totalExecutions: 0,
       successCount: 0,
-      averageTime: 0,
-      totalTime: 0
+      totalTime: 0,
+      averageTime: 0
     };
 
     current.totalExecutions++;
+    if (success) current.successCount++;
     current.totalTime += executionTime;
     current.averageTime = current.totalTime / current.totalExecutions;
-    
-    if (success) {
-      current.successCount++;
-    }
 
     this.performanceMetrics.set(key, current);
   }
@@ -199,43 +350,21 @@ class AgentOrchestrator {
     return this.performanceMetrics;
   }
 
-  private async getTeamComparisonData(companyId: string): Promise<any> {
-    // Mock implementation - would fetch real team data
-    return {
-      teamSize: 5,
-      avgCallsPerDay: 45,
-      avgConversionRate: 0.23,
-      topPerformer: { name: 'Sarah', rate: 0.35 }
-    };
-  }
+  async processRetryQueue(): Promise<void> {
+    if (this.retryQueue.length === 0) return;
 
-  private async getIndustryBenchmarks(industry?: string): Promise<any> {
-    // Mock implementation - would fetch industry data
-    return {
-      avgResponseTime: '2.3 hours',
-      conversionRate: 0.18,
-      avgDealSize: '$15,400'
-    };
-  }
-
-  private async getUserPerformanceHistory(userId: string): Promise<any> {
-    // Mock implementation - would fetch user performance
-    return {
-      last30Days: { calls: 150, wins: 12, winRate: 0.08 },
-      trending: 'up',
-      bestCallTime: '10:30 AM'
-    };
-  }
-
-  private async getSimilarLeadOutcomes(lead?: any): Promise<any> {
-    if (!lead) return {};
+    logger.info(`Processing retry queue with ${this.retryQueue.length} tasks`);
     
-    // Mock implementation - would analyze similar leads
-    return {
-      similarCompanyOutcomes: 0.45,
-      industryPattern: 'responds well to ROI focus',
-      recommendedApproach: 'technical demo first'
-    };
+    const tasksToRetry = [...this.retryQueue];
+    this.retryQueue = [];
+
+    for (const task of tasksToRetry) {
+      try {
+        await this.executeTask(task);
+      } catch (error) {
+        logger.error('Retry execution failed:', error);
+      }
+    }
   }
 }
 

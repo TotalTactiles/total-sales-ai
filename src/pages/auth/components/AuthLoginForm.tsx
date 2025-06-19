@@ -79,7 +79,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     
     try {
       logger.info('Attempting to sign in with:', formData.email);
-      const { error: authError, profile } = await signIn(formData.email, formData.password);
+      const { error: authError } = await signIn(formData.email, formData.password);
       
       if (authError) {
         logger.error('Authentication failed:', authError.message);
@@ -91,6 +91,8 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           setError('Please check your email and click the confirmation link before signing in.');
         } else if (authError.message.includes('Too many requests')) {
           setError('Too many login attempts. Please wait a moment before trying again.');
+        } else if (authError.message.includes('fetch')) {
+          setError('Network error. Please check your connection and try again.');
         } else {
           setError(authError.message || 'Login failed');
         }
@@ -99,7 +101,12 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       } else {
         logger.info('Authentication successful');
         setSuccess('Login successful! Redirecting...');
-        // The AuthProvider will handle routing automatically on success
+        
+        // Small delay to show success message
+        setTimeout(() => {
+          // The AuthProvider will handle routing automatically on success
+          window.location.href = '/';
+        }, 1000);
       }
     } catch (error: any) {
       logger.error('Authentication error:', error);
@@ -110,80 +117,101 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     }
   };
 
+  const handleUseDemo = () => {
+    setSuccess('Demo mode activated!');
+    simulateLoginTransition(selectedRole);
+  };
+
   return (
-    <form onSubmit={handleAuthSubmit} className="space-y-4">
-      {error && (
-        <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 flex-shrink-0" />
-          <span>{error}</span>
-        </div>
-      )}
-      
-      {success && (
-        <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md flex items-center gap-2">
-          <CheckCircle className="h-4 w-4 flex-shrink-0" />
-          <span>{success}</span>
-        </div>
-      )}
-      
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input 
-          id="email" 
-          name="email" 
-          type="email" 
-          value={formData.email} 
-          onChange={handleFormChange} 
-          required 
-          disabled={isLoading}
-          autoComplete="email"
-          placeholder="Enter your email"
-          className="font-mono text-sm"
-        />
-      </div>
-      <div>
-        <Label htmlFor="password">Password</Label>
-        <Input 
-          id="password" 
-          name="password" 
-          type="password" 
-          value={formData.password} 
-          onChange={handleFormChange} 
-          required 
-          disabled={isLoading}
-          autoComplete="current-password"
-          placeholder="Enter your password"
-          className="font-mono text-sm"
-        />
-      </div>
-      
-      <Button 
-        type="submit" 
-        disabled={isLoading || !formData.email || !formData.password} 
-        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white"
-      >
-        {isLoading ? (
-          <>
-            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></div>
-            Logging in...
-          </>
-        ) : (
-          <>
-            <LogIn className="mr-2 h-4 w-4" /> 
-            Login as {selectedRole === 'developer' ? 'Developer' : selectedRole === 'manager' ? 'Manager' : 'Sales Rep'}
-          </>
+    <div className="space-y-4">
+      <form onSubmit={handleAuthSubmit} className="space-y-4">
+        {error && (
+          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
         )}
-      </Button>
-      
-      <div className="text-center">
-        <p className="text-xs text-muted-foreground">
-          Pre-filled with {selectedRole === 'developer' ? 'developer' : selectedRole === 'manager' ? 'manager' : 'sales rep'} credentials
-        </p>
-        <p className="text-xs text-green-600 mt-1">
-          ✅ Demo accounts are auto-created
+        
+        {success && (
+          <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 flex-shrink-0" />
+            <span>{success}</span>
+          </div>
+        )}
+        
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input 
+            id="email" 
+            name="email" 
+            type="email" 
+            value={formData.email} 
+            onChange={handleFormChange} 
+            required 
+            disabled={isLoading}
+            autoComplete="email"
+            placeholder="Enter your email"
+            className="font-mono text-sm"
+          />
+        </div>
+        <div>
+          <Label htmlFor="password">Password</Label>
+          <Input 
+            id="password" 
+            name="password" 
+            type="password" 
+            value={formData.password} 
+            onChange={handleFormChange} 
+            required 
+            disabled={isLoading}
+            autoComplete="current-password"
+            placeholder="Enter your password"
+            className="font-mono text-sm"
+          />
+        </div>
+        
+        <Button 
+          type="submit" 
+          disabled={isLoading || !formData.email || !formData.password} 
+          className="w-full bg-indigo-600 hover:bg-indigo-500 text-white"
+        >
+          {isLoading ? (
+            <>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></div>
+              Logging in...
+            </>
+          ) : (
+            <>
+              <LogIn className="mr-2 h-4 w-4" /> 
+              Login as {selectedRole === 'developer' ? 'Developer' : selectedRole === 'manager' ? 'Manager' : 'Sales Rep'}
+            </>
+          )}
+        </Button>
+        
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground">
+            Pre-filled with {selectedRole === 'developer' ? 'developer' : selectedRole === 'manager' ? 'manager' : 'sales rep'} credentials
+          </p>
+          <p className="text-xs text-green-600 mt-1">
+            ✅ Demo accounts are auto-created
+          </p>
+        </div>
+      </form>
+
+      <div className="border-t pt-4">
+        <Button 
+          variant="outline" 
+          onClick={handleUseDemo}
+          disabled={isLoading}
+          className="w-full"
+        >
+          Use Demo Mode Instead
+        </Button>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          Try the system without real authentication
         </p>
       </div>
-    </form>
+    </div>
   );
 };
 

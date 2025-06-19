@@ -4,34 +4,24 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
 
 // Developer Pages
-import DeveloperDashboard from '@/pages/developer/Dashboard';
-import DeveloperSystemMonitor from '@/pages/developer/SystemMonitor';
-import DeveloperAILogs from '@/pages/developer/AIBrainLogs';
-import DeveloperAPILogs from '@/pages/developer/APILogs';
-import DeveloperErrorLogs from '@/pages/developer/ErrorLogs';
-import DeveloperQAChecklist from '@/pages/developer/QAChecklist';
-import DeveloperTestingSandbox from '@/pages/developer/TestingSandbox';
-import DeveloperVersionControl from '@/pages/developer/VersionControl';
-import DeveloperSettings from '@/pages/developer/Settings';
-import DeveloperCRMIntegrations from '@/pages/developer/CRMIntegrations';
+import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
+import AgentHealthDashboard from '@/components/Developer/AgentHealthDashboard';
+import RelevanceAIMonitor from '@/components/Developer/RelevanceAIMonitor';
+import UserAccountManager from '@/components/Developer/UserAccountManager';
+import ProductionReadinessMonitor from '@/components/SystemHealth/ProductionReadinessMonitor';
 
 const DeveloperOS: React.FC = () => {
   return (
-    <div className="min-h-screen bg-slate-900 text-white">
+    <div className="min-h-screen bg-background">
       <DeveloperNavigation />
-      <main className="pt-16">
+      <main className="pt-[60px]">
         <Routes>
-          <Route index element={<DeveloperDashboard />} />
+          <Route index element={<Navigate to="/developer/dashboard" replace />} />
           <Route path="dashboard" element={<DeveloperDashboard />} />
-          <Route path="system-monitor" element={<DeveloperSystemMonitor />} />
-          <Route path="ai-brain-logs" element={<DeveloperAILogs />} />
-          <Route path="api-logs" element={<DeveloperAPILogs />} />
-          <Route path="error-logs" element={<DeveloperErrorLogs />} />
-          <Route path="qa-checklist" element={<DeveloperQAChecklist />} />
-          <Route path="testing-sandbox" element={<DeveloperTestingSandbox />} />
-          <Route path="version-control" element={<DeveloperVersionControl />} />
-          <Route path="crm-integrations" element={<DeveloperCRMIntegrations />} />
-          <Route path="settings" element={<DeveloperSettings />} />
+          <Route path="agents" element={<AgentHealthDashboard />} />
+          <Route path="ai-monitor" element={<RelevanceAIMonitor />} />
+          <Route path="users" element={<UserAccountManager />} />
+          <Route path="system" element={<ProductionReadinessMonitor />} />
           <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
         </Routes>
       </main>
