@@ -60,7 +60,8 @@ const LeadManagementTabs: React.FC<LeadManagementTabsProps> = ({
       contacted: leads.filter(lead => lead.status === 'contacted').length,
       qualified: leads.filter(lead => lead.status === 'qualified').length,
       proposal: leads.filter(lead => lead.status === 'proposal').length,
-      closed: leads.filter(lead => lead.status === 'closed').length
+      closed_won: leads.filter(lead => lead.status === 'closed_won').length,
+      closed_lost: leads.filter(lead => lead.status === 'closed_lost').length
     };
   };
 
@@ -161,10 +162,10 @@ const LeadManagementTabs: React.FC<LeadManagementTabsProps> = ({
               {counts.proposal}
             </Badge>
           </TabsTrigger>
-          <TabsTrigger value="closed" className="flex items-center gap-2">
-            Closed
+          <TabsTrigger value="closed_won" className="flex items-center gap-2">
+            Won
             <Badge variant="secondary" className="text-xs">
-              {counts.closed}
+              {counts.closed_won}
             </Badge>
           </TabsTrigger>
         </TabsList>
@@ -185,8 +186,8 @@ const LeadManagementTabs: React.FC<LeadManagementTabsProps> = ({
           <TabsContent value="proposal">
             <TabContent status="proposal" />
           </TabsContent>
-          <TabsContent value="closed">
-            <TabContent status="closed" />
+          <TabsContent value="closed_won">
+            <TabContent status="closed_won" />
           </TabsContent>
         </div>
       </Tabs>

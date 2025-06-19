@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import { User } from '@supabase/supabase-js';
@@ -21,10 +22,14 @@ export const initializeDemoUser = (role: Role): {
     created_at: new Date().toISOString(),
   } as unknown as User;
 
-  const demoProfile = {
+  const demoProfile: Profile = {
     id: demoUser.id,
     full_name: role === 'manager' ? 'John Manager' : 'Sam Sales',
     role: role,
+    company_id: 'demo-company',
+    email_connected: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   };
 
   logger.info("Setting demo user:", demoUser);

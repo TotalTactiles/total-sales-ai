@@ -22,12 +22,21 @@ const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     } else {
       role = 'sales_rep';
     }
-    setProfile({ id: '1', role } as Profile);
-    return {};
+    setProfile({ 
+      id: '1', 
+      role,
+      full_name: 'Test User',
+      company_id: 'test-company',
+      email_connected: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    } as Profile);
+    return { error: null };
   };
 
   const signOut = async () => {
     setProfile(null);
+    return { error: null };
   };
 
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
@@ -40,11 +49,13 @@ const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     session: null,
     loading: false,
     signIn,
-    signUp: async () => ({}),
-    signUpWithOAuth: async () => ({}),
+    signUp: async () => ({ error: null }),
+    signUpWithOAuth: async () => ({ error: null }),
     signOut,
     fetchProfile,
     isDemoMode: () => false,
+    setDemoRole: () => {},
+    getDemoRole: () => null,
     setLastSelectedRole: () => {},
     getLastSelectedRole: () => 'sales_rep',
     setLastSelectedCompanyId: () => {},
