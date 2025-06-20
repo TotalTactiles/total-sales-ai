@@ -76,7 +76,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const { data: newProfile, error } = await supabase
         .from('profiles')
-        .insert(profileData)
+        .upsert(profileData, { onConflict: 'id' })
         .select()
         .single();
 
@@ -98,6 +98,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       let userProfile = await fetchProfile(user.id);
       
       if (!userProfile) {
+        logger.info('Profile not found, creating new profile for user:', user.id);
         userProfile = await createProfile(user);
       }
 
@@ -106,10 +107,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logger.info('Profile set:', { userId: user.id, role: userProfile.role });
         
         // Update last login
-        await supabase
-          .from('profiles')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', user.id);
+        try {
+          await supabase
+            .from('profiles')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', user.id);
+        } catch (updateError) {
+          logger.warn('Failed to update last login:', updateError);
+        }
       } else {
         logger.error('Failed to create or fetch profile');
         // Create a fallback profile to prevent auth loops
