@@ -13,6 +13,7 @@ import RelevanceAIMonitor from '@/components/Developer/RelevanceAIMonitor';
 import UserAccountManager from '@/components/Developer/UserAccountManager';
 import ProductionReadinessMonitor from '@/components/SystemHealth/ProductionReadinessMonitor';
 import AIBrainMonitor from '@/pages/developer/AIBrainMonitor';
+import APILogs from '@/pages/developer/APILogs';
 
 const DeveloperOS: React.FC = () => {
   return (
@@ -30,6 +31,7 @@ const DeveloperOS: React.FC = () => {
           <Route path="users" element={<UserAccountManager />} />
           <Route path="system" element={<ProductionReadinessMonitor />} />
           <Route path="brain-monitor" element={<AIBrainMonitor />} />
+          <Route path="api-logs" element={<APILogs />} />
           <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
         </Routes>
       </main>
