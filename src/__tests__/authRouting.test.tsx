@@ -3,10 +3,7 @@
 
 import React, { createContext, useContext, useState } from 'react';
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, cleanup } from '@testing-library/react';
-import { waitFor } from '@testing-library/dom';
-import { fireEvent } from '@testing-library/dom';
-import { screen } from '@testing-library/dom';
+import { render, cleanup, waitFor, fireEvent, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import type { AuthContextType, Profile } from '@/contexts/auth/types';
 

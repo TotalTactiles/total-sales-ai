@@ -5,14 +5,14 @@ import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
-import AuthPage from '@/pages/AuthPage';
+import AuthPage from '@/pages/auth/AuthPage';
 import NewLandingPage from '@/pages/NewLandingPage';
-import SalesOS from '@/layouts/SalesOS';
+import SalesOS from '@/layouts/SalesRepOS';
 import ManagerOS from '@/layouts/ManagerOS';
 import DeveloperOS from '@/layouts/DeveloperOS';
 import OnboardingGuard from '@/components/OnboardingGuard';
 import { useAuth } from '@/contexts/AuthContext';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import { useAIBrain } from '@/hooks/useAIBrain';
 import './App.css';
 

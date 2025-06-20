@@ -1,13 +1,9 @@
 
 import { afterEach } from "vitest"
-import { cleanup } from "@testing-library/react"
+import { cleanup, render, fireEvent, screen, waitFor } from "@testing-library/react"
 import { describe, it, expect } from "vitest";
 //@vitest-environment jsdom
 import React from 'react';
-import { render } from '@testing-library/react';
-import { fireEvent } from '@testing-library/dom';
-import { screen } from '@testing-library/dom';
-import { waitFor } from '@testing-library/dom';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import NewLandingPage from '@/pages/NewLandingPage';
 
