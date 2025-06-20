@@ -34,23 +34,7 @@ export const createDemoUser = async (user: DemoUser) => {
   try {
     logger.info(`Creating demo user: ${user.email}`);
     
-    // First check if user already exists in profiles
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('email', user.email)
-      .single();
-
-    if (existingProfile) {
-      logger.info(`User ${user.email} already exists with profile`);
-      return {
-        success: true,
-        email: user.email,
-        message: 'User already exists with complete profile'
-      };
-    }
-
-    // Try to sign up the user with proper metadata
+    // Try to sign up the user
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: user.email,
       password: user.password,
@@ -62,68 +46,7 @@ export const createDemoUser = async (user: DemoUser) => {
       }
     });
 
-    if (authError) {
-      // If user already exists in auth, try to create profile manually
-      if (authError.message.includes('already registered') || authError.message.includes('already been registered')) {
-        logger.info(`User ${user.email} exists in auth, attempting to create profile`);
-        
-        // Try to sign in to get the user ID
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-          email: user.email,
-          password: user.password
-        });
-
-        if (signInError) {
-          logger.error(`Failed to sign in existing user ${user.email}:`, signInError);
-          return {
-            success: false,
-            email: user.email,
-            error: signInError,
-            message: 'User exists but could not sign in'
-          };
-        }
-
-        if (signInData.user) {
-          // Create the profile manually
-          const profileData = {
-            id: signInData.user.id,
-            full_name: user.full_name,
-            role: user.role,
-            company_id: signInData.user.id,
-            email_connected: false,
-            email: user.email,
-            ai_assistant_name: 'SalesOS AI',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            last_login: new Date().toISOString()
-          };
-
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert(profileData, { onConflict: 'id' });
-
-          if (profileError) {
-            logger.error(`Failed to create profile for ${user.email}:`, profileError);
-            await supabase.auth.signOut();
-            return {
-              success: false,
-              email: user.email,
-              error: profileError,
-              message: 'Failed to create user profile'
-            };
-          }
-
-          // Sign out after creating profile
-          await supabase.auth.signOut();
-
-          return {
-            success: true,
-            email: user.email,
-            message: 'Profile created for existing user'
-          };
-        }
-      }
-      
+    if (authError && !authError.message.includes('already registered')) {
       logger.error(`Auth error for ${user.email}:`, authError);
       return {
         success: false,
@@ -133,51 +56,37 @@ export const createDemoUser = async (user: DemoUser) => {
       };
     }
 
-    if (authData.user) {
-      logger.info(`Demo user created successfully: ${user.email} with ID: ${authData.user.id}`);
+    if (authData.user || authError?.message.includes('already registered')) {
+      const userId = authData.user?.id;
       
-      // Wait a moment for the trigger to run
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Verify the profile was created by the trigger
-      const { data: newProfile, error: profileCheckError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single();
-
-      if (profileCheckError || !newProfile) {
-        logger.warn(`Profile not created by trigger for ${user.email}, creating manually`);
-        
-        // Create profile manually if trigger didn't work
+      if (userId) {
+        // Create profile directly if we have a user ID
         const profileData = {
-          id: authData.user.id,
+          id: userId,
           full_name: user.full_name,
           role: user.role,
-          company_id: authData.user.id,
+          company_id: userId,
           email_connected: false,
-          email: user.email,
-          ai_assistant_name: 'SalesOS AI',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         };
 
-        const { error: manualProfileError } = await supabase
+        const { error: profileError } = await supabase
           .from('profiles')
           .upsert(profileData, { onConflict: 'id' });
 
-        if (manualProfileError) {
-          logger.error(`Failed to manually create profile for ${user.email}:`, manualProfileError);
+        if (profileError) {
+          logger.error(`Failed to create profile for ${user.email}:`, profileError);
         }
       }
-      
-      // Sign out the newly created user
+
+      // Sign out after creation
       await supabase.auth.signOut();
 
       return {
         success: true,
         email: user.email,
-        message: 'User and profile created successfully'
+        message: authError?.message.includes('already registered') ? 'User already exists' : 'User created successfully'
       };
     }
 
@@ -209,7 +118,7 @@ export const createAllDemoUsers = async () => {
     results.push(result);
     
     // Add delay between user creation to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
   
   logger.info('Demo user creation completed:', results);

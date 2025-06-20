@@ -67,8 +67,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         role: userRole,
         company_id: user.id,
         email_connected: false,
-        email: user.email || '',
-        ai_assistant_name: 'SalesOS AI',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         last_login: new Date().toISOString()
@@ -117,19 +115,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } else {
         logger.error('Failed to create or fetch profile');
-        // Create a fallback profile to prevent auth loops
-        const fallbackProfile: Profile = {
-          id: user.id,
-          full_name: user.email?.split('@')[0] || 'User',
-          role: 'sales_rep',
-          company_id: user.id,
-          email_connected: false,
-          email: user.email || '',
-          ai_assistant_name: 'SalesOS AI',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-        setProfile(fallbackProfile);
       }
     } catch (error) {
       logger.error('Error in fetchOrCreateProfile:', error);
@@ -148,7 +133,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Use setTimeout to prevent recursive auth calls
           setTimeout(() => {
             fetchOrCreateProfile(session.user);
           }, 0);

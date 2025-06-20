@@ -6,7 +6,6 @@ import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
 // Developer Pages
 import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
 import SystemMonitor from '@/pages/developer/SystemMonitor';
-import APILogs from '@/pages/developer/APILogs';
 import ErrorLogs from '@/pages/developer/ErrorLogs';
 import AgentHealth from '@/pages/developer/AgentHealth';
 import AgentHealthDashboard from '@/components/Developer/AgentHealthDashboard';
@@ -24,7 +23,6 @@ const DeveloperOS: React.FC = () => {
           <Route index element={<Navigate to="/developer/dashboard" replace />} />
           <Route path="dashboard" element={<DeveloperDashboard />} />
           <Route path="system-monitor" element={<SystemMonitor />} />
-          <Route path="api-logs" element={<APILogs />} />
           <Route path="error-logs" element={<ErrorLogs />} />
           <Route path="agent-health" element={<AgentHealth />} />
           <Route path="agents" element={<AgentHealthDashboard />} />

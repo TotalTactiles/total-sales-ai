@@ -56,8 +56,8 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   const setFormData = externalSetFormData || setInternalFormData;
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setError(null); // Clear error when user types
-    setSuccess(null); // Clear success when user types
+    setError(null);
+    setSuccess(null);
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -83,20 +83,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       
       if (authError) {
         logger.error('Authentication failed:', authError.message);
-        
-        // Provide helpful error messages
-        if (authError.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password. Please check your credentials and try again.');
-        } else if (authError.message.includes('Email not confirmed')) {
-          setError('Please check your email and click the confirmation link before signing in.');
-        } else if (authError.message.includes('Too many requests')) {
-          setError('Too many login attempts. Please wait a moment before trying again.');
-        } else if (authError.message.includes('fetch')) {
-          setError('Network error. Please check your connection and try again.');
-        } else {
-          setError(authError.message || 'Login failed');
-        }
-        
+        setError('Invalid email or password. Please try again.');
         setIsTransitioning(false);
       } else {
         logger.info('Authentication successful');
@@ -104,7 +91,6 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         
         // Small delay to show success message
         setTimeout(() => {
-          // The AuthProvider will handle routing automatically on success
           window.location.href = '/';
         }, 1000);
       }
