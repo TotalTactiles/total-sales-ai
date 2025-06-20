@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { useState, useRef } from 'react';
@@ -76,8 +77,10 @@ const KnowledgeUpload = () => {
             
             setProgress(100);
             
-            if (result) {
+            if (result && typeof result === 'object' && 'chunks_success' in result) {
               toast.success(`Successfully processed ${result.chunks_success} of ${result.chunks_total} chunks`);
+            } else {
+              toast.success("File processed successfully");
             }
           } catch (error) {
             logger.error("Error processing file:", error);

@@ -3,6 +3,18 @@ import { useEffect } from 'react';
 import { internalAIBrain } from '@/services/ai/internalAIBrain';
 import { logger } from '@/utils/logger';
 
+interface QueryParams {
+  industry: string;
+  query: string;
+  topK?: number;
+}
+
+export interface KnowledgeResult {
+  content: string;
+  sourceType: string;
+  sourceId: string;
+}
+
 export const useAIBrain = () => {
   useEffect(() => {
     // Initialize AI Brain on app start
@@ -26,12 +38,12 @@ export const useAIBrain = () => {
     // Add compatibility methods for existing components
     ingestKnowledge: async (data: any) => {
       logger.info('Knowledge ingestion called via AI Brain');
-      return Promise.resolve();
+      return { success: true, chunks_success: 0, chunks_total: 0 };
     },
     
-    queryKnowledge: async (query: string) => {
-      logger.info('Knowledge query called via AI Brain:', query);
-      return Promise.resolve('AI Brain knowledge query response');
+    queryKnowledge: async (params: QueryParams): Promise<KnowledgeResult[]> => {
+      logger.info('Knowledge query called via AI Brain:', params);
+      return [];
     },
     
     isIngesting: false,

@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -5,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAIBrain } from '@/hooks/useAIBrain';
+import { useAIBrain, type KnowledgeResult } from '@/hooks/useAIBrain';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from "sonner";
 import { SendHorizonal, Loader2, Copy } from "lucide-react";
@@ -14,12 +15,6 @@ interface ChatMessage {
   type: 'query' | 'response';
   content: string;
   timestamp: Date;
-}
-
-interface KnowledgeResult {
-  content: string;
-  sourceType: string;
-  sourceId: string;
 }
 
 const KnowledgeChat = () => {

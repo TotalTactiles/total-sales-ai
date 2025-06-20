@@ -1,7 +1,8 @@
 
 // @vitest-environment jsdom
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { fireEvent, screen } from '@testing-library/dom';
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import type { Lead } from '@/types/lead';
 
