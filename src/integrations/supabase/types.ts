@@ -966,6 +966,51 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_ai_brain_status: {
+        Row: {
+          ai_uptime_minutes: number | null
+          auto_fixes_today: number | null
+          created_at: string | null
+          critical_routes_monitored: Json | null
+          escalation_count: number | null
+          id: string
+          last_check_in: string | null
+          last_fix_description: string | null
+          pending_errors: number | null
+          status_timestamp: string
+          system_health_score: number
+          updated_at: string | null
+        }
+        Insert: {
+          ai_uptime_minutes?: number | null
+          auto_fixes_today?: number | null
+          created_at?: string | null
+          critical_routes_monitored?: Json | null
+          escalation_count?: number | null
+          id?: string
+          last_check_in?: string | null
+          last_fix_description?: string | null
+          pending_errors?: number | null
+          status_timestamp?: string
+          system_health_score?: number
+          updated_at?: string | null
+        }
+        Update: {
+          ai_uptime_minutes?: number | null
+          auto_fixes_today?: number | null
+          created_at?: string | null
+          critical_routes_monitored?: Json | null
+          escalation_count?: number | null
+          id?: string
+          last_check_in?: string | null
+          last_fix_description?: string | null
+          pending_errors?: number | null
+          status_timestamp?: string
+          system_health_score?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           id: string
@@ -1458,6 +1503,63 @@ export type Database = {
           resource_id?: string
           resource_type?: string
           retry_count?: number | null
+        }
+        Relationships: []
+      }
+      system_error_log: {
+        Row: {
+          ai_fix_summary: string | null
+          component: string
+          created_at: string | null
+          developer_note: string | null
+          error_type: string
+          escalated: boolean | null
+          fix_type: string | null
+          fixed_by_ai: boolean | null
+          id: string
+          retry_attempted: boolean | null
+          retry_result: string | null
+          route: string | null
+          severity: string
+          stack_trace: string | null
+          timestamp: string
+          updated_at: string | null
+        }
+        Insert: {
+          ai_fix_summary?: string | null
+          component: string
+          created_at?: string | null
+          developer_note?: string | null
+          error_type: string
+          escalated?: boolean | null
+          fix_type?: string | null
+          fixed_by_ai?: boolean | null
+          id?: string
+          retry_attempted?: boolean | null
+          retry_result?: string | null
+          route?: string | null
+          severity?: string
+          stack_trace?: string | null
+          timestamp?: string
+          updated_at?: string | null
+        }
+        Update: {
+          ai_fix_summary?: string | null
+          component?: string
+          created_at?: string | null
+          developer_note?: string | null
+          error_type?: string
+          escalated?: boolean | null
+          fix_type?: string | null
+          fixed_by_ai?: boolean | null
+          id?: string
+          retry_attempted?: boolean | null
+          retry_result?: string | null
+          route?: string | null
+          severity?: string
+          stack_trace?: string | null
+          timestamp?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

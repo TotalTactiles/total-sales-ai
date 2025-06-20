@@ -1,99 +1,111 @@
 
-import { Suspense, useEffect } from 'react';
-import { useRoutes, RouteObject, BrowserRouter } from 'react-router-dom';
-import { HelmetProvider } from 'react-helmet-async';
-
-import { AuthProvider } from '@/contexts/AuthContext';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from '@/contexts/auth/AuthProvider';
+import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
-import { agentConnectionService } from '@/services/ai/AgentConnectionService';
-import { logger } from '@/utils/logger';
+import AuthPage from '@/pages/AuthPage';
+import NewLandingPage from '@/pages/NewLandingPage';
+import SalesOS from '@/layouts/SalesOS';
+import ManagerOS from '@/layouts/ManagerOS';
+import DeveloperOS from '@/layouts/DeveloperOS';
+import OnboardingGuard from '@/components/OnboardingGuard';
+import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useAIBrain } from '@/hooks/useAIBrain';
+import './App.css';
 
-import Index from '@/pages/Index';
-import AuthPage from '@/pages/auth/AuthPage';
-import MainLayout from '@/layouts/MainLayout';
-import RouteGuard from '@/components/auth/RouteGuard';
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-const routes: RouteObject[] = [
-  {
-    path: "/",
-    element: <Index />,
-  },
-  {
-    path: "/auth",
-    element: <AuthPage />,
-  },
-  {
-    path: "/sales/*",
-    element: (
-      <RouteGuard allowedRoles={['sales_rep']}>
-        <MainLayout />
-      </RouteGuard>
-    ),
-  },
-  {
-    path: "/manager/*",
-    element: (
-      <RouteGuard allowedRoles={['manager']}>
-        <MainLayout />
-      </RouteGuard>
-    ),
-  },
-  {
-    path: "/developer/*",
-    element: (
-      <RouteGuard allowedRoles={['developer', 'admin']}>
-        <MainLayout />
-      </RouteGuard>
-    ),
-  },
-];
+function AppRoutes() {
+  const { user, profile, loading } = useAuth();
+  
+  // Initialize AI Brain
+  useAIBrain();
 
-const AppContent = () => {
-  const routing = useRoutes(routes);
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
-  useEffect(() => {
-    // Initialize AI agent connection service
-    const initializeAgents = async () => {
-      try {
-        logger.info('Initializing AI agents...');
-        const initialized = await agentConnectionService.initialize();
+  // If no user, show landing or auth
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/landing" element={<NewLandingPage />} />
+        <Route path="*" element={<Navigate to="/landing" replace />} />
+      </Routes>
+    );
+  }
+
+  // If user but no profile, redirect to auth
+  if (!profile) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  // Route based on user role
+  const getDefaultRoute = () => {
+    switch (profile.role) {
+      case 'developer':
+        return '/developer/*';
+      case 'manager':
+        return '/manager/*';
+      case 'sales_rep':
+        return '/sales/*';
+      default:
+        return '/sales/*';
+    }
+  };
+
+  return (
+    <OnboardingGuard>
+      <Routes>
+        <Route path="/auth" element={<Navigate to={getDefaultRoute().replace('/*', '/dashboard')} replace />} />
         
-        if (initialized) {
-          logger.info('AI agents initialized successfully');
-        } else {
-          logger.warn('AI agents initialization completed with warnings');
-        }
-      } catch (error) {
-        logger.error('Failed to initialize AI agents:', error);
-      }
-    };
-
-    initializeAgents();
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-background font-sans antialiased">
-      <Suspense fallback={<div>Loading...</div>}>
-        {routing}
-      </Suspense>
-      <Toaster />
-    </div>
+        {/* Developer OS */}
+        {profile.role === 'developer' && (
+          <Route path="/developer/*" element={<DeveloperOS />} />
+        )}
+        
+        {/* Manager OS */}
+        {(profile.role === 'manager' || profile.role === 'admin') && (
+          <Route path="/manager/*" element={<ManagerOS />} />
+        )}
+        
+        {/* Sales OS */}
+        <Route path="/sales/*" element={<SalesOS />} />
+        
+        {/* Default redirects */}
+        <Route path="/" element={<Navigate to={getDefaultRoute().replace('/*', '/dashboard')} replace />} />
+        <Route path="*" element={<Navigate to={getDefaultRoute().replace('/*', '/dashboard')} replace />} />
+      </Routes>
+    </OnboardingGuard>
   );
-};
+}
 
-const App = () => {
+function App() {
   return (
-    <HelmetProvider>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <AuthProvider>
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </AuthProvider>
-      </ThemeProvider>
-    </HelmetProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <UnifiedAIProvider>
+          <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+            <Router>
+              <AppRoutes />
+              <Toaster />
+            </Router>
+          </ThemeProvider>
+        </UnifiedAIProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
-};
+}
 
 export default App;
