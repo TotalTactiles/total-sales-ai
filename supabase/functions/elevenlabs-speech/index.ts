@@ -1,87 +1,131 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { logger } from '../../../src/utils/logger.ts';
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-interface SpeechRequest {
-  text?: string;
-  voiceId?: string;
-  model?: string;
-  test?: boolean;
 }
 
-serve(async (req) => {
+// Simple logger for edge functions
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data ? JSON.stringify(data) : '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data ? JSON.stringify(data) : '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data ? JSON.stringify(data) : '');
+  }
+};
+
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { text, voiceId = 'pNInz6obpgDQGcFmaJgB', model = 'eleven_multilingual_v2', test }: SpeechRequest = await req.json();
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
 
-    if (test) {
-      return new Response(JSON.stringify({ success: true }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const authHeader = req.headers.get('Authorization')!
+    const token = authHeader.replace('Bearer ', '')
+    
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
+    
+    if (authError || !user) {
+      logger.error('Authentication failed:', authError)
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
+
+    const { text, voice = 'alloy' } = await req.json()
 
     if (!text) {
-      throw new Error('No text provided');
+      return new Response(
+        JSON.stringify({ error: 'Text is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
 
-    const elevenLabsApiKey = Deno.env.get('ELEVENLABS_API_KEY');
-    if (!elevenLabsApiKey) {
-      throw new Error('ElevenLabs API key not configured');
+    const elevenlabsApiKey = Deno.env.get('ELEVENLABS_API_KEY')
+    
+    if (!elevenlabsApiKey) {
+      logger.warn('ElevenLabs API key not configured, using fallback')
+      return new Response(
+        JSON.stringify({ 
+          audioUrl: null,
+          message: 'Speech synthesis not available - API key not configured'
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      )
     }
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    logger.info('Generating speech with ElevenLabs:', { textLength: text.length, voice })
 
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    // Call ElevenLabs API
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${elevenLabsApiKey}`,
+        'Accept': 'audio/mpeg',
         'Content-Type': 'application/json',
+        'xi-api-key': elevenlabsApiKey,
       },
       body: JSON.stringify({
         text,
-        model_id: model,
+        model_id: 'eleven_monolingual_v1',
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.5,
         },
       }),
-    });
+    })
 
     if (!response.ok) {
-      throw new Error('ElevenLabs API error');
+      logger.error('ElevenLabs API error:', { status: response.status, statusText: response.statusText })
+      throw new Error(`ElevenLabs API error: ${response.status}`)
     }
 
-    const audioBuffer = await response.arrayBuffer();
-    const fileName = `${crypto.randomUUID()}.mp3`;
-    const filePath = `speech/${fileName}`;
+    const audioBuffer = await response.arrayBuffer()
+    const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(audioBuffer)))
 
-    const { error: uploadError } = await supabase.storage.from('public').upload(filePath, audioBuffer, {
-      contentType: 'audio/mpeg',
-    });
-    if (uploadError) throw uploadError;
+    logger.info('Speech generation successful')
 
-    const { data: signed, error: urlError } = await supabase.storage.from('public').createSignedUrl(filePath, 60 * 60);
-    if (urlError) throw urlError;
+    return new Response(
+      JSON.stringify({
+        audioUrl: `data:audio/mpeg;base64,${audioBase64}`,
+        message: 'Speech generated successfully'
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      },
+    )
 
-    return new Response(JSON.stringify({ url: signed.signedUrl }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
   } catch (error) {
-    logger.error('Error in elevenlabs-speech function:', error);
-    return new Response(JSON.stringify({ error: error.message, success: false }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    logger.error('Speech generation failed:', error)
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'Failed to generate speech',
+        audioUrl: null
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      },
+    )
   }
-});
+})

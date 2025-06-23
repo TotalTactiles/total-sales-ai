@@ -1,9 +1,21 @@
-import { logger } from '@/utils/logger';
 
 import { supabase } from '@/integrations/supabase/client';
 import { encryptionService } from '@/services/security/encryptionService';
 import { accessControlService } from '@/services/security/accessControlService';
 import { AuditEntry, AuditPayload, AuditFilters } from '@/hooks/audit/types';
+
+// Simple logger for client-side
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data || '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data || '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data || '');
+  }
+};
 
 export class AuditRetrievalService {
   static async getAuditTrail(

@@ -1,6 +1,18 @@
 
-import { logger } from '@/utils/logger';
 import { createClient } from '@supabase/supabase-js';
+
+// Simple logger for client-side
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data || '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data || '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data || '');
+  }
+};
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -30,7 +42,7 @@ export const supabase = createClient(
   }
 );
 
-// Enhanced connection testing
+// Enhanced connection testing with better error handling
 const testConnection = async () => {
   try {
     const { data, error } = await supabase.auth.getSession();
