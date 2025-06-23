@@ -10,6 +10,14 @@ import PerformanceAnalytics from '@/pages/manager/PerformanceAnalytics';
 import LeadManagement from '@/pages/LeadManagement';
 import LeadWorkspace from '@/pages/LeadWorkspace';
 
+// Additional Manager Pages
+import ManagerAI from '@/pages/manager/AI';
+import ManagerCompanyBrain from '@/pages/manager/CompanyBrain';
+import ManagerCRMIntegrations from '@/pages/manager/CRMIntegrations';
+import ManagerSecurity from '@/pages/manager/Security';
+import ManagerReports from '@/pages/manager/Reports';
+import ManagerSettings from '@/pages/manager/Settings';
+
 const ManagerOS: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
@@ -22,6 +30,13 @@ const ManagerOS: React.FC = () => {
           <Route path="analytics" element={<PerformanceAnalytics />} />
           <Route path="leads" element={<LeadManagement />} />
           <Route path="leads/:leadId" element={<LeadWorkspace />} />
+          <Route path="ai" element={<ManagerAI />} />
+          <Route path="company-brain" element={<ManagerCompanyBrain />} />
+          <Route path="integrations" element={<ManagerCRMIntegrations />} />
+          <Route path="automation" element={<ManagerDashboard />} />
+          <Route path="security" element={<ManagerSecurity />} />
+          <Route path="reports" element={<ManagerReports />} />
+          <Route path="settings" element={<ManagerSettings />} />
           <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
         </Routes>
       </main>

@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useDemoData } from '@/contexts/DemoDataContext';
 import { logger } from '@/utils/logger';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerOverviewCards from '@/components/Manager/ManagerOverviewCards';
 import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
 import ManagerAIAssistant from '@/components/ManagerAI/ManagerAIAssistant';
@@ -141,46 +140,40 @@ const ManagerDashboard = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-background">
-        <ManagerNavigation />
-        
-        <main className="pt-[60px]">
-          <div className="flex-1 px-4 md:px-6 py-6">
-            <div className="max-w-7xl mx-auto">
+      <div className="flex-1 px-4 md:px-6 py-6">
+        <div className="max-w-7xl mx-auto">
+          <ErrorBoundary>
+            <ManagerOverviewCards 
+              teamMembers={teamMembers}
+              recommendations={recommendations}
+              demoMode={demoMode}
+              profile={profile}
+            />
+          </ErrorBoundary>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            <div className="lg:col-span-2 space-y-6">
               <ErrorBoundary>
-                <ManagerOverviewCards 
-                  teamMembers={teamMembers}
-                  recommendations={recommendations}
-                  demoMode={demoMode}
-                  profile={profile}
-                />
+                <ManagerTeamTable teamMembers={teamMembers} />
               </ErrorBoundary>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-                <div className="lg:col-span-2 space-y-6">
-                  <ErrorBoundary>
-                    <ManagerTeamTable teamMembers={teamMembers} />
-                  </ErrorBoundary>
-                  <ErrorBoundary>
-                    <ManagerRecognitionEngine />
-                  </ErrorBoundary>
-                </div>
-                
-                <div className="space-y-6">
-                  <ErrorBoundary>
-                    <ManagerAIAssistant />
-                  </ErrorBoundary>
-                  <ErrorBoundary>
-                    <ManagerBookingSystem demoMode={demoMode} />
-                  </ErrorBoundary>
-                  <ErrorBoundary>
-                    <ManagerEscalationCenter demoMode={demoMode} />
-                  </ErrorBoundary>
-                </div>
-              </div>
+              <ErrorBoundary>
+                <ManagerRecognitionEngine />
+              </ErrorBoundary>
+            </div>
+            
+            <div className="space-y-6">
+              <ErrorBoundary>
+                <ManagerAIAssistant />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <ManagerBookingSystem demoMode={demoMode} />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <ManagerEscalationCenter demoMode={demoMode} />
+              </ErrorBoundary>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     </ErrorBoundary>
   );

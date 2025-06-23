@@ -17,7 +17,14 @@ import {
   BarChart3, 
   Target,
   LogOut,
-  Settings
+  Settings,
+  Brain,
+  Building2,
+  Database,
+  UserPlus,
+  Zap,
+  Shield,
+  FileText
 } from 'lucide-react';
 import Logo from '@/components/Logo';
 
@@ -30,10 +37,22 @@ const ManagerNavigation: React.FC = () => {
     { path: '/manager/team', label: 'Team', icon: Users },
     { path: '/manager/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/manager/leads', label: 'Leads', icon: Target },
+    { path: '/manager/ai', label: 'AI Tools', icon: Brain },
+    { path: '/manager/company-brain', label: 'Company Brain', icon: Building2 },
+    { path: '/manager/integrations', label: 'Integrations', icon: Database },
+    { path: '/manager/automation', label: 'Automation', icon: Zap },
+    { path: '/manager/security', label: 'Security', icon: Shield },
+    { path: '/manager/reports', label: 'Reports', icon: FileText },
   ];
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+      // Force navigation to landing page
+      window.location.href = '/landing';
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return (
@@ -88,9 +107,11 @@ const ManagerNavigation: React.FC = () => {
                 </p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+              <DropdownMenuItem asChild>
+                <Link to="/manager/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>
