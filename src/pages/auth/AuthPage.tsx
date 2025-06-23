@@ -9,11 +9,10 @@ import { ThemeToggle } from '@/components/ThemeProvider';
 import Logo from '@/components/Logo';
 import AuthLoginForm from './components/AuthLoginForm';
 import AuthSignupForm from './components/AuthSignupForm';
-import AuthDemoOptions from './components/AuthDemoOptions';
 import AuthLoadingScreen from './components/AuthLoadingScreen';
 
 const AuthPage = () => {
-  const { user, profile, loading, isDemoMode } = useAuth();
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState<Role>('sales_rep');
@@ -41,39 +40,22 @@ const AuthPage = () => {
 
   // Show loading screen while auth state is being determined
   if (loading || isTransitioning) {
-    return <AuthLoadingScreen role={selectedRole} isDemoMode={isDemoMode()} />;
+    return <AuthLoadingScreen role={selectedRole} isDemoMode={false} />;
   }
 
-  // Only redirect if we have both user and profile, or if in demo mode
-  if ((user && profile) || isDemoMode()) {
+  // Redirect if authenticated
+  if (user && profile) {
     const getRedirectPath = () => {
-      if (isDemoMode()) {
-        const demoRole = localStorage.getItem('demoRole');
-        switch (demoRole) {
-          case 'developer':
-            return '/developer/dashboard';
-          case 'manager':
-            return '/manager/dashboard';
-          case 'sales_rep':
-          default:
-            return '/sales/dashboard';
-        }
+      switch (profile.role) {
+        case 'developer':
+        case 'admin':
+          return '/developer/dashboard';
+        case 'manager':
+          return '/manager/dashboard';
+        case 'sales_rep':
+        default:
+          return '/sales/dashboard';
       }
-      
-      if (profile) {
-        switch (profile.role) {
-          case 'developer':
-          case 'admin':
-            return '/developer/dashboard';
-          case 'manager':
-            return '/manager/dashboard';
-          case 'sales_rep':
-          default:
-            return '/sales/dashboard';
-        }
-      }
-      
-      return '/sales/dashboard';
     };
     
     const redirectPath = getRedirectPath();
@@ -90,41 +72,41 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gradient-secondary">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
       
-      <Card className="max-w-md w-full mx-4 p-8 shadow-xl border-0 rounded-2xl gradient-card backdrop-blur-sm">
+      <Card className="max-w-md w-full mx-4 p-8 shadow-xl border-0 rounded-2xl bg-white/80 backdrop-blur-sm">
         <div className="text-center mb-8">
           <Logo />
-          <h2 className="text-2xl font-bold mt-6 text-foreground font-poppins">Welcome to TSAM</h2>
-          <p className="text-muted-foreground mt-2 text-sm">Your AI-powered sales acceleration platform</p>
+          <h2 className="text-2xl font-bold mt-6 text-gray-900 font-sans">Welcome to TSAM</h2>
+          <p className="text-gray-600 mt-2 text-sm">Your AI-powered sales acceleration platform</p>
         </div>
       
         <Tabs defaultValue={selectedRole} value={selectedRole} onValueChange={value => handleRoleChange(value as Role)} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-8 bg-neutral-100 rounded-xl p-1">
-            <TabsTrigger value="manager" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+          <TabsList className="grid grid-cols-3 mb-8 bg-gray-100 rounded-xl p-1">
+            <TabsTrigger value="manager" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all text-xs">
               Manager
             </TabsTrigger>
-            <TabsTrigger value="sales_rep" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+            <TabsTrigger value="sales_rep" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all text-xs">
               Sales Rep
             </TabsTrigger>
-            <TabsTrigger value="developer" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all">
+            <TabsTrigger value="developer" className="flex items-center gap-2 rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm transition-all text-xs">
               Developer
             </TabsTrigger>
           </TabsList>
         
           <div className="space-y-6">
-            <div className="text-center p-6 mb-6 border border-neutral-200 rounded-xl bg-neutral-50/50">
-              <h3 className="font-semibold text-lg mb-2 font-poppins">
+            <div className="text-center p-6 mb-6 border border-blue-200 rounded-xl bg-blue-50/50">
+              <h3 className="font-semibold text-lg mb-2 text-blue-900">
                 {selectedRole === 'manager'
                   ? 'Manager Dashboard'
                   : selectedRole === 'developer'
                   ? 'Developer Dashboard'
                   : 'Sales Rep Dashboard'}
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-blue-700">
                 {selectedRole === 'manager'
                   ? 'Team analysis, performance tracking & AI coaching'
                   : selectedRole === 'developer'
@@ -157,21 +139,12 @@ const AuthPage = () => {
               <div className="flex items-center justify-center">
                 <button 
                   onClick={() => setIsLogin(!isLogin)} 
-                  className="text-sm text-primary hover:text-primary/80 bg-transparent border-none cursor-pointer font-medium"
+                  className="text-sm text-blue-600 hover:text-blue-800 bg-transparent border-none cursor-pointer font-medium"
                 >
                   {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
                 </button>
               </div>
             </div>
-            
-            <AuthDemoOptions 
-              selectedRole={selectedRole} 
-              setIsTransitioning={setIsTransitioning} 
-              simulateLoginTransition={simulateLoginTransition} 
-              setFormData={(data) => {
-                setFormData(prev => ({ ...prev, ...data }));
-              }} 
-            />
           </div>
         </Tabs>
       </Card>

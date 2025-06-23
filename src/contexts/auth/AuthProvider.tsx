@@ -4,7 +4,6 @@ import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { AuthContextType, Profile, Role } from './types';
-import { initializeDemoUser, isDemoMode, setDemoMode, clearDemoMode } from './demoMode';
 import { getLastSelectedRole, setLastSelectedRole, getLastSelectedCompanyId, setLastSelectedCompanyId } from './localStorage';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -257,7 +256,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(null);
         setProfile(null);
         setSession(null);
-        clearDemoMode();
         logger.info('Sign out successful');
       }
       
@@ -266,26 +264,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.error('Sign out error:', error);
       return { error: error as AuthError };
     }
-  };
-
-  // Demo mode functions
-  const initializeDemoMode = (role: Role) => {
-    const { demoUser, demoProfile } = initializeDemoUser(role);
-    setDemoMode(role);
-    setUser(demoUser);
-    setProfile(demoProfile);
-    setLoading(false);
-  };
-
-  const setDemoRole = (role: Role) => {
-    const { demoUser, demoProfile } = initializeDemoUser(role);
-    setDemoMode(role);
-    setUser(demoUser);
-    setProfile(demoProfile);
-  };
-
-  const getDemoRole = (): Role | null => {
-    return localStorage.getItem('demoRole') as Role | null;
   };
 
   const value: AuthContextType = {
@@ -297,10 +275,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     signUpWithOAuth,
     signOut,
-    isDemoMode,
-    setDemoRole,
-    getDemoRole,
-    initializeDemoMode,
+    isDemoMode: () => false,
+    setDemoRole: () => {},
+    getDemoRole: () => null,
+    initializeDemoMode: () => {},
     setLastSelectedRole,
     setLastSelectedCompanyId,
     fetchProfile,

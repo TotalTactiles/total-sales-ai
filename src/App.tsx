@@ -27,7 +27,7 @@ const queryClient = new QueryClient({
 });
 
 function AppRoutes() {
-  const { user, profile, loading, isDemoMode } = useAuth();
+  const { user, profile, loading } = useAuth();
   
   // Initialize AI Brain
   useAIBrain();
@@ -36,8 +36,8 @@ function AppRoutes() {
     return <LoadingSpinner />;
   }
 
-  // If no user and not demo mode, show landing or auth
-  if (!user && !isDemoMode()) {
+  // If no user, show landing or auth
+  if (!user) {
     return (
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
@@ -48,26 +48,13 @@ function AppRoutes() {
     );
   }
 
-  // If user but no profile (and not demo mode), redirect to auth
-  if (user && !profile && !isDemoMode()) {
+  // If user but no profile, redirect to auth
+  if (user && !profile) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Demo mode or authenticated user routing
+  // Authenticated user routing
   const getDefaultRoute = () => {
-    if (isDemoMode()) {
-      const demoRole = localStorage.getItem('demoRole');
-      switch (demoRole) {
-        case 'developer':
-          return '/developer/dashboard';
-        case 'manager':
-          return '/manager/dashboard';
-        case 'sales_rep':
-        default:
-          return '/sales/dashboard';
-      }
-    }
-    
     if (profile) {
       switch (profile.role) {
         case 'developer':
@@ -92,16 +79,16 @@ function AppRoutes() {
         <Route path="/landing" element={<Navigate to={getDefaultRoute()} replace />} />
         
         {/* Developer OS */}
-        {(profile?.role === 'developer' || profile?.role === 'admin' || isDemoMode()) && (
+        {(profile?.role === 'developer' || profile?.role === 'admin') && (
           <Route path="/developer/*" element={<DeveloperOS />} />
         )}
         
         {/* Manager OS */}
-        {(profile?.role === 'manager' || profile?.role === 'admin' || isDemoMode()) && (
+        {profile?.role === 'manager' && (
           <Route path="/manager/*" element={<ManagerOS />} />
         )}
         
-        {/* Sales OS - Available to all roles and demo mode */}
+        {/* Sales OS - Available to all roles */}
         <Route path="/sales/*" element={<SalesOS />} />
         
         {/* Default redirects */}

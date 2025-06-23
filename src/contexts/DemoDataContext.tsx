@@ -28,38 +28,33 @@ export const useDemoData = () => {
 };
 
 export const DemoDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, isDemoMode } = useAuth();
+  const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
-      // Only load demo data if no user is authenticated or in demo mode
-      if (!user || isDemoMode()) {
-        // Convert mockLeads to proper Lead type with additional required properties
-        const convertedLeads = mockLeads.map(mockLead => 
-          convertMockLeadToLead({
-            ...mockLead,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            companyId: 'demo-company'
-          })
-        );
-        setLeads(convertedLeads);
-        setError(null);
-      } else {
-        setLeads([]);
-      }
+      // Always provide demo data for development purposes
+      const convertedLeads = mockLeads.map(mockLead => 
+        convertMockLeadToLead({
+          ...mockLead,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          companyId: user?.id || 'demo-company'
+        })
+      );
+      setLeads(convertedLeads);
+      setError(null);
     } catch (err) {
       logger.error('Error loading demo data:', err);
       setError('Failed to load demo data');
     }
-  }, [user, isDemoMode]);
+  }, [user]);
 
   const value = {
     leads,
     setLeads,
-    isDemoMode: isDemoMode(),
+    isDemoMode: false, // No longer using demo mode
     teamMembers: mockTeamMembers || [],
     recommendations: mockRecommendations || [],
     calls: mockCalls || [],

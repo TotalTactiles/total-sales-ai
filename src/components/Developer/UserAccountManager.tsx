@@ -3,109 +3,86 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { createAllDemoUsers, testDemoUserLogin, DEMO_USERS } from '@/utils/createDemoUsers';
+import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { toast } from 'sonner';
-import { CheckCircle, AlertCircle, User, RefreshCw, AlertTriangle, Play, Shield } from 'lucide-react';
+import { CheckCircle, AlertCircle, User, RefreshCw, Shield, Database } from 'lucide-react';
+
+interface UserInfo {
+  email: string;
+  role: string;
+  full_name: string;
+  hasProfile: boolean;
+  profileData?: any;
+}
 
 const UserAccountManager = () => {
-  const [isCreating, setIsCreating] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
-  const [testResults, setTestResults] = useState<any[]>([]);
-  const [autoCreateAttempted, setAutoCreateAttempted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [users, setUsers] = useState<UserInfo[]>([]);
 
-  // Auto-create users on component mount if not already attempted
+  const expectedUsers = [
+    { email: 'krishdev@tsam.com', role: 'developer', full_name: 'Krish Developer' },
+    { email: 'manager@salesos.com', role: 'manager', full_name: 'Sales Manager' },
+    { email: 'rep@salesos.com', role: 'sales_rep', full_name: 'Sales Rep' }
+  ];
+
   useEffect(() => {
-    if (!autoCreateAttempted) {
-      setAutoCreateAttempted(true);
-      handleCreateUsers();
-    }
-  }, [autoCreateAttempted]);
+    checkUserProfiles();
+  }, []);
 
-  const handleCreateUsers = async () => {
-    setIsCreating(true);
+  const checkUserProfiles = async () => {
+    setIsLoading(true);
     try {
-      logger.info('Starting demo user creation process...');
-      toast.info('Creating demo users... Please wait.');
+      logger.info('Checking user profiles...');
       
-      const creationResults = await createAllDemoUsers();
-      setResults(creationResults);
+      const userStatuses: UserInfo[] = [];
       
-      const successCount = creationResults.filter(r => r.success).length;
-      const totalCount = creationResults.length;
-      
-      if (successCount === totalCount) {
-        toast.success(`🎉 All ${successCount} demo users are ready! Testing login now...`);
-        // Auto-test after creation
-        await handleTestAllUsers();
-      } else if (successCount > 0) {
-        toast.success(`${successCount}/${totalCount} demo users processed successfully`);
-      } else {
-        toast.error('❌ Failed to create demo users - check console for details');
-      }
-      
-      logger.info('Demo user creation process completed', { successCount, totalCount });
-    } catch (error) {
-      logger.error('Error creating demo users:', error);
-      toast.error('Failed to create demo users');
-    } finally {
-      setIsCreating(false);
-    }
-  };
+      for (const expectedUser of expectedUsers) {
+        // Check if profile exists in profiles table
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('role', expectedUser.role)
+          .single();
 
-  const handleTestAllUsers = async () => {
-    setIsTesting(true);
-    try {
-      logger.info('Testing all demo user logins...');
-      toast.info('Testing demo user logins...');
-      
-      const loginTests = [];
-      for (const user of DEMO_USERS) {
-        const testResult = await testDemoUserLogin(user.email, user.password);
-        loginTests.push({
-          email: user.email,
-          role: user.role,
-          ...testResult
+        userStatuses.push({
+          email: expectedUser.email,
+          role: expectedUser.role,
+          full_name: expectedUser.full_name,
+          hasProfile: !!profile && !error,
+          profileData: profile
         });
-        // Add delay between tests
-        await new Promise(resolve => setTimeout(resolve, 1000));
       }
       
-      setTestResults(loginTests);
-      
-      const successfulLogins = loginTests.filter(t => t.success).length;
-      if (successfulLogins === DEMO_USERS.length) {
-        toast.success(`✅ All ${successfulLogins} users can login successfully!`);
-      } else {
-        toast.warning(`⚠️ ${successfulLogins}/${DEMO_USERS.length} users can login - some need fixing`);
-      }
+      setUsers(userStatuses);
+      logger.info('User profile check completed:', userStatuses);
       
     } catch (error) {
-      logger.error('Error testing user logins:', error);
-      toast.error('Failed to test user logins');
+      logger.error('Error checking user profiles:', error);
+      toast.error('Failed to check user profiles');
     } finally {
-      setIsTesting(false);
+      setIsLoading(false);
     }
   };
 
-  const getStatusIcon = (result: any) => {
-    if (!result) return <User className="h-4 w-4 text-muted-foreground" />;
-    if (result.success) return <CheckCircle className="h-4 w-4 text-green-500" />;
-    return <AlertCircle className="h-4 w-4 text-red-500" />;
+  const getStatusBadge = (user: UserInfo) => {
+    if (user.hasProfile) {
+      return <Badge variant="default" className="bg-green-500">✅ Profile Active</Badge>;
+    }
+    return <Badge variant="destructive">❌ No Profile</Badge>;
   };
 
-  const getStatusBadge = (result: any) => {
-    if (!result) return <Badge variant="secondary">Pending</Badge>;
-    if (result.success) return <Badge variant="default" className="bg-green-500">✅ Ready</Badge>;
-    return <Badge variant="destructive">❌ Error</Badge>;
-  };
-
-  const getTestStatusBadge = (testResult: any) => {
-    if (!testResult) return <Badge variant="outline">Not Tested</Badge>;
-    if (testResult.success) return <Badge variant="default" className="bg-blue-500">✅ Login OK</Badge>;
-    if (testResult.hasAuth && !testResult.hasProfile) return <Badge variant="secondary" className="bg-yellow-500">⚠️ No Profile</Badge>;
-    return <Badge variant="destructive">❌ Login Failed</Badge>;
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'developer':
+        return <Badge variant="destructive">Developer</Badge>;
+      case 'manager':
+        return <Badge variant="default">Manager</Badge>;
+      case 'sales_rep':
+        return <Badge variant="secondary">Sales Rep</Badge>;
+      default:
+        return <Badge variant="outline">{role}</Badge>;
+    }
   };
 
   return (
@@ -114,139 +91,84 @@ const UserAccountManager = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Demo User Account Manager
+            User Profile Management
           </CardTitle>
           <CardDescription>
-            Create and test the three core demo user accounts for all role-based functionality
+            Monitor and manage the three core user accounts and their profiles in Supabase
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3">
-            {DEMO_USERS.map((user) => {
-              const result = results.find(r => r.email === user.email);
-              const testResult = testResults.find(t => t.email === user.email);
-              
-              return (
-                <div key={user.email} className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+            {users.map((user) => (
+              <div key={user.email} className="flex items-center justify-between p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3">
+                  <Database className="h-4 w-4 text-blue-600" />
                   <div className="flex items-center gap-3">
-                    {getStatusIcon(result)}
-                    <div className="flex items-center gap-3">
-                      <Badge variant={
-                        user.role === 'developer' ? 'destructive' : 
-                        user.role === 'manager' ? 'default' : 'secondary'
-                      }>
-                        {user.role.replace('_', ' ')}
-                      </Badge>
-                      <div>
-                        <p className="font-medium">{user.full_name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                        <p className="text-xs text-muted-foreground font-mono">
-                          Password: {user.password}
+                    {getRoleBadge(user.role)}
+                    <div>
+                      <p className="font-medium">{user.full_name}</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                      {user.profileData && (
+                        <p className="text-xs text-green-600">
+                          Last login: {user.profileData.last_login ? new Date(user.profileData.last_login).toLocaleDateString() : 'Never'}
                         </p>
-                      </div>
+                      )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(result)}
-                    {getTestStatusBadge(testResult)}
-                  </div>
                 </div>
-              );
-            })}
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(user)}
+                </div>
+              </div>
+            ))}
           </div>
           
           <div className="flex gap-2">
             <Button 
-              onClick={handleCreateUsers} 
-              disabled={isCreating}
+              onClick={checkUserProfiles} 
+              disabled={isLoading}
               className="flex-1"
             >
-              {isCreating ? (
+              {isLoading ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Users...
-                </>
-              ) : (
-                'Recreate Demo Users'
-              )}
-            </Button>
-            
-            <Button 
-              onClick={handleTestAllUsers} 
-              disabled={isTesting}
-              variant="outline"
-              className="flex-1"
-            >
-              {isTesting ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Testing...
+                  Checking...
                 </>
               ) : (
                 <>
-                  <Play className="mr-2 h-4 w-4" />
-                  Test All Logins
+                  <Shield className="mr-2 h-4 w-4" />
+                  Refresh Status
                 </>
               )}
             </Button>
           </div>
           
-          {results.length > 0 && (
-            <div className="mt-4 p-4 bg-muted rounded-lg text-sm">
-              <h4 className="font-medium mb-3 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                Creation Results:
-              </h4>
-              {results.map((result, index) => (
-                <div key={index} className="text-xs mb-2 p-2 border rounded">
-                  <div className="font-mono font-medium">{result.email}</div>
-                  <div className="mt-1">
-                    {result.success ? (
-                      <span className="text-green-600 font-medium">✅ {result.message}</span>
-                    ) : (
-                      <span className="text-red-600 font-medium">
-                        ❌ {result.error?.message || result.message || 'Failed'}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {testResults.length > 0 && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg text-sm">
-              <h4 className="font-medium mb-3 flex items-center gap-2">
-                <Shield className="h-4 w-4" />
-                Login Test Results:
-              </h4>
-              {testResults.map((test, index) => (
-                <div key={index} className="text-xs mb-2 p-2 border rounded bg-white">
-                  <div className="font-mono font-medium">{test.email}</div>
-                  <div className="mt-1">
-                    {test.success ? (
-                      <span className="text-green-600 font-medium">✅ Login successful - role: {test.profile?.role}</span>
-                    ) : (
-                      <span className="text-red-600 font-medium">
-                        ❌ {test.error || 'Login failed'}
-                        {test.hasAuth && !test.hasProfile && ' - Profile missing'}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg text-sm">
+            <h4 className="font-medium mb-3 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Authentication Information:
+            </h4>
+            <div className="space-y-2 text-xs">
+              <div className="p-2 border rounded bg-white">
+                <strong>Login Credentials:</strong>
+                <ul className="mt-1 space-y-1 text-gray-600">
+                  <li>• Developer: krishdev@tsam.com / badabing2024</li>
+                  <li>• Manager: manager@salesos.com / manager123</li>
+                  <li>• Sales Rep: rep@salesos.com / sales123</li>
+                </ul>
+              </div>
               
               <div className="mt-4 pt-3 border-t border-blue-200">
                 <p className="text-xs text-blue-700 font-medium">
-                  🚀 <strong>Ready to test:</strong> Go to{' '}
+                  🚀 <strong>Ready to use:</strong> Go to{' '}
                   <a href="/auth" className="text-primary hover:underline font-mono">
                     /auth
                   </a>
-                  {' '}and login with any of the working credentials above.
+                  {' '}and login with any of the credentials above.
                 </p>
               </div>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
     </div>

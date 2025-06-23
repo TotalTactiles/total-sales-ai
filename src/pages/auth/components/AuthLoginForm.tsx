@@ -89,7 +89,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         logger.info('Authentication successful');
         setSuccess('Login successful! Redirecting...');
         
-        // Small delay to show success message
+        // Small delay to show success message before redirect
         setTimeout(() => {
           window.location.href = '/';
         }, 1000);
@@ -101,11 +101,6 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleUseDemo = () => {
-    setSuccess('Demo mode activated!');
-    simulateLoginTransition(selectedRole);
   };
 
   return (
@@ -126,7 +121,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         )}
         
         <div>
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className="text-gray-700">Email</Label>
           <Input 
             id="email" 
             name="email" 
@@ -137,11 +132,11 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             disabled={isLoading}
             autoComplete="email"
             placeholder="Enter your email"
-            className="font-mono text-sm"
+            className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         <div>
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className="text-gray-700">Password</Label>
           <Input 
             id="password" 
             name="password" 
@@ -152,14 +147,14 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             disabled={isLoading}
             autoComplete="current-password"
             placeholder="Enter your password"
-            className="font-mono text-sm"
+            className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
         
         <Button 
           type="submit" 
           disabled={isLoading || !formData.email || !formData.password} 
-          className="w-full bg-indigo-600 hover:bg-indigo-500 text-white"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
         >
           {isLoading ? (
             <>
@@ -175,28 +170,14 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         </Button>
         
         <div className="text-center">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-gray-500">
             Pre-filled with {selectedRole === 'developer' ? 'developer' : selectedRole === 'manager' ? 'manager' : 'sales rep'} credentials
           </p>
           <p className="text-xs text-green-600 mt-1">
-            ✅ Demo accounts are auto-created
+            ✅ Demo accounts are ready to use
           </p>
         </div>
       </form>
-
-      <div className="border-t pt-4">
-        <Button 
-          variant="outline" 
-          onClick={handleUseDemo}
-          disabled={isLoading}
-          className="w-full"
-        >
-          Use Demo Mode Instead
-        </Button>
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          Try the system without real authentication
-        </p>
-      </div>
     </div>
   );
 };

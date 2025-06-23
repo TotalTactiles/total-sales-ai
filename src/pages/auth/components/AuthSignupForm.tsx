@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UserPlus, AlertCircle, CheckCircle } from 'lucide-react';
 import { Role } from '@/contexts/auth/types';
-import { Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { logger } from '@/utils/logger';
 
 interface AuthSignupFormProps {
@@ -15,172 +15,205 @@ interface AuthSignupFormProps {
 }
 
 const AuthSignupForm: React.FC<AuthSignupFormProps> = ({ selectedRole, setIsLogin }) => {
-  const { signUp, signUpWithOAuth } = useAuth();
+  const { signUp } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: ''
+    fullName: '',
+    role: selectedRole
   });
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
-    setLoading(true);
+    setSuccess(null);
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
+  const handleRoleChange = (role: Role) => {
+    setFormData({
+      ...formData,
+      role
+    });
+  };
+
+  const handleSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.email || !formData.password || !formData.fullName) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    
     try {
-      if (formData.password !== formData.confirmPassword) {
-        throw new Error('Passwords do not match');
-      }
-
-      if (formData.password.length < 6) {
-        throw new Error('Password must be at least 6 characters');
-      }
-
-      const { error } = await signUp(formData.email, formData.password, {
-        role: selectedRole,
-        full_name: formData.fullName
-      });
-
-      if (error) {
-        if (error.message.includes('already registered')) {
-          setError('This email is already registered. Please try logging in instead.');
+      logger.info('Attempting to sign up with:', { email: formData.email, role: formData.role });
+      
+      const { error: authError } = await signUp(
+        formData.email, 
+        formData.password,
+        {
+          full_name: formData.fullName,
+          role: formData.role
+        }
+      );
+      
+      if (authError) {
+        logger.error('Signup failed:', authError.message);
+        if (authError.message.includes('already registered')) {
+          setError('An account with this email already exists. Please try logging in instead.');
         } else {
-          setError(error.message);
+          setError(authError.message);
         }
       } else {
-        logger.info('Signup successful, redirecting...');
-        // User will be automatically redirected by the auth state change
+        logger.info('Signup successful');
+        setSuccess('Account created successfully! Please check your email to verify your account, then log in.');
+        
+        // Auto-switch to login after a delay
+        setTimeout(() => {
+          setIsLogin(true);
+        }, 3000);
       }
     } catch (error: any) {
       logger.error('Signup error:', error);
-      setError(error.message || 'An error occurred during signup');
+      setError('An unexpected error occurred. Please try again.');
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignup = async () => {
-    setError(null);
-    setLoading(true);
-
-    try {
-      const { error } = await signUpWithOAuth('google');
-      if (error) {
-        setError(error.message);
-      }
-    } catch (error: any) {
-      logger.error('Google signup error:', error);
-      setError(error.message || 'An error occurred during Google signup');
-    } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="space-y-2">
-        <Label htmlFor="fullName">Full Name</Label>
-        <div className="relative">
-          <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="fullName"
-            type="text"
+    <div className="space-y-4">
+      <form onSubmit={handleSignupSubmit} className="space-y-4">
+        {error && (
+          <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+        
+        {success && (
+          <div className="p-3 text-sm text-green-600 bg-green-50 border border-green-200 rounded-md flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 flex-shrink-0" />
+            <span>{success}</span>
+          </div>
+        )}
+        
+        <div>
+          <Label htmlFor="fullName" className="text-gray-700">Full Name</Label>
+          <Input 
+            id="fullName" 
+            name="fullName" 
+            type="text" 
+            value={formData.fullName} 
+            onChange={handleFormChange} 
+            required 
+            disabled={isLoading}
             placeholder="Enter your full name"
-            value={formData.fullName}
-            onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-            className="pl-10"
-            required
+            className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="email"
-            type="email"
+        <div>
+          <Label htmlFor="email" className="text-gray-700">Email</Label>
+          <Input 
+            id="email" 
+            name="email" 
+            type="email" 
+            value={formData.email} 
+            onChange={handleFormChange} 
+            required 
+            disabled={isLoading}
+            autoComplete="email"
             placeholder="Enter your email"
-            value={formData.email}
-            onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-            className="pl-10"
-            required
+            className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="password"
-            type="password"
-            placeholder="Create a password"
-            value={formData.password}
-            onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-            className="pl-10"
-            required
-            minLength={6}
+        <div>
+          <Label htmlFor="role" className="text-gray-700">Role</Label>
+          <Select value={formData.role} onValueChange={handleRoleChange} disabled={isLoading}>
+            <SelectTrigger className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+              <SelectValue placeholder="Select your role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="sales_rep">Sales Representative</SelectItem>
+              <SelectItem value="manager">Manager</SelectItem>
+              <SelectItem value="developer">Developer</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div>
+          <Label htmlFor="password" className="text-gray-700">Password</Label>
+          <Input 
+            id="password" 
+            name="password" 
+            type="password" 
+            value={formData.password} 
+            onChange={handleFormChange} 
+            required 
+            disabled={isLoading}
+            autoComplete="new-password"
+            placeholder="Enter your password"
+            className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            id="confirmPassword"
-            type="password"
+        <div>
+          <Label htmlFor="confirmPassword" className="text-gray-700">Confirm Password</Label>
+          <Input 
+            id="confirmPassword" 
+            name="confirmPassword" 
+            type="password" 
+            value={formData.confirmPassword} 
+            onChange={handleFormChange} 
+            required 
+            disabled={isLoading}
+            autoComplete="new-password"
             placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-            className="pl-10"
-            required
-            minLength={6}
+            className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           />
         </div>
-      </div>
-
-      <Button 
-        type="submit" 
-        className="w-full" 
-        disabled={loading}
-      >
-        {loading ? 'Creating Account...' : 'Sign Up'}
-      </Button>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-        </div>
-      </div>
-
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        onClick={handleGoogleSignup}
-        disabled={loading}
-      >
-        Continue with Google
-      </Button>
-    </form>
+        
+        <Button 
+          type="submit" 
+          disabled={isLoading || !formData.email || !formData.password || !formData.fullName} 
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+        >
+          {isLoading ? (
+            <>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></div>
+              Creating account...
+            </>
+          ) : (
+            <>
+              <UserPlus className="mr-2 h-4 w-4" /> 
+              Create Account
+            </>
+          )}
+        </Button>
+      </form>
+    </div>
   );
 };
 
