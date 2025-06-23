@@ -5,55 +5,24 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LogIn, AlertCircle, CheckCircle } from 'lucide-react';
-import { Role } from '@/contexts/auth/types';
 import { logger } from '@/utils/logger';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
-  simulateLoginTransition: (role?: Role) => void;
-  formData?: {
-    email: string;
-    password: string;
-  };
-  setFormData?: (data: {
-    email: string;
-    password: string;
-  }) => void;
-  selectedRole?: Role;
 }
 
 const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
-  setIsTransitioning,
-  simulateLoginTransition,
-  formData: externalFormData,
-  setFormData: externalSetFormData,
-  selectedRole
+  setIsTransitioning
 }) => {
   const { signIn } = useAuth();
   
-  // Get default credentials based on selected role
-  const getDefaultCredentials = (role: Role) => {
-    switch (role) {
-      case 'developer':
-        return { email: 'krishdev@tsam.com', password: 'badabing2024' };
-      case 'manager':
-        return { email: 'manager@salesos.com', password: 'manager123' };
-      case 'sales_rep':
-      default:
-        return { email: 'rep@salesos.com', password: 'sales123' };
-    }
-  };
-
-  const defaultCredentials = getDefaultCredentials(selectedRole || 'sales_rep');
-  
-  const [internalFormData, setInternalFormData] = useState(defaultCredentials);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  // Use either external or internal form data based on what's provided
-  const formData = externalFormData || internalFormData;
-  const setFormData = externalSetFormData || setInternalFormData;
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -101,6 +70,18 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Quick login buttons for demo accounts
+  const handleQuickLogin = (email: string, password: string) => {
+    setFormData({ email, password });
+    // Auto-submit after setting form data
+    setTimeout(() => {
+      const form = document.querySelector('form');
+      if (form) {
+        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+      }
+    }, 100);
   };
 
   return (
@@ -164,20 +145,48 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           ) : (
             <>
               <LogIn className="mr-2 h-4 w-4" /> 
-              Login as {selectedRole === 'developer' ? 'Developer' : selectedRole === 'manager' ? 'Manager' : 'Sales Rep'}
+              Login
             </>
           )}
         </Button>
-        
-        <div className="text-center">
-          <p className="text-xs text-gray-500">
-            Pre-filled with {selectedRole === 'developer' ? 'developer' : selectedRole === 'manager' ? 'manager' : 'sales rep'} credentials
-          </p>
-          <p className="text-xs text-green-600 mt-1">
-            ✅ Demo accounts are ready to use
-          </p>
-        </div>
       </form>
+
+      {/* Quick Login Buttons */}
+      <div className="space-y-2">
+        <p className="text-sm text-gray-600 text-center">Quick Login:</p>
+        <div className="grid grid-cols-1 gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickLogin('krishdev@tsam.com', 'badabing2024')}
+            disabled={isLoading}
+            className="text-xs"
+          >
+            Login as Developer
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickLogin('manager@salesos.com', 'manager123')}
+            disabled={isLoading}
+            className="text-xs"
+          >
+            Login as Manager
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickLogin('rep@salesos.com', 'sales123')}
+            disabled={isLoading}
+            className="text-xs"
+          >
+            Login as Sales Rep
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -27,13 +27,5 @@ export interface AuthContextType {
   signUp: (email: string, password: string, userData?: any) => Promise<{ error: AuthError | null }>;
   signUpWithOAuth: (provider: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
-  isDemoMode: () => boolean;
-  setDemoRole: (role: Role) => void;
-  getDemoRole: () => Role | null;
-  initializeDemoMode: (role: Role) => void;
-  setLastSelectedRole: (role: Role) => void;
-  setLastSelectedCompanyId: (companyId: string) => void;
   fetchProfile: (userId: string) => Promise<Profile | null>;
-  getLastSelectedRole: () => Role | null;
-  getLastSelectedCompanyId: () => string | null;
 }

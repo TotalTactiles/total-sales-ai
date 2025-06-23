@@ -4,7 +4,6 @@ import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { AuthContextType, Profile, Role } from './types';
-import { getLastSelectedRole, setLastSelectedRole, getLastSelectedCompanyId, setLastSelectedCompanyId } from './localStorage';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -275,15 +274,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signUp,
     signUpWithOAuth,
     signOut,
-    isDemoMode: () => false,
-    setDemoRole: () => {},
-    getDemoRole: () => null,
-    initializeDemoMode: () => {},
-    setLastSelectedRole,
-    setLastSelectedCompanyId,
-    fetchProfile,
-    getLastSelectedRole,
-    getLastSelectedCompanyId
+    fetchProfile
   };
 
   return (

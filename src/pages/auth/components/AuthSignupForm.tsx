@@ -10,18 +10,17 @@ import { Role } from '@/contexts/auth/types';
 import { logger } from '@/utils/logger';
 
 interface AuthSignupFormProps {
-  selectedRole: Role;
   setIsLogin: (isLogin: boolean) => void;
 }
 
-const AuthSignupForm: React.FC<AuthSignupFormProps> = ({ selectedRole, setIsLogin }) => {
+const AuthSignupForm: React.FC<AuthSignupFormProps> = ({ setIsLogin }) => {
   const { signUp } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
     fullName: '',
-    role: selectedRole
+    role: 'sales_rep' as Role
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,7 +157,6 @@ const AuthSignupForm: React.FC<AuthSignupFormProps> = ({ selectedRole, setIsLogi
             <SelectContent>
               <SelectItem value="sales_rep">Sales Representative</SelectItem>
               <SelectItem value="manager">Manager</SelectItem>
-              <SelectItem value="developer">Developer</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -212,6 +210,12 @@ const AuthSignupForm: React.FC<AuthSignupFormProps> = ({ selectedRole, setIsLogi
             </>
           )}
         </Button>
+        
+        <div className="text-center">
+          <p className="text-xs text-gray-500">
+            New accounts will go through an onboarding process
+          </p>
+        </div>
       </form>
     </div>
   );
