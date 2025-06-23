@@ -40,37 +40,45 @@ const AuthPage = () => {
   }, [selectedRole]);
 
   // Show loading screen while auth state is being determined
-  if (loading) {
+  if (loading || isTransitioning) {
     return <AuthLoadingScreen role={selectedRole} isDemoMode={isDemoMode()} />;
   }
 
-  // Redirect if user is already authenticated
-  if (user && profile && !isTransitioning) {
-    const roleRoutes = {
-      developer: '/developer',
-      admin: '/developer',
-      manager: '/manager',
-      sales_rep: '/sales'
+  // Only redirect if we have both user and profile, or if in demo mode
+  if ((user && profile) || isDemoMode()) {
+    const getRedirectPath = () => {
+      if (isDemoMode()) {
+        const demoRole = localStorage.getItem('demoRole');
+        switch (demoRole) {
+          case 'developer':
+            return '/developer/dashboard';
+          case 'manager':
+            return '/manager/dashboard';
+          case 'sales_rep':
+          default:
+            return '/sales/dashboard';
+        }
+      }
+      
+      if (profile) {
+        switch (profile.role) {
+          case 'developer':
+          case 'admin':
+            return '/developer/dashboard';
+          case 'manager':
+            return '/manager/dashboard';
+          case 'sales_rep':
+          default:
+            return '/sales/dashboard';
+        }
+      }
+      
+      return '/sales/dashboard';
     };
     
-    const redirectPath = roleRoutes[profile.role] || '/sales';
+    const redirectPath = getRedirectPath();
     const from = location.state?.from?.pathname || redirectPath;
     return <Navigate to={from} replace />;
-  }
-
-  // Handle demo mode redirect
-  if (isDemoMode() && !user) {
-    const demoRole = localStorage.getItem('demoRole') as Role | null;
-    if (demoRole) {
-      const roleRoutes = {
-        developer: '/developer',
-        admin: '/developer',
-        manager: '/manager',
-        sales_rep: '/sales'
-      };
-      const redirectPath = roleRoutes[demoRole] || '/sales';
-      return <Navigate to={redirectPath} replace />;
-    }
   }
 
   const handleRoleChange = (role: Role) => {
@@ -80,11 +88,6 @@ const AuthPage = () => {
   const simulateLoginTransition = () => {
     setIsTransitioning(true);
   };
-
-  // If transitioning, show loading screen
-  if (isTransitioning) {
-    return <AuthLoadingScreen role={selectedRole} isDemoMode={isDemoMode()} />;
-  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gradient-secondary">

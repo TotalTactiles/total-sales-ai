@@ -27,7 +27,7 @@ const queryClient = new QueryClient({
 });
 
 function AppRoutes() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isDemoMode } = useAuth();
   
   // Initialize AI Brain
   useAIBrain();
@@ -36,57 +36,77 @@ function AppRoutes() {
     return <LoadingSpinner />;
   }
 
-  // If no user, show landing or auth
-  if (!user) {
+  // If no user and not demo mode, show landing or auth
+  if (!user && !isDemoMode()) {
     return (
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/landing" element={<NewLandingPage />} />
+        <Route path="/" element={<NewLandingPage />} />
         <Route path="*" element={<Navigate to="/landing" replace />} />
       </Routes>
     );
   }
 
-  // If user but no profile, redirect to auth
-  if (!profile) {
+  // If user but no profile (and not demo mode), redirect to auth
+  if (user && !profile && !isDemoMode()) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Route based on user role
+  // Demo mode or authenticated user routing
   const getDefaultRoute = () => {
-    switch (profile.role) {
-      case 'developer':
-        return '/developer/*';
-      case 'manager':
-        return '/manager/*';
-      case 'sales_rep':
-        return '/sales/*';
-      default:
-        return '/sales/*';
+    if (isDemoMode()) {
+      const demoRole = localStorage.getItem('demoRole');
+      switch (demoRole) {
+        case 'developer':
+          return '/developer/dashboard';
+        case 'manager':
+          return '/manager/dashboard';
+        case 'sales_rep':
+        default:
+          return '/sales/dashboard';
+      }
     }
+    
+    if (profile) {
+      switch (profile.role) {
+        case 'developer':
+        case 'admin':
+          return '/developer/dashboard';
+        case 'manager':
+          return '/manager/dashboard';
+        case 'sales_rep':
+        default:
+          return '/sales/dashboard';
+      }
+    }
+    
+    return '/sales/dashboard';
   };
 
   return (
     <OnboardingGuard>
       <Routes>
-        <Route path="/auth" element={<Navigate to={getDefaultRoute().replace('/*', '/dashboard')} replace />} />
+        {/* Redirect auth to dashboard if already authenticated */}
+        <Route path="/auth" element={<Navigate to={getDefaultRoute()} replace />} />
+        <Route path="/landing" element={<Navigate to={getDefaultRoute()} replace />} />
         
         {/* Developer OS */}
-        {profile.role === 'developer' && (
+        {(profile?.role === 'developer' || profile?.role === 'admin' || isDemoMode()) && (
           <Route path="/developer/*" element={<DeveloperOS />} />
         )}
         
         {/* Manager OS */}
-        {(profile.role === 'manager' || profile.role === 'admin') && (
+        {(profile?.role === 'manager' || profile?.role === 'admin' || isDemoMode()) && (
           <Route path="/manager/*" element={<ManagerOS />} />
         )}
         
-        {/* Sales OS */}
+        {/* Sales OS - Available to all roles and demo mode */}
         <Route path="/sales/*" element={<SalesOS />} />
         
         {/* Default redirects */}
-        <Route path="/" element={<Navigate to={getDefaultRoute().replace('/*', '/dashboard')} replace />} />
-        <Route path="*" element={<Navigate to={getDefaultRoute().replace('/*', '/dashboard')} replace />} />
+        <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
+        <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
       </Routes>
     </OnboardingGuard>
   );

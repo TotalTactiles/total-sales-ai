@@ -55,13 +55,13 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
     
     // Redirect to appropriate dashboard based on actual role
     const roleRoutes = {
-      developer: '/developer',
-      admin: '/developer',
-      manager: '/manager',
-      sales_rep: '/sales'
+      developer: '/developer/dashboard',
+      admin: '/developer/dashboard',
+      manager: '/manager/dashboard',
+      sales_rep: '/sales/dashboard'
     };
     
-    const correctRoute = roleRoutes[profile.role] || '/sales';
+    const correctRoute = roleRoutes[profile.role] || '/sales/dashboard';
     return <Navigate to={correctRoute} replace />;
   }
 

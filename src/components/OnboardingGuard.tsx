@@ -8,7 +8,7 @@ interface OnboardingGuardProps {
 }
 
 const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isDemoMode } = useAuth();
 
   // Show loading state
   if (loading) {
@@ -22,8 +22,8 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
     );
   }
 
-  // Not authenticated - let auth flow handle this
-  if (!user) {
+  // Not authenticated or demo mode - let auth flow handle this
+  if (!user || isDemoMode()) {
     return <>{children}</>;
   }
 
@@ -35,6 +35,7 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
   // Check if onboarding is needed (skip for developers as they don't need onboarding)
   const needsOnboarding = user && profile?.company_id && 
     profile.role !== 'developer' &&
+    profile.role !== 'admin' &&
     !localStorage.getItem(`onboarding_complete_${profile.company_id}`);
 
   if (needsOnboarding) {
