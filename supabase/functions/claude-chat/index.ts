@@ -1,4 +1,3 @@
-import { logger } from '../../../src/utils/logger.ts';
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -8,6 +7,19 @@ const claudeApiKey = Deno.env.get('CLAUDE_API_KEY');
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+// Simple logger for edge functions
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data ? JSON.stringify(data) : '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data ? JSON.stringify(data) : '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data ? JSON.stringify(data) : '');
+  }
 };
 
 serve(async (req) => {
