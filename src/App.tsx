@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
+import { DemoDataProvider } from '@/contexts/DemoDataContext';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toaster } from '@/components/ui/sonner';
 import AuthPage from '@/pages/auth/AuthPage';
@@ -95,14 +96,16 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <UnifiedAIProvider>
-          <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
-            <Router>
-              <AppRoutes />
-              <Toaster />
-            </Router>
-          </ThemeProvider>
-        </UnifiedAIProvider>
+        <DemoDataProvider>
+          <UnifiedAIProvider>
+            <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+              <Router>
+                <AppRoutes />
+                <Toaster />
+              </Router>
+            </ThemeProvider>
+          </UnifiedAIProvider>
+        </DemoDataProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
