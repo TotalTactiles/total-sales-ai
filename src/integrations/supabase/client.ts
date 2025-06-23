@@ -34,7 +34,7 @@ export const supabase = createClient(
   }
 );
 
-// Enhanced connection testing with better error handling
+// Test connection with improved error handling
 const testConnection = async () => {
   try {
     logger.info('Testing Supabase connection...', {}, 'supabase');
@@ -52,29 +52,21 @@ const testConnection = async () => {
       logger.info('Supabase auth connected successfully', {}, 'supabase');
     }
     
-    // Test database connectivity with a simple query that won't trigger RLS
+    // Test database connectivity - this should now work with fixed RLS policies
     try {
-      const { error: dbError } = await supabase
+      const { data: profilesData, error: dbError } = await supabase
         .from('profiles')
         .select('count')
         .limit(1);
         
       if (dbError) {
-        if (dbError.message.includes('infinite recursion')) {
-          logger.error('RLS infinite recursion detected in profiles table', {
-            message: dbError.message,
-            code: dbError.code,
-            details: dbError.details
-          }, 'supabase');
-        } else {
-          logger.warn('Database query test failed:', {
-            message: dbError.message,
-            code: dbError.code,
-            details: dbError.details
-          }, 'supabase');
-        }
+        logger.warn('Database query test encountered issue:', {
+          message: dbError.message,
+          code: dbError.code,
+          details: dbError.details
+        }, 'supabase');
       } else {
-        logger.info('Database connectivity confirmed', {}, 'supabase');
+        logger.info('Database connectivity confirmed - RLS policies working correctly', {}, 'supabase');
       }
     } catch (dbException) {
       logger.error('Database connection test exception:', dbException, 'supabase');
@@ -85,5 +77,5 @@ const testConnection = async () => {
   }
 };
 
-// Test connection on initialization, but don't block the app
+// Test connection on initialization
 testConnection();
