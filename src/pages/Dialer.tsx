@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import AutoDialerSystem from '@/components/AutoDialer/AutoDialerSystem';
-import DemoModeIndicator from '@/components/Demo/DemoModeIndicator';
 import WorkspaceShowcase from '@/components/Demo/WorkspaceShowcase';
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
 import { useLeads } from '@/hooks/useLeads';
@@ -50,15 +49,6 @@ const Dialer = () => {
       <Navigation />
       
       <div className="flex-1 pt-[60px]">
-        {/* Demo Mode Indicator */}
-        {!hasRealData && (
-          <div className="p-4 pb-0">
-            <div className="max-w-7xl mx-auto">
-              <DemoModeIndicator workspace="AI Auto-Dialer System" />
-            </div>
-          </div>
-        )}
-        
         {/* Main Auto-Dialer Interface */}
         <div className="p-4 h-[calc(100vh-60px)]">
           <div className="max-w-7xl mx-auto h-full">
