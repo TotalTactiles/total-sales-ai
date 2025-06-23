@@ -90,13 +90,57 @@ Deno.serve(async (req) => {
     for (const user of demoUsers) {
       logger.info(`Processing user: ${user.email}`)
       
-      // Check if user already exists
+      // Check if user already exists by email
       try {
-        const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
+        const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+        
+        if (listError) {
+          logger.error(`Error listing users:`, listError)
+          results.push({
+            email: user.email,
+            success: false,
+            error: `Failed to check existing users: ${listError.message}`
+          })
+          continue
+        }
+        
         const existingUser = existingUsers.users.find(u => u.email === user.email)
         
         if (existingUser) {
           logger.info(`User already exists: ${user.email}`)
+          
+          // Check if profile exists, create if missing
+          const { data: existingProfile, error: profileError } = await supabaseAdmin
+            .from('profiles')
+            .select('*')
+            .eq('id', existingUser.id)
+            .maybeSingle()
+          
+          if (profileError) {
+            logger.warn(`Error checking profile for ${user.email}:`, profileError)
+          } else if (!existingProfile) {
+            logger.info(`Creating missing profile for existing user: ${user.email}`)
+            
+            const { error: createProfileError } = await supabaseAdmin
+              .from('profiles')
+              .upsert({
+                id: existingUser.id,
+                full_name: user.full_name,
+                role: user.role,
+                company_id: existingUser.id,
+                email_connected: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                last_login: new Date().toISOString()
+              })
+            
+            if (createProfileError) {
+              logger.error(`Failed to create profile for ${user.email}:`, createProfileError)
+            } else {
+              logger.info(`Profile created for existing user: ${user.email}`)
+            }
+          }
+          
           results.push({
             email: user.email,
             success: true,
@@ -107,59 +151,74 @@ Deno.serve(async (req) => {
         }
       } catch (error) {
         logger.error(`Error checking existing user ${user.email}:`, error)
-      }
-
-      // Create the user
-      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-        email: user.email,
-        password: user.password,
-        email_confirm: true,
-        user_metadata: {
-          role: user.role,
-          full_name: user.full_name
-        }
-      })
-
-      if (authError) {
-        logger.error(`Error creating user ${user.email}:`, authError)
         results.push({
           email: user.email,
           success: false,
-          error: authError.message
+          error: `Error checking existing user: ${error.message}`
         })
         continue
       }
 
-      logger.info(`User created successfully: ${user.email}`)
-
-      // Create profile in profiles table
-      const { error: profileError } = await supabaseAdmin
-        .from('profiles')
-        .upsert({
-          id: authData.user.id,
-          full_name: user.full_name,
-          role: user.role,
-          company_id: authData.user.id,
-          email_connected: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          last_login: new Date().toISOString()
+      // Create the user
+      try {
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+          email: user.email,
+          password: user.password,
+          email_confirm: true,
+          user_metadata: {
+            role: user.role,
+            full_name: user.full_name
+          }
         })
 
-      if (profileError) {
-        logger.error(`Error creating profile for ${user.email}:`, profileError)
+        if (authError) {
+          logger.error(`Error creating user ${user.email}:`, authError)
+          results.push({
+            email: user.email,
+            success: false,
+            error: authError.message
+          })
+          continue
+        }
+
+        logger.info(`User created successfully: ${user.email}`)
+
+        // Create profile in profiles table
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .upsert({
+            id: authData.user.id,
+            full_name: user.full_name,
+            role: user.role,
+            company_id: authData.user.id,
+            email_connected: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            last_login: new Date().toISOString()
+          })
+
+        if (profileError) {
+          logger.error(`Error creating profile for ${user.email}:`, profileError)
+          results.push({
+            email: user.email,
+            success: false,
+            error: `Profile creation failed: ${profileError.message}`
+          })
+        } else {
+          logger.info(`Profile created successfully for: ${user.email}`)
+          results.push({
+            email: user.email,
+            success: true,
+            action: 'created',
+            userId: authData.user.id
+          })
+        }
+      } catch (error) {
+        logger.error(`Exception creating user ${user.email}:`, error)
         results.push({
           email: user.email,
           success: false,
-          error: `Profile creation failed: ${profileError.message}`
-        })
-      } else {
-        logger.info(`Profile created successfully for: ${user.email}`)
-        results.push({
-          email: user.email,
-          success: true,
-          action: 'created',
-          userId: authData.user.id
+          error: `Exception: ${error.message}`
         })
       }
     }

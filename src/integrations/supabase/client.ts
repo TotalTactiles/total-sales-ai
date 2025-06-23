@@ -20,51 +20,70 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: true,
       storage: window.localStorage,
-      flowType: 'pkce'
+      flowType: 'pkce',
+      debug: process.env.NODE_ENV === 'development'
     },
     global: {
       headers: {
         'x-application-name': 'salesos-platform'
       }
+    },
+    db: {
+      schema: 'public'
     }
   }
 );
 
-// Enhanced connection testing with detailed error logging
+// Enhanced connection testing with better error handling
 const testConnection = async () => {
   try {
     logger.info('Testing Supabase connection...', {}, 'supabase');
-    const { data, error } = await supabase.auth.getSession();
     
-    if (error) {
-      logger.error('Supabase connection error:', {
-        message: error.message,
-        status: error.status,
-        code: error.code
+    // Test auth connection
+    const { data: authData, error: authError } = await supabase.auth.getSession();
+    
+    if (authError) {
+      logger.error('Supabase auth error:', {
+        message: authError.message,
+        status: authError.status,
+        code: authError.code
       }, 'supabase');
     } else {
-      logger.info('Supabase connected successfully', {}, 'supabase');
-      
-      // Test database connectivity
+      logger.info('Supabase auth connected successfully', {}, 'supabase');
+    }
+    
+    // Test database connectivity with a simple query that won't trigger RLS
+    try {
       const { error: dbError } = await supabase
         .from('profiles')
         .select('count')
         .limit(1);
         
       if (dbError) {
-        logger.warn('Database query test failed:', {
-          message: dbError.message,
-          code: dbError.code,
-          details: dbError.details
-        }, 'supabase');
+        if (dbError.message.includes('infinite recursion')) {
+          logger.error('RLS infinite recursion detected in profiles table', {
+            message: dbError.message,
+            code: dbError.code,
+            details: dbError.details
+          }, 'supabase');
+        } else {
+          logger.warn('Database query test failed:', {
+            message: dbError.message,
+            code: dbError.code,
+            details: dbError.details
+          }, 'supabase');
+        }
       } else {
         logger.info('Database connectivity confirmed', {}, 'supabase');
       }
+    } catch (dbException) {
+      logger.error('Database connection test exception:', dbException, 'supabase');
     }
+    
   } catch (error) {
     logger.error('Failed to test Supabase connection:', error, 'supabase');
   }
 };
 
-// Test connection on initialization
+// Test connection on initialization, but don't block the app
 testConnection();

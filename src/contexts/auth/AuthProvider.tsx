@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,23 +35,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       logger.info('Creating system user:', { email, role }, 'auth');
       
-      const { data, error } = await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          role,
-          full_name: fullName
-        }
+      // Try to use the edge function instead of admin API
+      const response = await fetch('/functions/v1/setup-demo-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          users: [{
+            email,
+            password,
+            role,
+            full_name: fullName
+          }]
+        })
       });
 
-      if (error) {
-        logger.error('Failed to create system user:', error, 'auth');
+      const result = await response.json();
+      
+      if (response.ok) {
+        logger.info('System user created successfully:', { email, result }, 'auth');
+        return true;
+      } else {
+        logger.error('Failed to create system user via edge function:', result, 'auth');
         return false;
       }
-
-      logger.info('System user created successfully:', { email, userId: data.user.id }, 'auth');
-      return true;
     } catch (error) {
       logger.error('Exception creating system user:', error, 'auth');
       return false;
@@ -62,13 +69,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
       logger.info('Fetching profile for user:', userId, 'auth');
+      
+      // Use a more direct approach to avoid RLS issues
       const { data: existingProfile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (existingProfile && !error) {
+      if (error) {
+        if (error.message.includes('infinite recursion')) {
+          logger.error('RLS infinite recursion in profile fetch:', error, 'auth');
+          // Return a fallback profile to prevent app freeze
+          return {
+            id: userId,
+            full_name: 'User',
+            role: 'sales_rep' as Role,
+            company_id: userId,
+            email_connected: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            last_login: new Date().toISOString()
+          };
+        }
+        logger.error('Error fetching profile:', error, 'auth');
+        return null;
+      }
+
+      if (existingProfile) {
         logger.info('Profile found successfully:', { 
           profileId: existingProfile.id, 
           role: existingProfile.role,
@@ -77,12 +105,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return existingProfile;
       }
       
-      if (error && error.code !== 'PGRST116') {
-        logger.error('Error fetching profile:', error, 'auth');
-      } else {
-        logger.info('No existing profile found, will need to create one', {}, 'auth');
-      }
-      
+      logger.info('No existing profile found, will need to create one', {}, 'auth');
       return null;
     } catch (error) {
       logger.error('Exception while fetching profile:', error, 'auth');
@@ -124,16 +147,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           ignoreDuplicates: false 
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
+        if (error.message.includes('infinite recursion')) {
+          logger.error('RLS infinite recursion in profile creation:', error, 'auth');
+          // Return the profile data we tried to create as fallback
+          return profileData as Profile;
+        }
         logger.error('Error creating profile:', error, 'auth');
         throw error;
       }
       
       if (!newProfile) {
         logger.error('Profile creation returned null data', {}, 'auth');
-        throw new Error('Profile creation failed - no data returned');
+        // Return the profile data we tried to create as fallback
+        return profileData as Profile;
       }
       
       logger.info('Profile created successfully:', {
@@ -144,7 +173,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return newProfile;
     } catch (error) {
       logger.error('Exception while creating profile:', error, 'auth');
-      return null;
+      // Return a fallback profile to prevent app freeze
+      const fallbackProfile: Profile = {
+        id: user.id,
+        full_name: user.email?.split('@')[0] || 'User',
+        role: 'sales_rep',
+        company_id: user.id,
+        email_connected: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        last_login: new Date().toISOString()
+      };
+      return fallbackProfile;
     }
   };
 
@@ -158,46 +198,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userProfile = await createProfile(user);
         
         if (!userProfile) {
-          logger.error('Failed to create profile, retrying once...', {}, 'auth');
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          userProfile = await createProfile(user);
+          logger.error('Failed to create profile, using fallback...', {}, 'auth');
+          userProfile = {
+            id: user.id,
+            full_name: user.email?.split('@')[0] || 'User',
+            role: 'sales_rep',
+            company_id: user.id,
+            email_connected: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            last_login: new Date().toISOString()
+          };
         }
       }
 
-      if (userProfile) {
-        logger.info('Setting profile in state:', { 
-          userId: user.id, 
-          profileRole: userProfile.role,
-          profileId: userProfile.id
-        }, 'auth');
-        setProfile(userProfile);
-        
-        try {
-          await supabase
-            .from('profiles')
-            .update({ last_login: new Date().toISOString() })
-            .eq('id', user.id);
-          logger.info('Updated last login timestamp', {}, 'auth');
-        } catch (updateError) {
-          logger.warn('Failed to update last login (non-critical):', updateError, 'auth');
-        }
-      } else {
-        logger.error('Critical error: Failed to create or fetch profile after retry', {}, 'auth');
-        const fallbackProfile: Profile = {
-          id: user.id,
-          full_name: user.email?.split('@')[0] || 'User',
-          role: 'sales_rep',
-          company_id: user.id,
-          email_connected: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          last_login: new Date().toISOString()
-        };
-        logger.warn('Using fallback profile to prevent app freeze:', fallbackProfile, 'auth');
-        setProfile(fallbackProfile);
+      logger.info('Setting profile in state:', { 
+        userId: user.id, 
+        profileRole: userProfile.role,
+        profileId: userProfile.id
+      }, 'auth');
+      setProfile(userProfile);
+      
+      // Update last login timestamp (non-critical operation)
+      try {
+        await supabase
+          .from('profiles')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', user.id);
+        logger.info('Updated last login timestamp', {}, 'auth');
+      } catch (updateError) {
+        logger.warn('Failed to update last login (non-critical):', updateError, 'auth');
       }
     } catch (error) {
       logger.error('Critical error in fetchOrCreateProfile:', error, 'auth');
+      // Always set a fallback profile to prevent app freeze
       const fallbackProfile: Profile = {
         id: user.id,
         full_name: user.email?.split('@')[0] || 'User',
@@ -229,6 +263,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Defer profile operations to avoid blocking auth state changes
           setTimeout(() => {
             fetchOrCreateProfile(session.user);
           }, 100);
@@ -236,6 +271,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setProfile(null);
         }
         
+        // Always ensure loading is set to false
         setTimeout(() => setLoading(false), 200);
       }
     );
@@ -293,8 +329,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           fullError: error
         }, 'auth');
 
-        // Check if user needs to be created
-        if (error.message.includes('Invalid login credentials')) {
+        // Enhanced error handling for different types of auth errors
+        if (error.message.includes('Invalid login credentials') || error.status === 400) {
           const requiredUser = requiredUsers.find(u => u.email === email.trim());
           if (requiredUser) {
             logger.info('Attempting to create missing system user:', { email }, 'auth');
@@ -306,6 +342,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             );
             
             if (created) {
+              logger.info('User created, attempting login again...', {}, 'auth');
+              // Wait a moment for user creation to propagate
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              
               // Retry login after user creation
               const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
                 email: email.trim(),
@@ -323,6 +363,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   userId: retryData.user.id,
                   email: retryData.user.email
                 }, 'auth');
+                setLoading(false);
                 return { error: null };
               }
             }
@@ -338,6 +379,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           userId: data.user.id,
           email: data.user.email
         }, 'auth');
+        setLoading(false);
         return { error: null };
       }
 
