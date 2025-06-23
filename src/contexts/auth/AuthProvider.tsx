@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   // Required users for quick login
   const requiredUsers = [
@@ -35,7 +37,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       logger.info('Creating system user:', { email, role }, 'auth');
       
-      // Try to use the edge function instead of admin API
       const response = await fetch('/functions/v1/setup-demo-users', {
         method: 'POST',
         headers: {
@@ -70,7 +71,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       logger.info('Fetching profile for user:', userId, 'auth');
       
-      // Use a more direct approach to avoid RLS issues
       const { data: existingProfile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -80,7 +80,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         if (error.message.includes('infinite recursion')) {
           logger.error('RLS infinite recursion in profile fetch:', error, 'auth');
-          // Return a fallback profile to prevent app freeze
           return {
             id: userId,
             full_name: 'User',
@@ -152,7 +151,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (error) {
         if (error.message.includes('infinite recursion')) {
           logger.error('RLS infinite recursion in profile creation:', error, 'auth');
-          // Return the profile data we tried to create as fallback
           return profileData as Profile;
         }
         logger.error('Error creating profile:', error, 'auth');
@@ -161,7 +159,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (!newProfile) {
         logger.error('Profile creation returned null data', {}, 'auth');
-        // Return the profile data we tried to create as fallback
         return profileData as Profile;
       }
       
@@ -173,7 +170,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return newProfile;
     } catch (error) {
       logger.error('Exception while creating profile:', error, 'auth');
-      // Return a fallback profile to prevent app freeze
       const fallbackProfile: Profile = {
         id: user.id,
         full_name: user.email?.split('@')[0] || 'User',
@@ -231,7 +227,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       logger.error('Critical error in fetchOrCreateProfile:', error, 'auth');
-      // Always set a fallback profile to prevent app freeze
       const fallbackProfile: Profile = {
         id: user.id,
         full_name: user.email?.split('@')[0] || 'User',
@@ -247,9 +242,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Initialize auth state
   useEffect(() => {
-    logger.info('Setting up auth state listener', {}, 'auth');
-    
+    let mounted = true;
+
+    const initializeAuth = async () => {
+      try {
+        logger.info('Initializing auth state...', {}, 'auth');
+        
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          logger.error('Error getting initial session:', error, 'auth');
+        } else if (session) {
+          logger.info('Initial session found:', { userId: session.user.id }, 'auth');
+          if (mounted) {
+            setSession(session);
+            setUser(session.user);
+            // Fetch profile after setting user
+            await fetchOrCreateProfile(session.user);
+          }
+        } else {
+          logger.info('No initial session found', {}, 'auth');
+        }
+        
+        if (mounted) {
+          setInitialized(true);
+          setLoading(false);
+        }
+      } catch (error) {
+        logger.error('Error initializing auth:', error, 'auth');
+        if (mounted) {
+          setInitialized(true);
+          setLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         logger.info('Auth state changed:', { 
@@ -259,54 +290,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           hasUser: !!session?.user
         }, 'auth');
         
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Defer profile operations to avoid blocking auth state changes
-          setTimeout(() => {
-            fetchOrCreateProfile(session.user);
-          }, 100);
-        } else {
-          setProfile(null);
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            // Only fetch profile if we have a user
+            await fetchOrCreateProfile(session.user);
+          } else {
+            setProfile(null);
+          }
+          
+          // Ensure loading is false after auth state change
+          if (initialized) {
+            setLoading(false);
+          }
         }
-        
-        // Always ensure loading is set to false
-        setTimeout(() => setLoading(false), 200);
       }
     );
 
-    const initializeAuth = async () => {
-      try {
-        logger.info('Initializing auth - checking for existing session', {}, 'auth');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          logger.error('Error getting session:', error, 'auth');
-          setLoading(false);
-          return;
-        }
-        
-        if (session) {
-          logger.info('Existing session found, processing user', {}, 'auth');
-          setSession(session);
-          setUser(session.user);
-          await fetchOrCreateProfile(session.user);
-        } else {
-          logger.info('No existing session found', {}, 'auth');
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        logger.error('Error initializing auth:', error, 'auth');
-        setLoading(false);
-      }
-    };
-
+    // Initialize auth
     initializeAuth();
 
     return () => {
-      logger.info('Cleaning up auth subscription', {}, 'auth');
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -320,6 +327,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email: email.trim(),
         password
       });
+
+      logger.info('LOGIN RESULT:', { data, error }, 'auth');
 
       if (error) {
         logger.error('Sign in failed:', { 
@@ -363,6 +372,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   userId: retryData.user.id,
                   email: retryData.user.email
                 }, 'auth');
+                
+                // Wait for auth state to sync before resolving
+                await new Promise(resolve => setTimeout(resolve, 500));
                 setLoading(false);
                 return { error: null };
               }
@@ -377,8 +389,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (data.user && data.session) {
         logger.info('Sign in successful:', { 
           userId: data.user.id,
-          email: data.user.email
+          email: data.user.email,
+          hasSession: !!data.session
         }, 'auth');
+        
+        // Wait for auth state to sync before resolving
+        await new Promise(resolve => setTimeout(resolve, 500));
         setLoading(false);
         return { error: null };
       }

@@ -16,6 +16,7 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAIBrain } from '@/hooks/useAIBrain';
 import { logger } from '@/utils/logger';
+import { supabase } from '@/integrations/supabase/client';
 import React, { useEffect } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -89,13 +90,29 @@ function AppRoutes() {
   // Initialize AI Brain
   useAIBrain();
 
+  // Debug session state in OS routes
+  useEffect(() => {
+    if (window.location.pathname.startsWith('/os/')) {
+      supabase.auth.getSession().then(({ data: { session }, error }) => {
+        logger.info('Session check in OS route:', { 
+          hasSession: !!session,
+          hasUser: !!session?.user,
+          sessionUserId: session?.user?.id,
+          error: error?.message,
+          currentPath: window.location.pathname
+        }, 'app');
+      });
+    }
+  }, [window.location.pathname]);
+
   logger.info('AppRoutes state:', { 
     hasUser: !!user, 
     hasProfile: !!profile, 
     loading,
     profileRole: profile?.role,
     userId: user?.id,
-    profileId: profile?.id
+    profileId: profile?.id,
+    currentPath: window.location.pathname
   }, 'app');
 
   if (loading) {
