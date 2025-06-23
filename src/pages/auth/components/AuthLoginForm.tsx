@@ -78,7 +78,8 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       
       const errorMessage = authError.message || 'Login failed';
       if (errorMessage.includes('Invalid login credentials')) {
-        setError('Invalid email or password. Try clicking "Setup Demo Users" first if this is your first time.');
+        setError('Invalid email or password. The system will automatically create missing demo users and retry.');
+        // Don't show the setup demo users message since it's automatic now
       } else if (errorMessage.includes('Email not confirmed')) {
         setError('Please check your email and click the confirmation link before logging in.');
       } else if (errorMessage.includes('Too many requests')) {
@@ -230,7 +231,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           )}
         </Button>
         <p className="text-xs text-gray-500 mt-2 text-center">
-          Click this button first if you're having login issues
+          Click this if you're having login issues or want to reset demo users
         </p>
       </div>
 

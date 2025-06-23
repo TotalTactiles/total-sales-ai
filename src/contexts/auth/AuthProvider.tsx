@@ -78,19 +78,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .maybeSingle();
 
       if (error) {
-        if (error.message.includes('infinite recursion')) {
-          logger.error('RLS infinite recursion in profile fetch:', error, 'auth');
-          return {
-            id: userId,
-            full_name: 'User',
-            role: 'sales_rep' as Role,
-            company_id: userId,
-            email_connected: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            last_login: new Date().toISOString()
-          };
-        }
         logger.error('Error fetching profile:', error, 'auth');
         return null;
       }
@@ -149,10 +136,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .maybeSingle();
 
       if (error) {
-        if (error.message.includes('infinite recursion')) {
-          logger.error('RLS infinite recursion in profile creation:', error, 'auth');
-          return profileData as Profile;
-        }
         logger.error('Error creating profile:', error, 'auth');
         throw error;
       }
@@ -328,7 +311,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         password
       });
 
-      logger.info('LOGIN RESULT:', { data, error }, 'auth');
+      logger.info('LOGIN RESULT:', { 
+        hasData: !!data, 
+        hasUser: !!data?.user,
+        hasSession: !!data?.session,
+        error: error?.message,
+        errorCode: error?.status 
+      }, 'auth');
 
       if (error) {
         logger.error('Sign in failed:', { 
@@ -353,13 +342,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (created) {
               logger.info('User created, attempting login again...', {}, 'auth');
               // Wait a moment for user creation to propagate
-              await new Promise(resolve => setTimeout(resolve, 1000));
+              await new Promise(resolve => setTimeout(resolve, 2000));
               
               // Retry login after user creation
               const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
                 email: email.trim(),
                 password
               });
+              
+              logger.info('RETRY LOGIN RESULT:', { 
+                hasData: !!retryData, 
+                hasUser: !!retryData?.user,
+                hasSession: !!retryData?.session,
+                error: retryError?.message 
+              }, 'auth');
               
               if (retryError) {
                 logger.error('Sign in failed after user creation:', retryError, 'auth');
