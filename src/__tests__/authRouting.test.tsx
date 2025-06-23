@@ -53,15 +53,7 @@ const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children })
     signUp: async () => ({ error: null }),
     signUpWithOAuth: async () => ({ error: null }),
     signOut,
-    fetchProfile,
-    isDemoMode: () => false,
-    setDemoRole: () => {},
-    getDemoRole: () => null,
-    setLastSelectedRole: () => {},
-    getLastSelectedRole: () => 'sales_rep',
-    setLastSelectedCompanyId: () => {},
-    getLastSelectedCompanyId: () => null,
-    initializeDemoMode: () => {}
+    fetchProfile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

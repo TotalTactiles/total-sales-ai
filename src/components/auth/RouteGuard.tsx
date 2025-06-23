@@ -16,7 +16,7 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
   allowedRoles,
   requireAuth = true 
 }) => {
-  const { user, profile, loading, isDemoMode } = useAuth();
+  const { user, profile, loading } = useAuth();
   const location = useLocation();
 
   // Show loading while determining auth state
@@ -29,12 +29,6 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
         </div>
       </div>
     );
-  }
-
-  // Allow demo mode access
-  if (isDemoMode()) {
-    logger.info('Demo mode active, allowing access');
-    return <>{children}</>;
   }
 
   // If auth is required but no user, redirect to auth

@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { useState, useMemo } from 'react';
@@ -15,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Upload } from 'lucide-react';
 
 const LeadManagement = () => {
-  const { profile, isDemoMode } = useAuth();
+  const { profile } = useAuth();
   const { leads: realLeads } = useLeadData();
   const { leads: mockLeads } = useMockData();
   
@@ -27,12 +28,10 @@ const LeadManagement = () => {
 
   // Determine which leads to show and loading state
   const { leads, isInDemoMode, hasRealData, showDemo } = useMemo(() => {
-    const isDemo = isDemoMode();
     const hasReal = realLeads.length > 0;
-    const shouldShowDemo = isDemo || (!hasReal);
+    const shouldShowDemo = !hasReal;
     
     logger.info('LeadManagement state:', {
-      isDemo,
       hasReal,
       shouldShowDemo,
       realLeadsCount: realLeads.length,
@@ -42,7 +41,7 @@ const LeadManagement = () => {
     if (shouldShowDemo) {
       return {
         leads: mockLeads.map(convertMockLeadToLead),
-        isInDemoMode: isDemo,
+        isInDemoMode: false,
         hasRealData: hasReal,
         showDemo: shouldShowDemo
       };
@@ -50,11 +49,11 @@ const LeadManagement = () => {
 
     return {
       leads: realLeads,
-      isInDemoMode: isDemo,
+      isInDemoMode: false,
       hasRealData: hasReal,
       showDemo: shouldShowDemo
     };
-  }, [realLeads, mockLeads, isDemoMode]);
+  }, [realLeads, mockLeads]);
 
   const handleLeadSelect = (lead: Lead) => {
     logger.info('Lead selected:', lead);

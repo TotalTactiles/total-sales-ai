@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +15,7 @@ interface Option {
 }
 
 const RoleCompanySelector: React.FC = () => {
-  const { user, setLastSelectedRole, setLastSelectedCompanyId } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [options, setOptions] = useState<Option[]>([]);
 
@@ -45,8 +46,10 @@ const RoleCompanySelector: React.FC = () => {
   }, [user]);
 
   const handleSelect = (opt: Option) => {
-    setLastSelectedRole(opt.role);
-    setLastSelectedCompanyId(opt.company_id);
+    // Store selections in localStorage since they're not in AuthContext anymore
+    localStorage.setItem('lastSelectedRole', opt.role);
+    localStorage.setItem('lastSelectedCompanyId', opt.company_id);
+    
     const url = getDashboardUrl({ role: opt.role });
     navigate(url, { replace: true });
   };

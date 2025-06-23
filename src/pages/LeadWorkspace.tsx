@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 
 import React, { useState, useMemo } from 'react';
@@ -19,7 +20,7 @@ import { X } from 'lucide-react';
 const LeadWorkspace: React.FC = () => {
   const { leadId } = useParams<{ leadId: string }>();
   const navigate = useNavigate();
-  const { isDemoMode } = useAuth();
+  const { profile } = useAuth();
   const { getLeadById: getMockLead } = useMockData();
   const { leads: databaseLeads } = useLeads();
   
@@ -34,19 +35,7 @@ const LeadWorkspace: React.FC = () => {
       return null;
     }
 
-    const isDemo = isDemoMode();
-    logger.info('LeadWorkspace: Demo mode:', isDemo);
-    
-    if (isDemo) {
-      // For demo mode, always use the mock lead profile regardless of which lead was clicked
-      logger.info('Using mock lead profile for demo mode');
-      return {
-        ...mockLeadProfile,
-        id: leadId // Keep the original ID so routing works
-      };
-    }
-
-    // If not in demo mode, try to find from database leads
+    // Try to find from database leads first
     if (databaseLeads && databaseLeads.length > 0) {
       const dbLead = databaseLeads.find((l) => l.id === leadId);
       if (dbLead) {
@@ -61,7 +50,7 @@ const LeadWorkspace: React.FC = () => {
       ...mockLeadProfile,
       id: leadId
     };
-  }, [leadId, isDemoMode, databaseLeads]);
+  }, [leadId, databaseLeads]);
 
   const handleClose = () => {
     navigate('/lead-management');

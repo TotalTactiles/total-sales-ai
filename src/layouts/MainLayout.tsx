@@ -12,7 +12,7 @@ import { logger } from '@/utils/logger';
 import { useLocation } from 'react-router-dom';
 
 const MainLayout: React.FC = () => {
-  const { user, profile, loading, isDemoMode } = useAuth();
+  const { user, profile, loading } = useAuth();
   const { setError } = useAppState();
   const location = useLocation();
 
@@ -26,48 +26,6 @@ const MainLayout: React.FC = () => {
         </div>
       </div>
     );
-  }
-
-  // Handle demo mode
-  if (isDemoMode()) {
-    const demoRole = localStorage.getItem('demoRole') as 'manager' | 'sales_rep' | 'developer' | null;
-    logger.info('Demo mode active with role:', demoRole);
-    
-    try {
-      const getAIContext = () => ({
-        workspace: location.pathname.split('/')[1] || 'dashboard',
-        userRole: demoRole || 'sales_rep'
-      });
-
-      switch (demoRole) {
-        case 'manager':
-          return (
-            <EnhancedErrorBoundary>
-              <ManagerOS />
-              <UnifiedAIAssistant context={getAIContext()} />
-            </EnhancedErrorBoundary>
-          );
-        case 'sales_rep':
-          return (
-            <EnhancedErrorBoundary>
-              <SalesRepOS />
-              <UnifiedAIAssistant context={getAIContext()} />
-            </EnhancedErrorBoundary>
-          );
-        case 'developer':
-          return (
-            <EnhancedErrorBoundary>
-              <DeveloperOS />
-              <UnifiedAIAssistant context={getAIContext()} />
-            </EnhancedErrorBoundary>
-          );
-        default:
-          return <NavigationFallback />;
-      }
-    } catch (error) {
-      logger.error('Error in demo mode layout:', error);
-      return <NavigationFallback />;
-    }
   }
 
   // Handle authenticated users
