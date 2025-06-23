@@ -182,7 +182,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.info('Attempting sign in:', { email });
       
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password
       });
 
@@ -191,7 +191,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error };
       }
 
-      if (data.user) {
+      if (data.user && data.session) {
         logger.info('Sign in successful:', { userId: data.user.id });
         return { error: null };
       }
