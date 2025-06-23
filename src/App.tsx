@@ -16,6 +16,9 @@ import AuthErrorBoundary from '@/components/auth/AuthErrorBoundary';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAIBrain } from '@/hooks/useAIBrain';
 import { logger } from '@/utils/logger';
+import React, { useEffect } from 'react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import './App.css';
 
 // Error Boundary Component

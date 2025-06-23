@@ -1,4 +1,3 @@
-import { logger } from '../../../src/utils/logger.ts';
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
@@ -59,7 +58,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    logger.error('Error in ai-voice function:', error)
+    console.error('Error in ai-voice function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 
