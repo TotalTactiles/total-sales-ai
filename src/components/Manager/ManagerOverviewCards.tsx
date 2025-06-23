@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Users, Award, AlertCircle, CheckCircle } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Users, Brain, TrendingUp, AlertTriangle, Target, Award } from 'lucide-react';
 
 interface ManagerOverviewCardsProps {
   teamMembers: any[];
@@ -17,75 +17,72 @@ const ManagerOverviewCards: React.FC<ManagerOverviewCardsProps> = ({
   demoMode, 
   profile 
 }) => {
+  const totalCalls = teamMembers.reduce((sum, member) => sum + (member.stats?.call_count || 0), 0);
+  const totalWins = teamMembers.reduce((sum, member) => sum + (member.stats?.win_count || 0), 0);
+  const averageMood = teamMembers.length > 0 
+    ? Math.round(teamMembers.reduce((sum, member) => sum + (member.stats?.mood_score || 0), 0) / teamMembers.length)
+    : 0;
+  const highRiskMembers = teamMembers.filter(member => (member.stats?.burnout_risk || 0) > 60).length;
+
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-bold text-salesBlue">Executive Dashboard</h1>
-          <p className="text-slate-500">
-            Welcome back, {demoMode ? 'John' : profile?.full_name || 'Manager'}! 
-            You have {recommendations.length} team notifications today.
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-blue-800">Team Size</CardTitle>
+          <Users className="h-4 w-4 text-blue-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-blue-900">{teamMembers.length}</div>
+          <p className="text-xs text-blue-700">
+            Active sales representatives
           </p>
-        </div>
-        
-        {demoMode && (
-          <Button 
-            variant="destructive"
-            onClick={() => {
-              localStorage.removeItem('demoMode');
-              localStorage.removeItem('demoRole');
-              window.location.href = '/logout';
-            }}
-          >
-            Exit Demo
-          </Button>
-        )}
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="rounded-lg shadow-md">
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <Users className="h-8 w-8 text-salesBlue mb-2" />
-            <p className="text-sm text-muted-foreground">Team Members</p>
-            <p className="text-3xl font-bold">{teamMembers.length}</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="rounded-lg shadow-md">
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <Award className="h-8 w-8 text-salesGreen mb-2" />
-            <p className="text-sm text-muted-foreground">Top Performer</p>
-            <p className="text-xl font-bold truncate max-w-full">
-              {teamMembers.length > 0 
-                ? teamMembers.sort((a, b) => (b.stats?.win_count || 0) - (a.stats?.win_count || 0))[0]?.full_name 
-                : 'N/A'}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="rounded-lg shadow-md">
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <AlertCircle className="h-8 w-8 text-salesRed mb-2" />
-            <p className="text-sm text-muted-foreground">Burnout Risk</p>
-            <p className="text-3xl font-bold">
-              {teamMembers.filter(member => (member.stats?.burnout_risk || 0) > 50).length}
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="rounded-lg shadow-md">
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <CheckCircle className="h-8 w-8 text-salesCyan mb-2" />
-            <p className="text-sm text-muted-foreground">Team Win Rate</p>
-            <p className="text-3xl font-bold">
-              {teamMembers.length > 0
-                ? `${Math.round((teamMembers.reduce((total, member) => total + (member.stats?.win_count || 0), 0) / 
-                   teamMembers.reduce((total, member) => total + (member.stats?.call_count || 0), 0)) * 100)}%`
-                : 'N/A'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-green-800">Total Calls</CardTitle>
+          <Target className="h-4 w-4 text-green-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-green-900">{totalCalls}</div>
+          <p className="text-xs text-green-700">
+            {totalWins} wins ({totalCalls > 0 ? Math.round((totalWins / totalCalls) * 100) : 0}% conversion)
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-purple-800">Team Mood</CardTitle>
+          <Award className="h-4 w-4 text-purple-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-purple-900">{averageMood}%</div>
+          <p className="text-xs text-purple-700">
+            Average team satisfaction
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium text-orange-800">AI Alerts</CardTitle>
+          <Brain className="h-4 w-4 text-orange-600" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold text-orange-900">{recommendations.length}</div>
+          <p className="text-xs text-orange-700">
+            {highRiskMembers} high-risk members
+          </p>
+          {highRiskMembers > 0 && (
+            <Badge variant="destructive" className="mt-1 text-xs">
+              <AlertTriangle className="h-3 w-3 mr-1" />
+              Attention needed
+            </Badge>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

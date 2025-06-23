@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 
@@ -34,7 +33,9 @@ export const createDemoUser = async (user: DemoUser) => {
   try {
     logger.info(`Creating demo user: ${user.email}`);
     
-    // Try to sign up the user
+    // Try to sign up the user with proper redirect URL
+    const redirectUrl = `${window.location.origin}/`;
+    
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: user.email,
       password: user.password,
@@ -42,7 +43,8 @@ export const createDemoUser = async (user: DemoUser) => {
         data: {
           full_name: user.full_name,
           role: user.role
-        }
+        },
+        emailRedirectTo: redirectUrl
       }
     });
 
@@ -56,45 +58,13 @@ export const createDemoUser = async (user: DemoUser) => {
       };
     }
 
-    if (authData.user || authError?.message.includes('already registered')) {
-      const userId = authData.user?.id;
-      
-      if (userId) {
-        // Create profile directly if we have a user ID
-        const profileData = {
-          id: userId,
-          full_name: user.full_name,
-          role: user.role,
-          company_id: userId,
-          email_connected: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        };
-
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert(profileData, { onConflict: 'id' });
-
-        if (profileError) {
-          logger.error(`Failed to create profile for ${user.email}:`, profileError);
-        }
-      }
-
-      // Sign out after creation
-      await supabase.auth.signOut();
-
-      return {
-        success: true,
-        email: user.email,
-        message: authError?.message.includes('already registered') ? 'User already exists' : 'User created successfully'
-      };
-    }
+    // Sign out after creation to avoid auto-login
+    await supabase.auth.signOut();
 
     return {
-      success: false,
+      success: true,
       email: user.email,
-      error: new Error('Unknown error - no user data returned'),
-      message: 'Unknown error occurred'
+      message: authError?.message.includes('already registered') ? 'User already exists' : 'User created successfully'
     };
 
   } catch (error) {
