@@ -36,21 +36,28 @@ function AppRoutes() {
     return <LoadingSpinner />;
   }
 
-  // If no user, show landing or auth
+  // If no user, show auth page
   if (!user) {
     return (
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/landing" element={<NewLandingPage />} />
-        <Route path="/" element={<NewLandingPage />} />
-        <Route path="*" element={<Navigate to="/landing" replace />} />
+        <Route path="/" element={<AuthPage />} />
+        <Route path="*" element={<Navigate to="/auth" replace />} />
       </Routes>
     );
   }
 
-  // If user but no profile, redirect to auth
+  // If user but no profile, stay on auth until profile loads
   if (user && !profile) {
-    return <Navigate to="/auth" replace />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-700">Setting up your account...</p>
+        </div>
+      </div>
+    );
   }
 
   // Authenticated user routing

@@ -60,7 +60,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         
         // Small delay to show success message before redirect
         setTimeout(() => {
-          window.location.href = '/';
+          window.location.reload();
         }, 1000);
       }
     } catch (error: any) {
@@ -73,15 +73,36 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   };
 
   // Quick login buttons for demo accounts
-  const handleQuickLogin = (email: string, password: string) => {
+  const handleQuickLogin = async (email: string, password: string) => {
     setFormData({ email, password });
-    // Auto-submit after setting form data
-    setTimeout(() => {
-      const form = document.querySelector('form');
-      if (form) {
-        form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    setIsTransitioning(true);
+    
+    try {
+      logger.info('Quick login attempt with:', email);
+      const { error: authError } = await signIn(email, password);
+      
+      if (authError) {
+        logger.error('Quick login failed:', authError.message);
+        setError('Login failed. Please try again.');
+        setIsTransitioning(false);
+      } else {
+        logger.info('Quick login successful');
+        setSuccess('Login successful! Redirecting...');
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       }
-    }, 100);
+    } catch (error: any) {
+      logger.error('Quick login error:', error);
+      setError('An unexpected error occurred. Please try again.');
+      setIsTransitioning(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

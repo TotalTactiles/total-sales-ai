@@ -123,6 +123,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     logger.info('Setting up auth state listener');
     
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         logger.info('Auth state changed:', { event, userId: session?.user?.id });
@@ -131,6 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Use setTimeout to prevent infinite loops
           setTimeout(() => {
             fetchOrCreateProfile(session.user);
           }, 0);
