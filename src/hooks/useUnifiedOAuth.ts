@@ -1,8 +1,20 @@
-import { logger } from '@/utils/logger';
 
 import { useState, useEffect, useCallback } from 'react';
 import { unifiedOAuthService, OAuthProvider, OAuthConnectionStatus } from '@/services/oauth/unifiedOAuthService';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Simple logger for client-side
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data || '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data || '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data || '');
+  }
+};
 
 export const useUnifiedOAuth = () => {
   const { user } = useAuth();

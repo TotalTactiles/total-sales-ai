@@ -1,4 +1,3 @@
-import { logger } from '@/utils/logger';
 
 import { useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +6,19 @@ import { nativeAutomationEngine } from '@/services/ai/automationEngine';
 import { emailAutomationService } from '@/services/ai/emailAutomationService';
 import { industryTemplateService } from '@/services/ai/industryTemplates';
 import { AutomationFlow, AutomationResult, EmailTemplate } from '@/services/ai/types/automationTypes';
+
+// Simple logger for client-side
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data || '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data || '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data || '');
+  }
+};
 
 export const useNativeAutomation = () => {
   const { user, profile } = useAuth();

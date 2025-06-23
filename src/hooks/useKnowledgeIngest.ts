@@ -1,9 +1,21 @@
-import { logger } from '@/utils/logger';
 
 import { useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { User } from '@supabase/supabase-js';
+
+// Simple logger for client-side
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data || '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data || '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data || '');
+  }
+};
 
 interface IngestParams {
   companyId?: string;
@@ -101,24 +113,6 @@ export function useKnowledgeIngest() {
       return null;
     }
 
-    // Get the user's company_id from their profile
-    let companyId;
-    try {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('company_id')
-        .eq('id', user.id)
-        .single();
-      
-      if (profileError) {
-        logger.error("Error fetching user's company_id:", profileError);
-      } else if (profileData) {
-        companyId = profileData.company_id;
-      }
-    } catch (err) {
-      logger.error("Exception when fetching user's company_id:", err);
-    }
-
     setIsIngesting(true);
     setError(null);
     
@@ -128,8 +122,7 @@ export function useKnowledgeIngest() {
           url,
           industry,
           sourceType,
-          companyId,
-          userId: user.id // Still pass userId as a fallback
+          userId: user.id
         }
       });
 
@@ -140,7 +133,7 @@ export function useKnowledgeIngest() {
         return null;
       }
 
-      toast.success(`Successfully processed ${data.chunks_success} chunks from web content`);
+      toast.success(`Successfully processed ${data.chunks_success} of ${data.chunks_total} chunks from URL`);
       return data;
       
     } catch (err: any) {

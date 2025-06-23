@@ -1,9 +1,21 @@
-import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CaseStudy } from './types';
+
+// Simple logger for client-side
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data || '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data || '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data || '');
+  }
+};
 
 export function useCaseStudies(
   industryFilter: string,

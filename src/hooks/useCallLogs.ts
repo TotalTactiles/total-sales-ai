@@ -1,9 +1,21 @@
-import { logger } from '@/utils/logger';
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+
+// Simple logger for client-side
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data || '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data || '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data || '');
+  }
+};
 
 export interface CallLog {
   id: string;

@@ -2,7 +2,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
-// Replace the missing tokenizer with tiktoken, which is available and maintained
 import { encoding_for_model } from 'https://esm.sh/tiktoken-node@0.0.7';
 
 // Simple logger for edge functions
@@ -16,6 +15,18 @@ const logger = {
   warn: (message: string, data?: any) => {
     console.warn(`[WARN] ${message}`, data || '');
   }
+};
+
+// Initialize Supabase client and OpenAI key
+const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+const openAIKey = Deno.env.get('OPENAI_API_KEY') || '';
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 // Function to remove PII (Personal Identifiable Information)
