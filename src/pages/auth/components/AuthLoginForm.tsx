@@ -40,7 +40,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     setError(null);
     
     try {
-      logger.info('Setting up demo users...');
+      logger.info('Setting up demo users...', {}, 'auth');
       
       const response = await fetch('/functions/v1/setup-demo-users', {
         method: 'POST',
@@ -52,16 +52,16 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       const result = await response.json();
       
       if (response.ok) {
-        logger.info('Demo users setup completed:', result);
+        logger.info('Demo users setup completed:', result, 'auth');
         toast.success('Demo users created successfully! You can now log in.');
         setSuccess('Demo users have been created. You can now use the login credentials.');
       } else {
-        logger.error('Demo users setup failed:', result);
+        logger.error('Demo users setup failed:', result, 'auth');
         setError(`Setup failed: ${result.error || 'Unknown error'}`);
         toast.error('Failed to setup demo users');
       }
     } catch (error: any) {
-      logger.error('Error setting up demo users:', error);
+      logger.error('Error setting up demo users:', error, 'auth');
       setError(`Setup error: ${error.message}`);
       toast.error('Failed to setup demo users');
     } finally {
@@ -70,16 +70,21 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   };
 
   const performLogin = async (email: string, password: string, context: string) => {
-    logger.info(`${context} login attempt:`, { email });
+    logger.info(`${context} login attempt:`, { email }, 'auth');
     
     const { error: authError } = await signIn(email.trim(), password);
     
     if (authError) {
-      logger.error(`${context} login failed:`, authError);
+      logger.error(`${context} login failed:`, {
+        message: authError.message,
+        code: authError.status,
+        fullError: authError
+      }, 'auth');
+      
       const errorMessage = authError.message || 'Login failed';
       
       if (errorMessage.includes('Invalid login credentials')) {
-        setError('Invalid email or password. The demo accounts may not be set up yet. Try clicking "Setup Demo Users" first.');
+        setError('Invalid email or password. The system will attempt to create missing users automatically.');
       } else if (errorMessage.includes('Email not confirmed')) {
         setError('Please check your email and click the confirmation link before logging in.');
       } else if (errorMessage.includes('Too many requests')) {
@@ -90,7 +95,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       setIsTransitioning(false);
       return false;
     } else {
-      logger.info(`${context} login successful`);
+      logger.info(`${context} login successful`, {}, 'auth');
       setSuccess('Login successful! Redirecting to your workspace...');
       return true;
     }
@@ -112,7 +117,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     try {
       await performLogin(formData.email, formData.password, 'Manual');
     } catch (error: any) {
-      logger.error('Authentication error:', error);
+      logger.error('Authentication error:', error, 'auth');
       setError('An unexpected error occurred. Please try again.');
       setIsTransitioning(false);
     } finally {
@@ -130,7 +135,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     try {
       await performLogin(email, password, `Quick ${role}`);
     } catch (error: any) {
-      logger.error(`Quick login error for ${role}:`, error);
+      logger.error(`Quick login error for ${role}:`, error, 'auth');
       setError('An unexpected error occurred. Please try again.');
       setIsTransitioning(false);
     } finally {
@@ -205,7 +210,6 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         </Button>
       </form>
 
-      {/* Setup Demo Users Button */}
       <div className="pt-2 border-t border-gray-200">
         <Button
           type="button"
@@ -231,42 +235,41 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         </p>
       </div>
 
-      {/* Quick Login Section */}
       <div className="space-y-3 pt-4 border-t border-gray-200">
-        <p className="text-sm text-gray-600 text-center font-medium">Quick Demo Access:</p>
+        <p className="text-sm text-gray-600 text-center font-medium">Quick System Access:</p>
         <div className="grid grid-cols-1 gap-2">
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => handleQuickLogin('krishdev@tsam.com', 'badabing2024', 'Developer')}
+            onClick={() => handleQuickLogin('dev@os.local', 'dev1234', 'Developer')}
             disabled={isLoading}
             className="text-xs justify-start hover:bg-purple-50"
           >
             <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-            Developer Access (krishdev@tsam.com)
+            Developer OS (dev@os.local)
           </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => handleQuickLogin('manager@salesos.com', 'manager123', 'Manager')}
+            onClick={() => handleQuickLogin('manager@os.local', 'manager123', 'Manager')}
             disabled={isLoading}
             className="text-xs justify-start hover:bg-blue-50"
           >
             <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-            Manager Access (manager@salesos.com)
+            Manager OS (manager@os.local)
           </Button>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => handleQuickLogin('rep@salesos.com', 'sales123', 'Sales Rep')}
+            onClick={() => handleQuickLogin('rep@os.local', 'rep123', 'Sales Rep')}
             disabled={isLoading}
             className="text-xs justify-start hover:bg-green-50"
           >
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-            Sales Rep Access (rep@salesos.com)
+            Sales Rep OS (rep@os.local)
           </Button>
         </div>
       </div>

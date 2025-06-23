@@ -15,6 +15,25 @@ interface DemoUser {
 
 const demoUsers: DemoUser[] = [
   {
+    email: 'dev@os.local',
+    password: 'dev1234',
+    role: 'developer',
+    full_name: 'Developer User'
+  },
+  {
+    email: 'manager@os.local',
+    password: 'manager123',
+    role: 'manager',
+    full_name: 'Manager User'
+  },
+  {
+    email: 'rep@os.local',
+    password: 'rep123',
+    role: 'sales_rep',
+    full_name: 'Sales Rep User'
+  },
+  // Legacy users for backward compatibility
+  {
     email: 'krishdev@tsam.com',
     password: 'badabing2024',
     role: 'developer',
@@ -34,6 +53,19 @@ const demoUsers: DemoUser[] = [
   }
 ];
 
+// Simple logger for edge functions
+const logger = {
+  info: (message: string, data?: any) => {
+    console.log(`[INFO] ${message}`, data ? JSON.stringify(data) : '');
+  },
+  error: (message: string, data?: any) => {
+    console.error(`[ERROR] ${message}`, data ? JSON.stringify(data) : '');
+  },
+  warn: (message: string, data?: any) => {
+    console.warn(`[WARN] ${message}`, data ? JSON.stringify(data) : '');
+  }
+};
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -51,24 +83,30 @@ Deno.serve(async (req) => {
       }
     )
 
-    console.log('Setting up demo users...')
+    logger.info('Setting up system demo users...')
     
     const results = []
     
     for (const user of demoUsers) {
-      console.log(`Creating user: ${user.email}`)
+      logger.info(`Processing user: ${user.email}`)
       
-      // First, try to delete the user if they exist (cleanup)
+      // Check if user already exists
       try {
         const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers()
         const existingUser = existingUsers.users.find(u => u.email === user.email)
         
         if (existingUser) {
-          console.log(`Deleting existing user: ${user.email}`)
-          await supabaseAdmin.auth.admin.deleteUser(existingUser.id)
+          logger.info(`User already exists: ${user.email}`)
+          results.push({
+            email: user.email,
+            success: true,
+            action: 'already_exists',
+            userId: existingUser.id
+          })
+          continue
         }
       } catch (error) {
-        console.log(`Error checking/deleting existing user ${user.email}:`, error)
+        logger.error(`Error checking existing user ${user.email}:`, error)
       }
 
       // Create the user
@@ -83,7 +121,7 @@ Deno.serve(async (req) => {
       })
 
       if (authError) {
-        console.error(`Error creating user ${user.email}:`, authError)
+        logger.error(`Error creating user ${user.email}:`, authError)
         results.push({
           email: user.email,
           success: false,
@@ -92,7 +130,7 @@ Deno.serve(async (req) => {
         continue
       }
 
-      console.log(`User created successfully: ${user.email}`)
+      logger.info(`User created successfully: ${user.email}`)
 
       // Create profile in profiles table
       const { error: profileError } = await supabaseAdmin
@@ -109,26 +147,35 @@ Deno.serve(async (req) => {
         })
 
       if (profileError) {
-        console.error(`Error creating profile for ${user.email}:`, profileError)
+        logger.error(`Error creating profile for ${user.email}:`, profileError)
         results.push({
           email: user.email,
           success: false,
           error: `Profile creation failed: ${profileError.message}`
         })
       } else {
-        console.log(`Profile created successfully for: ${user.email}`)
+        logger.info(`Profile created successfully for: ${user.email}`)
         results.push({
           email: user.email,
           success: true,
+          action: 'created',
           userId: authData.user.id
         })
       }
     }
 
+    const successCount = results.filter(r => r.success).length
+    const totalCount = results.length
+
     return new Response(
       JSON.stringify({ 
-        message: 'Demo users setup completed',
-        results 
+        message: `Demo users setup completed: ${successCount}/${totalCount} successful`,
+        results,
+        summary: {
+          total: totalCount,
+          successful: successCount,
+          failed: totalCount - successCount
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -137,7 +184,7 @@ Deno.serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error in setup-demo-users function:', error)
+    logger.error('Error in setup-demo-users function:', error)
     return new Response(
       JSON.stringify({ 
         error: 'Failed to setup demo users',

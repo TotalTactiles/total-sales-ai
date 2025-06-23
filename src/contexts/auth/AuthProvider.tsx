@@ -3,19 +3,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType, Profile, Role } from './types';
-
-// Simple logger for client-side
-const logger = {
-  info: (message: string, data?: any) => {
-    console.log(`[INFO] ${message}`, data || '');
-  },
-  error: (message: string, data?: any) => {
-    console.error(`[ERROR] ${message}`, data || '');
-  },
-  warn: (message: string, data?: any) => {
-    console.warn(`[WARN] ${message}`, data || '');
-  }
-};
+import { logger } from '@/utils/logger';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -37,10 +25,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Profile management functions
+  // Required users for quick login
+  const requiredUsers = [
+    { email: 'dev@os.local', password: 'dev1234', role: 'developer', fullName: 'Developer User' },
+    { email: 'manager@os.local', password: 'manager123', role: 'manager', fullName: 'Manager User' },
+    { email: 'rep@os.local', password: 'rep123', role: 'sales_rep', fullName: 'Sales Rep User' }
+  ];
+
+  const createSystemUser = async (email: string, password: string, role: Role, fullName: string) => {
+    try {
+      logger.info('Creating system user:', { email, role }, 'auth');
+      
+      const { data, error } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          role,
+          full_name: fullName
+        }
+      });
+
+      if (error) {
+        logger.error('Failed to create system user:', error, 'auth');
+        return false;
+      }
+
+      logger.info('System user created successfully:', { email, userId: data.user.id }, 'auth');
+      return true;
+    } catch (error) {
+      logger.error('Exception creating system user:', error, 'auth');
+      return false;
+    }
+  };
+
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
-      logger.info('Fetching profile for user:', userId);
+      logger.info('Fetching profile for user:', userId, 'auth');
       const { data: existingProfile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -52,19 +73,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           profileId: existingProfile.id, 
           role: existingProfile.role,
           fullName: existingProfile.full_name 
-        });
+        }, 'auth');
         return existingProfile;
       }
       
       if (error && error.code !== 'PGRST116') {
-        logger.error('Error fetching profile:', error);
+        logger.error('Error fetching profile:', error, 'auth');
       } else {
-        logger.info('No existing profile found, will need to create one');
+        logger.info('No existing profile found, will need to create one', {}, 'auth');
       }
       
       return null;
     } catch (error) {
-      logger.error('Exception while fetching profile:', error);
+      logger.error('Exception while fetching profile:', error, 'auth');
       return null;
     }
   };
@@ -75,9 +96,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         userId: user.id, 
         email: user.email,
         metadata: user.user_metadata 
-      });
+      }, 'auth');
       
-      // Extract role from user metadata or default to sales_rep
       const userRole = user.user_metadata?.role as Role || 'sales_rep';
       const fullName = user.user_metadata?.full_name || 
                       user.user_metadata?.name || 
@@ -88,14 +108,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         id: user.id,
         full_name: fullName,
         role: userRole,
-        company_id: user.id, // Use user ID as company ID for simplicity
+        company_id: user.id,
         email_connected: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         last_login: new Date().toISOString()
       };
 
-      logger.info('Attempting to create profile with data:', profileData);
+      logger.info('Attempting to create profile with data:', profileData, 'auth');
 
       const { data: newProfile, error } = await supabase
         .from('profiles')
@@ -107,12 +127,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (error) {
-        logger.error('Error creating profile:', error);
+        logger.error('Error creating profile:', error, 'auth');
         throw error;
       }
       
       if (!newProfile) {
-        logger.error('Profile creation returned null data');
+        logger.error('Profile creation returned null data', {}, 'auth');
         throw new Error('Profile creation failed - no data returned');
       }
       
@@ -120,26 +140,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         profileId: newProfile.id,
         role: newProfile.role,
         fullName: newProfile.full_name
-      });
+      }, 'auth');
       return newProfile;
     } catch (error) {
-      logger.error('Exception while creating profile:', error);
+      logger.error('Exception while creating profile:', error, 'auth');
       return null;
     }
   };
 
   const fetchOrCreateProfile = async (user: User) => {
     try {
-      logger.info('Starting fetchOrCreateProfile for user:', user.id);
+      logger.info('Starting fetchOrCreateProfile for user:', user.id, 'auth');
       let userProfile = await fetchProfile(user.id);
       
       if (!userProfile) {
-        logger.info('Profile not found, creating new profile for user:', user.id);
+        logger.info('Profile not found, creating new profile for user:', user.id, 'auth');
         userProfile = await createProfile(user);
         
         if (!userProfile) {
-          logger.error('Failed to create profile, retrying once...');
-          // Retry once
+          logger.error('Failed to create profile, retrying once...', {}, 'auth');
           await new Promise(resolve => setTimeout(resolve, 1000));
           userProfile = await createProfile(user);
         }
@@ -150,22 +169,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           userId: user.id, 
           profileRole: userProfile.role,
           profileId: userProfile.id
-        });
+        }, 'auth');
         setProfile(userProfile);
         
-        // Update last login
         try {
           await supabase
             .from('profiles')
             .update({ last_login: new Date().toISOString() })
             .eq('id', user.id);
-          logger.info('Updated last login timestamp');
+          logger.info('Updated last login timestamp', {}, 'auth');
         } catch (updateError) {
-          logger.warn('Failed to update last login (non-critical):', updateError);
+          logger.warn('Failed to update last login (non-critical):', updateError, 'auth');
         }
       } else {
-        logger.error('Critical error: Failed to create or fetch profile after retry');
-        // Set a minimal fallback profile to prevent infinite loading
+        logger.error('Critical error: Failed to create or fetch profile after retry', {}, 'auth');
         const fallbackProfile: Profile = {
           id: user.id,
           full_name: user.email?.split('@')[0] || 'User',
@@ -176,12 +193,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           updated_at: new Date().toISOString(),
           last_login: new Date().toISOString()
         };
-        logger.warn('Using fallback profile to prevent app freeze:', fallbackProfile);
+        logger.warn('Using fallback profile to prevent app freeze:', fallbackProfile, 'auth');
         setProfile(fallbackProfile);
       }
     } catch (error) {
-      logger.error('Critical error in fetchOrCreateProfile:', error);
-      // Set fallback profile to prevent infinite loading
+      logger.error('Critical error in fetchOrCreateProfile:', error, 'auth');
       const fallbackProfile: Profile = {
         id: user.id,
         full_name: user.email?.split('@')[0] || 'User',
@@ -192,16 +208,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         updated_at: new Date().toISOString(),
         last_login: new Date().toISOString()
       };
-      logger.warn('Using fallback profile due to error:', fallbackProfile);
+      logger.warn('Using fallback profile due to error:', fallbackProfile, 'auth');
       setProfile(fallbackProfile);
     }
   };
 
-  // Auth state management
   useEffect(() => {
-    logger.info('Setting up auth state listener');
+    logger.info('Setting up auth state listener', {}, 'auth');
     
-    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         logger.info('Auth state changed:', { 
@@ -209,13 +223,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           userId: session?.user?.id,
           hasSession: !!session,
           hasUser: !!session?.user
-        });
+        }, 'auth');
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Use a small delay to prevent race conditions
           setTimeout(() => {
             fetchOrCreateProfile(session.user);
           }, 100);
@@ -223,35 +236,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setProfile(null);
         }
         
-        // Always set loading to false after handling auth state
         setTimeout(() => setLoading(false), 200);
       }
     );
 
-    // Check for existing session
     const initializeAuth = async () => {
       try {
-        logger.info('Initializing auth - checking for existing session');
+        logger.info('Initializing auth - checking for existing session', {}, 'auth');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          logger.error('Error getting session:', error);
+          logger.error('Error getting session:', error, 'auth');
           setLoading(false);
           return;
         }
         
         if (session) {
-          logger.info('Existing session found, processing user');
+          logger.info('Existing session found, processing user', {}, 'auth');
           setSession(session);
           setUser(session.user);
           await fetchOrCreateProfile(session.user);
         } else {
-          logger.info('No existing session found');
+          logger.info('No existing session found', {}, 'auth');
         }
         
         setLoading(false);
       } catch (error) {
-        logger.error('Error initializing auth:', error);
+        logger.error('Error initializing auth:', error, 'auth');
         setLoading(false);
       }
     };
@@ -259,15 +270,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
 
     return () => {
-      logger.info('Cleaning up auth subscription');
+      logger.info('Cleaning up auth subscription', {}, 'auth');
       subscription.unsubscribe();
     };
   }, []);
 
-  // Auth actions
   const signIn = async (email: string, password: string) => {
     try {
-      logger.info('Attempting sign in:', { email: email.trim() });
+      logger.info('Attempting sign in:', { email: email.trim() }, 'auth');
       setLoading(true);
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -279,8 +289,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logger.error('Sign in failed:', { 
           error: error.message, 
           code: error.status,
-          email: email.trim()
-        });
+          email: email.trim(),
+          fullError: error
+        }, 'auth');
+
+        // Check if user needs to be created
+        if (error.message.includes('Invalid login credentials')) {
+          const requiredUser = requiredUsers.find(u => u.email === email.trim());
+          if (requiredUser) {
+            logger.info('Attempting to create missing system user:', { email }, 'auth');
+            const created = await createSystemUser(
+              requiredUser.email, 
+              requiredUser.password, 
+              requiredUser.role as Role, 
+              requiredUser.fullName
+            );
+            
+            if (created) {
+              // Retry login after user creation
+              const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
+                email: email.trim(),
+                password
+              });
+              
+              if (retryError) {
+                logger.error('Sign in failed after user creation:', retryError, 'auth');
+                setLoading(false);
+                return { error: retryError };
+              }
+              
+              if (retryData.user && retryData.session) {
+                logger.info('Sign in successful after user creation:', { 
+                  userId: retryData.user.id,
+                  email: retryData.user.email
+                }, 'auth');
+                return { error: null };
+              }
+            }
+          }
+        }
+        
         setLoading(false);
         return { error };
       }
@@ -289,16 +337,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logger.info('Sign in successful:', { 
           userId: data.user.id,
           email: data.user.email
-        });
-        // Don't set loading to false here - let the auth state change handler do it
+        }, 'auth');
         return { error: null };
       }
 
-      logger.error('Sign in returned no user/session data');
+      logger.error('Sign in returned no user/session data', {}, 'auth');
       setLoading(false);
       return { error: new Error('Authentication failed - no user data returned') as AuthError };
     } catch (error) {
-      logger.error('Sign in exception:', error);
+      logger.error('Sign in exception:', error, 'auth');
       setLoading(false);
       return { error: error as AuthError };
     }
@@ -306,7 +353,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string, userData?: any) => {
     try {
-      logger.info('Attempting sign up:', { email, userData });
+      logger.info('Attempting sign up:', { email, userData }, 'auth');
       const redirectUrl = `${window.location.origin}/`;
       
       const { data, error } = await supabase.auth.signUp({
@@ -319,14 +366,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (error) {
-        logger.error('Sign up error:', error);
+        logger.error('Sign up error:', error, 'auth');
         return { error };
       }
       
-      logger.info('Sign up successful:', { userId: data.user?.id });
+      logger.info('Sign up successful:', { userId: data.user?.id }, 'auth');
       return { error: null };
     } catch (error) {
-      logger.error('Sign up exception:', error);
+      logger.error('Sign up exception:', error, 'auth');
       return { error: error as AuthError };
     }
   };
@@ -351,19 +398,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
-      logger.info('Attempting sign out');
+      logger.info('Attempting sign out', {}, 'auth');
       const { error } = await supabase.auth.signOut();
       
       if (!error) {
         setUser(null);
         setProfile(null);
         setSession(null);
-        logger.info('Sign out successful');
+        logger.info('Sign out successful', {}, 'auth');
       }
       
       return { error };
     } catch (error) {
-      logger.error('Sign out error:', error);
+      logger.error('Sign out error:', error, 'auth');
       return { error: error as AuthError };
     }
   };

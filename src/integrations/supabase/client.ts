@@ -1,18 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-
-// Simple logger for client-side
-const logger = {
-  info: (message: string, data?: any) => {
-    console.log(`[INFO] ${message}`, data || '');
-  },
-  error: (message: string, data?: any) => {
-    console.error(`[ERROR] ${message}`, data || '');
-  },
-  warn: (message: string, data?: any) => {
-    console.warn(`[WARN] ${message}`, data || '');
-  }
-};
+import { logger } from '@/utils/logger';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -20,7 +8,7 @@ const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const isSupabaseConfigured = !!supabaseUrl && !!supabaseKey;
 
 if (!supabaseUrl || !supabaseKey) {
-  logger.warn('Supabase credentials not found, using fallback configuration');
+  logger.warn('Supabase credentials not found, using fallback configuration', {}, 'supabase');
 }
 
 export const supabase = createClient(
@@ -36,35 +24,45 @@ export const supabase = createClient(
     },
     global: {
       headers: {
-        'x-application-name': 'tsam-app'
+        'x-application-name': 'salesos-platform'
       }
     }
   }
 );
 
-// Enhanced connection testing with better error handling
+// Enhanced connection testing with detailed error logging
 const testConnection = async () => {
   try {
+    logger.info('Testing Supabase connection...', {}, 'supabase');
     const { data, error } = await supabase.auth.getSession();
+    
     if (error) {
-      logger.error('Supabase connection error:', error);
+      logger.error('Supabase connection error:', {
+        message: error.message,
+        status: error.status,
+        code: error.code
+      }, 'supabase');
     } else {
-      logger.info('Supabase connected successfully');
+      logger.info('Supabase connected successfully', {}, 'supabase');
       
-      // Test a simple query to ensure database connectivity
+      // Test database connectivity
       const { error: dbError } = await supabase
         .from('profiles')
         .select('count')
         .limit(1);
         
       if (dbError) {
-        logger.warn('Database query test failed:', dbError);
+        logger.warn('Database query test failed:', {
+          message: dbError.message,
+          code: dbError.code,
+          details: dbError.details
+        }, 'supabase');
       } else {
-        logger.info('Database connectivity confirmed');
+        logger.info('Database connectivity confirmed', {}, 'supabase');
       }
     }
   } catch (error) {
-    logger.error('Failed to test Supabase connection:', error);
+    logger.error('Failed to test Supabase connection:', error, 'supabase');
   }
 };
 
