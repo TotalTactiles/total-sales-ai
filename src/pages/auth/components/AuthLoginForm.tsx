@@ -1,10 +1,12 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LogIn, AlertCircle, CheckCircle } from 'lucide-react';
+import { LogIn, AlertCircle, CheckCircle, Settings } from 'lucide-react';
 import { logger } from '@/utils/logger';
+import { toast } from 'sonner';
 
 interface AuthLoginFormProps {
   setIsTransitioning: (value: boolean) => void;
@@ -20,6 +22,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     password: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -32,6 +35,40 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     });
   };
 
+  const setupDemoUsers = async () => {
+    setIsSettingUp(true);
+    setError(null);
+    
+    try {
+      logger.info('Setting up demo users...');
+      
+      const response = await fetch('/functions/v1/setup-demo-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+
+      const result = await response.json();
+      
+      if (response.ok) {
+        logger.info('Demo users setup completed:', result);
+        toast.success('Demo users created successfully! You can now log in.');
+        setSuccess('Demo users have been created. You can now use the login credentials.');
+      } else {
+        logger.error('Demo users setup failed:', result);
+        setError(`Setup failed: ${result.error || 'Unknown error'}`);
+        toast.error('Failed to setup demo users');
+      }
+    } catch (error: any) {
+      logger.error('Error setting up demo users:', error);
+      setError(`Setup error: ${error.message}`);
+      toast.error('Failed to setup demo users');
+    } finally {
+      setIsSettingUp(false);
+    }
+  };
+
   const performLogin = async (email: string, password: string, context: string) => {
     logger.info(`${context} login attempt:`, { email });
     
@@ -42,7 +79,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       const errorMessage = authError.message || 'Login failed';
       
       if (errorMessage.includes('Invalid login credentials')) {
-        setError('Invalid email or password. Please check your credentials and try again.');
+        setError('Invalid email or password. The demo accounts may not be set up yet. Try clicking "Setup Demo Users" first.');
       } else if (errorMessage.includes('Email not confirmed')) {
         setError('Please check your email and click the confirmation link before logging in.');
       } else if (errorMessage.includes('Too many requests')) {
@@ -55,7 +92,6 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     } else {
       logger.info(`${context} login successful`);
       setSuccess('Login successful! Redirecting to your workspace...');
-      // Keep transitioning true on success to show loading state
       return true;
     }
   };
@@ -84,7 +120,6 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     }
   };
 
-  // Quick login with proper credentials
   const handleQuickLogin = async (email: string, password: string, role: string) => {
     setFormData({ email, password });
     setIsLoading(true);
@@ -169,6 +204,32 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           )}
         </Button>
       </form>
+
+      {/* Setup Demo Users Button */}
+      <div className="pt-2 border-t border-gray-200">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={setupDemoUsers}
+          disabled={isSettingUp || isLoading}
+          className="w-full text-sm"
+        >
+          {isSettingUp ? (
+            <>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-b-transparent"></div>
+              Setting up demo users...
+            </>
+          ) : (
+            <>
+              <Settings className="mr-2 h-4 w-4" />
+              Setup Demo Users
+            </>
+          )}
+        </Button>
+        <p className="text-xs text-gray-500 mt-2 text-center">
+          Click this button first if you're having login issues
+        </p>
+      </div>
 
       {/* Quick Login Section */}
       <div className="space-y-3 pt-4 border-t border-gray-200">

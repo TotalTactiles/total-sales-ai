@@ -19,16 +19,42 @@ export const supabase = createClient(
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true,
-      storage: window.localStorage
+      storage: window.localStorage,
+      flowType: 'pkce'
+    },
+    global: {
+      headers: {
+        'x-application-name': 'tsam-app'
+      }
     }
   }
 );
 
-// Test connection on initialization
-supabase.auth.getSession().then(({ data, error }) => {
-  if (error) {
-    logger.error('Supabase connection error:', error);
-  } else {
-    logger.info('Supabase connected successfully');
+// Enhanced connection testing
+const testConnection = async () => {
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      logger.error('Supabase connection error:', error);
+    } else {
+      logger.info('Supabase connected successfully');
+      
+      // Test a simple query to ensure database connectivity
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .select('count')
+        .limit(1);
+        
+      if (dbError) {
+        logger.warn('Database query test failed:', dbError);
+      } else {
+        logger.info('Database connectivity confirmed');
+      }
+    }
+  } catch (error) {
+    logger.error('Failed to test Supabase connection:', error);
   }
-});
+};
+
+// Test connection on initialization
+testConnection();
