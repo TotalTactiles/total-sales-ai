@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
@@ -33,6 +32,34 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     });
   };
 
+  const performLogin = async (email: string, password: string, context: string) => {
+    logger.info(`${context} login attempt:`, { email });
+    
+    const { error: authError } = await signIn(email.trim(), password);
+    
+    if (authError) {
+      logger.error(`${context} login failed:`, authError);
+      const errorMessage = authError.message || 'Login failed';
+      
+      if (errorMessage.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please check your credentials and try again.');
+      } else if (errorMessage.includes('Email not confirmed')) {
+        setError('Please check your email and click the confirmation link before logging in.');
+      } else if (errorMessage.includes('Too many requests')) {
+        setError('Too many login attempts. Please wait a few minutes and try again.');
+      } else {
+        setError(`Login failed: ${errorMessage}`);
+      }
+      setIsTransitioning(false);
+      return false;
+    } else {
+      logger.info(`${context} login successful`);
+      setSuccess('Login successful! Redirecting to your workspace...');
+      // Keep transitioning true on success to show loading state
+      return true;
+    }
+  };
+
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -47,19 +74,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     setIsTransitioning(true);
     
     try {
-      logger.info('Attempting to sign in with:', formData.email);
-      
-      const { error: authError } = await signIn(formData.email.trim(), formData.password);
-      
-      if (authError) {
-        logger.error('Authentication failed:', authError);
-        setError(`Login failed: ${authError.message}`);
-        setIsTransitioning(false);
-      } else {
-        logger.info('Authentication successful');
-        setSuccess('Login successful! Redirecting...');
-        // Don't set transitioning to false on success - let the redirect happen
-      }
+      await performLogin(formData.email, formData.password, 'Manual');
     } catch (error: any) {
       logger.error('Authentication error:', error);
       setError('An unexpected error occurred. Please try again.');
@@ -78,19 +93,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     setIsTransitioning(true);
     
     try {
-      logger.info(`Quick login attempt for ${role}:`, email);
-      
-      const { error: authError } = await signIn(email.trim(), password);
-      
-      if (authError) {
-        logger.error(`Quick login failed for ${role}:`, authError);
-        setError(`${role} login failed: ${authError.message}`);
-        setIsTransitioning(false);
-      } else {
-        logger.info(`Quick login successful for ${role}`);
-        setSuccess(`${role} login successful! Redirecting...`);
-        // Don't set transitioning to false on success
-      }
+      await performLogin(email, password, `Quick ${role}`);
     } catch (error: any) {
       logger.error(`Quick login error for ${role}:`, error);
       setError('An unexpected error occurred. Please try again.');
@@ -169,7 +172,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
 
       {/* Quick Login Section */}
       <div className="space-y-3 pt-4 border-t border-gray-200">
-        <p className="text-sm text-gray-600 text-center font-medium">Quick Access:</p>
+        <p className="text-sm text-gray-600 text-center font-medium">Quick Demo Access:</p>
         <div className="grid grid-cols-1 gap-2">
           <Button
             type="button"
@@ -177,10 +180,10 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             size="sm"
             onClick={() => handleQuickLogin('krishdev@tsam.com', 'badabing2024', 'Developer')}
             disabled={isLoading}
-            className="text-xs justify-start"
+            className="text-xs justify-start hover:bg-purple-50"
           >
             <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-            Developer Access
+            Developer Access (krishdev@tsam.com)
           </Button>
           <Button
             type="button"
@@ -188,10 +191,10 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             size="sm"
             onClick={() => handleQuickLogin('manager@salesos.com', 'manager123', 'Manager')}
             disabled={isLoading}
-            className="text-xs justify-start"
+            className="text-xs justify-start hover:bg-blue-50"
           >
             <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-            Manager Access
+            Manager Access (manager@salesos.com)
           </Button>
           <Button
             type="button"
@@ -199,10 +202,10 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             size="sm"
             onClick={() => handleQuickLogin('rep@salesos.com', 'sales123', 'Sales Rep')}
             disabled={isLoading}
-            className="text-xs justify-start"
+            className="text-xs justify-start hover:bg-green-50"
           >
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-            Sales Rep Access
+            Sales Rep Access (rep@salesos.com)
           </Button>
         </div>
       </div>
