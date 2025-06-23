@@ -184,11 +184,11 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
             Developer OS (dev@os.local)
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickLogin('manager@os.local', 'manager123', 'Manager')} disabled={isLoading} className="text-xs justify-start hover:bg-blue-50">
+          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickLogin('manager@os.local', 'manager123', 'Manager')} disabled={isLoading} className="text-xs justify-start hover:bg-blue-50 text-gray-950">
             <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
             Manager OS (manager@os.local)
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickLogin('rep@os.local', 'rep123', 'Sales Rep')} disabled={isLoading} className="text-xs justify-start hover:bg-green-50">
+          <Button type="button" variant="outline" size="sm" onClick={() => handleQuickLogin('rep@os.local', 'rep123', 'Sales Rep')} disabled={isLoading} className="text-xs justify-start hover:bg-green-50 text-gray-950">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
             Sales Rep OS (rep@os.local)
           </Button>
