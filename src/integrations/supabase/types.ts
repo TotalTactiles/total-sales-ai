@@ -1248,6 +1248,42 @@ export type Database = {
         }
         Relationships: []
       }
+      nova_error_log: {
+        Row: {
+          component: string
+          context: Json | null
+          created_at: string | null
+          error_message: string
+          error_type: string
+          fixed_by_ai: boolean | null
+          id: string
+          resolved_at: string | null
+          retry_count: number | null
+        }
+        Insert: {
+          component: string
+          context?: Json | null
+          created_at?: string | null
+          error_message: string
+          error_type: string
+          fixed_by_ai?: boolean | null
+          id?: string
+          resolved_at?: string | null
+          retry_count?: number | null
+        }
+        Update: {
+          component?: string
+          context?: Json | null
+          created_at?: string | null
+          error_message?: string
+          error_type?: string
+          fixed_by_ai?: boolean | null
+          id?: string
+          resolved_at?: string | null
+          retry_count?: number | null
+        }
+        Relationships: []
+      }
       oauth_connections: {
         Row: {
           access_token: string | null

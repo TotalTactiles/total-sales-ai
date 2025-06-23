@@ -199,15 +199,15 @@ export class NovaSystemMonitor {
   private async logErrorToDatabase(error: SystemError): Promise<void> {
     try {
       await supabase
-        .from('system_error_log')
+        .from('nova_error_log')
         .insert({
           component: error.component,
           error_type: error.errorType,
-          timestamp: error.timestamp.toISOString(),
-          severity: error.severity,
-          retry_attempted: error.retryCount > 0,
-          escalated: true,
-          ai_fix_summary: `Nova attempted ${error.retryCount} retries before escalation`
+          error_message: error.message,
+          context: error.context,
+          retry_count: error.retryCount,
+          fixed_by_ai: error.retryCount > 0,
+          created_at: error.timestamp.toISOString()
         });
     } catch (dbError) {
       logger.error('Failed to log error to database:', dbError, 'nova');
