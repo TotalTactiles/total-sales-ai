@@ -38,6 +38,7 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
     profile.role !== 'admin' &&
     !localStorage.getItem(`onboarding_complete_${profile.company_id}`);
 
+    console.log('[OnboardingGuard] Authenticated:', !!user, '| Profile loaded:', !!profile, '| Needs Onboarding:', needsOnboarding);
   if (needsOnboarding) {
     return <OnboardingPage />;
   }
