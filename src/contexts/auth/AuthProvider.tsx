@@ -362,11 +362,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       logger.info('Attempting sign out', {}, 'auth');
       const { error } = await supabase.auth.signOut();
-      
+
       if (!error) {
         setUser(null);
         setProfile(null);
         setSession(null);
+        // Clear client storage to ensure clean state on logout
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.clear();
+            window.sessionStorage.clear();
+          } catch (storageError) {
+            logger.error('Error clearing storage:', storageError, 'auth');
+          }
+        }
         logger.info('Sign out successful', {}, 'auth');
       }
       
