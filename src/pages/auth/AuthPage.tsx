@@ -3,23 +3,18 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeProvider';
 import Logo from '@/components/Logo';
 import AuthLoginForm from './components/AuthLoginForm';
 import AuthSignupForm from './components/AuthSignupForm';
 import AuthLoadingScreen from './components/AuthLoadingScreen';
-import { clearUserCache } from '@/utils/userCacheManager';
 import { logger } from '@/utils/logger';
-import { toast } from 'sonner';
-import { RefreshCw } from 'lucide-react';
 
 const AuthPage = () => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isClearingCache, setIsClearingCache] = useState(false);
 
   // Add logging to debug auth state
   useEffect(() => {
@@ -64,39 +59,9 @@ const AuthPage = () => {
     return <Navigate to={from} replace />;
   }
 
-  const handleClearCache = async () => {
-    setIsClearingCache(true);
-    try {
-      toast.info('Clearing user cache and session...', {
-        description: 'This will sign you out and clear all stored data'
-      });
-      
-      await clearUserCache();
-    } catch (error) {
-      console.error('Failed to clear user cache:', error);
-      toast.error('Failed to clear cache', {
-        description: 'Please try refreshing the page manually'
-      });
-      setIsClearingCache(false);
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="absolute top-4 right-4 flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClearCache}
-          disabled={isClearingCache}
-        >
-          {isClearingCache ? (
-            <RefreshCw className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-          <span className="ml-2">Clear Cache</span>
-        </Button>
+      <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
       
@@ -124,10 +89,6 @@ const AuthPage = () => {
           </div>
         </div>
       </Card>
-      
-      <div className="mt-4 text-center text-sm text-gray-500">
-        <p>Having trouble? Click "Clear Cache" to reset your session and start fresh.</p>
-      </div>
     </div>
   );
 };
