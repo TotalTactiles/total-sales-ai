@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
@@ -22,7 +21,7 @@ import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import './App.css';
 
-// Error Boundary Component
+// --- Error Boundary ---
 class AppErrorBoundary extends React.Component<
   { children: React.ReactNode },
   { hasError: boolean; error?: Error }
@@ -68,55 +67,42 @@ class AppErrorBoundary extends React.Component<
   }
 }
 
+// --- Query Client ---
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: (failureCount, error: any) => {
-        // Don't retry on 4xx errors
         if (error?.status >= 400 && error?.status < 500) {
           return false;
         }
         return failureCount < 3;
-      }
+      },
     },
   },
 });
 
+// --- App Routes ---
 function AppRoutes() {
   const { user, profile, loading } = useAuth();
-  
-  // Initialize AI Brain
+
   useAIBrain();
 
-  // Debug session state in OS routes
   useEffect(() => {
     if (window.location.pathname.startsWith('/os/')) {
       supabase.auth.getSession().then(({ data: { session }, error }) => {
-        logger.info('Session check in OS route:', { 
+        logger.info('Session check in OS route:', {
           hasSession: !!session,
-          hasUser: !!session?.user,
           sessionUserId: session?.user?.id,
           error: error?.message,
-          currentPath: window.location.pathname
+          currentPath: window.location.pathname,
         }, 'app');
       });
     }
   }, [window.location.pathname]);
 
-  logger.info('AppRoutes state:', { 
-    hasUser: !!user, 
-    hasProfile: !!profile, 
-    loading,
-    profileRole: profile?.role,
-    userId: user?.id,
-    profileId: profile?.id,
-    currentPath: window.location.pathname
-  }, 'app');
-
   if (loading) {
-    logger.info('App is loading auth state', {}, 'app');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="text-center">
@@ -128,9 +114,7 @@ function AppRoutes() {
     );
   }
 
-  // If no user, show auth page
   if (!user) {
-    logger.info('No user found, showing auth page', {}, 'app');
     return (
       <Routes>
         <Route path="/auth" element={<AuthPage />} />
@@ -141,116 +125,49 @@ function AppRoutes() {
     );
   }
 
-  // If user but no profile, wait a bit longer then create fallback
   if (user && !profile) {
-    logger.warn('User found but no profile, creating fallback profile', {
-      userId: user.id,
-      userEmail: user.email,
-      userMetadata: user.user_metadata
-    }, 'app');
-    
-    // Create a temporary profile to unblock the user
-    const fallbackProfile = {
-      id: user.id,
-      full_name: user.email?.split('@')[0] || 'User',
-      role: 'sales_rep' as const,
-      company_id: user.id,
-      email_connected: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      last_login: new Date().toISOString()
-    };
-    
-    // Use fallback profile to allow access
-    const profileToUse = fallbackProfile;
-    
-    const getDefaultRoute = () => {
-      switch (profileToUse.role) {
-        case 'developer':
-        case 'admin':
-          return '/os/dev';
-        case 'manager':
-          return '/os/manager';
-        case 'sales_rep':
-        default:
-          return '/os/rep';
-      }
-    };
-
+    logger.info('User is authenticated but profile not found — blocking with onboarding wait');
     return (
-      <OnboardingGuard>
-        <Routes>
-          <Route path="/auth" element={<Navigate to={getDefaultRoute()} replace />} />
-          <Route path="/landing" element={<Navigate to={getDefaultRoute()} replace />} />
-          
-          {/* Allow all OS routes for fallback */}
-          <Route path="/os/dev/*" element={<DeveloperOS />} />
-          <Route path="/os/manager/*" element={<ManagerOS />} />
-          <Route path="/os/rep/*" element={<SalesOS />} />
-          
-          {/* Legacy routes for backward compatibility */}
-          <Route path="/developer/*" element={<Navigate to="/os/dev/dashboard" replace />} />
-          <Route path="/manager/*" element={<Navigate to="/os/manager/dashboard" replace />} />
-          <Route path="/sales/*" element={<Navigate to="/os/rep/dashboard" replace />} />
-          
-          {/* Default redirects */}
-          <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
-          <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
-        </Routes>
-      </OnboardingGuard>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <p className="text-gray-600">Loading your workspace...</p>
+        </div>
+      </div>
     );
   }
 
-  // Authenticated user routing with enhanced role-based routing
   const getDefaultRoute = () => {
-    if (profile) {
-      logger.info('Determining default route for role:', profile.role, 'app');
-      switch (profile.role) {
-        case 'developer':
-        case 'admin':
-          return '/os/dev';
-        case 'manager':
-          return '/os/manager';
-        case 'sales_rep':
-        default:
-          return '/os/rep';
-      }
+    switch (profile.role) {
+      case 'developer':
+      case 'admin':
+        return '/os/dev';
+      case 'manager':
+        return '/os/manager';
+      case 'sales_rep':
+      default:
+        return '/os/rep';
     }
-    
-    return '/os/rep';
   };
-
-  logger.info('User authenticated successfully, showing role-based routes', {
-    userRole: profile.role,
-    defaultRoute: getDefaultRoute()
-  }, 'app');
 
   return (
     <OnboardingGuard>
       <Routes>
-        {/* Redirect auth to dashboard if already authenticated */}
         <Route path="/auth" element={<Navigate to={getDefaultRoute()} replace />} />
         <Route path="/landing" element={<Navigate to={getDefaultRoute()} replace />} />
-        
-        {/* Developer OS */}
-        {(profile?.role === 'developer' || profile?.role === 'admin') && (
+
+        {(profile.role === 'developer' || profile.role === 'admin') && (
           <Route path="/os/dev/*" element={<DeveloperOS />} />
         )}
-        
-        {/* Manager OS */}
-        {profile?.role === 'manager' && (
+        {profile.role === 'manager' && (
           <Route path="/os/manager/*" element={<ManagerOS />} />
         )}
-        
-        {/* Sales OS - Available to all roles */}
         <Route path="/os/rep/*" element={<SalesOS />} />
-        
-        {/* Legacy routes for backward compatibility */}
+
+        {/* Legacy support */}
         <Route path="/developer/*" element={<Navigate to="/os/dev/dashboard" replace />} />
         <Route path="/manager/*" element={<Navigate to="/os/manager/dashboard" replace />} />
         <Route path="/sales/*" element={<Navigate to="/os/rep/dashboard" replace />} />
-        
-        {/* Default redirects */}
+
         <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
         <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
       </Routes>
@@ -258,12 +175,12 @@ function AppRoutes() {
   );
 }
 
+// --- Main App Component ---
 function App() {
-  // Disable service worker temporarily to prevent 404 errors
   useEffect(() => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(registrations => {
-        registrations.forEach(registration => registration.unregister());
+        registrations.forEach(r => r.unregister());
       });
     }
   }, []);
