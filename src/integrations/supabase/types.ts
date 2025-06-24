@@ -371,6 +371,7 @@ export type Database = {
           agent_name: string | null
           company_id: string
           created_at: string | null
+          customindustry: string | null
           enabled_modules: Json | null
           guided_tour_completed: boolean | null
           id: string
@@ -389,6 +390,7 @@ export type Database = {
           agent_name?: string | null
           company_id: string
           created_at?: string | null
+          customindustry?: string | null
           enabled_modules?: Json | null
           guided_tour_completed?: boolean | null
           id?: string
@@ -407,6 +409,7 @@ export type Database = {
           agent_name?: string | null
           company_id?: string
           created_at?: string | null
+          customindustry?: string | null
           enabled_modules?: Json | null
           guided_tour_completed?: boolean | null
           id?: string
