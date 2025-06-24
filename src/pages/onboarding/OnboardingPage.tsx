@@ -1,224 +1,222 @@
-import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Card } from '@/components/ui/card';
-import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import Logo from '@/components/Logo';
-import { motion } from 'framer-motion';
-
-// Import the context and components
-import { OnboardingProvider, CompanySettings, buildDashboardFromSettings } from './OnboardingContext';
-import OnboardingStepContent, { STEPS } from './components/OnboardingStepContent';
-import OnboardingProgress from './components/OnboardingProgress';
-import StepNavigation from './components/StepNavigation';
-import StepIndicator from './components/StepIndicator';
-import AIAssistantHelper from '@/components/AIAssistant/AIAssistantHelper';
-import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
-
-// Define the tour steps for the guided tutorial
-const DASHBOARD_TOUR_STEPS = [
-  {
-    title: 'Welcome to Your Dashboard',
-    description: 'This is your personalized SalesOS dashboard. Let me show you around!',
-  },
-  {
-    title: 'Navigation',
-    description: 'Use the sidebar to navigate between different sections of the platform.',
-    targetSelector: '.sidebar'
-  },
-  {
-    title: 'Analytics Dashboard',
-    description: 'Here you can track your sales performance and team metrics at a glance.',
-    targetSelector: '.analytics-dashboard'
-  },
-  {
-    title: 'Smart Dialer',
-    description: 'Make AI-assisted calls with real-time coaching and objection handling.',
-    targetSelector: '.dialer-module'
-  },
-  {
-    title: 'AI Brain',
-    description: 'Access your company knowledge and get intelligent answers to your questions.',
-    targetSelector: '.brain-module'
-  },
-  {
-    title: 'Need Help?',
-    description: 'I\'m always here to help. Click on me anytime you have questions!',
-  },
-];
+import { logger } from '@/utils/logger';
+import { motion, AnimatePresence } from 'framer-motion';
+import { OnboardingProvider } from './OnboardingContext';
+import WelcomeStep from './steps/WelcomeStep';
+import IndustryStep from './steps/IndustryStep';
+import GoalsStep from './steps/GoalsStep';
+import PersonalizationStep from './steps/PersonalizationStep';
+import AgentPersonalityStep from './steps/AgentPersonalityStep';
+import ModuleSelectionStep from './steps/ModuleSelectionStep';
+import RevealStep from './steps/RevealStep';
+import { toast } from 'sonner';
 
 const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [onboardingComplete, setOnboardingComplete] = useState(false);
+  const [settings, setSettings] = useState({
+    industry: '',
+    customIndustry: '',
+    original_goal: '',
+    sales_model: [],
+    team_roles: [],
+    pain_points: [],
+    agent_name: 'AI Assistant',
+    tone: {
+      humor: 50,
+      formality: 50,
+      pushiness: 50
+    },
+    enabled_modules: {
+      dialer: true,
+      brain: true,
+      analytics: true,
+      aiAgent: true
+    },
+    personalization_flags: {
+      show_tips: true,
+      enable_notifications: true,
+      auto_save: true
+    }
+  });
 
-  // Check if user should be redirected if onboarding is already done
+  const steps = [
+    { component: WelcomeStep, title: 'Welcome' },
+    { component: IndustryStep, title: 'Industry' },
+    { component: GoalsStep, title: 'Goals' },
+    { component: PersonalizationStep, title: 'Personalization' },
+    { component: AgentPersonalityStep, title: 'AI Personality' },
+    { component: ModuleSelectionStep, title: 'Features' },
+    { component: RevealStep, title: 'Ready' }
+  ];
+
+  // Redirect if user shouldn't be in onboarding
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      if (!profile?.company_id) return;
-
-      // If we already have the local flag, skip the remote check
-      const localKey = `onboarding_complete_${profile.company_id}`;
-      if (localStorage.getItem(localKey)) {
-        navigate(getDashboardUrl({ role: profile.role }));
-        return;
-      }
-
-      try {
-        const { data, error } = await supabase
-          .from('company_settings')
-          .select('onboarding_completed_at')
-          .eq('company_id', profile.company_id)
-          .maybeSingle();
-
-        if (error) throw error;
-
-        // If onboarding is already complete, set flag and redirect to dashboard
-        if (data?.onboarding_completed_at) {
-          localStorage.setItem(localKey, 'true');
-          const redirectPath = getDashboardUrl({ role: profile.role });
-          navigate(redirectPath);
-        }
-      } catch (err) {
-        logger.error('Error checking onboarding status:', err);
-      }
-    };
-
-    checkOnboardingStatus();
-  }, [profile?.company_id, navigate]);
-
-  // Function to build dashboard from settings
-  const buildDashboardFromSettingsHandler = async () => {
-    // In a real implementation, this could trigger a backend process
-    // For now, just simulate a delay
-    return new Promise<void>(resolve => setTimeout(resolve, 1500));
-  };
-
-  // Complete the onboarding process
-  const completeOnboardingHandler = async (settings: CompanySettings) => {
-    if (!profile?.company_id) {
-      toast.error('Missing company ID. Cannot save settings.');
+    if (!user || !profile) return;
+    
+    // If user is developer or admin, skip onboarding
+    if (profile.role === 'developer' || profile.role === 'admin') {
+      navigate('/os/dev/dashboard');
       return;
     }
     
+    // If onboarding is already completed, redirect to appropriate OS
+    if (localStorage.getItem(`onboarding_complete_${profile.company_id}`)) {
+      const roleRoute = getRoleRoute(profile.role);
+      navigate(roleRoute);
+      return;
+    }
+  }, [user, profile, navigate]);
+
+  const getRoleRoute = (role: string) => {
+    switch (role) {
+      case 'manager':
+        return '/os/manager/dashboard';
+      case 'sales_rep':
+        return '/os/rep/dashboard';
+      case 'developer':
+      case 'admin':
+        return '/os/dev/dashboard';
+      default:
+        return '/os/rep/dashboard';
+    }
+  };
+
+  const completeOnboarding = async () => {
+    if (!user || !profile) {
+      toast.error('User not authenticated');
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
-      // Save settings to Supabase
-      const { error } = await supabase
-        .from('company_settings')
-        .insert({
-          ...settings,
-          company_id: profile.company_id,
-          onboarding_completed_at: new Date().toISOString()
-        });
-      
-      if (error) throw error;
-      
-      // Build dashboard from settings
-      await buildDashboardFromSettings({
+      logger.info('Starting onboarding completion:', { 
+        userId: user.id, 
         companyId: profile.company_id,
-        settings: settings
+        settings 
       });
 
-      // Mark onboarding complete for this company in local storage
-      localStorage.setItem(
-        `onboarding_complete_${profile.company_id}`,
-        'true'
-      );
+      // Save settings to database
+      const { error: settingsError } = await supabase
+        .from('company_settings')
+        .upsert({
+          company_id: profile.company_id,
+          industry: settings.industry,
+          customIndustry: settings.customIndustry,
+          original_goal: settings.original_goal,
+          sales_model: settings.sales_model,
+          team_roles: settings.team_roles,
+          pain_points: settings.pain_points,
+          agent_name: settings.agent_name,
+          tone: settings.tone,
+          enabled_modules: settings.enabled_modules,
+          personalization_flags: settings.personalization_flags,
+          onboarding_completed_at: new Date().toISOString(),
+          guided_tour_completed: true,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'company_id'
+        });
+
+      if (settingsError) {
+        logger.error('Error saving company settings:', settingsError);
+        throw new Error(`Failed to save settings: ${settingsError.message}`);
+      }
+
+      // Mark onboarding as complete in localStorage
+      localStorage.setItem(`onboarding_complete_${profile.company_id}`, 'true');
       
-      // Show completion state briefly before redirecting
-      setOnboardingComplete(true);
+      logger.info('Onboarding completed successfully, redirecting to OS');
       
-      // After a delay, redirect to the appropriate dashboard
+      // Show success message
+      toast.success('Welcome to SalesOS! Your workspace is ready.');
+      
+      // Small delay to let the toast show, then redirect
       setTimeout(() => {
-        toast.success('Onboarding complete! Welcome to your SalesOS.');
-        navigate(getDashboardUrl({ role: profile.role }));
-      }, 3000);
-      
-    } catch (error: any) {
-      logger.error('Error saving onboarding settings:', error);
-      toast.error('Failed to save settings: ' + error.message);
+        const roleRoute = getRoleRoute(profile.role);
+        logger.info('Redirecting to:', roleRoute);
+        navigate(roleRoute, { replace: true });
+      }, 1000);
+
+    } catch (error) {
+      logger.error('Error completing onboarding:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to complete onboarding');
       setIsSubmitting(false);
     }
   };
 
+  const nextStep = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const updateSettings = (newSettings: Partial<typeof settings>) => {
+    setSettings(prev => ({ ...prev, ...newSettings }));
+  };
+
+  const CurrentStepComponent = steps[currentStep].component;
+
   return (
-    <OnboardingProvider
-      initialCompanyId={profile?.company_id}
-      completeOnboardingFn={completeOnboardingHandler}
-      isSubmitting={isSubmitting}
-    >
-      {onboardingComplete ? (
-        // Show completion state with assistant before redirect
-        <motion.div 
-          className="min-h-screen bg-gradient-to-br from-background to-slate-50 dark:from-slate-950 dark:to-slate-900 flex flex-col items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-            className="text-center"
-          >
-            <Logo className="mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-2">Welcome to SalesOS!</h1>
-            <p className="text-muted-foreground">Your personalized sales platform is ready.</p>
-            <p className="text-muted-foreground mt-1">Taking you to your dashboard...</p>
-          </motion.div>
-          
-          {/* Show AI Assistant with first-time tour */}
-          <AIAssistantHelper
-            agentName={profile?.company_id ? undefined : 'SalesOS'}
-            introMessage="Welcome to SalesOS! Let me show you around your new dashboard."
-            tourSteps={DASHBOARD_TOUR_STEPS}
-          />
-        </motion.div>
-      ) : (
-        // Normal onboarding flow
-        <div className="min-h-screen bg-gradient-to-br from-background to-slate-50 dark:from-slate-950 dark:to-slate-900 flex flex-col">
-          {/* Header */}
-          <header className="border-b border-border/40 p-4">
-            <div className="container mx-auto flex justify-between items-center">
-              <Logo />
-              <div className="text-sm text-muted-foreground">
-                Company Onboarding
-              </div>
+    <OnboardingProvider>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="container mx-auto px-4 py-8">
+          {/* Progress indicator */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-2xl font-bold text-gray-900">Setup Your SalesOS</h1>
+              <span className="text-sm text-gray-500">
+                Step {currentStep + 1} of {steps.length}
+              </span>
             </div>
-          </header>
-          
-          {/* Progress bar */}
-          <OnboardingProgress />
-          
-          {/* Main content */}
-          <main className="flex-1 container mx-auto px-4 py-8 max-w-4xl">
-            <Card className="p-6 shadow-md">
-              {/* Current step content */}
-              <div className="mb-8">
-                <OnboardingStepContent />
-              </div>
-              
-              {/* Navigation buttons */}
-              <StepNavigation />
-            </Card>
-            
-            {/* Step indicator */}
-            <div className="mt-6 flex justify-center">
-              <div className="flex space-x-2">
-                {STEPS.map((_, index) => (
-                  <StepIndicator key={index} stepIndex={index} />
-                ))}
-              </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <motion.div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                initial={{ width: 0 }}
+                animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              />
             </div>
-          </main>
+          </div>
+
+          {/* Step content */}
+          <div className="max-w-4xl mx-auto">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white rounded-lg shadow-lg p-8"
+              >
+                <CurrentStepComponent
+                  settings={settings}
+                  updateSettings={updateSettings}
+                  nextStep={nextStep}
+                  prevStep={prevStep}
+                  isFirstStep={currentStep === 0}
+                  isLastStep={currentStep === steps.length - 1}
+                  completeOnboarding={completeOnboarding}
+                  isSubmitting={isSubmitting}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
-      )}
+      </div>
     </OnboardingProvider>
   );
 };

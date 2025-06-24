@@ -32,13 +32,21 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
     return <>{children}</>;
   }
 
-  // Check if onboarding is needed (skip for developers as they don't need onboarding)
+  // Check if onboarding is needed (skip for developers/admins as they don't need onboarding)
   const needsOnboarding = user && profile?.company_id && 
     profile.role !== 'developer' &&
     profile.role !== 'admin' &&
     !localStorage.getItem(`onboarding_complete_${profile.company_id}`);
 
-    console.log('[OnboardingGuard] Authenticated:', !!user, '| Profile loaded:', !!profile, '| Needs Onboarding:', needsOnboarding);
+  console.log('[OnboardingGuard] Auth Status:', {
+    authenticated: !!user,
+    profileLoaded: !!profile,
+    userRole: profile?.role,
+    companyId: profile?.company_id,
+    needsOnboarding,
+    onboardingComplete: localStorage.getItem(`onboarding_complete_${profile.company_id}`)
+  });
+
   if (needsOnboarding) {
     return <OnboardingPage />;
   }
