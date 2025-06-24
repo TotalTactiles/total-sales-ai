@@ -171,7 +171,13 @@ const OnboardingPage: React.FC = () => {
   const CurrentStepComponent = steps[currentStep].component;
 
   return (
-    <OnboardingProvider>
+    <OnboardingProvider
+      initialCompanyId={profile?.company_id}
+      completeOnboardingFn={async (settings) => {
+        await completeOnboarding();
+      }}
+      isSubmitting={isSubmitting}
+    >
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="container mx-auto px-4 py-8">
           {/* Progress indicator */}
