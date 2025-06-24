@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
@@ -86,19 +87,15 @@ const queryClient = new QueryClient({
 // --- App Routes ---
 function AppRoutes() {
   const { user, profile, loading } = useAuth();
+  const location = useLocation();
 
   useAIBrain();
 
-  import { useLocation } from 'react-router-dom';
-...
-const location = useLocation();
-...
-useEffect(() => {
-  if (location.pathname.startsWith('/os/')) {
-    ...
-  }
-}, [location.pathname]);
-;
+  useEffect(() => {
+    if (location.pathname.startsWith('/os/')) {
+      // Handle OS-specific routing logic here if needed
+    }
+  }, [location.pathname]);
 
   if (loading) {
     return (
