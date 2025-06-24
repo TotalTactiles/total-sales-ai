@@ -134,41 +134,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (!userProfile) {
         logger.info('Profile not found, creating new profile for user:', user.id, 'auth');
         userProfile = await createProfile(user);
-        
-        if (!userProfile) {
-          logger.error('Failed to create profile, using fallback...', {}, 'auth');
-          userProfile = {
-            id: user.id,
-            full_name: user.email?.split('@')[0] || 'User',
-            role: 'sales_rep',
-            company_id: user.id,
-            email_connected: false,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            last_login: new Date().toISOString()
-          };
-        }
       }
 
-      logger.info('Setting profile in state:', { 
-        userId: user.id, 
-        profileRole: userProfile.role,
-        profileId: userProfile.id
-      }, 'auth');
-      setProfile(userProfile);
-      
-      // Update last login timestamp (non-critical operation)
-      try {
-        await supabase
-          .from('profiles')
-          .update({ last_login: new Date().toISOString() })
-          .eq('id', user.id);
-        logger.info('Updated last login timestamp', {}, 'auth');
-      } catch (updateError) {
-        logger.warn('Failed to update last login (non-critical):', updateError, 'auth');
+      if (userProfile) {
+        logger.info('Setting profile in state:', { 
+          userId: user.id, 
+          profileRole: userProfile.role,
+          profileId: userProfile.id
+        }, 'auth');
+        setProfile(userProfile);
+        
+        // Update last login timestamp (non-critical operation)
+        try {
+          await supabase
+            .from('profiles')
+            .update({ last_login: new Date().toISOString() })
+            .eq('id', user.id);
+          logger.info('Updated last login timestamp', {}, 'auth');
+        } catch (updateError) {
+          logger.warn('Failed to update last login (non-critical):', updateError, 'auth');
+        }
       }
     } catch (error) {
       logger.error('Critical error in fetchOrCreateProfile:', error, 'auth');
+      // Set a fallback profile to prevent blocking access
       const fallbackProfile: Profile = {
         id: user.id,
         full_name: user.email?.split('@')[0] || 'User',
@@ -297,9 +286,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           hasSession: !!data.session
         }, 'auth');
         
-        // Wait for auth state to sync before resolving
-        await new Promise(resolve => setTimeout(resolve, 500));
-        setLoading(false);
+        // The auth state change listener will handle profile fetching
         return { error: null };
       }
 
@@ -310,6 +297,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.error('Sign in exception:', error, 'auth');
       setLoading(false);
       return { error: error as AuthError };
+    } finally {
+      // Always set loading to false after a reasonable delay
+      setTimeout(() => setLoading(false), 1000);
     }
   };
 

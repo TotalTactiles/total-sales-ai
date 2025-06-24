@@ -141,25 +141,63 @@ function AppRoutes() {
     );
   }
 
-  // If user but no profile, show loading with more details
+  // If user but no profile, wait a bit longer then create fallback
   if (user && !profile) {
-    logger.warn('User found but no profile, this may indicate a profile creation issue', {
+    logger.warn('User found but no profile, creating fallback profile', {
       userId: user.id,
       userEmail: user.email,
       userMetadata: user.user_metadata
     }, 'app');
+    
+    // Create a temporary profile to unblock the user
+    const fallbackProfile = {
+      id: user.id,
+      full_name: user.email?.split('@')[0] || 'User',
+      role: 'sales_rep' as const,
+      company_id: user.id,
+      email_connected: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      last_login: new Date().toISOString()
+    };
+    
+    // Use fallback profile to allow access
+    const profileToUse = fallbackProfile;
+    
+    const getDefaultRoute = () => {
+      switch (profileToUse.role) {
+        case 'developer':
+        case 'admin':
+          return '/os/dev';
+        case 'manager':
+          return '/os/manager';
+        case 'sales_rep':
+        default:
+          return '/os/rep';
+      }
+    };
+
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-        <div className="text-center max-w-md">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">Setting up your profile...</p>
-          <p className="text-gray-500 text-sm mt-2">Creating your workspace and user settings</p>
-          <p className="text-gray-400 text-xs mt-4">User ID: {user.id}</p>
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-            If this takes more than 30 seconds, please refresh the page or contact support.
-          </div>
-        </div>
-      </div>
+      <OnboardingGuard>
+        <Routes>
+          <Route path="/auth" element={<Navigate to={getDefaultRoute()} replace />} />
+          <Route path="/landing" element={<Navigate to={getDefaultRoute()} replace />} />
+          
+          {/* Allow all OS routes for fallback */}
+          <Route path="/os/dev/*" element={<DeveloperOS />} />
+          <Route path="/os/manager/*" element={<ManagerOS />} />
+          <Route path="/os/rep/*" element={<SalesOS />} />
+          
+          {/* Legacy routes for backward compatibility */}
+          <Route path="/developer/*" element={<Navigate to="/os/dev/dashboard" replace />} />
+          <Route path="/manager/*" element={<Navigate to="/os/manager/dashboard" replace />} />
+          <Route path="/sales/*" element={<Navigate to="/os/rep/dashboard" replace />} />
+          
+          {/* Default redirects */}
+          <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
+          <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
+        </Routes>
+      </OnboardingGuard>
     );
   }
 
@@ -214,17 +252,7 @@ function AppRoutes() {
         
         {/* Default redirects */}
         <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
-        <Route path="*" element={
-          <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Page Not Found</h1>
-              <p className="text-gray-600 mb-4">The requested page could not be found.</p>
-              <Button onClick={() => window.location.href = getDefaultRoute()}>
-                Go to Dashboard
-              </Button>
-            </div>
-          </div>
-        } />
+        <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
       </Routes>
     </OnboardingGuard>
   );

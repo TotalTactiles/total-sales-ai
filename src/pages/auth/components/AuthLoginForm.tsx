@@ -113,7 +113,8 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       return false;
     } else {
       logger.info(`${context} login successful`, {}, 'auth');
-      setSuccess('Login successful! Redirecting to your workspace...');
+      setSuccess('Login successful!');
+      toast.success('Login successful! Redirecting to your workspace...');
       return true;
     }
   };

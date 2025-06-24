@@ -19,13 +19,13 @@ const SalesRepOS: React.FC = () => {
       <SalesRepNavigation />
       <main className="pt-[60px]">
         <Routes>
-          <Route index element={<Navigate to="/sales/dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<SalesRepDashboard />} />
           <Route path="leads" element={<LeadManagement />} />
           <Route path="leads/:leadId" element={<LeadWorkspace />} />
           <Route path="dialer" element={<AutoDialerInterface leads={leads} onLeadSelect={() => {}} />} />
           <Route path="brain" element={<CompanyBrainSalesRep />} />
-          <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Routes>
       </main>
     </div>
