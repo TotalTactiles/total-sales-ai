@@ -89,18 +89,16 @@ function AppRoutes() {
 
   useAIBrain();
 
-  useEffect(() => {
-    if (window.location.pathname.startsWith('/os/')) {
-      supabase.auth.getSession().then(({ data: { session }, error }) => {
-        logger.info('Session check in OS route:', {
-          hasSession: !!session,
-          sessionUserId: session?.user?.id,
-          error: error?.message,
-          currentPath: window.location.pathname,
-        }, 'app');
-      });
-    }
-  }, [window.location.pathname]);
+  import { useLocation } from 'react-router-dom';
+...
+const location = useLocation();
+...
+useEffect(() => {
+  if (location.pathname.startsWith('/os/')) {
+    ...
+  }
+}, [location.pathname]);
+;
 
   if (loading) {
     return (
