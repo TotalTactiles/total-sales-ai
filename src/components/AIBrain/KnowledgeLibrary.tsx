@@ -1,5 +1,6 @@
+
 import { logger } from '@/utils/logger';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,35 +36,35 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
   const [companyId, setCompanyId] = useState<string | null>(null);
   
   // Fetch user's company ID
-  useEffect(() => {
-    const fetchCompanyId = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('company_id')
-          .eq('id', user.id)
-          .single();
-          
-        if (error) {
-          logger.error("Error fetching user's company_id:", error);
-          return;
-        }
-        
-        if (data?.company_id) {
-          setCompanyId(data.company_id);
-        }
-      } catch (err) {
-        logger.error("Error in fetching company ID:", err);
-      }
-    };
+  const fetchCompanyId = useCallback(async () => {
+    if (!user) return;
     
-    fetchCompanyId();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) {
+        logger.error("Error fetching user's company_id:", error);
+        return;
+      }
+      
+      if (data?.company_id) {
+        setCompanyId(data.company_id);
+      }
+    } catch (err) {
+      logger.error("Error in fetching company ID:", err);
+    }
   }, [user]);
+
+  useEffect(() => {
+    fetchCompanyId();
+  }, [fetchCompanyId]);
   
   // Fetch knowledge entries
-  const fetchEntries = async () => {
+  const fetchEntries = useCallback(async () => {
     setIsLoading(true);
     
     try {
@@ -102,10 +103,10 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [sourceTypeFilter, companyFilter, companyId, searchTerm]);
   
   // Handle reindex
-  const handleReindex = async () => {
+  const handleReindex = useCallback(async () => {
     if (!isManager) {
       toast.error("Only managers can trigger reindexing");
       return;
@@ -132,10 +133,10 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
       // Refresh entries after reindexing
       fetchEntries();
     }
-  };
+  }, [isManager, fetchEntries]);
   
   // Delete entry
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback(async (id: string) => {
     if (!isManager) {
       toast.error("Only managers can delete entries");
       return;
@@ -158,10 +159,10 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
         toast.error("Failed to delete entry");
       }
     }
-  };
+  }, [isManager, fetchEntries]);
   
   // Handle marking entry as case study
-  const handleMarkAsCaseStudy = async (entry: KnowledgeEntry) => {
+  const handleMarkAsCaseStudy = useCallback(async (entry: KnowledgeEntry) => {
     if (!isManager) {
       toast.error("Only managers can mark case studies");
       return;
@@ -182,12 +183,12 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
       logger.error("Error marking as case study:", err);
       toast.error("Failed to mark as case study");
     }
-  };
+  }, [isManager, fetchEntries]);
   
   // Load entries when component mounts or filters change
   useEffect(() => {
     fetchEntries();
-  }, [sourceTypeFilter, companyFilter, companyId, fetchEntries]);
+  }, [fetchEntries]);
   
   return (
     <Card className="w-full">

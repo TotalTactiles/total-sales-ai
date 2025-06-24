@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useUnusedFeatures } from '@/hooks/useUnusedFeatures';
 
@@ -21,21 +21,25 @@ const UsageTracker: React.FC<UsageTrackerProps> = ({
   const { trackEvent } = useUsageTracking();
   const { updateFeatureUsage } = useUnusedFeatures();
 
+  const handleTrackEvent = useCallback(() => {
+    trackEvent({ feature, action, context });
+    updateFeatureUsage(feature);
+  }, [trackEvent, feature, action, context, updateFeatureUsage]);
+
   useEffect(() => {
     if (trackOnMount) {
-      trackEvent({ feature, action, context });
-      updateFeatureUsage(feature);
+      handleTrackEvent();
     }
-  }, [trackOnMount, feature, action, context, trackEvent, updateFeatureUsage]);
+  }, [trackOnMount, handleTrackEvent]);
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     trackEvent({ feature, action: 'click', context });
     updateFeatureUsage(feature);
-  };
+  }, [trackEvent, feature, context, updateFeatureUsage]);
 
-  const handleHover = () => {
+  const handleHover = useCallback(() => {
     trackEvent({ feature, action: 'hover', context });
-  };
+  }, [trackEvent, feature, context]);
 
   return (
     <div onClick={handleClick} onMouseEnter={handleHover}>

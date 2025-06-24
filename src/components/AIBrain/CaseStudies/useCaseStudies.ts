@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CaseStudy } from './types';
@@ -27,7 +27,7 @@ export function useCaseStudies(
   const [industries, setIndustries] = useState<string[]>([]);
 
   // Fetch case studies
-  const fetchCaseStudies = async () => {
+  const fetchCaseStudies = useCallback(async () => {
     setIsLoading(true);
     
     try {
@@ -66,10 +66,10 @@ export function useCaseStudies(
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [industryFilter, dateFilter, sourceFilter]);
   
   // Fetch unique industries for the filter dropdown
-  const fetchIndustries = async () => {
+  const fetchIndustries = useCallback(async () => {
     try {
       // Get industries from case studies
       const { data, error } = await supabase
@@ -89,12 +89,12 @@ export function useCaseStudies(
     } catch (err) {
       logger.error("Error fetching industries:", err);
     }
-  };
+  }, []);
 
   // Load case studies when component mounts or filters change
   useEffect(() => {
     fetchCaseStudies();
-  }, [industryFilter, dateFilter, sourceFilter, fetchCaseStudies]);
+  }, [fetchCaseStudies]);
   
   // Fetch industries on component mount
   useEffect(() => {

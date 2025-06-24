@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,13 +40,7 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
   const { executeAgentTask, isExecuting } = useAgentIntegration();
 
   // Generate AI suggestions based on call context
-  useEffect(() => {
-    if (currentLead) {
-      generateContextualSuggestions();
-    }
-  }, [currentLead, isCallActive, generateContextualSuggestions]);
-
-  const generateContextualSuggestions = async () => {
+  const generateContextualSuggestions = useCallback(async () => {
     const result = await executeAgentTask(
       'salesAgent_v1',
       'contextual_suggestions',
@@ -60,9 +54,15 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
     if (result?.output_payload?.suggestions) {
       setSuggestions(result.output_payload.suggestions);
     }
-  };
+  }, [executeAgentTask, currentLead, isCallActive]);
 
-  const handleAICall = async () => {
+  useEffect(() => {
+    if (currentLead) {
+      generateContextualSuggestions();
+    }
+  }, [currentLead, isCallActive, generateContextualSuggestions]);
+
+  const handleAICall = useCallback(async () => {
     if (!currentLead) {
       toast.error('No lead selected');
       return;
@@ -73,9 +73,9 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
     if (result.success) {
       onSuggestion(`AI Assistant is now calling ${currentLead.name}. Call ID: ${result.callId}`);
     }
-  };
+  }, [currentLead, makeConversationalCall, onSuggestion]);
 
-  const handleAIQuery = async () => {
+  const handleAIQuery = useCallback(async () => {
     if (!aiQuery.trim()) return;
     
     const result = await executeAgentTask(
@@ -94,9 +94,9 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
       setAiQuery('');
       toast.success('AI suggestion generated');
     }
-  };
+  }, [aiQuery, executeAgentTask, currentLead, isCallActive, onSuggestion]);
 
-  const handleQuickAction = async (actionType: string) => {
+  const handleQuickAction = useCallback(async (actionType: string) => {
     const result = await executeAgentTask(
       'salesAgent_v1',
       actionType,
@@ -110,9 +110,9 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
     if (result?.output_payload?.response) {
       onSuggestion(result.output_payload.response);
     }
-  };
+  }, [executeAgentTask, currentLead, isCallActive, onSuggestion]);
 
-  const handleVoiceCommand = () => {
+  const handleVoiceCommand = useCallback(() => {
     setIsListening(!isListening);
     if (!isListening) {
       // Simulate voice listening
@@ -122,7 +122,7 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
         toast.success('Voice command captured');
       }, 2000);
     }
-  };
+  }, [isListening]);
 
   return (
     <div className="space-y-4">

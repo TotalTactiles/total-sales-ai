@@ -1,6 +1,7 @@
+
 import { logger } from '@/utils/logger';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { X, MessageSquare, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -46,7 +47,7 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
   const { user, profile } = useAuth();
 
   // Generate personality-based messages
-  const generateMessage = (purpose: 'greeting' | 'help' | 'tour'): string => {
+  const generateMessage = useCallback((purpose: 'greeting' | 'help' | 'tour'): string => {
     // Humor affects language
     const humor = tone?.humor || 50;
     const humorous = humor > 70;
@@ -100,59 +101,52 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
       default:
         return `Hi, I'm ${agentName}. How can I help?`;
     }
-  };
+  }, [agentName, tone]);
 
   // On first load, check if we should offer a tour
-  useEffect(() => {
-    const checkTourStatus = async () => {
-      if (!user?.id) return;
-      
-      try {
-        // Check if this user has completed the guided tour
-        const { data, error } = await supabase
-          .from('company_settings')
-          .select('guided_tour_completed')
-          .eq('company_id', profile?.company_id)
-          .single();
-          
-        if (error) {
-          logger.error('Error checking tour status:', error);
-          return;
-        }
-        
-        // If tour hasn't been completed, show the assistant with tour option
-        if (data && !data.guided_tour_completed && tourSteps?.length > 0) {
-          setIsMinimized(false);
-          setMessage(generateMessage('tour'));
-          
-          // Log this interaction
-          await supabase.from('usage_analytics').insert({
-            company_id: profile?.company_id,
-            user_id: user.id,
-            event_type: 'assistant_tour_offered',
-            event_data: {}
-          });
-        } else {
-          // Just set a normal greeting message
-          setMessage(introMessage || generateMessage('greeting'));
-        }
-      } catch (err) {
-        logger.error('Error in checkTourStatus:', err);
-      }
-    };
+  const checkTourStatus = useCallback(async () => {
+    if (!user?.id) return;
     
+    try {
+      // Check if this user has completed the guided tour
+      const { data, error } = await supabase
+        .from('company_settings')
+        .select('guided_tour_completed')
+        .eq('company_id', profile?.company_id)
+        .single();
+        
+      if (error) {
+        logger.error('Error checking tour status:', error);
+        return;
+      }
+      
+      // If tour hasn't been completed, show the assistant with tour option
+      if (data && !data.guided_tour_completed && tourSteps?.length > 0) {
+        setIsMinimized(false);
+        setMessage(generateMessage('tour'));
+        
+        // Log this interaction
+        await supabase.from('usage_analytics').insert({
+          company_id: profile?.company_id,
+          user_id: user.id,
+          event_type: 'assistant_tour_offered',
+          event_data: {}
+        });
+      } else {
+        // Just set a normal greeting message
+        setMessage(introMessage || generateMessage('greeting'));
+      }
+    } catch (err) {
+      logger.error('Error in checkTourStatus:', err);
+    }
+  }, [user?.id, profile?.company_id, tourSteps.length, introMessage, generateMessage]);
+
+  useEffect(() => {
     checkTourStatus();
-  }, [
-    user?.id,
-    profile?.company_id,
-    tourSteps.length,
-    introMessage,
-    generateMessage
-  ]);
-  }, [user?.id, profile?.company_id, generateMessage, introMessage, tourSteps.length]);
+  }, [checkTourStatus]);
 
   // Start the guided tour
-  const startTour = async () => {
+  const startTour = useCallback(async () => {
     setIsTouring(true);
     setCurrentTourStep(0);
     
@@ -167,10 +161,10 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
     } catch (err) {
       logger.error('Error tracking tour start:', err);
     }
-  };
+  }, [profile?.company_id, user?.id]);
 
   // Complete the tour
-  const completeTour = async () => {
+  const completeTour = useCallback(async () => {
     setIsTouring(false);
     
     // Mark tour as completed in database
@@ -194,37 +188,37 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
     } catch (err) {
       logger.error('Error completing tour:', err);
     }
-  };
+  }, [profile?.company_id, user?.id, currentTourStep, agentName]);
 
   // Move through tour steps
-  const nextTourStep = () => {
+  const nextTourStep = useCallback(() => {
     if (currentTourStep < tourSteps.length - 1) {
       setCurrentTourStep(prev => prev + 1);
     } else {
       completeTour();
     }
-  };
+  }, [currentTourStep, tourSteps.length, completeTour]);
 
-  const prevTourStep = () => {
+  const prevTourStep = useCallback(() => {
     if (currentTourStep > 0) {
       setCurrentTourStep(prev => prev - 1);
     }
-  };
+  }, [currentTourStep]);
 
   // Toggle chat open/closed
-  const toggleChat = () => {
+  const toggleChat = useCallback(() => {
     if (isMinimized) {
       setIsMinimized(false);
     } else {
       setIsOpen(!isOpen);
     }
-  };
+  }, [isMinimized, isOpen]);
 
   // Minimize chat
-  const minimizeChat = () => {
+  const minimizeChat = useCallback(() => {
     setIsMinimized(true);
     setIsOpen(false);
-  };
+  }, []);
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
