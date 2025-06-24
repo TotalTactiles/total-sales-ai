@@ -26,7 +26,7 @@ const UsageTracker: React.FC<UsageTrackerProps> = ({
       trackEvent({ feature, action, context });
       updateFeatureUsage(feature);
     }
-  }, [trackOnMount, feature, action, context]);
+  }, [trackOnMount, feature, action, context, trackEvent, updateFeatureUsage]);
 
   const handleClick = () => {
     trackEvent({ feature, action: 'click', context });

@@ -28,7 +28,7 @@ const EmailSettingsPanel = () => {
 
   useEffect(() => {
     refreshConnectionStatus();
-  }, []);
+  }, [refreshConnectionStatus]);
 
   return (
     <div className="space-y-6">

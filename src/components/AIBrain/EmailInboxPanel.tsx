@@ -32,7 +32,7 @@ const EmailInboxPanel = () => {
     if (isConnected) {
       fetchEmails();
     }
-  }, [isConnected]);
+  }, [isConnected, fetchEmails]);
 
   const filteredEmails = emails.filter(email => 
     email.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
