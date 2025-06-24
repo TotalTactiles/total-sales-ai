@@ -36,7 +36,7 @@ const createMockStorage = () => {
 }
 
 beforeAll(() => {
-  const dom = new JSDOM('<!doctype html><html><body></body></html>')
+  const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost' })
   ;(global as any).window = dom.window as any
   ;(global as any).document = dom.window.document
   Object.defineProperty(global, 'navigator', { value: dom.window.navigator, configurable: true })
@@ -44,8 +44,14 @@ beforeAll(() => {
 
 beforeEach(() => {
   // fresh mock storages before each test
-  Object.defineProperty(global, 'localStorage', { value: createMockStorage(), configurable: true })
-  Object.defineProperty(global, 'sessionStorage', { value: createMockStorage(), configurable: true })
+  const ls = createMockStorage()
+  const ss = createMockStorage()
+  Object.defineProperty(global, 'localStorage', { value: ls, configurable: true })
+  Object.defineProperty(global, 'sessionStorage', { value: ss, configurable: true })
+  if (typeof window !== 'undefined') {
+    Object.defineProperty(window, 'localStorage', { value: ls, configurable: true })
+    Object.defineProperty(window, 'sessionStorage', { value: ss, configurable: true })
+  }
 })
 
 afterEach(() => {

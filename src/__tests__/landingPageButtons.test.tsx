@@ -38,13 +38,13 @@ describe('Landing page auth buttons', () => {
     });
   });
 
-  it('Get Early Access navigates to /auth', async () => {
+  it('Get Started navigates to /auth', async () => {
     render(
       <MemoryRouter initialEntries={["/landing"]}>
         <Wrapper />
       </MemoryRouter>
     );
-    const btn = screen.getAllByRole('button', { name: /get early access/i })[0];
+    const btn = screen.getAllByRole('button', { name: /get started/i })[0];
     fireEvent.click(btn);
     await waitFor(() => {
       expect(screen.getByTestId('location').textContent).toBe('/auth');
