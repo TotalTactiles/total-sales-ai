@@ -27,5 +27,22 @@ export async function signUpUser({
     throw new Error(error.message);
   }
 
+  // ✅ Add this step to create profile
+  const user = data.user;
+  if (user) {
+    const { error: profileError } = await supabase.from('profiles').insert([{
+      id: user.id,
+      full_name,
+      role,
+      company_id: user.id,
+      email_confirmed: false,
+    }]);
+
+    if (profileError) {
+      console.error('Error creating profile:', profileError.message);
+      throw new Error(profileError.message);
+    }
+  }
+
   return data;
 }
