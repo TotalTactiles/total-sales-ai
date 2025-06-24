@@ -1,9 +1,10 @@
+import 'dotenv/config';
 import { signUpUser } from './auth';
 
 (async () => {
   try {
     const newUser = await signUpUser({
-      email: 'debug-test@example.com',
+      email: 'peonmyboot@gmail.com',
       password: 'SecurePass123!',
       full_name: 'Debug Test',
       role: 'manager',
