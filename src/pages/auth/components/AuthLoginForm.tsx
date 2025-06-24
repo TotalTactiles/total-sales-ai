@@ -4,7 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { LogIn, AlertCircle, CheckCircle, Settings } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { LogIn, AlertCircle, CheckCircle, Settings, User, Shield, Code } from 'lucide-react';
 import { logger } from '@/utils/logger';
 import { toast } from 'sonner';
 
@@ -20,10 +21,17 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     email: '',
     password: ''
   });
+  const [selectedRole, setSelectedRole] = useState<'sales_rep' | 'manager' | 'developer'>('sales_rep');
   const [isLoading, setIsLoading] = useState(false);
   const [isSettingUp, setIsSettingUp] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const roleOptions = [
+    { value: 'sales_rep', label: 'Sales Rep OS', icon: User, color: 'text-green-600' },
+    { value: 'manager', label: 'Manager OS', icon: Shield, color: 'text-blue-600' },
+    { value: 'developer', label: 'Developer OS', icon: Code, color: 'text-purple-600' }
+  ];
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -32,6 +40,22 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleRoleChange = (value: number[]) => {
+    const roleIndex = value[0];
+    setSelectedRole(roleOptions[roleIndex].value as 'sales_rep' | 'manager' | 'developer');
+  };
+
+  const getDefaultCredentials = (role: 'sales_rep' | 'manager' | 'developer') => {
+    switch (role) {
+      case 'developer':
+        return { email: 'dev@os.local', password: 'dev1234' };
+      case 'manager':
+        return { email: 'manager@os.local', password: 'manager123' };
+      case 'sales_rep':
+        return { email: 'rep@os.local', password: 'rep123' };
+    }
   };
 
   const setupDemoUsers = async () => {
@@ -78,8 +102,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
       
       const errorMessage = authError.message || 'Login failed';
       if (errorMessage.includes('Invalid login credentials')) {
-        setError('Invalid email or password. The system will automatically create missing demo users and retry.');
-        // Don't show the setup demo users message since it's automatic now
+        setError('Invalid email or password. Please check your credentials or setup demo users.');
       } else if (errorMessage.includes('Email not confirmed')) {
         setError('Please check your email and click the confirmation link before logging in.');
       } else if (errorMessage.includes('Too many requests')) {
@@ -121,29 +144,16 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
     }
   };
 
-  const handleQuickLogin = async (email: string, password: string, role: string) => {
-    setFormData({ email, password });
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
-    setIsTransitioning(true);
-
-    try {
-      const success = await performLogin(email, password, `Quick ${role}`);
-      if (!success) {
-        setIsTransitioning(false);
-      }
-    } catch (error: any) {
-      logger.error(`Quick login error for ${role}:`, error, 'auth');
-      setError('An unexpected error occurred. Please try again.');
-      setIsTransitioning(false);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleUseDefaultCredentials = () => {
+    const credentials = getDefaultCredentials(selectedRole);
+    setFormData(credentials);
   };
 
+  const currentRoleIndex = roleOptions.findIndex(role => role.value === selectedRole);
+  const CurrentIcon = roleOptions[currentRoleIndex].icon;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <form onSubmit={handleAuthSubmit} className="space-y-4">
         {error && (
           <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md flex items-center gap-2">
@@ -158,6 +168,32 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             <span>{success}</span>
           </div>
         )}
+
+        {/* OS Version Selector */}
+        <div className="space-y-3">
+          <Label className="text-gray-700 font-medium">Select OS Version</Label>
+          <div className="bg-gray-50 p-4 rounded-lg border">
+            <div className="flex items-center justify-center mb-4">
+              <CurrentIcon className={`h-8 w-8 ${roleOptions[currentRoleIndex].color}`} />
+              <span className="ml-2 text-lg font-semibold text-gray-800">
+                {roleOptions[currentRoleIndex].label}
+              </span>
+            </div>
+            <Slider
+              value={[currentRoleIndex]}
+              onValueChange={handleRoleChange}
+              max={2}
+              min={0}
+              step={1}
+              className="w-full"
+            />
+            <div className="flex justify-between mt-2 text-xs text-gray-500">
+              <span>Sales Rep</span>
+              <span>Manager</span>
+              <span>Developer</span>
+            </div>
+          </div>
+        </div>
         
         <div>
           <Label htmlFor="email" className="text-gray-700">Email</Label>
@@ -190,6 +226,17 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
           />
         </div>
+
+        {/* Use Default Credentials Button */}
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={handleUseDefaultCredentials}
+          disabled={isLoading}
+          className="w-full text-sm"
+        >
+          Use Default {roleOptions[currentRoleIndex].label} Credentials
+        </Button>
         
         <Button 
           type="submit" 
@@ -233,45 +280,6 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         <p className="text-xs text-gray-500 mt-2 text-center">
           Click this if you're having login issues or want to reset demo users
         </p>
-      </div>
-
-      <div className="space-y-3 pt-4 border-t border-gray-200">
-        <p className="text-sm text-gray-600 text-center font-medium">Quick System Access:</p>
-        <div className="grid grid-cols-1 gap-2">
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleQuickLogin('dev@os.local', 'dev1234', 'Developer')} 
-            disabled={isLoading} 
-            className="text-xs justify-start hover:bg-purple-50 text-gray-950"
-          >
-            <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
-            Developer OS (dev@os.local)
-          </Button>
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleQuickLogin('manager@os.local', 'manager123', 'Manager')} 
-            disabled={isLoading} 
-            className="text-xs justify-start hover:bg-blue-50 text-gray-950"
-          >
-            <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-            Manager OS (manager@os.local)
-          </Button>
-          <Button 
-            type="button" 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleQuickLogin('rep@os.local', 'rep123', 'Sales Rep')} 
-            disabled={isLoading} 
-            className="text-xs justify-start hover:bg-green-50 text-gray-950"
-          >
-            <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-            Sales Rep OS (rep@os.local)
-          </Button>
-        </div>
       </div>
     </div>
   );

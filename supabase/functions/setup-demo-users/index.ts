@@ -1,4 +1,5 @@
 
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -13,7 +14,7 @@ interface DemoUser {
   full_name: string;
 }
 
-const demoUsers: DemoUser[] = [
+const defaultUsers: DemoUser[] = [
   {
     email: 'dev@os.local',
     password: 'dev1234',
@@ -31,48 +32,16 @@ const demoUsers: DemoUser[] = [
     password: 'rep123',
     role: 'sales_rep',
     full_name: 'Sales Rep User'
-  },
-  // Legacy users for backward compatibility
-  {
-    email: 'krishdev@tsam.com',
-    password: 'badabing2024',
-    role: 'developer',
-    full_name: 'Krishna Developer'
-  },
-  {
-    email: 'manager@salesos.com',
-    password: 'manager123',
-    role: 'manager',
-    full_name: 'Sales Manager'
-  },
-  {
-    email: 'rep@salesos.com',
-    password: 'sales123',
-    role: 'sales_rep',
-    full_name: 'Sales Representative'
   }
 ];
 
-// Simple logger for edge functions
-const logger = {
-  info: (message: string, data?: any) => {
-    console.log(`[INFO] ${message}`, data ? JSON.stringify(data) : '');
-  },
-  error: (message: string, data?: any) => {
-    console.error(`[ERROR] ${message}`, data ? JSON.stringify(data) : '');
-  },
-  warn: (message: string, data?: any) => {
-    console.warn(`[WARN] ${message}`, data ? JSON.stringify(data) : '');
-  }
-};
-
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const supabaseAdmin = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
@@ -83,108 +52,76 @@ Deno.serve(async (req) => {
       }
     )
 
-    logger.info('Setting up system demo users...')
+    console.log('Setting up demo users...');
+
+    const results = [];
     
-    const results = []
-    
-    for (const user of demoUsers) {
-      logger.info(`Processing user: ${user.email}`)
+    for (const user of defaultUsers) {
+      console.log(`Creating user: ${user.email} with role: ${user.role}`);
       
-      // Check if user already exists by email
-      try {
-        const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers()
+      // First check if user already exists
+      const { data: existingUsers } = await supabaseClient.auth.admin.listUsers();
+      const existingUser = existingUsers?.users?.find(u => u.email === user.email);
+      
+      if (existingUser) {
+        console.log(`User ${user.email} already exists, updating profile...`);
         
-        if (listError) {
-          logger.error(`Error listing users:`, listError)
+        // Update the profile with correct role and metadata
+        const { error: profileError } = await supabaseClient
+          .from('profiles')
+          .upsert({
+            id: existingUser.id,
+            full_name: user.full_name,
+            role: user.role,
+            company_id: existingUser.id,
+            email_connected: false,
+            updated_at: new Date().toISOString(),
+            last_login: new Date().toISOString()
+          }, { onConflict: 'id' });
+
+        if (profileError) {
+          console.error('Profile update error:', profileError);
           results.push({
             email: user.email,
-            success: false,
-            error: `Failed to check existing users: ${listError.message}`
-          })
-          continue
-        }
-        
-        const existingUser = existingUsers.users.find(u => u.email === user.email)
-        
-        if (existingUser) {
-          logger.info(`User already exists: ${user.email}`)
-          
-          // Check if profile exists, create if missing
-          const { data: existingProfile, error: profileError } = await supabaseAdmin
-            .from('profiles')
-            .select('*')
-            .eq('id', existingUser.id)
-            .maybeSingle()
-          
-          if (profileError) {
-            logger.warn(`Error checking profile for ${user.email}:`, profileError)
-          } else if (!existingProfile) {
-            logger.info(`Creating missing profile for existing user: ${user.email}`)
-            
-            const { error: createProfileError } = await supabaseAdmin
-              .from('profiles')
-              .upsert({
-                id: existingUser.id,
-                full_name: user.full_name,
-                role: user.role,
-                company_id: existingUser.id,
-                email_connected: false,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                last_login: new Date().toISOString()
-              })
-            
-            if (createProfileError) {
-              logger.error(`Failed to create profile for ${user.email}:`, createProfileError)
-            } else {
-              logger.info(`Profile created for existing user: ${user.email}`)
-            }
-          }
-          
+            status: 'profile_update_failed',
+            error: profileError.message
+          });
+        } else {
           results.push({
             email: user.email,
-            success: true,
-            action: 'already_exists',
-            userId: existingUser.id
-          })
-          continue
+            status: 'updated',
+            role: user.role
+          });
         }
-      } catch (error) {
-        logger.error(`Error checking existing user ${user.email}:`, error)
-        results.push({
-          email: user.email,
-          success: false,
-          error: `Error checking existing user: ${error.message}`
-        })
-        continue
+        continue;
       }
 
-      // Create the user
-      try {
-        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-          email: user.email,
-          password: user.password,
-          email_confirm: true,
-          user_metadata: {
-            role: user.role,
-            full_name: user.full_name
-          }
-        })
-
-        if (authError) {
-          logger.error(`Error creating user ${user.email}:`, authError)
-          results.push({
-            email: user.email,
-            success: false,
-            error: authError.message
-          })
-          continue
+      // Create new user
+      const { data: authData, error: authError } = await supabaseClient.auth.admin.createUser({
+        email: user.email,
+        password: user.password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: user.full_name,
+          role: user.role
         }
+      });
 
-        logger.info(`User created successfully: ${user.email}`)
+      if (authError) {
+        console.error(`Failed to create user ${user.email}:`, authError);
+        results.push({
+          email: user.email,
+          status: 'auth_failed',
+          error: authError.message
+        });
+        continue;
+      }
 
-        // Create profile in profiles table
-        const { error: profileError } = await supabaseAdmin
+      console.log(`Successfully created auth user: ${user.email}`);
+
+      // Create profile (the trigger should handle this, but let's ensure it exists)
+      if (authData.user) {
+        const { error: profileError } = await supabaseClient
           .from('profiles')
           .upsert({
             id: authData.user.id,
@@ -195,64 +132,48 @@ Deno.serve(async (req) => {
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             last_login: new Date().toISOString()
-          })
+          }, { onConflict: 'id' });
 
         if (profileError) {
-          logger.error(`Error creating profile for ${user.email}:`, profileError)
+          console.error('Profile creation error:', profileError);
           results.push({
             email: user.email,
-            success: false,
-            error: `Profile creation failed: ${profileError.message}`
-          })
+            status: 'profile_failed',
+            error: profileError.message
+          });
         } else {
-          logger.info(`Profile created successfully for: ${user.email}`)
+          console.log(`Successfully created profile for: ${user.email}`);
           results.push({
             email: user.email,
-            success: true,
-            action: 'created',
+            status: 'created',
+            role: user.role,
             userId: authData.user.id
-          })
+          });
         }
-      } catch (error) {
-        logger.error(`Exception creating user ${user.email}:`, error)
-        results.push({
-          email: user.email,
-          success: false,
-          error: `Exception: ${error.message}`
-        })
       }
     }
 
-    const successCount = results.filter(r => r.success).length
-    const totalCount = results.length
-
     return new Response(
-      JSON.stringify({ 
-        message: `Demo users setup completed: ${successCount}/${totalCount} successful`,
-        results,
-        summary: {
-          total: totalCount,
-          successful: successCount,
-          failed: totalCount - successCount
-        }
+      JSON.stringify({
+        success: true,
+        message: 'Demo users setup completed',
+        results
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      },
+      }
     )
-
   } catch (error) {
-    logger.error('Error in setup-demo-users function:', error)
+    console.error('Setup demo users error:', error);
     return new Response(
-      JSON.stringify({ 
-        error: 'Failed to setup demo users',
-        details: error.message 
+      JSON.stringify({
+        success: false,
+        error: error.message
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
-      },
+      }
     )
   }
 })

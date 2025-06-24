@@ -26,47 +26,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
-  // Required users for quick login
-  const requiredUsers = [
-    { email: 'dev@os.local', password: 'dev1234', role: 'developer', fullName: 'Developer User' },
-    { email: 'manager@os.local', password: 'manager123', role: 'manager', fullName: 'Manager User' },
-    { email: 'rep@os.local', password: 'rep123', role: 'sales_rep', fullName: 'Sales Rep User' }
-  ];
-
-  const createSystemUser = async (email: string, password: string, role: Role, fullName: string) => {
-    try {
-      logger.info('Creating system user:', { email, role }, 'auth');
-      
-      const response = await fetch('/functions/v1/setup-demo-users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          users: [{
-            email,
-            password,
-            role,
-            full_name: fullName
-          }]
-        })
-      });
-
-      const result = await response.json();
-      
-      if (response.ok) {
-        logger.info('System user created successfully:', { email, result }, 'auth');
-        return true;
-      } else {
-        logger.error('Failed to create system user via edge function:', result, 'auth');
-        return false;
-      }
-    } catch (error) {
-      logger.error('Exception creating system user:', error, 'auth');
-      return false;
-    }
-  };
-
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
       logger.info('Fetching profile for user:', userId, 'auth');
@@ -326,57 +285,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: email.trim(),
           fullError: error
         }, 'auth');
-
-        // Enhanced error handling for different types of auth errors
-        if (error.message.includes('Invalid login credentials') || error.status === 400) {
-          const requiredUser = requiredUsers.find(u => u.email === email.trim());
-          if (requiredUser) {
-            logger.info('Attempting to create missing system user:', { email }, 'auth');
-            const created = await createSystemUser(
-              requiredUser.email, 
-              requiredUser.password, 
-              requiredUser.role as Role, 
-              requiredUser.fullName
-            );
-            
-            if (created) {
-              logger.info('User created, attempting login again...', {}, 'auth');
-              // Wait a moment for user creation to propagate
-              await new Promise(resolve => setTimeout(resolve, 2000));
-              
-              // Retry login after user creation
-              const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-                email: email.trim(),
-                password
-              });
-              
-              logger.info('RETRY LOGIN RESULT:', { 
-                hasData: !!retryData, 
-                hasUser: !!retryData?.user,
-                hasSession: !!retryData?.session,
-                error: retryError?.message 
-              }, 'auth');
-              
-              if (retryError) {
-                logger.error('Sign in failed after user creation:', retryError, 'auth');
-                setLoading(false);
-                return { error: retryError };
-              }
-              
-              if (retryData.user && retryData.session) {
-                logger.info('Sign in successful after user creation:', { 
-                  userId: retryData.user.id,
-                  email: retryData.user.email
-                }, 'auth');
-                
-                // Wait for auth state to sync before resolving
-                await new Promise(resolve => setTimeout(resolve, 500));
-                setLoading(false);
-                return { error: null };
-              }
-            }
-          }
-        }
         
         setLoading(false);
         return { error };
