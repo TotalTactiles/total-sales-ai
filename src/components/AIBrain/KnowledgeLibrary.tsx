@@ -187,7 +187,7 @@ const KnowledgeLibrary: React.FC<KnowledgeLibraryProps> = ({ isManager }) => {
   // Load entries when component mounts or filters change
   useEffect(() => {
     fetchEntries();
-  }, [sourceTypeFilter, companyFilter, companyId]);
+  }, [sourceTypeFilter, companyFilter, companyId, fetchEntries]);
   
   return (
     <Card className="w-full">

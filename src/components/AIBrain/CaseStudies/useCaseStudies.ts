@@ -94,7 +94,7 @@ export function useCaseStudies(
   // Load case studies when component mounts or filters change
   useEffect(() => {
     fetchCaseStudies();
-  }, [industryFilter, dateFilter, sourceFilter]);
+  }, [industryFilter, dateFilter, sourceFilter, fetchCaseStudies]);
   
   // Fetch industries on component mount
   useEffect(() => {

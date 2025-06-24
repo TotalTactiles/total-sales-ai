@@ -85,7 +85,7 @@ const UnifiedAIAssistant: React.FC<UnifiedAIAssistantProps> = ({
       };
       setConversation([welcomeMessage]);
     }
-  }, [context?.workspace, profile?.role]);
+  }, [context?.workspace, profile?.role, getWelcomeMessage]);
 
   const getWelcomeMessage = (): string => {
     const workspace = context?.workspace || 'dashboard';

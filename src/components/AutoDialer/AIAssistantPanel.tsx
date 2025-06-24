@@ -44,7 +44,7 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({
     if (currentLead) {
       generateContextualSuggestions();
     }
-  }, [currentLead, isCallActive]);
+  }, [currentLead, isCallActive, generateContextualSuggestions]);
 
   const generateContextualSuggestions = async () => {
     const result = await executeAgentTask(
