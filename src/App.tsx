@@ -225,9 +225,10 @@ function AppRoutes() {
     defaultRoute: getDefaultRoute()
   }, 'app');
 
-  // Check if user has access to specific roles
+  // Check if user has access to specific roles - fix the type comparison issue
   const isDeveloper = profile?.role === 'developer' || profile?.role === 'admin';
   const isManager = profile?.role === 'manager';
+  const isSalesRep = profile?.role === 'sales_rep';
 
   return (
     <OnboardingGuard>
