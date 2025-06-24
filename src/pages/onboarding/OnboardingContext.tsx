@@ -187,17 +187,23 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({
     };
     
     // Track completion in analytics
-    try {
-      await supabase
-        .from('usage_analytics')
-        .insert({
-          company_id: settings.company_id,
-          event_type: 'onboarding_completed',
-          event_data: { settings: enhancedSettings }
-        });
-    } catch (error) {
-      logger.error('Failed to track onboarding completion:', error);
-    }
+   try {
+  await supabase
+    .from('company_settings')
+    .upsert(
+      {
+        ...enhancedSettings,
+        personalization_flags: {
+          ...enhancedSettings.personalization_flags,
+          dashboardCustomized: true
+        }
+      },
+      { onConflict: 'company_id' }
+    );
+} catch (err) {
+  logger.error('Failed to update company_settings during onboarding:', err);
+  toast.error('Onboarding error: Unable to save company settings.');
+}
     
     // Call the provided completion function
     await completeOnboardingFn(enhancedSettings);
