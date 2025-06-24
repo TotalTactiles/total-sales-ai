@@ -142,7 +142,7 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
     };
     
     checkTourStatus();
-  }, [user?.id, profile?.company_id]);
+  }, [user?.id, profile?.company_id, generateMessage, introMessage, tourSteps.length]);
 
   // Start the guided tour
   const startTour = async () => {
