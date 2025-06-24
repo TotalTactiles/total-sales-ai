@@ -149,6 +149,7 @@ const AIAssistantHelper: React.FC<AIAssistantHelperProps> = ({
     introMessage,
     generateMessage
   ]);
+  }, [user?.id, profile?.company_id, generateMessage, introMessage, tourSteps.length]);
 
   // Start the guided tour
   const startTour = async () => {

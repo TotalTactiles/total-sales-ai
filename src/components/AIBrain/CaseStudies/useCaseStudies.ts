@@ -99,7 +99,7 @@ export function useCaseStudies(
   // Fetch industries on component mount
   useEffect(() => {
     fetchIndustries();
-  }, []);
+  }, [fetchIndustries]);
 
   return { caseStudies, isLoading, industries };
 }
