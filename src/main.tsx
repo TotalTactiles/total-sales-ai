@@ -1,19 +1,12 @@
 
 import { logger } from '@/utils/logger';
 import { setupAPIInterceptors } from './utils/apiInterceptor';
-import { CacheManager } from '@/utils/cacheManager';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { optimizeForMobile } from './utils/mobileOptimization';
-
-// Clear all cache immediately on startup
-console.log('🧹 Clearing all cache on startup...');
-CacheManager.clearAllCache().catch(error => {
-  console.error('Failed to clear cache on startup:', error);
-});
 
 // Initialize mobile optimizations with error handling
 try {

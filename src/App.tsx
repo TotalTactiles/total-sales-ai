@@ -225,6 +225,10 @@ function AppRoutes() {
     defaultRoute: getDefaultRoute()
   }, 'app');
 
+  // Check if user has access to specific roles
+  const isDeveloper = profile?.role === 'developer' || profile?.role === 'admin';
+  const isManager = profile?.role === 'manager';
+
   return (
     <OnboardingGuard>
       <Routes>
@@ -232,13 +236,13 @@ function AppRoutes() {
         <Route path="/auth" element={<Navigate to={getDefaultRoute()} replace />} />
         <Route path="/landing" element={<Navigate to={getDefaultRoute()} replace />} />
         
-        {/* Developer OS */}
-        {(profile?.role === 'developer' || profile?.role === 'admin') && (
+        {/* Developer OS - Only for developers and admins */}
+        {isDeveloper && (
           <Route path="/os/dev/*" element={<DeveloperOS />} />
         )}
         
-        {/* Manager OS */}
-        {profile?.role === 'manager' && (
+        {/* Manager OS - Only for managers */}
+        {isManager && (
           <Route path="/os/manager/*" element={<ManagerOS />} />
         )}
         
