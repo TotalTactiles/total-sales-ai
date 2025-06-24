@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -86,13 +85,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       logger.info('Attempting to create profile with data:', profileData, 'auth');
 
       const { data: newProfile, error } = await supabase
-  .from('profiles')
-  .upsert(profileData, { 
-    onConflict: ['id'],
-    ignoreDuplicates: false 
-  })
-  .select()
-  .maybeSingle();
+        .from('profiles')
+        .upsert(profileData, { 
+          onConflict: 'id',
+          ignoreDuplicates: false 
+        })
+        .select()
+        .maybeSingle();
 
       if (error) {
         logger.error('Error creating profile:', error, 'auth');

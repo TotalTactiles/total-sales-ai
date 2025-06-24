@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -52,6 +51,32 @@ const UnifiedAIAssistant: React.FC<UnifiedAIAssistantProps> = ({
   const [conversation, setConversation] = useState<Message[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  const getWelcomeMessage = (): string => {
+    const workspace = context?.workspace || 'dashboard';
+    const role = profile?.role || 'sales_rep';
+    
+    const messages = {
+      dashboard: {
+        sales_rep: "Hi! I'm your AI sales assistant. I can help you analyze leads, draft emails, and provide sales insights.",
+        manager: "Hello! I'm here to help you manage your team, analyze performance, and provide coaching insights.",
+        developer: "Hi! I'm your AI assistant for monitoring agent health, debugging issues, and system analytics."
+      },
+      lead_details: {
+        sales_rep: "I can help you analyze this lead, suggest next steps, and draft personalized outreach.",
+        manager: "I can provide insights on this lead's potential and suggest coaching points for your team.",
+        developer: "I can show you the AI analysis pipeline for this lead and any processing insights."
+      },
+      dialer: {
+        sales_rep: "Ready to help with call preparation, real-time coaching, and post-call analysis.",
+        manager: "I can provide call coaching insights and team performance analytics.",
+        developer: "I can monitor call AI processing and troubleshoot any voice AI issues."
+      }
+    };
+
+    return messages[workspace as keyof typeof messages]?.[role] || 
+           "Hi! I'm your AI assistant. How can I help you today?";
+  };
+
   const quickActions = [
     { 
       label: 'Analyze current lead', 
@@ -85,33 +110,7 @@ const UnifiedAIAssistant: React.FC<UnifiedAIAssistantProps> = ({
       };
       setConversation([welcomeMessage]);
     }
-  }, [context?.workspace, profile?.role, getWelcomeMessage]);
-
-  const getWelcomeMessage = (): string => {
-    const workspace = context?.workspace || 'dashboard';
-    const role = profile?.role || 'sales_rep';
-    
-    const messages = {
-      dashboard: {
-        sales_rep: "Hi! I'm your AI sales assistant. I can help you analyze leads, draft emails, and provide sales insights.",
-        manager: "Hello! I'm here to help you manage your team, analyze performance, and provide coaching insights.",
-        developer: "Hi! I'm your AI assistant for monitoring agent health, debugging issues, and system analytics."
-      },
-      lead_details: {
-        sales_rep: "I can help you analyze this lead, suggest next steps, and draft personalized outreach.",
-        manager: "I can provide insights on this lead's potential and suggest coaching points for your team.",
-        developer: "I can show you the AI analysis pipeline for this lead and any processing insights."
-      },
-      dialer: {
-        sales_rep: "Ready to help with call preparation, real-time coaching, and post-call analysis.",
-        manager: "I can provide call coaching insights and team performance analytics.",
-        developer: "I can monitor call AI processing and troubleshoot any voice AI issues."
-      }
-    };
-
-    return messages[workspace as keyof typeof messages]?.[role] || 
-           "Hi! I'm your AI assistant. How can I help you today?";
-  };
+  }, [context?.workspace, profile?.role]);
 
   const handleSendMessage = async () => {
     if (!message.trim() || isProcessing) return;
