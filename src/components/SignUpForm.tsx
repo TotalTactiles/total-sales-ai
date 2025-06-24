@@ -1,13 +1,16 @@
+
 'use client';
 
 import { useState } from 'react';
 import { signUpUser } from '@/lib/auth';
 
+type UserRole = 'admin' | 'developer' | 'manager' | 'sales_rep';
+
 export default function SignUpForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [role, setRole] = useState('sales_rep'); // default role
+  const [role, setRole] = useState<UserRole>('sales_rep'); // default role
   const [message, setMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -24,6 +27,10 @@ export default function SignUpForm() {
       console.error('Signup error:', err);
       setMessage(`❌ Signup failed: ${err.message}`);
     }
+  };
+
+  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRole(e.target.value as UserRole);
   };
 
   return (
@@ -54,7 +61,7 @@ export default function SignUpForm() {
       />
       <select
         value={role}
-        onChange={e => setRole(e.target.value)}
+        onChange={handleRoleChange}
         className="w-full p-2 border rounded"
       >
         <option value="sales_rep">Sales Rep</option>
