@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DeveloperSecretLogin from '@/components/Developer/DeveloperSecretLogin';
+import DemoLoginCards from '@/components/auth/DemoLoginCards';
 import { useDeveloperSecretTrigger } from '@/hooks/useDeveloperSecretTrigger';
+import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 
-// Remove developer from public roles
 const roles = [
   { 
     label: 'Manager', 
@@ -28,12 +30,24 @@ const AuthPage: React.FC = () => {
   const { user, profile, loading, signIn } = useAuth();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState<'manager' | 'sales_rep'>('sales_rep');
-  const [email, setEmail] = useState('sales.rep@company.com');
-  const [password, setPassword] = useState('••••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState('demo');
   
   // Developer secret trigger
   const { showDeveloperLogin, setShowDeveloperLogin } = useDeveloperSecretTrigger();
+
+  // Auto-fill demo credentials based on selected role
+  useEffect(() => {
+    if (isDemoMode && activeTab === 'login') {
+      const demoUser = demoUsers.find(u => u.role === selectedRole);
+      if (demoUser) {
+        setEmail(demoUser.email);
+        setPassword(demoUser.password);
+      }
+    }
+  }, [selectedRole, activeTab]);
 
   useEffect(() => {
     const checkUserStatus = async () => {
@@ -77,7 +91,7 @@ const AuthPage: React.FC = () => {
 
         console.log('➡️ Redirecting to dashboard');
         if (profileData.role === 'manager') {
-          navigate('/os/manager/dashboard');
+          navigate('/manager/overview');
         } else if (profileData.role === 'developer') {
           navigate('/developer/dashboard');
         } else {
@@ -113,6 +127,20 @@ const AuthPage: React.FC = () => {
     }
   };
 
+  const handleDemoLogin = async (demoEmail: string, demoPassword: string) => {
+    setIsSubmitting(true);
+    try {
+      const { error } = await signIn(demoEmail, demoPassword);
+      if (error) {
+        console.error('Demo login error:', error);
+      }
+    } catch (error) {
+      console.error('Demo login exception:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (loading || isSubmitting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
@@ -143,87 +171,184 @@ const AuthPage: React.FC = () => {
           </CardHeader>
           
           <CardContent className="space-y-6">
-            {/* Role Selector */}
-            <div className="flex justify-center gap-2">
-              {roles.map((role) => (
-                <Button
-                  key={role.value}
-                  variant={selectedRole === role.value ? 'default' : 'outline'}
-                  onClick={() => setSelectedRole(role.value as 'manager' | 'sales_rep')}
-                  className={`px-4 py-2 text-sm font-medium transition-all ${
-                    selectedRole === role.value 
-                      ? 'bg-[#7B61FF] text-white shadow-md hover:bg-[#674edc]' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300'
-                  }`}
-                >
-                  {role.label}
-                </Button>
-              ))}
-            </div>
-
-            {/* Dashboard Description */}
-            <Card className="bg-gray-50 border border-gray-200 rounded-xl">
-              <CardHeader className="text-center py-4">
-                <CardTitle className="text-lg font-semibold">
-                  {selectedRoleData?.label} Dashboard
-                </CardTitle>
-                <p className="text-sm text-gray-600">
-                  {selectedRoleData?.description}
-                </p>
-              </CardHeader>
-            </Card>
-
-            {/* Login Form */}
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
-                  required
-                />
-              </div>
-              
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full h-12 bg-[#7B61FF] hover:bg-[#674edc] text-white font-semibold transition-colors"
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Logging in...
+            {isDemoMode ? (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="demo">Demo Access</TabsTrigger>
+                  <TabsTrigger value="login">Manual Login</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="demo" className="space-y-4">
+                  <DemoLoginCards onDemoLogin={handleDemoLogin} />
+                </TabsContent>
+                
+                <TabsContent value="login" className="space-y-4">
+                  {/* Role Selector */}
+                  <div className="flex justify-center gap-2">
+                    {roles.map((role) => (
+                      <Button
+                        key={role.value}
+                        variant={selectedRole === role.value ? 'default' : 'outline'}
+                        onClick={() => setSelectedRole(role.value as 'manager' | 'sales_rep')}
+                        className={`px-4 py-2 text-sm font-medium transition-all ${
+                          selectedRole === role.value 
+                            ? 'bg-[#7B61FF] text-white shadow-md hover:bg-[#674edc]' 
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300'
+                        }`}
+                      >
+                        {role.label}
+                      </Button>
+                    ))}
                   </div>
-                ) : (
-                  '→ Login as Full User'
-                )}
-              </Button>
-            </form>
+
+                  {/* Dashboard Description */}
+                  <Card className="bg-gray-50 border border-gray-200 rounded-xl">
+                    <CardHeader className="text-center py-4">
+                      <CardTitle className="text-lg font-semibold">
+                        {selectedRoleData?.label} Dashboard
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
+                        {selectedRoleData?.description}
+                      </p>
+                    </CardHeader>
+                  </Card>
+
+                  {/* Login Form */}
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                        Password
+                      </Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
+                        required
+                      />
+                    </div>
+                    
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full h-12 bg-[#7B61FF] hover:bg-[#674edc] text-white font-semibold transition-colors"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Logging in...
+                        </div>
+                      ) : (
+                        '→ Login'
+                      )}
+                    </Button>
+                  </form>
+
+                  <div className="text-center">
+                    <p className="text-xs text-gray-400">
+                      Credentials auto-filled for demo user
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            ) : (
+              // Non-demo mode - original login form
+              <div className="space-y-4">
+                {/* Role Selector */}
+                <div className="flex justify-center gap-2">
+                  {roles.map((role) => (
+                    <Button
+                      key={role.value}
+                      variant={selectedRole === role.value ? 'default' : 'outline'}
+                      onClick={() => setSelectedRole(role.value as 'manager' | 'sales_rep')}
+                      className={`px-4 py-2 text-sm font-medium transition-all ${
+                        selectedRole === role.value 
+                          ? 'bg-[#7B61FF] text-white shadow-md hover:bg-[#674edc]' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300'
+                      }`}
+                    >
+                      {role.label}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Dashboard Description */}
+                <Card className="bg-gray-50 border border-gray-200 rounded-xl">
+                  <CardHeader className="text-center py-4">
+                    <CardTitle className="text-lg font-semibold">
+                      {selectedRoleData?.label} Dashboard
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">
+                      {selectedRoleData?.description}
+                    </p>
+                  </CardHeader>
+                </Card>
+
+                {/* Login Form */}
+                <form onSubmit={handleLogin} className="space-y-4">
+                  <div>
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                      Password
+                    </Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
+                      required
+                    />
+                  </div>
+                  
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full h-12 bg-[#7B61FF] hover:bg-[#674edc] text-white font-semibold transition-colors"
+                  >
+                    {isSubmitting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Logging in...
+                      </div>
+                    ) : (
+                      '→ Login'
+                    )}
+                  </Button>
+                </form>
+              </div>
+            )}
 
             {/* Footer */}
             <div className="text-center space-y-2">
-              <p className="text-xs text-gray-400">
-                Auto-filled with full user credentials
-              </p>
               <button className="text-sm text-[#7B61FF] hover:text-[#674edc] hover:underline transition-colors">
                 Don't have an account? Sign Up
               </button>
