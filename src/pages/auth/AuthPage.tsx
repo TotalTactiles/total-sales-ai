@@ -3,22 +3,36 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import AuthLoginForm from './components/AuthLoginForm';
-import AuthSignupForm from './components/AuthSignupForm';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import Logo from '@/components/Logo';
+
+const roles = [
+  { 
+    label: 'Manager', 
+    value: 'manager', 
+    description: 'Team analytics, performance tracking & insights' 
+  },
+  { 
+    label: 'Sales Rep', 
+    value: 'sales_rep', 
+    description: 'Smart dialer, call scripts & AI sales assistant' 
+  },
+  { 
+    label: 'Developer', 
+    value: 'developer', 
+    description: 'System monitoring, API access & integrations' 
+  }
+];
 
 const AuthPage: React.FC = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, signIn } = useAuth();
   const navigate = useNavigate();
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectedRole, setSelectedRole] = useState<'manager' | 'sales_rep' | 'developer'>('sales_rep');
-  const [showLoginForm, setShowLoginForm] = useState(false);
   const [email, setEmail] = useState('sales.rep@company.com');
   const [password, setPassword] = useState('••••••••••');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const checkUserStatus = async () => {
@@ -76,188 +90,144 @@ const AuthPage: React.FC = () => {
     checkUserStatus();
   }, [user, loading, navigate]);
 
-  const handleRoleSelect = (role: 'manager' | 'sales_rep' | 'developer') => {
-    setSelectedRole(role);
-    setShowLoginForm(true);
-  };
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
 
-  const handleLoginAsFullUser = async () => {
-    setIsTransitioning(true);
-    // Simulate login - in a real app this would authenticate with the backend
-    setTimeout(() => {
-      if (selectedRole === 'sales_rep') {
-        navigate('/os/rep/dashboard');
-      } else if (selectedRole === 'manager') {
-        navigate('/manager/overview');
-      } else {
-        navigate('/dev');
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        console.error('Login error:', error);
+        // Handle error appropriately - you might want to show a toast or error message
+        return;
       }
-    }, 1000);
+
+      // Success - the useEffect above will handle the redirect
+    } catch (error) {
+      console.error('Login exception:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (loading || isTransitioning) {
+  if (loading || isSubmitting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF]"></div>
       </div>
     );
   }
 
   if (user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF]"></div>
       </div>
     );
   }
 
+  const selectedRoleData = roles.find(role => role.value === selectedRole);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
       <div className="w-full max-w-md">
-        {!showLoginForm ? (
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto mb-4">
-                <h1 className="text-3xl font-bold text-blue-600 mb-2">TSAM</h1>
-              </div>
-              <CardTitle className="text-xl font-semibold text-gray-900">Welcome to TSAM</CardTitle>
-              <p className="text-gray-600 text-sm">Your AI-powered sales acceleration platform</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-2">
+        <Card className="bg-white backdrop-blur-sm border-0 shadow-lg rounded-2xl">
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto mb-4">
+              <h1 className="text-3xl font-bold text-[#7B61FF] mb-2">TSAM</h1>
+            </div>
+            <p className="text-gray-600 text-sm">Your AI-powered sales acceleration platform</p>
+          </CardHeader>
+          
+          <CardContent className="space-y-6">
+            {/* Role Selector */}
+            <div className="flex justify-center gap-2">
+              {roles.map((role) => (
                 <Button
-                  variant={selectedRole === 'manager' ? 'default' : 'outline'}
-                  onClick={() => handleRoleSelect('manager')}
-                  className="h-12 text-sm"
+                  key={role.value}
+                  variant={selectedRole === role.value ? 'default' : 'outline'}
+                  onClick={() => setSelectedRole(role.value as 'manager' | 'sales_rep' | 'developer')}
+                  className={`px-4 py-2 text-sm font-medium transition-all ${
+                    selectedRole === role.value 
+                      ? 'bg-[#7B61FF] text-white shadow-md hover:bg-[#674edc]' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300'
+                  }`}
                 >
-                  Manager
+                  {role.label}
                 </Button>
-                <Button
-                  variant={selectedRole === 'sales_rep' ? 'default' : 'outline'}
-                  onClick={() => handleRoleSelect('sales_rep')}
-                  className="h-12 text-sm"
-                >
-                  Sales Rep
-                </Button>
-                <Button
-                  variant={selectedRole === 'developer' ? 'default' : 'outline'}
-                  onClick={() => handleRoleSelect('developer')}
-                  className="h-12 text-sm"
-                >
-                  Developer
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-xl">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto mb-4">
-                <h1 className="text-3xl font-bold text-blue-600 mb-2">TSAM</h1>
-              </div>
-              <CardTitle className="text-xl font-semibold text-gray-900">Welcome to TSAM</CardTitle>
-              <p className="text-gray-600 text-sm">Your AI-powered sales acceleration platform</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-2 mb-6">
-                <Button
-                  variant={selectedRole === 'manager' ? 'default' : 'outline'}
-                  onClick={() => setSelectedRole('manager')}
-                  className="h-12 text-sm"
-                >
-                  Manager
-                </Button>
-                <Button
-                  variant={selectedRole === 'sales_rep' ? 'default' : 'outline'}
-                  onClick={() => setSelectedRole('sales_rep')}
-                  className="h-12 text-sm"
-                >
-                  Sales Rep
-                </Button>
-                <Button
-                  variant={selectedRole === 'developer' ? 'default' : 'outline'}
-                  onClick={() => setSelectedRole('developer')}
-                  className="h-12 text-sm"
-                >
-                  Developer
-                </Button>
-              </div>
+              ))}
+            </div>
 
-              <Card className="bg-gray-50 border">
-                <CardHeader className="text-center py-4">
-                  <CardTitle className="text-lg">
-                    {selectedRole === 'sales_rep' && 'Sales Rep Dashboard'}
-                    {selectedRole === 'manager' && 'Manager Dashboard'}
-                    {selectedRole === 'developer' && 'Developer Dashboard'}
-                  </CardTitle>
-                  <p className="text-sm text-gray-600">
-                    {selectedRole === 'sales_rep' && 'Smart dialer, call scripts & AI sales assistant'}
-                    {selectedRole === 'manager' && 'Team analytics, performance tracking & insights'}
-                    {selectedRole === 'developer' && 'System monitoring, API access & integrations'}
-                  </p>
-                </CardHeader>
-              </Card>
-
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <Button
-                  onClick={handleLoginAsFullUser}
-                  className="w-full h-12 bg-blue-600 hover:bg-blue-700"
-                  disabled={isTransitioning}
-                >
-                  {isTransitioning ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      Logging in...
-                    </div>
-                  ) : (
-                    '→ Login as Full User'
-                  )}
-                </Button>
-              </div>
-
-              <div className="text-center">
-                <button
-                  onClick={() => setShowLoginForm(false)}
-                  className="text-blue-600 hover:text-blue-700 text-sm"
-                >
-                  ← Back to role selection
-                </button>
-              </div>
-
-              <div className="text-center pt-4 border-t">
+            {/* Dashboard Description */}
+            <Card className="bg-gray-50 border border-gray-200 rounded-xl">
+              <CardHeader className="text-center py-4">
+                <CardTitle className="text-lg font-semibold">
+                  {selectedRoleData?.label} Dashboard
+                </CardTitle>
                 <p className="text-sm text-gray-600">
-                  Auto-filled with full user credentials
+                  {selectedRoleData?.description}
                 </p>
-              </div>
+              </CardHeader>
+            </Card>
 
-              <div className="text-center">
-                <button className="text-blue-600 hover:text-blue-700 text-sm">
-                  Don't have an account? Sign Up
-                </button>
+            {/* Login Form */}
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
+                  required
+                />
               </div>
-            </CardContent>
-          </Card>
-        )}
+              
+              <div>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
+                  required
+                />
+              </div>
+              
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-12 bg-[#7B61FF] hover:bg-[#674edc] text-white font-semibold transition-colors"
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Logging in...
+                  </div>
+                ) : (
+                  '→ Login as Full User'
+                )}
+              </Button>
+            </form>
+
+            {/* Footer */}
+            <div className="text-center space-y-2">
+              <p className="text-xs text-gray-400">
+                Auto-filled with full user credentials
+              </p>
+              <button className="text-sm text-[#7B61FF] hover:text-[#674edc] hover:underline transition-colors">
+                Don't have an account? Sign Up
+              </button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
