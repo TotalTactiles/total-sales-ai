@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -34,6 +35,11 @@ function App() {
                 
                 {/* Test Users Route */}
                 <Route path="/test-users" element={<TestUsersPage />} />
+                
+                {/* Manual Testing Routes - Direct Access */}
+                <Route path="/dev" element={<DeveloperDashboard />} />
+                <Route path="/manager" element={<ManagerDashboard />} />
+                <Route path="/rep" element={<SalesRepDashboard />} />
                 
                 {/* New Role-Specific Onboarding Routes */}
                 <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />

@@ -22,13 +22,15 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
     );
   }
 
-  // Not authenticated - let auth flow handle this
+  // Not authenticated - allow access for manual testing
   if (!user) {
+    console.log('[OnboardingGuard] No user found, allowing access for manual testing');
     return <>{children}</>;
   }
 
-  // If user has no profile, something went wrong - force re-auth
+  // If user has no profile, allow access (profile might be loading)
   if (!profile) {
+    console.log('[OnboardingGuard] No profile found, allowing access');
     return <>{children}</>;
   }
 
@@ -36,6 +38,7 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
   const needsOnboarding = user && profile?.company_id && 
     profile.role !== 'developer' &&
     profile.role !== 'admin' &&
+    !profile.onboarding_complete &&
     !localStorage.getItem(`onboarding_complete_${profile.company_id}`);
 
   console.log('[OnboardingGuard] Auth Status:', {
@@ -44,7 +47,8 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
     userRole: profile?.role,
     companyId: profile?.company_id,
     needsOnboarding,
-    onboardingComplete: localStorage.getItem(`onboarding_complete_${profile.company_id}`)
+    onboardingComplete: profile?.onboarding_complete,
+    localStorageCheck: localStorage.getItem(`onboarding_complete_${profile.company_id}`)
   });
 
   if (needsOnboarding) {

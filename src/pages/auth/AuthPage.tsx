@@ -10,30 +10,37 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Logo from '@/components/Logo';
 
 const AuthPage: React.FC = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
 
   useEffect(() => {
     const checkUserStatus = async () => {
-      if (!user) {
-        setIsLoading(false);
+      // Only proceed if we have a user and are not currently loading
+      if (!user || loading) {
         return;
       }
 
-      // Check if user has completed onboarding
       try {
         const { data: profileData, error } = await supabase
           .from('profiles')
           .select('onboarding_complete, role')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error checking user status:', error);
+          return;
+        }
 
         console.log('🔍 User profile check:', profileData);
+
+        if (!profileData) {
+          console.log('➡️ No profile found, redirecting to onboarding');
+          navigate('/onboarding');
+          return;
+        }
 
         if (!profileData.onboarding_complete) {
           console.log('➡️ Redirecting to role-specific onboarding');
@@ -66,10 +73,19 @@ const AuthPage: React.FC = () => {
     };
 
     checkUserStatus();
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
-  // Show loading while checking user status
-  if (isLoading || user || isTransitioning) {
+  // Show loading while checking auth state
+  if (loading || isTransitioning) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // If user is authenticated but still on this page, show loading
+  if (user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>

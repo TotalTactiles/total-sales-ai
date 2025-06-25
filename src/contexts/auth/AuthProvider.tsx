@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -190,8 +191,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (mounted) {
             setSession(session);
             setUser(session.user);
-            // Fetch profile after setting user
-            await fetchOrCreateProfile(session.user);
+            // Defer profile fetching to avoid blocking the loading state
+            setTimeout(() => {
+              if (mounted) {
+                fetchOrCreateProfile(session.user);
+              }
+            }, 0);
           }
         } else {
           logger.info('No initial session found', {}, 'auth');
@@ -212,7 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         logger.info('Auth state changed:', { 
           event, 
           userId: session?.user?.id,
@@ -225,8 +230,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(session?.user ?? null);
           
           if (session?.user) {
-            // Only fetch profile if we have a user
-            await fetchOrCreateProfile(session.user);
+            // Defer profile fetching to avoid blocking auth state changes
+            setTimeout(() => {
+              if (mounted) {
+                fetchOrCreateProfile(session.user);
+              }
+            }, 0);
           } else {
             setProfile(null);
           }
