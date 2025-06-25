@@ -9,16 +9,18 @@ import OnboardingGuard from '@/components/OnboardingGuard';
 
 // Pages
 import AuthPage from '@/pages/auth/AuthPage';
-import Onboarding from '@/pages/Onboarding';
 import SalesRepOnboarding from '@/pages/onboarding/sales-rep';
 import ManagerOnboarding from '@/pages/onboarding/manager';
-import PersonalizedRepDashboard from '@/pages/PersonalizedRepDashboard';
-import PersonalizedManagerDashboard from '@/pages/PersonalizedManagerDashboard';
-import SalesDashboard from '@/pages/sales/Dashboard';
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import ManagerDashboard from '@/pages/ManagerDashboard';
 import DeveloperDashboard from '@/pages/DeveloperDashboard';
-import TestUsersPage from '@/pages/TestUsersPage';
+
+// Manager OS Pages
+import ManagerOverview from '@/pages/manager/Overview';
+import RepPerformance from '@/pages/manager/RepPerformance';
+import LeadManagement from '@/pages/manager/LeadManagement';
+import AIAssistant from '@/pages/manager/AIAssistant';
+import ManagerSettings from '@/pages/manager/Settings';
 
 const queryClient = new QueryClient();
 
@@ -33,27 +35,29 @@ function App() {
                 {/* Auth Route */}
                 <Route path="/auth" element={<AuthPage />} />
                 
-                {/* Test Users Route */}
-                <Route path="/test-users" element={<TestUsersPage />} />
+                {/* Manager OS Routes */}
+                <Route path="/manager/overview" element={<ManagerOverview />} />
+                <Route path="/manager/rep-performance" element={<RepPerformance />} />
+                <Route path="/manager/lead-management" element={<LeadManagement />} />
+                <Route path="/manager/ai-assistant" element={<AIAssistant />} />
+                <Route path="/manager/settings" element={<ManagerSettings />} />
                 
-                {/* Manual Testing Routes - Direct Access */}
-                <Route path="/dev" element={<DeveloperDashboard />} />
-                <Route path="/manager" element={<ManagerDashboard />} />
-                <Route path="/rep" element={<SalesRepDashboard />} />
+                {/* Placeholder routes for remaining Manager pages */}
+                <Route path="/manager/kpi-tracker" element={<div className="p-6">KPI Tracker - Coming Soon</div>} />
+                <Route path="/manager/conversions" element={<div className="p-6">Conversions - Coming Soon</div>} />
+                <Route path="/manager/notes" element={<div className="p-6">Notes - Coming Soon</div>} />
+                <Route path="/manager/activity-log" element={<div className="p-6">Activity Log - Coming Soon</div>} />
                 
-                {/* New Role-Specific Onboarding Routes */}
+                {/* Role-Specific Onboarding Routes */}
                 <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />
                 <Route path="/onboarding/manager" element={<ManagerOnboarding />} />
-                
-                {/* Legacy Onboarding Route - redirect based on role */}
-                <Route path="/onboarding" element={<Onboarding />} />
                 
                 {/* Personalized Dashboard Routes */}
                 <Route 
                   path="/os/rep/dashboard" 
                   element={
                     <OnboardingGuard>
-                      <PersonalizedRepDashboard />
+                      <SalesRepDashboard />
                     </OnboardingGuard>
                   } 
                 />
@@ -61,7 +65,7 @@ function App() {
                   path="/os/manager/dashboard" 
                   element={
                     <OnboardingGuard>
-                      <PersonalizedManagerDashboard />
+                      <ManagerOverview />
                     </OnboardingGuard>
                   } 
                 />
@@ -75,10 +79,10 @@ function App() {
                 />
 
                 {/* Legacy routes for backward compatibility */}
-                <Route path="/sales/dashboard" element={<SalesDashboard />} />
-                <Route path="/sales/rep/dashboard" element={<SalesRepDashboard />} />
                 <Route path="/manager/dashboard" element={<ManagerDashboard />} />
-                <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+                <Route path="/manager" element={<ManagerDashboard />} />
+                <Route path="/rep" element={<SalesRepDashboard />} />
+                <Route path="/dev" element={<DeveloperDashboard />} />
                 
                 {/* Default redirect */}
                 <Route path="/" element={<Navigate to="/auth" replace />} />

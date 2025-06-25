@@ -366,6 +366,42 @@ export type Database = {
         }
         Relationships: []
       }
+      company_brains: {
+        Row: {
+          ai_insights: Json | null
+          ai_learnings: Json | null
+          business_goals: Json | null
+          company_id: string
+          created_at: string | null
+          id: string
+          rep_behaviors: Json | null
+          source_performance: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_insights?: Json | null
+          ai_learnings?: Json | null
+          business_goals?: Json | null
+          company_id: string
+          created_at?: string | null
+          id?: string
+          rep_behaviors?: Json | null
+          source_performance?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_insights?: Json | null
+          ai_learnings?: Json | null
+          business_goals?: Json | null
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          rep_behaviors?: Json | null
+          source_performance?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       company_master_ai: {
         Row: {
           company_id: string
@@ -1101,6 +1137,48 @@ export type Database = {
           last_run?: string | null
           metadata?: Json | null
           status?: string
+        }
+        Relationships: []
+      }
+      lead_source_stats: {
+        Row: {
+          avg_close_value: number | null
+          closed_deals: number | null
+          company_id: string
+          conversion_rate: number | null
+          created_at: string | null
+          id: string
+          qualified_leads: number | null
+          source: string
+          total_leads: number | null
+          total_spend: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_close_value?: number | null
+          closed_deals?: number | null
+          company_id: string
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          qualified_leads?: number | null
+          source: string
+          total_leads?: number | null
+          total_spend?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_close_value?: number | null
+          closed_deals?: number | null
+          company_id?: string
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          qualified_leads?: number | null
+          source?: string
+          total_leads?: number | null
+          total_spend?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
