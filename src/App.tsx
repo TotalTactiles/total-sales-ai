@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -18,6 +17,7 @@ import SalesDashboard from '@/pages/sales/Dashboard';
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import ManagerDashboard from '@/pages/ManagerDashboard';
 import DeveloperDashboard from '@/pages/DeveloperDashboard';
+import TestUsersPage from '@/pages/TestUsersPage';
 
 const queryClient = new QueryClient();
 
@@ -31,6 +31,9 @@ function App() {
               <Routes>
                 {/* Auth Route */}
                 <Route path="/auth" element={<AuthPage />} />
+                
+                {/* Test Users Route */}
+                <Route path="/test-users" element={<TestUsersPage />} />
                 
                 {/* New Role-Specific Onboarding Routes */}
                 <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />
