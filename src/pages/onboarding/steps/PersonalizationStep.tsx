@@ -12,6 +12,8 @@ interface PersonalizationStepProps {
   prevStep: () => void;
   isFirstStep: boolean;
   isLastStep: boolean;
+  completeOnboarding?: () => Promise<void>;
+  isSubmitting?: boolean;
 }
 
 const PersonalizationStep: React.FC<PersonalizationStepProps> = ({ 
@@ -48,7 +50,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
             </p>
           </div>
           <Switch
-            checked={settings.personalization_flags.show_tips}
+            checked={settings.personalization_flags?.show_tips || false}
             onCheckedChange={() => togglePersonalizationFlag('show_tips')}
           />
         </div>
@@ -61,7 +63,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
             </p>
           </div>
           <Switch
-            checked={settings.personalization_flags.enable_notifications}
+            checked={settings.personalization_flags?.enable_notifications || false}
             onCheckedChange={() => togglePersonalizationFlag('enable_notifications')}
           />
         </div>
@@ -74,7 +76,7 @@ const PersonalizationStep: React.FC<PersonalizationStepProps> = ({
             </p>
           </div>
           <Switch
-            checked={settings.personalization_flags.auto_save}
+            checked={settings.personalization_flags?.auto_save || false}
             onCheckedChange={() => togglePersonalizationFlag('auto_save')}
           />
         </div>

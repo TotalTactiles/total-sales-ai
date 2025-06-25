@@ -5,10 +5,16 @@ import { ArrowRight } from 'lucide-react';
 
 interface WelcomeStepProps {
   nextStep: () => void;
+  prevStep?: () => void;
   isFirstStep: boolean;
+  isLastStep: boolean;
+  settings?: any;
+  updateSettings?: (data: any) => void;
+  completeOnboarding?: () => Promise<void>;
+  isSubmitting?: boolean;
 }
 
-const WelcomeStep: React.FC<WelcomeStepProps> = ({ nextStep, isFirstStep }) => {
+const WelcomeStep: React.FC<WelcomeStepProps> = ({ nextStep }) => {
   return (
     <div className="space-y-6 text-center">
       <div className="mb-8">

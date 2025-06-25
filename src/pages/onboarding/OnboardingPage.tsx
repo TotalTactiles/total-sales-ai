@@ -170,6 +170,18 @@ const OnboardingPage: React.FC = () => {
 
   const CurrentStepComponent = steps[currentStep].component;
 
+  // Prepare common props for all steps
+  const stepProps = {
+    settings,
+    updateSettings,
+    nextStep,
+    prevStep,
+    isFirstStep: currentStep === 0,
+    isLastStep: currentStep === steps.length - 1,
+    completeOnboarding,
+    isSubmitting
+  };
+
   return (
     <OnboardingProvider
       initialCompanyId={profile?.company_id}
@@ -208,16 +220,7 @@ const OnboardingPage: React.FC = () => {
                 transition={{ duration: 0.3 }}
                 className="bg-white rounded-lg shadow-lg p-8"
               >
-                <CurrentStepComponent
-                  settings={settings}
-                  updateSettings={updateSettings}
-                  nextStep={nextStep}
-                  prevStep={prevStep}
-                  isFirstStep={currentStep === 0}
-                  isLastStep={currentStep === steps.length - 1}
-                  completeOnboarding={completeOnboarding}
-                  isSubmitting={isSubmitting}
-                />
+                <CurrentStepComponent {...stepProps} />
               </motion.div>
             </AnimatePresence>
           </div>

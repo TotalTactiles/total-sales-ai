@@ -12,6 +12,8 @@ interface GoalsStepProps {
   prevStep: () => void;
   isFirstStep: boolean;
   isLastStep: boolean;
+  completeOnboarding?: () => Promise<void>;
+  isSubmitting?: boolean;
 }
 
 const GoalsStep: React.FC<GoalsStepProps> = ({ 
@@ -52,7 +54,7 @@ const GoalsStep: React.FC<GoalsStepProps> = ({
           <Textarea
             id="goal"
             placeholder="Describe what you want to accomplish with SalesOS..."
-            value={settings.original_goal}
+            value={settings.original_goal || ''}
             onChange={(e) => handleGoalChange(e.target.value)}
             className="mt-1 h-32"
           />

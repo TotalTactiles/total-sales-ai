@@ -12,6 +12,8 @@ interface ModuleSelectionStepProps {
   prevStep: () => void;
   isFirstStep: boolean;
   isLastStep: boolean;
+  completeOnboarding?: () => Promise<void>;
+  isSubmitting?: boolean;
 }
 
 const ModuleSelectionStep: React.FC<ModuleSelectionStepProps> = ({ 
@@ -96,7 +98,7 @@ const ModuleSelectionStep: React.FC<ModuleSelectionStepProps> = ({
           <div 
             key={module.id}
             className={`border rounded-lg p-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 ${
-              settings.enabled_modules[module.id] 
+              settings.enabled_modules?.[module.id] 
                 ? 'border-primary' 
                 : 'border-border'
             }`}
@@ -104,7 +106,7 @@ const ModuleSelectionStep: React.FC<ModuleSelectionStepProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  settings.enabled_modules[module.id]
+                  settings.enabled_modules?.[module.id]
                     ? 'bg-primary/10 text-primary'
                     : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                 }`}>
@@ -125,7 +127,7 @@ const ModuleSelectionStep: React.FC<ModuleSelectionStepProps> = ({
                 </div>
               </div>
               <Switch
-                checked={settings.enabled_modules[module.id]}
+                checked={settings.enabled_modules?.[module.id] || false}
                 onCheckedChange={() => toggleModule(module.id)}
               />
             </div>

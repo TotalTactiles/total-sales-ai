@@ -13,6 +13,8 @@ interface AgentPersonalityStepProps {
   prevStep: () => void;
   isFirstStep: boolean;
   isLastStep: boolean;
+  completeOnboarding?: () => Promise<void>;
+  isSubmitting?: boolean;
 }
 
 const AgentPersonalityStep: React.FC<AgentPersonalityStepProps> = ({ 
@@ -50,7 +52,7 @@ const AgentPersonalityStep: React.FC<AgentPersonalityStepProps> = ({
           <Input
             id="agentName"
             placeholder="Enter a name for your AI assistant"
-            value={settings.agent_name}
+            value={settings.agent_name || ''}
             onChange={(e) => handleNameChange(e.target.value)}
             className="mt-1"
           />
@@ -61,11 +63,11 @@ const AgentPersonalityStep: React.FC<AgentPersonalityStepProps> = ({
             <div className="flex justify-between mb-2">
               <Label>Humor Level</Label>
               <span className="text-sm text-muted-foreground">
-                {settings.tone.humor < 30 ? 'Serious' : settings.tone.humor < 70 ? 'Balanced' : 'Humorous'}
+                {settings.tone?.humor < 30 ? 'Serious' : settings.tone?.humor < 70 ? 'Balanced' : 'Humorous'}
               </span>
             </div>
             <Slider
-              value={[settings.tone.humor]}
+              value={[settings.tone?.humor || 50]}
               min={0}
               max={100}
               step={1}
@@ -82,11 +84,11 @@ const AgentPersonalityStep: React.FC<AgentPersonalityStepProps> = ({
             <div className="flex justify-between mb-2">
               <Label>Formality</Label>
               <span className="text-sm text-muted-foreground">
-                {settings.tone.formality < 30 ? 'Casual' : settings.tone.formality < 70 ? 'Balanced' : 'Formal'}
+                {settings.tone?.formality < 30 ? 'Casual' : settings.tone?.formality < 70 ? 'Balanced' : 'Formal'}
               </span>
             </div>
             <Slider
-              value={[settings.tone.formality]}
+              value={[settings.tone?.formality || 50]}
               min={0}
               max={100}
               step={1}
@@ -103,11 +105,11 @@ const AgentPersonalityStep: React.FC<AgentPersonalityStepProps> = ({
             <div className="flex justify-between mb-2">
               <Label>Assertiveness</Label>
               <span className="text-sm text-muted-foreground">
-                {settings.tone.pushiness < 30 ? 'Gentle' : settings.tone.pushiness < 70 ? 'Balanced' : 'Direct'}
+                {settings.tone?.pushiness < 30 ? 'Gentle' : settings.tone?.pushiness < 70 ? 'Balanced' : 'Direct'}
               </span>
             </div>
             <Slider
-              value={[settings.tone.pushiness]}
+              value={[settings.tone?.pushiness || 50]}
               min={0}
               max={100}
               step={1}
