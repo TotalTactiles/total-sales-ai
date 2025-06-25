@@ -13,6 +13,8 @@ const AuthPage: React.FC = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
 
   useEffect(() => {
     const checkUserStatus = async () => {
@@ -60,7 +62,7 @@ const AuthPage: React.FC = () => {
   }, [user, navigate]);
 
   // Show loading while checking user status
-  if (isLoading || user) {
+  if (isLoading || user || isTransitioning) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
@@ -84,14 +86,14 @@ const AuthPage: React.FC = () => {
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="login" onClick={() => setIsLogin(true)}>Sign In</TabsTrigger>
+                <TabsTrigger value="signup" onClick={() => setIsLogin(false)}>Sign Up</TabsTrigger>
               </TabsList>
               <TabsContent value="login">
-                <AuthLoginForm />
+                <AuthLoginForm setIsTransitioning={setIsTransitioning} />
               </TabsContent>
               <TabsContent value="signup">
-                <AuthSignupForm />
+                <AuthSignupForm setIsLogin={setIsLogin} />
               </TabsContent>
             </Tabs>
           </CardContent>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -117,9 +116,8 @@ const OnboardingFlow: React.FC = () => {
         .update({
           onboarding_complete: true,
           launched_at: new Date().toISOString(),
-          // Save tone settings as JSON
+          // Save tone settings as JSON in user_metadata field
           user_metadata: {
-            ...profile?.user_metadata,
             tone_settings: settings.tone_settings
           }
         })
