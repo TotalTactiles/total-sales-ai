@@ -36,8 +36,15 @@ const AuthPage: React.FC = () => {
         console.log('🔍 User profile check:', profileData);
 
         if (!profileData.onboarding_complete) {
-          console.log('➡️ Redirecting to onboarding');
-          navigate('/onboarding');
+          console.log('➡️ Redirecting to role-specific onboarding');
+          // Redirect to role-specific onboarding
+          if (profileData.role === 'manager') {
+            navigate('/onboarding/manager');
+          } else if (profileData.role === 'sales_rep' || !profileData.role) {
+            navigate('/onboarding/sales-rep');
+          } else {
+            navigate('/onboarding');
+          }
           return;
         }
 

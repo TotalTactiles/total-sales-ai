@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -9,6 +10,8 @@ import OnboardingGuard from '@/components/OnboardingGuard';
 // Pages
 import AuthPage from '@/pages/auth/AuthPage';
 import Onboarding from '@/pages/Onboarding';
+import SalesRepOnboarding from '@/pages/onboarding/sales-rep';
+import ManagerOnboarding from '@/pages/onboarding/manager';
 import PersonalizedRepDashboard from '@/pages/PersonalizedRepDashboard';
 import PersonalizedManagerDashboard from '@/pages/PersonalizedManagerDashboard';
 import SalesDashboard from '@/pages/sales/Dashboard';
@@ -29,7 +32,11 @@ function App() {
                 {/* Auth Route */}
                 <Route path="/auth" element={<AuthPage />} />
                 
-                {/* Onboarding Route */}
+                {/* New Role-Specific Onboarding Routes */}
+                <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />
+                <Route path="/onboarding/manager" element={<ManagerOnboarding />} />
+                
+                {/* Legacy Onboarding Route - redirect based on role */}
                 <Route path="/onboarding" element={<Onboarding />} />
                 
                 {/* Personalized Dashboard Routes */}

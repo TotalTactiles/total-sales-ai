@@ -366,6 +366,39 @@ export type Database = {
         }
         Relationships: []
       }
+      company_master_ai: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          last_synced_at: string | null
+          most_clicked_features: string[] | null
+          top_weaknesses: string[] | null
+          updated_at: string | null
+          wishlist_tags: string[] | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          most_clicked_features?: string[] | null
+          top_weaknesses?: string[] | null
+          updated_at?: string | null
+          wishlist_tags?: string[] | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          most_clicked_features?: string[] | null
+          top_weaknesses?: string[] | null
+          updated_at?: string | null
+          wishlist_tags?: string[] | null
+        }
+        Relationships: []
+      }
       company_settings: {
         Row: {
           agent_name: string | null
@@ -1337,7 +1370,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_assistant: Json | null
           assistant_name: string | null
+          business_goal: string | null
           company_id: string | null
           created_at: string | null
           email: string | null
@@ -1348,19 +1383,32 @@ export type Database = {
           has_completed_onboarding: boolean | null
           id: string
           industry: string | null
+          influence_style: string | null
           last_login: string | null
           launched_at: string | null
+          management_style: string | null
+          mental_state_trigger: string | null
+          motivation_trigger: string | null
           onboarding_complete: boolean | null
           onboarding_step: number | null
           phone_number: string | null
+          preferred_team_personality: string | null
+          primary_goal: string | null
           profile_picture_url: string | null
           role: Database["public"]["Enums"]["user_role"]
+          sales_personality: string | null
+          team_obstacle: string | null
+          team_size: number | null
           updated_at: string | null
           user_metadata: Json | null
           voice_style: string | null
+          weakness: string | null
+          wishlist: string | null
         }
         Insert: {
+          ai_assistant?: Json | null
           assistant_name?: string | null
+          business_goal?: string | null
           company_id?: string | null
           created_at?: string | null
           email?: string | null
@@ -1371,19 +1419,32 @@ export type Database = {
           has_completed_onboarding?: boolean | null
           id: string
           industry?: string | null
+          influence_style?: string | null
           last_login?: string | null
           launched_at?: string | null
+          management_style?: string | null
+          mental_state_trigger?: string | null
+          motivation_trigger?: string | null
           onboarding_complete?: boolean | null
           onboarding_step?: number | null
           phone_number?: string | null
+          preferred_team_personality?: string | null
+          primary_goal?: string | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          sales_personality?: string | null
+          team_obstacle?: string | null
+          team_size?: number | null
           updated_at?: string | null
           user_metadata?: Json | null
           voice_style?: string | null
+          weakness?: string | null
+          wishlist?: string | null
         }
         Update: {
+          ai_assistant?: Json | null
           assistant_name?: string | null
+          business_goal?: string | null
           company_id?: string | null
           created_at?: string | null
           email?: string | null
@@ -1394,16 +1455,27 @@ export type Database = {
           has_completed_onboarding?: boolean | null
           id?: string
           industry?: string | null
+          influence_style?: string | null
           last_login?: string | null
           launched_at?: string | null
+          management_style?: string | null
+          mental_state_trigger?: string | null
+          motivation_trigger?: string | null
           onboarding_complete?: boolean | null
           onboarding_step?: number | null
           phone_number?: string | null
+          preferred_team_personality?: string | null
+          primary_goal?: string | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          sales_personality?: string | null
+          team_obstacle?: string | null
+          team_size?: number | null
           updated_at?: string | null
           user_metadata?: Json | null
           voice_style?: string | null
+          weakness?: string | null
+          wishlist?: string | null
         }
         Relationships: []
       }
