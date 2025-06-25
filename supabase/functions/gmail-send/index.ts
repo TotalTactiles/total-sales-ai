@@ -1,4 +1,3 @@
-import { logger } from '../../../src/utils/logger.ts';
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -121,7 +120,7 @@ serve(async (req) => {
     const gmailData = await response.json()
 
     if (!response.ok) {
-      logger.error('Gmail API error:', gmailData)
+      console.error('Gmail API error:', gmailData)
       throw new Error(`Gmail API error: ${gmailData.error?.message || 'Unknown error'}`)
     }
 
@@ -153,7 +152,7 @@ serve(async (req) => {
       })
 
     if (usageError) {
-      logger.error('Failed to log Gmail send event:', usageError)
+      console.error('Failed to log Gmail send event:', usageError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to log email send' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -170,7 +169,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    logger.error('Error in gmail-send function:', error)
+    console.error('Error in gmail-send function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 
