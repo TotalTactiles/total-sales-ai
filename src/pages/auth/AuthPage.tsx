@@ -7,7 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import DeveloperSecretLogin from '@/components/Developer/DeveloperSecretLogin';
+import { useDeveloperSecretTrigger } from '@/hooks/useDeveloperSecretTrigger';
 
+// Remove developer from public roles
 const roles = [
   { 
     label: 'Manager', 
@@ -18,21 +21,19 @@ const roles = [
     label: 'Sales Rep', 
     value: 'sales_rep', 
     description: 'Smart dialer, call scripts & AI sales assistant' 
-  },
-  { 
-    label: 'Developer', 
-    value: 'developer', 
-    description: 'System monitoring, API access & integrations' 
   }
 ];
 
 const AuthPage: React.FC = () => {
   const { user, profile, loading, signIn } = useAuth();
   const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState<'manager' | 'sales_rep' | 'developer'>('sales_rep');
+  const [selectedRole, setSelectedRole] = useState<'manager' | 'sales_rep'>('sales_rep');
   const [email, setEmail] = useState('sales.rep@company.com');
   const [password, setPassword] = useState('••••••••••');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Developer secret trigger
+  const { showDeveloperLogin, setShowDeveloperLogin } = useDeveloperSecretTrigger();
 
   useEffect(() => {
     const checkUserStatus = async () => {
@@ -66,6 +67,8 @@ const AuthPage: React.FC = () => {
             navigate('/onboarding/manager');
           } else if (profileData.role === 'sales_rep' || !profileData.role) {
             navigate('/onboarding/sales-rep');
+          } else if (profileData.role === 'developer') {
+            navigate('/developer/dashboard');
           } else {
             navigate('/onboarding');
           }
@@ -75,8 +78,8 @@ const AuthPage: React.FC = () => {
         console.log('➡️ Redirecting to dashboard');
         if (profileData.role === 'manager') {
           navigate('/os/manager/dashboard');
-        } else if (profileData.role === 'developer' || profileData.role === 'admin') {
-          navigate('/os/dev/dashboard');
+        } else if (profileData.role === 'developer') {
+          navigate('/developer/dashboard');
         } else {
           navigate('/os/rep/dashboard');
         }
@@ -99,7 +102,6 @@ const AuthPage: React.FC = () => {
       
       if (error) {
         console.error('Login error:', error);
-        // Handle error appropriately - you might want to show a toast or error message
         return;
       }
 
@@ -147,7 +149,7 @@ const AuthPage: React.FC = () => {
                 <Button
                   key={role.value}
                   variant={selectedRole === role.value ? 'default' : 'outline'}
-                  onClick={() => setSelectedRole(role.value as 'manager' | 'sales_rep' | 'developer')}
+                  onClick={() => setSelectedRole(role.value as 'manager' | 'sales_rep')}
                   className={`px-4 py-2 text-sm font-medium transition-all ${
                     selectedRole === role.value 
                       ? 'bg-[#7B61FF] text-white shadow-md hover:bg-[#674edc]' 
@@ -229,6 +231,12 @@ const AuthPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Developer Secret Login Modal */}
+      <DeveloperSecretLogin 
+        isOpen={showDeveloperLogin}
+        onClose={() => setShowDeveloperLogin(false)}
+      />
     </div>
   );
 };

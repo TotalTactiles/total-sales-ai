@@ -779,6 +779,36 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_flags: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          enabled: boolean | null
+          flag_name: string
+          id: string
+          target_audience: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          flag_name: string
+          id?: string
+          target_audience?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          enabled?: boolean | null
+          flag_name?: string
+          id?: string
+          target_audience?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       feature_requests: {
         Row: {
           company_id: string | null
@@ -1375,6 +1405,48 @@ export type Database = {
           pipeline_health?: string | null
           rep_id?: string
           task_performance?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      master_ai_brain: {
+        Row: {
+          applied_fixes: Json | null
+          company_id: string | null
+          company_overview: Json | null
+          created_at: string | null
+          id: string
+          integrations_health: Json | null
+          logs: Json | null
+          realtime_issues: Json | null
+          system_performance: Json | null
+          unresolved_bugs: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          applied_fixes?: Json | null
+          company_id?: string | null
+          company_overview?: Json | null
+          created_at?: string | null
+          id?: string
+          integrations_health?: Json | null
+          logs?: Json | null
+          realtime_issues?: Json | null
+          system_performance?: Json | null
+          unresolved_bugs?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          applied_fixes?: Json | null
+          company_id?: string | null
+          company_overview?: Json | null
+          created_at?: string | null
+          id?: string
+          integrations_health?: Json | null
+          logs?: Json | null
+          realtime_issues?: Json | null
+          system_performance?: Json | null
+          unresolved_bugs?: Json | null
           updated_at?: string | null
         }
         Relationships: []
@@ -1977,6 +2049,66 @@ export type Database = {
           stack_trace?: string | null
           timestamp?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      system_updates: {
+        Row: {
+          changes: Json | null
+          deployed_at: string | null
+          deployed_by: string | null
+          description: string | null
+          id: string
+          update_type: string
+        }
+        Insert: {
+          changes?: Json | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          description?: string | null
+          id?: string
+          update_type: string
+        }
+        Update: {
+          changes?: Json | null
+          deployed_at?: string | null
+          deployed_by?: string | null
+          description?: string | null
+          id?: string
+          update_type?: string
+        }
+        Relationships: []
+      }
+      tsam_logs: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          priority: string | null
+          resolved: boolean | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          resolved?: boolean | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          resolved?: boolean | null
+          type?: string
+          user_id?: string | null
         }
         Relationships: []
       }

@@ -29,6 +29,15 @@ import LeadManagement from '@/pages/manager/LeadManagement';
 import AIAssistant from '@/pages/manager/AIAssistant';
 import ManagerSettings from '@/pages/manager/Settings';
 
+// Developer OS Pages
+import DevDashboard from '@/pages/developer/Dashboard';
+import DevLogs from '@/pages/developer/Logs';
+import DevFeatureFlags from '@/pages/developer/FeatureFlags';
+import TSAMPage from '@/pages/developer/TSAM';
+import DevUpdates from '@/pages/developer/Updates';
+import DevAISuggestions from '@/pages/developer/AISuggestions';
+import RelevanceAIDeveloper from '@/pages/developer/RelevanceAIDeveloper';
+
 // Sales Rep Navigation Layout
 import SalesRepNavigation from '@/components/sales/SalesRepNavigation';
 
@@ -44,6 +53,16 @@ function App() {
               <Routes>
                 {/* Auth Route */}
                 <Route path="/auth" element={<AuthPage />} />
+                
+                {/* Developer OS Routes */}
+                <Route path="/developer/dashboard" element={<DevDashboard />} />
+                <Route path="/developer/logs" element={<DevLogs />} />
+                <Route path="/developer/updates" element={<DevUpdates />} />
+                <Route path="/developer/ai-suggestions" element={<DevAISuggestions />} />
+                <Route path="/developer/feature-flags" element={<DevFeatureFlags />} />
+                <Route path="/developer/tsam" element={<TSAMPage />} />
+                <Route path="/developer/relevance" element={<RelevanceAIDeveloper />} />
+                <Route path="/developer" element={<Navigate to="/developer/dashboard" replace />} />
                 
                 {/* Sales Rep OS Routes with Navigation */}
                 <Route path="/os/rep/*" element={
