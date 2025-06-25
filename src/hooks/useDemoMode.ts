@@ -14,6 +14,7 @@ export const useDemoMode = () => {
       if (foundDemoUser) {
         setIsDemo(true);
         setDemoUser(foundDemoUser);
+        console.log('🎭 Demo mode activated for:', foundDemoUser.name, foundDemoUser.role);
       }
     }
   }, [user]);

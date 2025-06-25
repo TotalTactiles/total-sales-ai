@@ -75,27 +75,30 @@ const AuthPage: React.FC = () => {
           return;
         }
 
+        // Demo users bypass onboarding - direct to OS
+        const isDemoUser = demoUsers.some(du => du.id === user.id);
+        if (isDemoUser || profileData.onboarding_complete) {
+          console.log('➡️ Redirecting to dashboard for role:', profileData.role);
+          if (profileData.role === 'manager') {
+            navigate('/manager/overview');
+          } else if (profileData.role === 'developer') {
+            navigate('/developer/dashboard');
+          } else {
+            navigate('/os/rep/dashboard');
+          }
+          return;
+        }
+
         if (!profileData.onboarding_complete) {
           console.log('➡️ Redirecting to role-specific onboarding');
           if (profileData.role === 'manager') {
             navigate('/onboarding/manager');
           } else if (profileData.role === 'sales_rep' || !profileData.role) {
             navigate('/onboarding/sales-rep');
-          } else if (profileData.role === 'developer') {
-            navigate('/developer/dashboard');
           } else {
             navigate('/onboarding');
           }
           return;
-        }
-
-        console.log('➡️ Redirecting to dashboard');
-        if (profileData.role === 'manager') {
-          navigate('/manager/overview');
-        } else if (profileData.role === 'developer') {
-          navigate('/developer/dashboard');
-        } else {
-          navigate('/os/rep/dashboard');
         }
         
       } catch (error) {
@@ -112,6 +115,7 @@ const AuthPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
+      console.log('🔐 Login attempt for:', email);
       const { error } = await signIn(email, password);
       
       if (error) {
@@ -119,6 +123,7 @@ const AuthPage: React.FC = () => {
         return;
       }
 
+      console.log('✅ Login successful');
       // Success - the useEffect above will handle the redirect
     } catch (error) {
       console.error('Login exception:', error);
@@ -130,9 +135,12 @@ const AuthPage: React.FC = () => {
   const handleDemoLogin = async (demoEmail: string, demoPassword: string) => {
     setIsSubmitting(true);
     try {
+      console.log('🎭 Demo login attempt for:', demoEmail);
       const { error } = await signIn(demoEmail, demoPassword);
       if (error) {
         console.error('Demo login error:', error);
+      } else {
+        console.log('✅ Demo login successful');
       }
     } catch (error) {
       console.error('Demo login exception:', error);

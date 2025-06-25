@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import TSAMLayout from '@/components/Developer/TSAMLayout';
 import TSAMCard from '@/components/Developer/TSAMCard';
 import { useTSAM } from '@/hooks/useTSAM';
+import { useDemoMode } from '@/hooks/useDemoMode';
 import { Button } from '@/components/ui/button';
 import { 
   Activity, 
@@ -17,9 +18,11 @@ import {
   Users
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import DemoBanner from '@/components/DemoBanner';
 
 const DeveloperDashboard: React.FC = () => {
   const { isDeveloper, logs, brainData, featureFlags, loading } = useTSAM();
+  const { isDemo, getDemoData } = useDemoMode();
   const [systemStats, setSystemStats] = useState({
     errorCount: 0,
     activeUsers: 0,
@@ -41,12 +44,16 @@ const DeveloperDashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  if (!isDeveloper) {
+  // Use demo data if in demo mode
+  const displayLogs = isDemo ? getDemoData('tsam_logs') || [] : logs;
+  const displayFeatureFlags = isDemo ? getDemoData('feature_flags') || [] : featureFlags;
+
+  if (!isDeveloper && !isDemo) {
     return <div>Access Denied</div>;
   }
 
-  const criticalIssues = logs.filter(log => log.priority === 'critical').length;
-  const enabledFlags = featureFlags.filter(flag => flag.enabled).length;
+  const criticalIssues = displayLogs.filter(log => log.priority === 'critical').length;
+  const enabledFlags = displayFeatureFlags.filter(flag => flag.enabled).length;
 
   const quickActions = [
     { 
@@ -99,6 +106,8 @@ const DeveloperDashboard: React.FC = () => {
   return (
     <TSAMLayout title="Developer Control Panel">
       <div className="space-y-6">
+        {isDemo && <DemoBanner />}
+        
         {/* System Status Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {systemMetrics.map((metric, index) => (
@@ -134,7 +143,7 @@ const DeveloperDashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TSAMCard title="Recent Activity" icon={<Activity className="h-5 w-5" />}>
             <div className="space-y-3">
-              {logs.slice(0, 5).map((log, index) => (
+              {displayLogs.slice(0, 5).map((log, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                   <div>
                     <p className="text-sm text-white">{log.type}</p>
@@ -157,7 +166,7 @@ const DeveloperDashboard: React.FC = () => {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-gray-300">Total Flags</span>
-                <span className="text-white font-semibold">{featureFlags.length}</span>
+                <span className="text-white font-semibold">{displayFeatureFlags.length}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-300">Enabled</span>
@@ -165,7 +174,7 @@ const DeveloperDashboard: React.FC = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-300">Disabled</span>
-                <span className="text-orange-400 font-semibold">{featureFlags.length - enabledFlags}</span>
+                <span className="text-orange-400 font-semibold">{displayFeatureFlags.length - enabledFlags}</span>
               </div>
               <Link to="/developer/feature-flags">
                 <Button className="w-full mt-4 bg-purple-600 hover:bg-purple-700">

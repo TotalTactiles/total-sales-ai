@@ -30,6 +30,15 @@ const DemoLoginCards: React.FC<DemoLoginCardsProps> = ({ onDemoLogin }) => {
     developer: 'bg-green-100 text-green-800 border-green-200'
   };
 
+  const handleDemoLogin = async (email: string, password: string) => {
+    try {
+      console.log('🎭 Initiating demo login for:', email);
+      await onDemoLogin(email, password);
+    } catch (error) {
+      console.error('Demo login failed:', error);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
@@ -59,7 +68,7 @@ const DemoLoginCards: React.FC<DemoLoginCardsProps> = ({ onDemoLogin }) => {
                 {roleDescriptions[user.role as keyof typeof roleDescriptions]}
               </p>
               <Button 
-                onClick={() => onDemoLogin(user.email, user.password)}
+                onClick={() => handleDemoLogin(user.email, user.password)}
                 className="w-full h-8 text-xs"
                 variant="outline"
               >
