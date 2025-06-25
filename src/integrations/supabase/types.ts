@@ -234,6 +234,59 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_nudges: {
+        Row: {
+          action_url: string | null
+          company_id: string
+          created_at: string | null
+          dismissed: boolean | null
+          expires_at: string | null
+          id: string
+          message: string
+          nudge_type: string
+          priority: number | null
+          rep_id: string | null
+          seen: boolean | null
+          title: string
+        }
+        Insert: {
+          action_url?: string | null
+          company_id: string
+          created_at?: string | null
+          dismissed?: boolean | null
+          expires_at?: string | null
+          id?: string
+          message: string
+          nudge_type: string
+          priority?: number | null
+          rep_id?: string | null
+          seen?: boolean | null
+          title: string
+        }
+        Update: {
+          action_url?: string | null
+          company_id?: string
+          created_at?: string | null
+          dismissed?: boolean | null
+          expires_at?: string | null
+          id?: string
+          message?: string
+          nudge_type?: string
+          priority?: number | null
+          rep_id?: string | null
+          seen?: boolean | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_nudges_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_logs: {
         Row: {
           created_at: string | null
@@ -1449,6 +1502,7 @@ export type Database = {
       profiles: {
         Row: {
           ai_assistant: Json | null
+          ai_calibrated: boolean | null
           assistant_name: string | null
           business_goal: string | null
           company_id: string | null
@@ -1473,8 +1527,11 @@ export type Database = {
           preferred_team_personality: string | null
           primary_goal: string | null
           profile_picture_url: string | null
+          rep_motivation: string | null
           role: Database["public"]["Enums"]["user_role"]
           sales_personality: string | null
+          sales_style: string | null
+          strength_area: string | null
           team_obstacle: string | null
           team_size: number | null
           updated_at: string | null
@@ -1485,6 +1542,7 @@ export type Database = {
         }
         Insert: {
           ai_assistant?: Json | null
+          ai_calibrated?: boolean | null
           assistant_name?: string | null
           business_goal?: string | null
           company_id?: string | null
@@ -1509,8 +1567,11 @@ export type Database = {
           preferred_team_personality?: string | null
           primary_goal?: string | null
           profile_picture_url?: string | null
+          rep_motivation?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           sales_personality?: string | null
+          sales_style?: string | null
+          strength_area?: string | null
           team_obstacle?: string | null
           team_size?: number | null
           updated_at?: string | null
@@ -1521,6 +1582,7 @@ export type Database = {
         }
         Update: {
           ai_assistant?: Json | null
+          ai_calibrated?: boolean | null
           assistant_name?: string | null
           business_goal?: string | null
           company_id?: string | null
@@ -1545,8 +1607,11 @@ export type Database = {
           preferred_team_personality?: string | null
           primary_goal?: string | null
           profile_picture_url?: string | null
+          rep_motivation?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           sales_personality?: string | null
+          sales_style?: string | null
+          strength_area?: string | null
           team_obstacle?: string | null
           team_size?: number | null
           updated_at?: string | null
@@ -1640,6 +1705,103 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      rep_learning_logs: {
+        Row: {
+          company_id: string
+          completed: boolean | null
+          created_at: string | null
+          feedback: string | null
+          id: string
+          lesson_title: string | null
+          lesson_type: string
+          quiz_result: number | null
+          rep_id: string | null
+          time_spent_minutes: number | null
+        }
+        Insert: {
+          company_id: string
+          completed?: boolean | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          lesson_title?: string | null
+          lesson_type: string
+          quiz_result?: number | null
+          rep_id?: string | null
+          time_spent_minutes?: number | null
+        }
+        Update: {
+          company_id?: string
+          completed?: boolean | null
+          created_at?: string | null
+          feedback?: string | null
+          id?: string
+          lesson_title?: string | null
+          lesson_type?: string
+          quiz_result?: number | null
+          rep_id?: string | null
+          time_spent_minutes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rep_learning_logs_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rep_metrics: {
+        Row: {
+          avg_tone_score: number | null
+          calls_made: number | null
+          closes: number | null
+          company_id: string
+          created_at: string | null
+          demos_booked: number | null
+          id: string
+          objections_logged: Json | null
+          rep_id: string | null
+          updated_at: string | null
+          week_start: string
+        }
+        Insert: {
+          avg_tone_score?: number | null
+          calls_made?: number | null
+          closes?: number | null
+          company_id: string
+          created_at?: string | null
+          demos_booked?: number | null
+          id?: string
+          objections_logged?: Json | null
+          rep_id?: string | null
+          updated_at?: string | null
+          week_start: string
+        }
+        Update: {
+          avg_tone_score?: number | null
+          calls_made?: number | null
+          closes?: number | null
+          company_id?: string
+          created_at?: string | null
+          demos_booked?: number | null
+          id?: string
+          objections_logged?: Json | null
+          rep_id?: string | null
+          updated_at?: string | null
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rep_metrics_rep_id_fkey"
+            columns: ["rep_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salesagent_memory: {
         Row: {

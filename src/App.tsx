@@ -12,6 +12,8 @@ import AuthPage from '@/pages/auth/AuthPage';
 import SalesRepOnboarding from '@/pages/onboarding/sales-rep';
 import ManagerOnboarding from '@/pages/onboarding/manager';
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
+import Pipeline from '@/pages/sales/Pipeline';
+import AICoach from '@/pages/sales/AICoach';
 import ManagerDashboard from '@/pages/ManagerDashboard';
 import DeveloperDashboard from '@/pages/DeveloperDashboard';
 
@@ -21,6 +23,9 @@ import RepPerformance from '@/pages/manager/RepPerformance';
 import LeadManagement from '@/pages/manager/LeadManagement';
 import AIAssistant from '@/pages/manager/AIAssistant';
 import ManagerSettings from '@/pages/manager/Settings';
+
+// Sales Rep Navigation Layout
+import SalesRepNavigation from '@/components/sales/SalesRepNavigation';
 
 const queryClient = new QueryClient();
 
@@ -34,6 +39,27 @@ function App() {
               <Routes>
                 {/* Auth Route */}
                 <Route path="/auth" element={<AuthPage />} />
+                
+                {/* Sales Rep OS Routes with Navigation */}
+                <Route path="/os/rep/*" element={
+                  <OnboardingGuard>
+                    <div className="flex">
+                      <SalesRepNavigation />
+                      <div className="flex-1">
+                        <Routes>
+                          <Route path="dashboard" element={<SalesRepDashboard />} />
+                          <Route path="pipeline" element={<Pipeline />} />
+                          <Route path="inbox" element={<div className="p-6 pl-72">Inbox - Coming Soon</div>} />
+                          <Route path="academy" element={<div className="p-6 pl-72">Academy - Coming Soon</div>} />
+                          <Route path="ai-coach" element={<AICoach />} />
+                          <Route path="performance" element={<div className="p-6 pl-72">Performance - Coming Soon</div>} />
+                          <Route path="profile" element={<div className="p-6 pl-72">Profile - Coming Soon</div>} />
+                          <Route path="settings" element={<div className="p-6 pl-72">Settings - Coming Soon</div>} />
+                        </Routes>
+                      </div>
+                    </div>
+                  </OnboardingGuard>
+                } />
                 
                 {/* Manager OS Routes */}
                 <Route path="/manager/overview" element={<ManagerOverview />} />
@@ -52,36 +78,10 @@ function App() {
                 <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />
                 <Route path="/onboarding/manager" element={<ManagerOnboarding />} />
                 
-                {/* Personalized Dashboard Routes */}
-                <Route 
-                  path="/os/rep/dashboard" 
-                  element={
-                    <OnboardingGuard>
-                      <SalesRepDashboard />
-                    </OnboardingGuard>
-                  } 
-                />
-                <Route 
-                  path="/os/manager/dashboard" 
-                  element={
-                    <OnboardingGuard>
-                      <ManagerOverview />
-                    </OnboardingGuard>
-                  } 
-                />
-                <Route 
-                  path="/os/dev/dashboard" 
-                  element={
-                    <OnboardingGuard>
-                      <DeveloperDashboard />
-                    </OnboardingGuard>
-                  } 
-                />
-
                 {/* Legacy routes for backward compatibility */}
                 <Route path="/manager/dashboard" element={<ManagerDashboard />} />
                 <Route path="/manager" element={<ManagerDashboard />} />
-                <Route path="/rep" element={<SalesRepDashboard />} />
+                <Route path="/rep" element={<Navigate to="/os/rep/dashboard" replace />} />
                 <Route path="/dev" element={<DeveloperDashboard />} />
                 
                 {/* Default redirect */}
