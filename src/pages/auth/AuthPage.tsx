@@ -1,94 +1,102 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, useLocation } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
-import { ThemeToggle } from '@/components/ThemeProvider';
-import Logo from '@/components/Logo';
+import { supabase } from '@/integrations/supabase/client';
 import AuthLoginForm from './components/AuthLoginForm';
 import AuthSignupForm from './components/AuthSignupForm';
-import AuthLoadingScreen from './components/AuthLoadingScreen';
-import { logger } from '@/utils/logger';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Logo from '@/components/Logo';
 
-const AuthPage = () => {
-  const { user, profile, loading } = useAuth();
-  const location = useLocation();
-  const [isLogin, setIsLogin] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+const AuthPage: React.FC = () => {
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Add logging to debug auth state
   useEffect(() => {
-    logger.info('AuthPage render state:', { 
-      hasUser: !!user, 
-      hasProfile: !!profile, 
-      loading, 
-      isTransitioning,
-      profileRole: profile?.role 
-    }, 'auth');
-  }, [user, profile, loading, isTransitioning]);
+    const checkUserStatus = async () => {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
-  // Show loading screen while auth state is being determined
-  if (loading || isTransitioning) {
-    return <AuthLoadingScreen />;
-  }
+      // Check if user has completed onboarding
+      try {
+        const { data: profileData, error } = await supabase
+          .from('profiles')
+          .select('onboarding_complete, role')
+          .eq('id', user.id)
+          .single();
 
-  // Redirect if authenticated and profile exists
-  if (user && profile) {
-    const getRedirectPath = () => {
-      switch (profile.role) {
-        case 'developer':
-        case 'admin':
-          return '/os/dev';
-        case 'manager':
-          return '/os/manager';
-        case 'sales_rep':
-        default:
-          return '/os/rep';
+        if (error) throw error;
+
+        console.log('🔍 User profile check:', profileData);
+
+        if (!profileData.onboarding_complete) {
+          console.log('➡️ Redirecting to onboarding');
+          navigate('/onboarding');
+          return;
+        }
+
+        // User has completed onboarding, redirect to appropriate dashboard
+        console.log('➡️ Redirecting to dashboard');
+        if (profileData.role === 'manager') {
+          navigate('/os/manager/dashboard');
+        } else if (profileData.role === 'developer' || profileData.role === 'admin') {
+          navigate('/os/dev/dashboard');
+        } else {
+          navigate('/os/rep/dashboard');
+        }
+        
+      } catch (error) {
+        console.error('❌ Error checking user status:', error);
+        // If there's an error, redirect to onboarding to be safe
+        navigate('/onboarding');
       }
     };
-    
-    const redirectPath = getRedirectPath();
-    const from = location.state?.from?.pathname || redirectPath;
-    
-    logger.info('Redirecting authenticated user:', { 
-      role: profile.role, 
-      redirectPath, 
-      from 
-    }, 'auth');
-    
-    return <Navigate to={from} replace />;
+
+    checkUserStatus();
+  }, [user, navigate]);
+
+  // Show loading while checking user status
+  if (isLoading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-      
-      <Card className="max-w-md w-full mx-4 p-8 shadow-xl border-0 rounded-2xl bg-white/80 backdrop-blur-sm">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Logo />
-          <h2 className="text-2xl font-bold mt-6 text-gray-900 font-sans">Welcome to TSAM</h2>
-          <p className="text-gray-600 mt-2 text-sm">Your AI-powered sales acceleration platform</p>
+          <h1 className="text-2xl font-bold text-gray-900 mt-4">Welcome to SalesOS</h1>
+          <p className="text-gray-600 mt-2">Your AI-powered sales assistant</p>
         </div>
-      
-        <div className="space-y-6">
-          {isLogin ? (
-            <AuthLoginForm setIsTransitioning={setIsTransitioning} />
-          ) : (
-            <AuthSignupForm setIsLogin={setIsLogin} />
-          )}
-          
-          <div className="flex items-center justify-center">
-            <button 
-              onClick={() => setIsLogin(!isLogin)} 
-              className="text-sm text-blue-600 hover:text-blue-800 bg-transparent border-none cursor-pointer font-medium"
-            >
-              {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
-            </button>
-          </div>
-        </div>
-      </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">Get Started</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Sign In</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              </TabsList>
+              <TabsContent value="login">
+                <AuthLoginForm />
+              </TabsContent>
+              <TabsContent value="signup">
+                <AuthSignupForm />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

@@ -1337,6 +1337,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          assistant_name: string | null
           company_id: string | null
           created_at: string | null
           email: string | null
@@ -1346,15 +1347,20 @@ export type Database = {
           full_name: string | null
           has_completed_onboarding: boolean | null
           id: string
+          industry: string | null
           last_login: string | null
+          launched_at: string | null
+          onboarding_complete: boolean | null
           onboarding_step: number | null
           phone_number: string | null
           profile_picture_url: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string | null
           user_metadata: Json | null
+          voice_style: string | null
         }
         Insert: {
+          assistant_name?: string | null
           company_id?: string | null
           created_at?: string | null
           email?: string | null
@@ -1364,15 +1370,20 @@ export type Database = {
           full_name?: string | null
           has_completed_onboarding?: boolean | null
           id: string
+          industry?: string | null
           last_login?: string | null
+          launched_at?: string | null
+          onboarding_complete?: boolean | null
           onboarding_step?: number | null
           phone_number?: string | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
           user_metadata?: Json | null
+          voice_style?: string | null
         }
         Update: {
+          assistant_name?: string | null
           company_id?: string | null
           created_at?: string | null
           email?: string | null
@@ -1382,13 +1393,17 @@ export type Database = {
           full_name?: string | null
           has_completed_onboarding?: boolean | null
           id?: string
+          industry?: string | null
           last_login?: string | null
+          launched_at?: string | null
+          onboarding_complete?: boolean | null
           onboarding_step?: number | null
           phone_number?: string | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string | null
           user_metadata?: Json | null
+          voice_style?: string | null
         }
         Relationships: []
       }
