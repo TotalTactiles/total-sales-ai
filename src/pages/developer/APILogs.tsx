@@ -1,306 +1,358 @@
-import { logger } from '@/utils/logger';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import TSAMLayout from '@/components/Developer/TSAMLayout';
+import TSAMCard from '@/components/Developer/TSAMCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Search, Download, RefreshCw, Globe, Clock, AlertCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { 
+  Code, 
+  Search,
+  RefreshCw,
+  Clock,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Database,
+  Globe
+} from 'lucide-react';
 
 interface APILogEntry {
   id: string;
-  timestamp: string | null;
-  method: string;
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
   endpoint: string;
   status: number;
-  response_time: number;
-  user_id: string | null;
+  responseTime: number;
+  timestamp: Date;
+  userId?: string;
+  requestBody?: any;
+  responseBody?: any;
+  error?: string;
+  service: 'supabase' | 'make' | 'external';
 }
 
-const APILogs: React.FC = () => {
+const APILogsPage: React.FC = () => {
+  const { profile } = useAuth();
   const [logs, setLogs] = useState<APILogEntry[]>([]);
   const [filteredLogs, setFilteredLogs] = useState<APILogEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [methodFilter, setMethodFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const { profile } = useAuth();
+  const [serviceFilter, setServiceFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
+
+  const isDeveloper = profile?.role === 'developer';
 
   useEffect(() => {
-    fetchAPILogs();
-  }, []);
+    if (!isDeveloper) return;
+
+    // Generate mock API logs
+    const mockLogs: APILogEntry[] = [
+      {
+        id: '1',
+        method: 'POST',
+        endpoint: '/api/leads',
+        status: 201,
+        responseTime: 245,
+        timestamp: new Date(Date.now() - 300000),
+        userId: 'user123',
+        service: 'supabase',
+        requestBody: { name: 'John Doe', email: 'john@example.com' }
+      },
+      {
+        id: '2',
+        method: 'GET',
+        endpoint: '/api/dashboard/stats',
+        status: 200,
+        responseTime: 123,
+        timestamp: new Date(Date.now() - 600000),
+        service: 'supabase'
+      },
+      {
+        id: '3',
+        method: 'POST',
+        endpoint: '/webhook/lead-assignment',
+        status: 500,
+        responseTime: 5420,
+        timestamp: new Date(Date.now() - 900000),
+        service: 'make',
+        error: 'Timeout connecting to external CRM'
+      },
+      {
+        id: '4',
+        method: 'PUT',
+        endpoint: '/api/users/profile',
+        status: 200,
+        responseTime: 189,
+        timestamp: new Date(Date.now() - 1200000),
+        userId: 'user456',
+        service: 'supabase'
+      },
+      {
+        id: '5',
+        method: 'GET',
+        endpoint: '/api/ai/suggestions',
+        status: 429,
+        responseTime: 89,
+        timestamp: new Date(Date.now() - 1500000),
+        service: 'external',
+        error: 'Rate limit exceeded'
+      }
+    ];
+
+    setLogs(mockLogs);
+    setFilteredLogs(mockLogs);
+    setLoading(false);
+  }, [isDeveloper]);
 
   useEffect(() => {
-    filterLogs();
-  }, [logs, searchTerm, methodFilter, statusFilter]);
-
-  const fetchAPILogs = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('api_logs')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(500);
-
-      if (error) throw error;
-      setLogs(data || []);
-    } catch (error) {
-      logger.error('Error fetching API logs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const filterLogs = () => {
     let filtered = logs;
 
     if (searchTerm) {
       filtered = filtered.filter(log =>
         log.endpoint.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (log.user_id && log.user_id.includes(searchTerm))
+        log.method.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (log.error && log.error.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
-    if (methodFilter !== 'all') {
-      filtered = filtered.filter(log => log.method === methodFilter);
-    }
-
     if (statusFilter !== 'all') {
-      if (statusFilter === '2xx') {
+      if (statusFilter === 'success') {
         filtered = filtered.filter(log => log.status >= 200 && log.status < 300);
-      } else if (statusFilter === '4xx') {
-        filtered = filtered.filter(log => log.status >= 400 && log.status < 500);
-      } else if (statusFilter === '5xx') {
-        filtered = filtered.filter(log => log.status >= 500);
+      } else if (statusFilter === 'error') {
+        filtered = filtered.filter(log => log.status >= 400);
+      } else if (statusFilter === 'warning') {
+        filtered = filtered.filter(log => log.status >= 300 && log.status < 400);
       }
     }
 
+    if (serviceFilter !== 'all') {
+      filtered = filtered.filter(log => log.service === serviceFilter);
+    }
+
     setFilteredLogs(filtered);
+  }, [logs, searchTerm, statusFilter, serviceFilter]);
+
+  if (!isDeveloper) {
+    return <div>Access Denied</div>;
+  }
+
+  const getStatusIcon = (status: number) => {
+    if (status >= 200 && status < 300) {
+      return <CheckCircle className="h-4 w-4 text-green-400" />;
+    } else if (status >= 400) {
+      return <XCircle className="h-4 w-4 text-red-400" />;
+    } else {
+      return <AlertTriangle className="h-4 w-4 text-yellow-400" />;
+    }
   };
 
   const getStatusColor = (status: number) => {
-    if (status >= 200 && status < 300) return 'bg-green-100 text-green-800';
-    if (status >= 300 && status < 400) return 'bg-blue-100 text-blue-800';
-    if (status >= 400 && status < 500) return 'bg-yellow-100 text-yellow-800';
-    if (status >= 500) return 'bg-red-100 text-red-800';
-    return 'bg-gray-100 text-gray-800';
+    if (status >= 200 && status < 300) {
+      return 'text-green-400';
+    } else if (status >= 400) {
+      return 'text-red-400';
+    } else {
+      return 'text-yellow-400';
+    }
   };
 
   const getMethodColor = (method: string) => {
     switch (method) {
-      case 'GET': return 'bg-blue-100 text-blue-800';
-      case 'POST': return 'bg-green-100 text-green-800';
-      case 'PUT': return 'bg-yellow-100 text-yellow-800';
-      case 'DELETE': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'GET':
+        return 'bg-blue-500/20 text-blue-400';
+      case 'POST':
+        return 'bg-green-500/20 text-green-400';
+      case 'PUT':
+        return 'bg-yellow-500/20 text-yellow-400';
+      case 'DELETE':
+        return 'bg-red-500/20 text-red-400';
+      case 'PATCH':
+        return 'bg-purple-500/20 text-purple-400';
+      default:
+        return 'bg-gray-500/20 text-gray-400';
     }
   };
 
-  const exportLogs = (format: 'json' | 'csv') => {
-    if (format === 'json') {
-      const dataStr = JSON.stringify(filteredLogs, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `api-logs-${new Date().toISOString().split('T')[0]}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } else {
-      const headers = ['timestamp', 'method', 'endpoint', 'status', 'response_time', 'user_id'];
-      const rows = filteredLogs.map(log => headers.map(h => `"${(log as any)[h] ?? ''}"`).join(','));
-      const csv = [headers.join(','), ...rows].join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `api-logs-${new Date().toISOString().split('T')[0]}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
+  const getServiceIcon = (service: string) => {
+    switch (service) {
+      case 'supabase':
+        return <Database className="h-4 w-4 text-green-400" />;
+      case 'make':
+        return <Code className="h-4 w-4 text-blue-400" />;
+      case 'external':
+        return <Globe className="h-4 w-4 text-purple-400" />;
+      default:
+        return <Code className="h-4 w-4 text-gray-400" />;
     }
   };
+
+  if (loading) {
+    return (
+      <TSAMLayout title="API Logs">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400"></div>
+        </div>
+      </TSAMLayout>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 min-h-screen text-white">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">API Logs</h1>
-          <p className="text-slate-400">All API calls, endpoints, responses, and errors</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchAPILogs}
-            disabled={loading}
-            className="border-slate-600 text-white"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportLogs('json')}
-            className="border-slate-600 text-white"
-          >
-            <Download className="h-4 w-4" /> JSON
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => exportLogs('csv')}
-            className="border-slate-600 text-white"
-          >
-            <Download className="h-4 w-4" /> CSV
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-slate-800 border-slate-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-blue-400" />
-              <div>
-                <p className="text-sm text-slate-400">Total Requests</p>
-                <p className="text-xl font-bold text-white">{logs.length}</p>
+    <TSAMLayout title="API & Integration Logs">
+      <div className="space-y-6">
+        {/* Filters */}
+        <TSAMCard title="Log Filters" icon={<Search className="h-5 w-5" />}>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search endpoints, methods, errors..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-white/10 border-gray-600 text-white"
+                />
               </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-slate-800 border-slate-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-green-400" />
-              <div>
-                <p className="text-sm text-slate-400">Avg Response Time</p>
-                <p className="text-xl font-bold text-white">
-                  {logs.length > 0 ? Math.round(logs.reduce((acc, log) => acc + log.response_time, 0) / logs.length) : 0}ms
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-slate-800 border-slate-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5 text-red-400" />
-              <div>
-                <p className="text-sm text-slate-400">Error Rate</p>
-                <p className="text-xl font-bold text-white">
-                  {logs.length > 0 ? ((logs.filter(log => log.status >= 400).length / logs.length) * 100).toFixed(1) : 0}%
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-slate-800 border-slate-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-purple-400" />
-              <div>
-                <p className="text-sm text-slate-400">Unique Users</p>
-                <p className="text-xl font-bold text-white">
-                  {new Set(logs.map(log => log.user_id)).size}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="bg-slate-800 border-slate-700">
-        <CardHeader>
-          <CardTitle className="text-white">API Request Logs</CardTitle>
-          <div className="flex gap-4 items-center mt-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Search endpoints, IPs, errors..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-slate-700 border-slate-600 text-white"
-              />
-            </div>
-            
-            <Select value={methodFilter} onValueChange={setMethodFilter}>
-              <SelectTrigger className="w-32 bg-slate-700 border-slate-600 text-white">
-                <SelectValue placeholder="Method" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                <SelectItem value="all">All Methods</SelectItem>
-                <SelectItem value="GET">GET</SelectItem>
-                <SelectItem value="POST">POST</SelectItem>
-                <SelectItem value="PUT">PUT</SelectItem>
-                <SelectItem value="DELETE">DELETE</SelectItem>
-              </SelectContent>
-            </Select>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-32 bg-slate-700 border-slate-600 text-white">
+              <SelectTrigger className="w-[140px] bg-white/10 border-gray-600 text-white">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
+              <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="2xx">2xx Success</SelectItem>
-                <SelectItem value="4xx">4xx Client Error</SelectItem>
-                <SelectItem value="5xx">5xx Server Error</SelectItem>
+                <SelectItem value="success">Success (2xx)</SelectItem>
+                <SelectItem value="warning">Warning (3xx)</SelectItem>
+                <SelectItem value="error">Error (4xx/5xx)</SelectItem>
               </SelectContent>
             </Select>
+
+            <Select value={serviceFilter} onValueChange={setServiceFilter}>
+              <SelectTrigger className="w-[140px] bg-white/10 border-gray-600 text-white">
+                <SelectValue placeholder="Service" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Services</SelectItem>
+                <SelectItem value="supabase">Supabase</SelectItem>
+                <SelectItem value="make">Make.com</SelectItem>
+                <SelectItem value="external">External APIs</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              className="border-gray-600 text-gray-300"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
           </div>
-        </CardHeader>
-        
-        <CardContent>
-          <ScrollArea className="h-96">
-            <div className="space-y-3">
-              {filteredLogs.map((log) => (
-                <div
-                  key={log.id}
-                  className="p-4 border border-slate-600 rounded-lg hover:bg-slate-700 transition-colors"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Badge className={getMethodColor(log.method)}>
-                        {log.method}
-                      </Badge>
-                      <Badge className={getStatusColor(log.status)}>
-                        {log.status}
-                      </Badge>
-                      <span className="text-sm font-mono text-white">{log.endpoint}</span>
+        </TSAMCard>
+
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <TSAMCard title="Total Requests" icon={<Code className="h-4 w-4" />}>
+            <div className="text-2xl font-bold text-white">{logs.length}</div>
+          </TSAMCard>
+          
+          <TSAMCard title="Success Rate" icon={<CheckCircle className="h-4 w-4" />}>
+            <div className="text-2xl font-bold text-green-400">
+              {Math.round((logs.filter(l => l.status >= 200 && l.status < 300).length / logs.length) * 100)}%
+            </div>
+          </TSAMCard>
+          
+          <TSAMCard title="Avg Response" icon={<Clock className="h-4 w-4" />}>
+            <div className="text-2xl font-bold text-blue-400">
+              {Math.round(logs.reduce((acc, log) => acc + log.responseTime, 0) / logs.length)}ms
+            </div>
+          </TSAMCard>
+          
+          <TSAMCard title="Error Count" icon={<XCircle className="h-4 w-4" />}>
+            <div className="text-2xl font-bold text-red-400">
+              {logs.filter(l => l.status >= 400).length}
+            </div>
+          </TSAMCard>
+        </div>
+
+        {/* API Logs */}
+        <TSAMCard title={`API Request Logs (${filteredLogs.length})`} icon={<Database className="h-5 w-5" />}>
+          <div className="space-y-3 max-h-[600px] overflow-y-auto">
+            {filteredLogs.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">
+                No API logs found matching your criteria.
+              </div>
+            ) : (
+              filteredLogs.map((log) => (
+                <div key={log.id} className="p-4 bg-white/5 rounded-lg">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(log.status)}
+                      {getServiceIcon(log.service)}
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-xs px-2 py-1 rounded-full font-mono ${getMethodColor(log.method)}`}>
+                            {log.method}
+                          </span>
+                          <span className="text-white font-medium">{log.endpoint}</span>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-400">
+                          <span className={getStatusColor(log.status)}>
+                            {log.status}
+                          </span>
+                          <span>{log.responseTime}ms</span>
+                          <span className="capitalize">{log.service}</span>
+                          {log.userId && <span>User: {log.userId.substring(0, 8)}...</span>}
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-slate-400">
-                      <span>{log.response_time}ms</span>
-                      {log.timestamp && (
-                        <span>{new Date(log.timestamp).toLocaleString()}</span>
-                      )}
+                    
+                    <div className="text-right">
+                      <div className="flex items-center gap-1 text-sm text-gray-400">
+                        <Clock className="h-3 w-3" />
+                        {log.timestamp.toLocaleTimeString()}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="text-xs text-slate-400 space-y-1">
-                    {log.user_id && <p>User: {log.user_id}</p>}
-                  </div>
+                  {log.error && (
+                    <div className="p-2 bg-red-500/10 border border-red-500/20 rounded text-sm text-red-400 mb-2">
+                      <strong>Error:</strong> {log.error}
+                    </div>
+                  )}
+
+                  {(log.requestBody || log.responseBody) && (
+                    <details className="mt-2">
+                      <summary className="text-sm text-purple-400 cursor-pointer hover:text-purple-300">
+                        View Request/Response Data
+                      </summary>
+                      <div className="mt-2 space-y-2">
+                        {log.requestBody && (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Request Body:</p>
+                            <pre className="text-xs text-gray-300 bg-black/20 p-2 rounded overflow-x-auto">
+                              {JSON.stringify(log.requestBody, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                        {log.responseBody && (
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">Response Body:</p>
+                            <pre className="text-xs text-gray-300 bg-black/20 p-2 rounded overflow-x-auto">
+                              {JSON.stringify(log.responseBody, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    </details>
+                  )}
                 </div>
-              ))}
-              
-              {filteredLogs.length === 0 && !loading && (
-                <div className="text-center py-8 text-slate-400">
-                  No API logs found
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-        </CardContent>
-      </Card>
-    </div>
+              ))
+            )}
+          </div>
+        </TSAMCard>
+      </div>
+    </TSAMLayout>
   );
 };
 
-export default APILogs;
+export default APILogsPage;

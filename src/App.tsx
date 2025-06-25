@@ -37,6 +37,11 @@ import TSAMPage from '@/pages/developer/TSAM';
 import DevUpdates from '@/pages/developer/Updates';
 import DevAISuggestions from '@/pages/developer/AISuggestions';
 import RelevanceAIDeveloper from '@/pages/developer/RelevanceAIDeveloper';
+import SystemMonitor from '@/pages/developer/SystemMonitor';
+import ErrorLogs from '@/pages/developer/ErrorLogs';
+import AgentHealth from '@/pages/developer/AgentHealth';
+import APILogs from '@/pages/developer/APILogs';
+import AIBrainMonitor from '@/pages/developer/AIBrainMonitor';
 
 // Sales Rep Navigation Layout
 import SalesRepNavigation from '@/components/sales/SalesRepNavigation';
@@ -62,6 +67,11 @@ function App() {
                 <Route path="/developer/feature-flags" element={<DevFeatureFlags />} />
                 <Route path="/developer/tsam" element={<TSAMPage />} />
                 <Route path="/developer/relevance" element={<RelevanceAIDeveloper />} />
+                <Route path="/developer/system-monitor" element={<SystemMonitor />} />
+                <Route path="/developer/error-logs" element={<ErrorLogs />} />
+                <Route path="/developer/agent-health" element={<AgentHealth />} />
+                <Route path="/developer/api-logs" element={<APILogs />} />
+                <Route path="/developer/brain-monitor" element={<AIBrainMonitor />} />
                 <Route path="/developer" element={<Navigate to="/developer/dashboard" replace />} />
                 
                 {/* Sales Rep OS Routes with Navigation */}

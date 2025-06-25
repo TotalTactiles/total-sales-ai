@@ -1,369 +1,301 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import TSAMLayout from '@/components/Developer/TSAMLayout';
+import TSAMCard from '@/components/Developer/TSAMCard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   AlertTriangle, 
-  XCircle, 
-  RefreshCw, 
-  Download, 
-  CheckCircle,
-  Clock
+  Bug, 
+  Search,
+  RefreshCw,
+  ExternalLink,
+  Clock,
+  User,
+  Code
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 
 interface ErrorLog {
   id: string;
+  title: string;
+  message: string;
+  stack?: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  component: string;
+  userId?: string;
   timestamp: Date;
-  error_type: string;
-  error_message: string;
-  provider: string;
-  context?: string;
-  error_code?: string;
-  user_id?: string;
   resolved: boolean;
+  reproSteps?: string[];
+  aiSuggestion?: string;
 }
 
-const ErrorLogs: React.FC = () => {
+const ErrorLogsPage: React.FC = () => {
+  const { profile } = useAuth();
   const [errors, setErrors] = useState<ErrorLog[]>([]);
   const [filteredErrors, setFilteredErrors] = useState<ErrorLog[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState<string>('all');
-  const [showResolved, setShowResolved] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  const isDeveloper = profile?.role === 'developer';
 
   useEffect(() => {
-    loadErrorLogs();
-  }, []);
+    if (!isDeveloper) return;
 
-  useEffect(() => {
-    filterErrors();
-  }, [searchTerm, selectedProvider, showResolved, errors]);
-
-  const loadErrorLogs = async () => {
-    try {
-      setIsLoading(true);
-      
-      const { data, error } = await supabase
-        .from('error_logs')
-        .select('*')
-        .order('timestamp', { ascending: false })
-        .limit(100);
-
-      if (error) {
-        console.error('Error loading logs:', error);
-        // Fallback to mock data
-        setErrors(getMockErrorLogs());
-      } else {
-        const formattedErrors = data.map(log => ({
-          ...log,
-          timestamp: new Date(log.timestamp),
-          resolved: false // Add resolved field if not in schema
-        }));
-        setErrors(formattedErrors);
+    // Generate mock error logs
+    const mockErrors: ErrorLog[] = [
+      {
+        id: '1',
+        title: 'Lead Assignment API Timeout',
+        message: 'Failed to assign lead to sales rep due to API timeout',
+        severity: 'high',
+        component: 'LeadManager.tsx',
+        userId: 'user123',
+        timestamp: new Date(Date.now() - 3600000),
+        resolved: false,
+        reproSteps: [
+          'Navigate to lead management',
+          'Select multiple leads',
+          'Click assign to rep'
+        ],
+        aiSuggestion: 'Implement retry logic with exponential backoff. Consider adding lead assignment queue.'
+      },
+      {
+        id: '2',
+        title: 'Dashboard Widget Crash',
+        message: 'Uncaught TypeError: Cannot read property of undefined',
+        stack: 'Error at KPIWidget.tsx:45\n  at Dashboard.tsx:120',
+        severity: 'medium',
+        component: 'KPIWidget.tsx',
+        timestamp: new Date(Date.now() - 7200000),
+        resolved: true,
+        aiSuggestion: 'Add null checks and loading states for async data.'
+      },
+      {
+        id: '3',
+        title: 'Authentication State Mismatch',
+        message: 'User session expired but UI still shows authenticated state',
+        severity: 'critical',
+        component: 'AuthProvider.tsx',
+        userId: 'user456',
+        timestamp: new Date(Date.now() - 1800000),
+        resolved: false,
+        reproSteps: [
+          'Login to application',
+          'Leave tab idle for 1 hour',
+          'Try to perform authenticated action'
+        ],
+        aiSuggestion: 'Implement proper session monitoring and automatic logout on token expiry.'
       }
-    } catch (error) {
-      console.error('Failed to load error logs:', error);
-      setErrors(getMockErrorLogs());
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    ];
 
-  const getMockErrorLogs = (): ErrorLog[] => [
-    {
-      id: '1',
-      timestamp: new Date(Date.now() - 300000),
-      error_type: 'API_TIMEOUT',
-      error_message: 'Relevance AI request timed out after 30 seconds',
-      provider: 'relevance_ai',
-      context: 'Lead analysis task',
-      error_code: 'TIMEOUT_001',
-      resolved: false
-    },
-    {
-      id: '2',
-      timestamp: new Date(Date.now() - 600000),
-      error_type: 'AUTH_ERROR',
-      error_message: 'Invalid API key for OpenAI service',
-      provider: 'openai',
-      context: 'Chat completion request',
-      error_code: 'AUTH_401',
-      resolved: true
-    },
-    {
-      id: '3',
-      timestamp: new Date(Date.now() - 900000),
-      error_type: 'RATE_LIMIT',
-      error_message: 'Claude API rate limit exceeded',
-      provider: 'anthropic',
-      context: 'Text generation',
-      error_code: 'RATE_429',
-      resolved: false
-    }
-  ];
+    setErrors(mockErrors);
+    setFilteredErrors(mockErrors);
+    setLoading(false);
+  }, [isDeveloper]);
 
-  const filterErrors = () => {
-    let filtered = errors;
-
-    if (!showResolved) {
-      filtered = filtered.filter(error => !error.resolved);
-    }
-
+  useEffect(() => {
     if (searchTerm) {
-      filtered = filtered.filter(error => 
-        error.error_message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        error.error_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (error.context && error.context.toLowerCase().includes(searchTerm.toLowerCase()))
+      const filtered = errors.filter(error =>
+        error.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        error.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        error.component.toLowerCase().includes(searchTerm.toLowerCase())
       );
+      setFilteredErrors(filtered);
+    } else {
+      setFilteredErrors(errors);
     }
+  }, [searchTerm, errors]);
 
-    if (selectedProvider !== 'all') {
-      filtered = filtered.filter(error => error.provider === selectedProvider);
-    }
+  if (!isDeveloper) {
+    return <div>Access Denied</div>;
+  }
 
-    setFilteredErrors(filtered);
-  };
-
-  const markAsResolved = async (errorId: string) => {
-    try {
-      setErrors(prev => prev.map(error => 
-        error.id === errorId ? { ...error, resolved: true } : error
-      ));
-      
-      // In real implementation, update the database
-      // await supabase
-      //   .from('error_logs')
-      //   .update({ resolved: true })
-      //   .eq('id', errorId);
-    } catch (error) {
-      console.error('Failed to mark error as resolved:', error);
-    }
-  };
-
-  const getSeverityColor = (errorType: string) => {
-    switch (errorType.toLowerCase()) {
-      case 'api_timeout':
-      case 'rate_limit':
-        return 'text-yellow-600';
-      case 'auth_error':
-      case 'system_error':
-        return 'text-red-600';
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return 'border-red-500 bg-red-50/10 text-red-400';
+      case 'high':
+        return 'border-orange-500 bg-orange-50/10 text-orange-400';
+      case 'medium':
+        return 'border-blue-500 bg-blue-50/10 text-blue-400';
+      case 'low':
+        return 'border-green-500 bg-green-50/10 text-green-400';
       default:
-        return 'text-orange-600';
+        return 'border-gray-500 bg-gray-50/10 text-gray-400';
     }
   };
 
-  const getSeverityIcon = (errorType: string) => {
-    switch (errorType.toLowerCase()) {
-      case 'api_timeout':
-        return <Clock className="h-4 w-4" />;
-      case 'auth_error':
-      case 'system_error':
-        return <XCircle className="h-4 w-4" />;
-      default:
-        return <AlertTriangle className="h-4 w-4" />;
-    }
+  const handleResolve = (errorId: string) => {
+    setErrors(prev => prev.map(error => 
+      error.id === errorId ? { ...error, resolved: true } : error
+    ));
   };
 
-  const exportErrors = () => {
-    const csv = [
-      ['Timestamp', 'Type', 'Message', 'Provider', 'Context', 'Error Code', 'Resolved'],
-      ...filteredErrors.map(error => [
-        error.timestamp.toISOString(),
-        error.error_type,
-        error.error_message,
-        error.provider,
-        error.context || '',
-        error.error_code || '',
-        error.resolved.toString()
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `error-logs-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  if (loading) {
+    return (
+      <TSAMLayout title="Error Insights">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400"></div>
+        </div>
+      </TSAMLayout>
+    );
+  }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Error Logs</h1>
-          <p className="text-muted-foreground">Monitor and resolve system errors</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={loadErrorLogs} variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-          <Button onClick={exportErrors}>
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filters</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <div className="flex-1">
+    <TSAMLayout title="Aggregated Error Insights">
+      <div className="space-y-6">
+        {/* Header and Search */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Bug className="h-6 w-6 text-red-400" />
+            <h2 className="text-xl font-bold text-white">
+              Error Analysis ({filteredErrors.length})
+            </h2>
+          </div>
+          
+          <div className="flex gap-2 w-full sm:w-auto">
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search errors by message, type, or context..."
+                placeholder="Search errors..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full"
+                className="pl-10 bg-white/10 border-gray-600 text-white"
               />
             </div>
-            <select
-              value={selectedProvider}
-              onChange={(e) => setSelectedProvider(e.target.value)}
-              className="px-3 py-2 border rounded-md"
+            <Button
+              variant="outline"
+              className="border-gray-600 text-gray-300"
             >
-              <option value="all">All Providers</option>
-              <option value="relevance_ai">Relevance AI</option>
-              <option value="openai">OpenAI</option>
-              <option value="anthropic">Anthropic</option>
-              <option value="retell">Retell AI</option>
-              <option value="supabase">Supabase</option>
-            </select>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={showResolved}
-                onChange={(e) => setShowResolved(e.target.checked)}
-              />
-              Show Resolved
-            </label>
+              <RefreshCw className="h-4 w-4" />
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Error Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <XCircle className="h-5 w-5 text-red-600" />
-              <div>
-                <div className="text-2xl font-bold text-red-600">
-                  {errors.filter(e => !e.resolved).length}
-                </div>
-                <div className="text-sm text-muted-foreground">Unresolved Errors</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Error Summary */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {(['critical', 'high', 'medium', 'low'] as const).map(severity => {
+            const count = errors.filter(e => e.severity === severity && !e.resolved).length;
+            return (
+              <TSAMCard 
+                key={severity} 
+                title={`${severity.charAt(0).toUpperCase() + severity.slice(1)} Priority`}
+                icon={<AlertTriangle className="h-4 w-4" />}
+                priority={severity === 'critical' ? 'critical' : severity === 'high' ? 'high' : 'medium'}
+              >
+                <div className="text-2xl font-bold text-white">{count}</div>
+              </TSAMCard>
+            );
+          })}
+        </div>
 
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <div>
-                <div className="text-2xl font-bold text-green-600">
-                  {errors.filter(e => e.resolved).length}
-                </div>
-                <div className="text-sm text-muted-foreground">Resolved Errors</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-yellow-600" />
-              <div>
-                <div className="text-2xl font-bold">
-                  {errors.length}
-                </div>
-                <div className="text-sm text-muted-foreground">Total Errors</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Error List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Error Details</CardTitle>
-          <CardDescription>
-            Showing {filteredErrors.length} of {errors.length} errors
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-8">Loading error logs...</div>
-          ) : (
-            <div className="space-y-4">
-              {filteredErrors.map((error) => (
-                <div key={error.id} className="border rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
-                      <div className={getSeverityColor(error.error_type)}>
-                        {getSeverityIcon(error.error_type)}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="outline">{error.error_type}</Badge>
-                          <Badge variant="secondary">{error.provider}</Badge>
-                          {error.resolved && (
-                            <Badge variant="default" className="bg-green-600">
-                              Resolved
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="font-medium mb-1">{error.error_message}</div>
-                        <div className="text-sm text-muted-foreground mb-2">
-                          {error.timestamp.toLocaleString()}
-                        </div>
-                        {error.context && (
-                          <div className="text-sm">
-                            <strong>Context:</strong> {error.context}
-                          </div>
-                        )}
-                        {error.error_code && (
-                          <div className="text-sm">
-                            <strong>Error Code:</strong> {error.error_code}
-                          </div>
-                        )}
-                      </div>
+        {/* Error List */}
+        <div className="space-y-4">
+          {filteredErrors.map((error) => (
+            <div 
+              key={error.id}
+              className={`p-6 rounded-lg border-l-4 ${getSeverityColor(error.severity)} backdrop-blur-sm`}
+            >
+              <div className="flex justify-between items-start mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="text-lg font-semibold text-white">{error.title}</h3>
+                    <span className={`text-xs px-2 py-1 rounded-full bg-${error.severity === 'critical' ? 'red' : error.severity === 'high' ? 'orange' : error.severity === 'medium' ? 'blue' : 'green'}-500/20`}>
+                      {error.severity}
+                    </span>
+                    {error.resolved && (
+                      <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+                        Resolved
+                      </span>
+                    )}
+                  </div>
+                  
+                  <p className="text-gray-300 mb-3">{error.message}</p>
+                  
+                  <div className="flex items-center gap-4 text-sm text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <Code className="h-3 w-3" />
+                      {error.component}
                     </div>
-                    {!error.resolved && (
-                      <Button
-                        size="sm"
-                        onClick={() => markAsResolved(error.id)}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <CheckCircle className="h-3 w-3 mr-1" />
-                        Resolve
-                      </Button>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {error.timestamp.toLocaleString()}
+                    </div>
+                    {error.userId && (
+                      <div className="flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {error.userId}
+                      </div>
                     )}
                   </div>
                 </div>
-              ))}
-              {filteredErrors.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  No errors found matching your criteria
+
+                <div className="flex gap-2">
+                  {!error.resolved && (
+                    <Button
+                      size="sm"
+                      onClick={() => handleResolve(error.id)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Mark Resolved
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-gray-600 text-gray-300"
+                  >
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Stack Trace */}
+              {error.stack && (
+                <details className="mb-3">
+                  <summary className="text-sm text-purple-400 cursor-pointer hover:text-purple-300">
+                    View Stack Trace
+                  </summary>
+                  <pre className="text-xs text-gray-400 bg-black/20 p-3 rounded mt-2 overflow-x-auto">
+                    {error.stack}
+                  </pre>
+                </details>
+              )}
+
+              {/* Reproduction Steps */}
+              {error.reproSteps && (
+                <div className="mb-3">
+                  <h4 className="text-sm font-medium text-white mb-2">Reproduction Steps:</h4>
+                  <ol className="text-sm text-gray-300 list-decimal list-inside space-y-1">
+                    {error.reproSteps.map((step, index) => (
+                      <li key={index}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {/* AI Suggestion */}
+              {error.aiSuggestion && (
+                <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded">
+                  <h4 className="text-sm font-medium text-purple-400 mb-1">🤖 AI Recommendation:</h4>
+                  <p className="text-sm text-gray-300">{error.aiSuggestion}</p>
                 </div>
               )}
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          ))}
+        </div>
+
+        {filteredErrors.length === 0 && (
+          <TSAMCard title="No Errors Found" icon={<Bug className="h-5 w-5" />}>
+            <div className="text-center py-8 text-gray-400">
+              {searchTerm ? 'No errors match your search criteria.' : 'No errors detected in the system.'}
+            </div>
+          </TSAMCard>
+        )}
+      </div>
+    </TSAMLayout>
   );
 };
 
-export default ErrorLogs;
+export default ErrorLogsPage;

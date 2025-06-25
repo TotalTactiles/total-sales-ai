@@ -1,34 +1,59 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TSAMLayout from '@/components/Developer/TSAMLayout';
 import TSAMCard from '@/components/Developer/TSAMCard';
 import { useTSAM } from '@/hooks/useTSAM';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertTriangle, Bug, Info, CheckCircle, Search } from 'lucide-react';
+import { 
+  Monitor, 
+  Search, 
+  Filter, 
+  Download,
+  RefreshCw,
+  AlertTriangle,
+  Info,
+  CheckCircle,
+  XCircle
+} from 'lucide-react';
 
 const LogsPage: React.FC = () => {
-  const { logs, loading, isDeveloper, markLogResolved } = useTSAM();
-  const [filter, setFilter] = useState('all');
-  const [search, setSearch] = useState('');
+  const { isDeveloper, logs, loading, refreshData } = useTSAM();
+  const [filteredLogs, setFilteredLogs] = useState(logs);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
+
+  useEffect(() => {
+    let filtered = logs;
+
+    if (searchTerm) {
+      filtered = filtered.filter(log => 
+        log.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        JSON.stringify(log.metadata).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter(log => log.priority === priorityFilter);
+    }
+
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(log => log.type === typeFilter);
+    }
+
+    setFilteredLogs(filtered);
+  }, [logs, searchTerm, priorityFilter, typeFilter]);
 
   if (!isDeveloper) {
     return <div>Access Denied</div>;
   }
 
-  const filteredLogs = logs.filter(log => {
-    const matchesFilter = filter === 'all' || log.priority === filter;
-    const matchesSearch = search === '' || 
-      log.type.toLowerCase().includes(search.toLowerCase()) ||
-      JSON.stringify(log.metadata).toLowerCase().includes(search.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
-
   const getLogIcon = (priority: string) => {
     switch (priority) {
       case 'critical':
-        return <Bug className="h-4 w-4 text-red-400" />;
+        return <XCircle className="h-4 w-4 text-red-400" />;
       case 'high':
         return <AlertTriangle className="h-4 w-4 text-orange-400" />;
       case 'medium':
@@ -39,6 +64,8 @@ const LogsPage: React.FC = () => {
         return <Info className="h-4 w-4 text-gray-400" />;
     }
   };
+
+  const uniqueTypes = [...new Set(logs.map(log => log.type))];
 
   if (loading) {
     return (
@@ -51,95 +78,128 @@ const LogsPage: React.FC = () => {
   }
 
   return (
-    <TSAMLayout title="System Logs">
-      <div className="mb-6">
-        <div className="flex gap-4 items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search logs..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 bg-white/10 border-gray-600 text-white placeholder-gray-400"
-            />
-          </div>
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-48 bg-white/10 border-gray-600 text-white">
-              <SelectValue placeholder="Filter by priority" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Priorities</SelectItem>
-              <SelectItem value="critical">Critical</SelectItem>
-              <SelectItem value="high">High</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="low">Low</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <TSAMCard title={`System Logs (${filteredLogs.length})`}>
-        <div className="space-y-3 max-h-[600px] overflow-y-auto">
-          {filteredLogs.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              No logs found matching your criteria.
+    <TSAMLayout title="Real-time System Logs">
+      <div className="space-y-6">
+        {/* Filters and Controls */}
+        <TSAMCard title="Log Controls" icon={<Filter className="h-5 w-5" />}>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search logs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-white/10 border-gray-600 text-white"
+                />
+              </div>
             </div>
-          ) : (
-            filteredLogs.map(log => (
-              <div 
-                key={log.id} 
-                className={`p-4 rounded-lg border-l-4 ${
-                  log.priority === 'critical' ? 'border-l-red-500 bg-red-50/5' :
-                  log.priority === 'high' ? 'border-l-orange-500 bg-orange-50/5' :
-                  log.priority === 'medium' ? 'border-l-blue-500 bg-blue-50/5' :
-                  'border-l-green-500 bg-green-50/5'
-                } ${log.resolved ? 'opacity-60' : ''}`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3 flex-1">
-                    {getLogIcon(log.priority)}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-white">{log.type}</h4>
-                        <span className={`text-xs px-2 py-1 rounded ${
-                          log.priority === 'critical' ? 'bg-red-500/20 text-red-300' :
-                          log.priority === 'high' ? 'bg-orange-500/20 text-orange-300' :
-                          log.priority === 'medium' ? 'bg-blue-500/20 text-blue-300' :
-                          'bg-green-500/20 text-green-300'
-                        }`}>
-                          {log.priority}
-                        </span>
-                        {log.resolved && (
-                          <span className="text-xs px-2 py-1 rounded bg-green-500/20 text-green-300">
-                            Resolved
+            
+            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              <SelectTrigger className="w-[140px] bg-white/10 border-gray-600 text-white">
+                <SelectValue placeholder="Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Priorities</SelectItem>
+                <SelectItem value="critical">Critical</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[140px] bg-white/10 border-gray-600 text-white">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {uniqueTypes.map(type => (
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              onClick={refreshData}
+              variant="outline"
+              className="border-gray-600 text-gray-300"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Refresh
+            </Button>
+
+            <Button
+              variant="outline"
+              className="border-gray-600 text-gray-300"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export
+            </Button>
+          </div>
+        </TSAMCard>
+
+        {/* Log Feed */}
+        <TSAMCard title={`System Logs (${filteredLogs.length})`} icon={<Monitor className="h-5 w-5" />}>
+          <div className="space-y-2 max-h-[600px] overflow-y-auto">
+            {filteredLogs.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">
+                No logs found matching your criteria.
+              </div>
+            ) : (
+              filteredLogs.map((log, index) => (
+                <div key={log.id} className="p-4 bg-white/5 rounded-lg border-l-4 border-l-blue-500">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3 flex-1">
+                      {getLogIcon(log.priority)}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold text-white">{log.type}</h4>
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            log.priority === 'critical' ? 'bg-red-500/20 text-red-400' :
+                            log.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                            log.priority === 'medium' ? 'bg-blue-500/20 text-blue-400' :
+                            'bg-green-500/20 text-green-400'
+                          }`}>
+                            {log.priority}
                           </span>
+                          {log.resolved && (
+                            <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+                              Resolved
+                            </span>
+                          )}
+                        </div>
+                        
+                        {Object.keys(log.metadata).length > 0 && (
+                          <details className="mt-2">
+                            <summary className="text-sm text-purple-400 cursor-pointer hover:text-purple-300">
+                              View Details
+                            </summary>
+                            <pre className="text-xs text-gray-400 bg-black/20 p-2 rounded mt-1 overflow-x-auto">
+                              {JSON.stringify(log.metadata, null, 2)}
+                            </pre>
+                          </details>
                         )}
                       </div>
-                      <p className="text-sm text-gray-300 mb-2">
+                    </div>
+                    
+                    <div className="text-right">
+                      <p className="text-xs text-gray-400">
                         {new Date(log.created_at).toLocaleString()}
                       </p>
-                      {Object.keys(log.metadata).length > 0 && (
-                        <pre className="text-xs text-gray-400 bg-black/20 p-2 rounded mt-2 overflow-x-auto">
-                          {JSON.stringify(log.metadata, null, 2)}
-                        </pre>
+                      {log.user_id && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          User: {log.user_id.substring(0, 8)}...
+                        </p>
                       )}
                     </div>
                   </div>
-                  {!log.resolved && (
-                    <Button
-                      size="sm"
-                      onClick={() => markLogResolved(log.id)}
-                      className="bg-green-600 hover:bg-green-700 text-white ml-4"
-                    >
-                      Mark Resolved
-                    </Button>
-                  )}
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      </TSAMCard>
+              ))
+            )}
+          </div>
+        </TSAMCard>
+      </div>
     </TSAMLayout>
   );
 };

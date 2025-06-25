@@ -1,45 +1,94 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import TSAMLayout from '@/components/Developer/TSAMLayout';
 import TSAMCard from '@/components/Developer/TSAMCard';
-import AIInsightBox from '@/components/Developer/AIInsightBox';
 import { useTSAM } from '@/hooks/useTSAM';
-import { Activity, Brain, Bug, Clock, Database, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  Activity, 
+  AlertTriangle, 
+  Code, 
+  Database, 
+  GitCommit, 
+  Monitor,
+  TrendingUp,
+  Zap,
+  Shield,
+  Users
+} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const DeveloperDashboard: React.FC = () => {
-  const { logs, brainData, loading, isDeveloper } = useTSAM();
+  const { isDeveloper, logs, brainData, featureFlags, loading } = useTSAM();
+  const [systemStats, setSystemStats] = useState({
+    errorCount: 0,
+    activeUsers: 0,
+    uptime: '99.9%',
+    responseTime: '145ms',
+    deploymentStatus: 'stable'
+  });
+
+  useEffect(() => {
+    // Simulate real-time stats update
+    const interval = setInterval(() => {
+      setSystemStats(prev => ({
+        ...prev,
+        activeUsers: Math.floor(Math.random() * 50) + 20,
+        responseTime: `${Math.floor(Math.random() * 100) + 100}ms`
+      }));
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   if (!isDeveloper) {
     return <div>Access Denied</div>;
   }
 
-  const criticalIssues = logs.filter(log => log.priority === 'critical' && !log.resolved);
-  const recentLogs = logs.slice(0, 5);
+  const criticalIssues = logs.filter(log => log.priority === 'critical').length;
+  const enabledFlags = featureFlags.filter(flag => flag.enabled).length;
 
-  const mockInsights = [
-    {
-      id: '1',
-      type: 'suggestion' as const,
-      title: 'Performance Optimization Detected',
-      description: 'Database query in lead management can be optimized for 40% faster response time.',
-      priority: 'high' as const,
-      action: {
-        label: 'Apply Fix',
-        handler: () => console.log('Applying performance fix...')
-      }
+  const quickActions = [
+    { 
+      title: 'System Logs', 
+      description: 'Real-time log monitoring',
+      icon: <Monitor className="h-5 w-5" />,
+      path: '/developer/logs',
+      status: 'active'
     },
-    {
-      id: '2',
-      type: 'warning' as const,
-      title: 'Memory Usage Alert',
-      description: 'AI agent memory consumption is above normal thresholds.',
-      priority: 'medium' as const
+    { 
+      title: 'Feature Flags', 
+      description: 'Toggle system features',
+      icon: <Code className="h-5 w-5" />,
+      path: '/developer/feature-flags',
+      status: 'stable'
+    },
+    { 
+      title: 'AI Suggestions', 
+      description: 'TSAM optimization insights',
+      icon: <Zap className="h-5 w-5" />,
+      path: '/developer/ai-suggestions',
+      status: 'active'
+    },
+    { 
+      title: 'System Updates', 
+      description: 'Deployment history',
+      icon: <GitCommit className="h-5 w-5" />,
+      path: '/developer/updates',
+      status: 'stable'
     }
+  ];
+
+  const systemMetrics = [
+    { label: 'Active Users', value: systemStats.activeUsers, icon: <Users className="h-4 w-4" /> },
+    { label: 'System Uptime', value: systemStats.uptime, icon: <Shield className="h-4 w-4" /> },
+    { label: 'Avg Response', value: systemStats.responseTime, icon: <Activity className="h-4 w-4" /> },
+    { label: 'Critical Issues', value: criticalIssues, icon: <AlertTriangle className="h-4 w-4" /> }
   ];
 
   if (loading) {
     return (
-      <TSAMLayout title="TSAM Dashboard">
+      <TSAMLayout title="Developer Dashboard">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400"></div>
         </div>
@@ -48,104 +97,104 @@ const DeveloperDashboard: React.FC = () => {
   }
 
   return (
-    <TSAMLayout title="TSAM Developer Dashboard">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <TSAMCard 
-          title="System Health" 
-          icon={<Activity className="h-5 w-5" />}
-          priority="high"
-        >
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Uptime</span>
-              <span className="text-green-400">99.9%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Active Users</span>
-              <span className="text-blue-400">1,247</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Response Time</span>
-              <span className="text-yellow-400">120ms</span>
-            </div>
-          </div>
-        </TSAMCard>
+    <TSAMLayout title="Developer Control Panel">
+      <div className="space-y-6">
+        {/* System Status Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {systemMetrics.map((metric, index) => (
+            <TSAMCard key={index} title={metric.label} icon={metric.icon} priority="medium">
+              <div className="text-2xl font-bold text-white">{metric.value}</div>
+            </TSAMCard>
+          ))}
+        </div>
 
-        <TSAMCard 
-          title="AI Brain Status" 
-          icon={<Brain className="h-5 w-5" />}
-          priority="medium"
-        >
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Active Agents</span>
-              <span className="text-green-400">12</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Processed Events</span>
-              <span className="text-blue-400">{logs.length}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Auto-fixes Applied</span>
-              <span className="text-purple-400">7</span>
-            </div>
-          </div>
-        </TSAMCard>
-
-        <TSAMCard 
-          title="Critical Issues" 
-          icon={<Bug className="h-5 w-5" />}
-          priority={criticalIssues.length > 0 ? 'critical' : 'low'}
-        >
-          <div className="text-center">
-            <div className="text-3xl font-bold mb-2">
-              {criticalIssues.length}
-            </div>
-            <p className="text-sm text-gray-400">
-              {criticalIssues.length > 0 ? 'Requires immediate attention' : 'All systems operational'}
-            </p>
-          </div>
-        </TSAMCard>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TSAMCard title="AI Insights" icon={<Zap className="h-5 w-5" />}>
-          <div className="space-y-4">
-            {mockInsights.map(insight => (
-              <AIInsightBox 
-                key={insight.id} 
-                insight={insight}
-                onDismiss={(id) => console.log('Dismissed:', id)}
-                onApply={(id) => console.log('Applied:', id)}
-              />
+        {/* Quick Actions */}
+        <TSAMCard title="Developer Tools" icon={<Code className="h-5 w-5" />} priority="high">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {quickActions.map((action, index) => (
+              <Link key={index} to={action.path}>
+                <div className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer border border-gray-600">
+                  <div className="flex items-center gap-3 mb-2">
+                    {action.icon}
+                    <h3 className="font-semibold text-white">{action.title}</h3>
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      action.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'
+                    }`}>
+                      {action.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-300">{action.description}</p>
+                </div>
+              </Link>
             ))}
           </div>
         </TSAMCard>
 
-        <TSAMCard title="Recent Activity" icon={<Clock className="h-5 w-5" />}>
-          <div className="space-y-3">
-            {recentLogs.map(log => (
-              <div key={log.id} className="border-l-2 border-blue-400 pl-3 py-2">
-                <div className="flex justify-between items-start">
+        {/* System Health */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TSAMCard title="Recent Activity" icon={<Activity className="h-5 w-5" />}>
+            <div className="space-y-3">
+              {logs.slice(0, 5).map((log, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                   <div>
-                    <p className="font-medium text-sm">{log.type}</p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(log.created_at).toLocaleTimeString()}
-                    </p>
+                    <p className="text-sm text-white">{log.type}</p>
+                    <p className="text-xs text-gray-400">{new Date(log.created_at).toLocaleTimeString()}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    log.priority === 'critical' ? 'bg-red-500/20 text-red-300' :
-                    log.priority === 'high' ? 'bg-orange-500/20 text-orange-300' :
-                    log.priority === 'medium' ? 'bg-blue-500/20 text-blue-300' :
-                    'bg-green-500/20 text-green-300'
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    log.priority === 'critical' ? 'bg-red-500/20 text-red-400' :
+                    log.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                    log.priority === 'medium' ? 'bg-blue-500/20 text-blue-400' :
+                    'bg-green-500/20 text-green-400'
                   }`}>
                     {log.priority}
                   </span>
                 </div>
+              ))}
+            </div>
+          </TSAMCard>
+
+          <TSAMCard title="Feature Flags Status" icon={<Database className="h-5 w-5" />}>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Total Flags</span>
+                <span className="text-white font-semibold">{featureFlags.length}</span>
               </div>
-            ))}
-          </div>
-        </TSAMCard>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Enabled</span>
+                <span className="text-green-400 font-semibold">{enabledFlags}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-300">Disabled</span>
+                <span className="text-orange-400 font-semibold">{featureFlags.length - enabledFlags}</span>
+              </div>
+              <Link to="/developer/feature-flags">
+                <Button className="w-full mt-4 bg-purple-600 hover:bg-purple-700">
+                  Manage Flags
+                </Button>
+              </Link>
+            </div>
+          </TSAMCard>
+        </div>
+
+        {/* AI Brain Status */}
+        {brainData && (
+          <TSAMCard title="TSAM AI Brain Status" icon={<TrendingUp className="h-5 w-5" />} priority="critical">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-400">{brainData.logs?.length || 0}</p>
+                <p className="text-sm text-gray-300">Active Logs</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-400">{brainData.applied_fixes?.length || 0}</p>
+                <p className="text-sm text-gray-300">Applied Fixes</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-orange-400">{brainData.unresolved_bugs?.length || 0}</p>
+                <p className="text-sm text-gray-300">Open Issues</p>
+              </div>
+            </div>
+          </TSAMCard>
+        )}
       </div>
     </TSAMLayout>
   );
