@@ -38,7 +38,7 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
   const needsOnboarding = user && profile?.company_id && 
     profile.role !== 'developer' &&
     profile.role !== 'admin' &&
-    !profile.has_completed_onboarding &&
+    !profile.onboarding_complete &&
     !localStorage.getItem(`onboarding_complete_${profile.company_id}`);
 
   console.log('[OnboardingGuard] Auth Status:', {
@@ -47,7 +47,7 @@ const OnboardingGuard: React.FC<OnboardingGuardProps> = ({ children }) => {
     userRole: profile?.role,
     companyId: profile?.company_id,
     needsOnboarding,
-    onboardingComplete: profile?.has_completed_onboarding,
+    onboardingComplete: profile?.onboarding_complete,
     localStorageCheck: localStorage.getItem(`onboarding_complete_${profile.company_id}`)
   });
 

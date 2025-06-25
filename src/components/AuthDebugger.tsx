@@ -35,7 +35,7 @@ const AuthDebugger: React.FC = () => {
             <div className="text-sm text-gray-600">
               <div>Role: {profile.role}</div>
               <div>Name: {profile.full_name}</div>
-              <div>Onboarding: {profile.has_completed_onboarding ? "Complete" : "Incomplete"}</div>
+              <div>Onboarding: {profile.onboarding_complete ? "Complete" : "Incomplete"}</div>
             </div>
           )}
         </div>
