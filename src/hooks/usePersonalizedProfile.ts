@@ -15,6 +15,22 @@ interface PersonalizedProfile {
   launched_at: string | null;
   user_metadata: any;
   company_id: string | null;
+  // Sales Rep specific fields
+  sales_personality: string | null;
+  primary_goal: string | null;
+  motivation_trigger: string | null;
+  weakness: string | null;
+  mental_state_trigger: string | null;
+  wishlist: string | null;
+  // Manager specific fields
+  management_style: string | null;
+  team_size: number | null;
+  preferred_team_personality: string | null;
+  team_obstacle: string | null;
+  business_goal: string | null;
+  influence_style: string | null;
+  // AI Assistant configuration
+  ai_assistant: any;
 }
 
 export const usePersonalizedProfile = () => {
