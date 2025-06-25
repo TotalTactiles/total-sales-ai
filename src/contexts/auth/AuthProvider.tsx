@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -72,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                       user.email?.split('@')[0] || 
                       'User';
       
-      const profileData = {
+      const profileData: Partial<Profile> = {
         id: user.id,
         full_name: fullName,
         role: userRole,
@@ -80,7 +79,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email_connected: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        last_login: new Date().toISOString()
+        last_login: new Date().toISOString(),
+        onboarding_step: null,
+        has_completed_onboarding: false,
+        user_metadata: user.user_metadata || {},
+        assistant_name: 'AI Assistant',
+        voice_style: 'professional',
+        industry: null,
+        onboarding_complete: false,
+        launched_at: null,
+        sales_personality: null,
+        primary_goal: null,
+        motivation_trigger: null,
+        weakness: null,
+        mental_state_trigger: null,
+        wishlist: null,
+        management_style: null,
+        team_size: null,
+        preferred_team_personality: null,
+        team_obstacle: null,
+        business_goal: null,
+        influence_style: null,
+        ai_assistant: null
       };
 
       logger.info('Attempting to create profile with data:', profileData, 'auth');
@@ -120,7 +140,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email_connected: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        last_login: new Date().toISOString()
+        last_login: new Date().toISOString(),
+        onboarding_step: null,
+        has_completed_onboarding: false,
+        user_metadata: user.user_metadata || {},
+        assistant_name: 'AI Assistant',
+        voice_style: 'professional',
+        industry: null,
+        onboarding_complete: false,
+        launched_at: null,
+        sales_personality: null,
+        primary_goal: null,
+        motivation_trigger: null,
+        weakness: null,
+        mental_state_trigger: null,
+        wishlist: null,
+        management_style: null,
+        team_size: null,
+        preferred_team_personality: null,
+        team_obstacle: null,
+        business_goal: null,
+        influence_style: null,
+        ai_assistant: null
       };
       return fallbackProfile;
     }
@@ -166,7 +207,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         email_connected: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        last_login: new Date().toISOString()
+        last_login: new Date().toISOString(),
+        onboarding_step: null,
+        has_completed_onboarding: false,
+        user_metadata: {},
+        assistant_name: 'AI Assistant',
+        voice_style: 'professional',
+        industry: null,
+        onboarding_complete: false,
+        launched_at: null,
+        sales_personality: null,
+        primary_goal: null,
+        motivation_trigger: null,
+        weakness: null,
+        mental_state_trigger: null,
+        wishlist: null,
+        management_style: null,
+        team_size: null,
+        preferred_team_personality: null,
+        team_obstacle: null,
+        business_goal: null,
+        influence_style: null,
+        ai_assistant: null
       };
       logger.warn('Using fallback profile due to error:', fallbackProfile, 'auth');
       setProfile(fallbackProfile);

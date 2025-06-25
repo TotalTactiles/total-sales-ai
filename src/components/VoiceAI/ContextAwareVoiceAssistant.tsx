@@ -1,129 +1,151 @@
 
-import { logger } from '@/utils/logger';
-
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import VoiceAssistantBubble from './VoiceAssistantBubble';
-import UnifiedAIAssistant from '@/components/UnifiedAI/UnifiedAIAssistant';
 import { useAuth } from '@/contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Mic, 
+  MicOff, 
+  Volume2, 
+  VolumeX, 
+  Brain, 
+  Settings,
+  Play,
+  Pause
+} from 'lucide-react';
 
 interface ContextAwareVoiceAssistantProps {
-  currentLead?: any;
-  isCallActive?: boolean;
-  emailContext?: {
-    to?: string;
-    subject?: string;
-    thread?: any[];
-  };
-  smsContext?: {
-    phoneNumber?: string;
-    conversation?: any[];
-  };
+  className?: string;
 }
 
-const ContextAwareVoiceAssistant: React.FC<ContextAwareVoiceAssistantProps> = ({
-  currentLead,
-  isCallActive,
-  emailContext,
-  smsContext
-}) => {
-  const location = useLocation();
-  const { user, profile } = useAuth();
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [activeMode, setActiveMode] = useState<'voice' | 'chat'>('voice');
+const ContextAwareVoiceAssistant: React.FC<ContextAwareVoiceAssistantProps> = ({ className = '' }) => {
+  const { profile } = useAuth();
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
+  const [currentInput, setCurrentInput] = useState('');
 
-  // Determine workspace context from current route
-  const getWorkspaceContext = () => {
-    const path = location.pathname;
-    
-    if (path.includes('/dialer')) {
-      return 'dialer';
-    } else if (path.includes('/lead-management') || path.includes('/lead/')) {
-      return 'lead_details';
-    } else if (path.includes('/email')) {
-      return 'email';
-    } else if (path.includes('/sms')) {
-      return 'sms';
-    } else if (path.includes('/company-brain')) {
-      return 'company_brain';
-    } else if (path.includes('/dashboard')) {
-      return 'dashboard';
+  // Early return if no profile
+  if (!profile) {
+    return null;
+  }
+
+  const assistantName = profile.assistant_name || 'AI Assistant';
+  const voiceStyle = profile.voice_style || 'professional';
+
+  const toggleListening = () => {
+    setIsListening(!isListening);
+    if (!isListening) {
+      // Start listening logic here
+      console.log('Started listening with assistant:', assistantName);
     } else {
-      return 'general';
+      // Stop listening logic here
+      console.log('Stopped listening');
     }
   };
 
-  const workspaceContext = getWorkspaceContext();
-
-  // Determine assistant name based on user profile
-  const getAssistantName = () => {
-    if (profile?.ai_assistant_name) {
-      return profile.ai_assistant_name;
-    }
-    return 'SalesOS AI';
-  };
-
-  const aiContext = {
-    workspace: workspaceContext as any,
-    currentLead,
-    isCallActive,
-    emailContext,
-    smsContext
-  };
-
-  const handleAction = (action: string, data?: any) => {
-    logger.info('AI Action:', action, data);
-    // Handle various AI actions based on the action type
-    switch (action) {
-      case 'initiate_call':
-        // Navigate to dialer or initiate call
-        break;
-      case 'draft_email':
-        // Open email composer
-        break;
-      case 'show_objection_scripts':
-        // Show objection handling scripts
-        break;
-      default:
-        logger.info('Unhandled action:', action);
+  const toggleSpeaking = () => {
+    setIsSpeaking(!isSpeaking);
+    if (!isSpeaking) {
+      // Start speaking logic here
+      console.log('Started speaking with voice style:', voiceStyle);
+    } else {
+      // Stop speaking logic here
+      console.log('Stopped speaking');
     }
   };
 
-  const toggleMode = () => {
-    setActiveMode(prev => prev === 'voice' ? 'chat' : 'voice');
+  const toggleEnabled = () => {
+    setIsEnabled(!isEnabled);
+    if (isEnabled) {
+      setIsListening(false);
+      setIsSpeaking(false);
+    }
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      {/* Voice Assistant Bubble */}
-      {activeMode === 'voice' && (
-        <VoiceAssistantBubble
-          context={{
-            workspace: workspaceContext,
-            currentLead,
-            isCallActive
-          }}
-        />
-      )}
+    <Card className={`w-full max-w-md ${className}`}>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
+            <Brain className="h-4 w-4 text-purple-600" />
+            <span>{assistantName}</span>
+          </div>
+          <Badge variant="outline" className="text-xs">
+            {voiceStyle}
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        {/* Enable/Disable Toggle */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium">Voice Assistant</span>
+          <Button
+            variant={isEnabled ? "default" : "outline"}
+            size="sm"
+            onClick={toggleEnabled}
+            className="flex items-center gap-2"
+          >
+            {isEnabled ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
+            {isEnabled ? 'Enabled' : 'Disabled'}
+          </Button>
+        </div>
 
-      {/* Unified AI Assistant */}
-      {activeMode === 'chat' && (
-        <UnifiedAIAssistant
-          context={aiContext}
-          onAction={handleAction}
-        />
-      )}
+        {isEnabled && (
+          <>
+            {/* Voice Controls */}
+            <div className="flex gap-2">
+              <Button
+                variant={isListening ? "destructive" : "secondary"}
+                size="sm"
+                onClick={toggleListening}
+                disabled={!isEnabled}
+                className="flex-1"
+              >
+                {isListening ? <MicOff className="h-3 w-3 mr-1" /> : <Mic className="h-3 w-3 mr-1" />}
+                {isListening ? 'Stop' : 'Listen'}
+              </Button>
 
-      {/* Mode Toggle Button */}
-      <div className="absolute -top-12 right-0">
-        <button
-          onClick={toggleMode}
-          className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-full px-3 py-1 text-xs font-medium text-gray-600 hover:bg-white hover:text-gray-900 transition-all duration-200 shadow-sm"
-        >
-          {activeMode === 'voice' ? '💬 Chat' : '🎤 Voice'}
-        </button>
-      </div>
-    </div>
+              <Button
+                variant={isSpeaking ? "destructive" : "secondary"}
+                size="sm"
+                onClick={toggleSpeaking}
+                disabled={!isEnabled}
+                className="flex-1"
+              >
+                {isSpeaking ? <Pause className="h-3 w-3 mr-1" /> : <Play className="h-3 w-3 mr-1" />}
+                {isSpeaking ? 'Stop' : 'Speak'}
+              </Button>
+            </div>
+
+            {/* Status Display */}
+            {(isListening || isSpeaking) && (
+              <div className="text-center p-2 bg-blue-50 rounded-lg">
+                <div className="text-xs text-blue-700 font-medium">
+                  {isListening && 'Listening...'}
+                  {isSpeaking && 'Speaking...'}
+                </div>
+                {currentInput && (
+                  <div className="text-xs text-gray-600 mt-1">
+                    "{currentInput}"
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Settings */}
+            <div className="pt-2 border-t">
+              <Button variant="ghost" size="sm" className="w-full justify-start">
+                <Settings className="h-3 w-3 mr-2" />
+                Voice Settings
+              </Button>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
