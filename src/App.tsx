@@ -13,7 +13,12 @@ import SalesRepOnboarding from '@/pages/onboarding/sales-rep';
 import ManagerOnboarding from '@/pages/onboarding/manager';
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import Pipeline from '@/pages/sales/Pipeline';
+import Inbox from '@/pages/sales/Inbox';
+import Academy from '@/pages/sales/Academy';
 import AICoach from '@/pages/sales/AICoach';
+import Performance from '@/pages/sales/Performance';
+import Profile from '@/pages/sales/Profile';
+import Settings from '@/pages/sales/Settings';
 import ManagerDashboard from '@/pages/ManagerDashboard';
 import DeveloperDashboard from '@/pages/DeveloperDashboard';
 
@@ -49,12 +54,12 @@ function App() {
                         <Routes>
                           <Route path="dashboard" element={<SalesRepDashboard />} />
                           <Route path="pipeline" element={<Pipeline />} />
-                          <Route path="inbox" element={<div className="p-6 pl-72">Inbox - Coming Soon</div>} />
-                          <Route path="academy" element={<div className="p-6 pl-72">Academy - Coming Soon</div>} />
+                          <Route path="inbox" element={<Inbox />} />
+                          <Route path="academy" element={<Academy />} />
                           <Route path="ai-coach" element={<AICoach />} />
-                          <Route path="performance" element={<div className="p-6 pl-72">Performance - Coming Soon</div>} />
-                          <Route path="profile" element={<div className="p-6 pl-72">Profile - Coming Soon</div>} />
-                          <Route path="settings" element={<div className="p-6 pl-72">Settings - Coming Soon</div>} />
+                          <Route path="performance" element={<Performance />} />
+                          <Route path="profile" element={<Profile />} />
+                          <Route path="settings" element={<Settings />} />
                         </Routes>
                       </div>
                     </div>
