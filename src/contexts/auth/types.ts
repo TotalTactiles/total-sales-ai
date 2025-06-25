@@ -6,6 +6,8 @@ export interface Profile {
   full_name: string | null;
   role: Role;
   company_id: string | null;
+  email: string | null;
+  phone_number: string | null;
   email_connected: boolean;
   created_at: string;
   updated_at: string;
@@ -20,6 +22,9 @@ export interface Profile {
   launched_at: string | null;
   // Sales Rep specific fields
   sales_personality: string | null;
+  sales_style: string | null;
+  strength_area: string | null;
+  rep_motivation: string | null;
   primary_goal: string | null;
   motivation_trigger: string | null;
   weakness: string | null;
