@@ -1,16 +1,9 @@
 
 import React from 'react';
-import QuestionFlow from '@/components/onboarding/QuestionFlow';
-import { managerQuestions } from '@/constants/managerQuestions';
+import OnboardingPage from './OnboardingPage';
 
 const ManagerOnboarding: React.FC = () => {
-  return (
-    <QuestionFlow
-      questions={managerQuestions}
-      userRole="manager"
-      title="Manager Onboarding"
-    />
-  );
+  return <OnboardingPage />;
 };
 
 export default ManagerOnboarding;

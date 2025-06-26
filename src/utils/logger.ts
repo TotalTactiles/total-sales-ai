@@ -1,20 +1,26 @@
 
-// Simple logger implementation for the application
+interface LogContext {
+  [key: string]: any;
+}
+
 export const logger = {
-  info: (message: string, data?: any, context?: string) => {
-    const contextStr = context ? `[${context.toUpperCase()}]` : '';
-    console.log(`[INFO] ${contextStr} ${message}`, data || '');
+  info: (message: string, context?: LogContext, category?: string) => {
+    const prefix = category ? `[${category.toUpperCase()}]` : '';
+    console.log(`${prefix} ${message}`, context || '');
   },
-  error: (message: string, data?: any, context?: string) => {
-    const contextStr = context ? `[${context.toUpperCase()}]` : '';
-    console.error(`[ERROR] ${contextStr} ${message}`, data || '');
+  
+  error: (message: string, error?: any, category?: string) => {
+    const prefix = category ? `[${category.toUpperCase()}]` : '';
+    console.error(`${prefix} ${message}`, error || '');
   },
-  warn: (message: string, data?: any, context?: string) => {
-    const contextStr = context ? `[${context.toUpperCase()}]` : '';
-    console.warn(`[WARN] ${contextStr} ${message}`, data || '');
+  
+  warn: (message: string, context?: LogContext, category?: string) => {
+    const prefix = category ? `[${category.toUpperCase()}]` : '';
+    console.warn(`${prefix} ${message}`, context || '');
   },
-  debug: (message: string, data?: any, context?: string) => {
-    const contextStr = context ? `[${context.toUpperCase()}]` : '';
-    console.debug(`[DEBUG] ${contextStr} ${message}`, data || '');
+  
+  debug: (message: string, context?: LogContext, category?: string) => {
+    const prefix = category ? `[${category.toUpperCase()}]` : '';
+    console.debug(`${prefix} ${message}`, context || '');
   }
 };

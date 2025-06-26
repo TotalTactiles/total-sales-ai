@@ -1,232 +1,130 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/utils/logger';
-import { motion, AnimatePresence } from 'framer-motion';
-import { OnboardingProvider } from './OnboardingContext';
-import WelcomeStep from './steps/WelcomeStep';
-import IndustryStep from './steps/IndustryStep';
-import GoalsStep from './steps/GoalsStep';
-import PersonalizationStep from './steps/PersonalizationStep';
-import AgentPersonalityStep from './steps/AgentPersonalityStep';
-import ModuleSelectionStep from './steps/ModuleSelectionStep';
-import RevealStep from './steps/RevealStep';
-import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const OnboardingPage: React.FC = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const { profile, user } = useAuth();
-  const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [settings, setSettings] = useState({
-    industry: '',
-    customIndustry: '',
-    original_goal: '',
-    sales_model: [],
-    team_roles: [],
-    pain_points: [],
-    agent_name: 'AI Assistant',
-    tone: {
-      humor: 50,
-      formality: 50,
-      pushiness: 50
-    },
-    enabled_modules: {
-      dialer: true,
-      brain: true,
-      analytics: true,
-      aiAgent: true
-    },
-    personalization_flags: {
-      show_tips: true,
-      enable_notifications: true,
-      auto_save: true
-    }
+  const [formData, setFormData] = useState({
+    full_name: user?.user_metadata?.full_name || '',
+    role: 'sales_rep' as 'manager' | 'sales_rep',
+    company: '',
+    industry: ''
   });
 
-  const steps = [
-    { component: WelcomeStep, title: 'Welcome' },
-    { component: IndustryStep, title: 'Industry' },
-    { component: GoalsStep, title: 'Goals' },
-    { component: PersonalizationStep, title: 'Personalization' },
-    { component: AgentPersonalityStep, title: 'AI Personality' },
-    { component: ModuleSelectionStep, title: 'Features' },
-    { component: RevealStep, title: 'Ready' }
-  ];
-
-  // Redirect if user shouldn't be in onboarding
-  useEffect(() => {
-    if (!user || !profile) return;
-    
-    // If user is developer or admin, skip onboarding
-    if (profile.role === 'developer' || profile.role === 'admin') {
-      navigate('/os/dev/dashboard');
-      return;
-    }
-    
-    // If onboarding is already completed, redirect to appropriate OS
-    if (localStorage.getItem(`onboarding_complete_${profile.company_id}`)) {
-      const roleRoute = getRoleRoute(profile.role);
-      navigate(roleRoute);
-      return;
-    }
-  }, [user, profile, navigate]);
-
-  const getRoleRoute = (role: string) => {
-    switch (role) {
-      case 'manager':
-        return '/os/manager/dashboard';
-      case 'sales_rep':
-        return '/os/rep/dashboard';
-      case 'developer':
-      case 'admin':
-        return '/os/dev/dashboard';
-      default:
-        return '/os/rep/dashboard';
-    }
-  };
-
-  const completeOnboarding = async () => {
-    if (!user || !profile) {
-      toast.error('User not authenticated');
-      return;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
 
     setIsSubmitting(true);
-    
     try {
-      logger.info('Starting onboarding completion:', { 
-        userId: user.id, 
-        companyId: profile.company_id,
-        settings 
-      });
-
-      // Save settings to database
-      const { error: settingsError } = await supabase
-        .from('company_settings')
+      // Update or create profile
+      const { error } = await supabase
+        .from('profiles')
         .upsert({
-          company_id: profile.company_id,
-          industry: settings.industry,
-          customIndustry: settings.customIndustry,
-          original_goal: settings.original_goal,
-          sales_model: settings.sales_model,
-          team_roles: settings.team_roles,
-          pain_points: settings.pain_points,
-          agent_name: settings.agent_name,
-          tone: settings.tone,
-          enabled_modules: settings.enabled_modules,
-          personalization_flags: settings.personalization_flags,
-          onboarding_completed_at: new Date().toISOString(),
-          guided_tour_completed: true,
+          id: user.id,
+          full_name: formData.full_name,
+          role: formData.role,
+          industry: formData.industry,
+          company_id: user.id,
+          onboarding_complete: true,
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'company_id'
         });
 
-      if (settingsError) {
-        logger.error('Error saving company settings:', settingsError);
-        throw new Error(`Failed to save settings: ${settingsError.message}`);
+      if (error) {
+        console.error('Error updating profile:', error);
+        return;
       }
 
-      // Mark onboarding as complete in localStorage
-      localStorage.setItem(`onboarding_complete_${profile.company_id}`, 'true');
-      
-      logger.info('Onboarding completed successfully, redirecting to OS');
-      
-      // Show success message
-      toast.success('Welcome to SalesOS! Your workspace is ready.');
-      
-      // Small delay to let the toast show, then redirect
-      setTimeout(() => {
-        const roleRoute = getRoleRoute(profile.role);
-        logger.info('Redirecting to:', roleRoute);
-        navigate(roleRoute, { replace: true });
-      }, 1000);
-
+      // Navigate to appropriate dashboard
+      if (formData.role === 'manager') {
+        navigate('/manager/overview');
+      } else {
+        navigate('/os/rep/dashboard');
+      }
     } catch (error) {
-      logger.error('Error completing onboarding:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to complete onboarding');
+      console.error('Error during onboarding:', error);
+    } finally {
       setIsSubmitting(false);
     }
   };
 
-  const nextStep = () => {
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const prevStep = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const updateSettings = (newSettings: Partial<typeof settings>) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
-  };
-
-  const CurrentStepComponent = steps[currentStep].component;
-
-  // Prepare common props for all steps
-  const stepProps = {
-    settings,
-    updateSettings,
-    nextStep,
-    prevStep,
-    isFirstStep: currentStep === 0,
-    isLastStep: currentStep === steps.length - 1,
-    completeOnboarding,
-    isSubmitting
-  };
-
   return (
-    <OnboardingProvider
-      initialCompanyId={profile?.company_id}
-      completeOnboardingFn={async (settings) => {
-        await completeOnboarding();
-      }}
-      isSubmitting={isSubmitting}
-    >
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
-        <div className="container mx-auto px-4 py-8">
-          {/* Progress indicator */}
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-2xl font-bold text-gray-900">Setup Your SalesOS</h1>
-              <span className="text-sm text-gray-500">
-                Step {currentStep + 1} of {steps.length}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <motion.div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                initial={{ width: 0 }}
-                animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold text-[#7B61FF]">
+            Welcome to TSAM
+          </CardTitle>
+          <p className="text-center text-gray-600">
+            Let's set up your profile to get started
+          </p>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="full_name">Full Name</Label>
+              <Input
+                id="full_name"
+                type="text"
+                value={formData.full_name}
+                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                required
               />
             </div>
-          </div>
 
-          {/* Step content */}
-          <div className="max-w-4xl mx-auto">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="bg-white rounded-lg shadow-lg p-8"
-              >
-                <CurrentStepComponent {...stepProps} />
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
-    </OnboardingProvider>
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <Select value={formData.role} onValueChange={(value: 'manager' | 'sales_rep') => setFormData({ ...formData, role: value })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sales_rep">Sales Representative</SelectItem>
+                  <SelectItem value="manager">Manager</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="company">Company (Optional)</Label>
+              <Input
+                id="company"
+                type="text"
+                value={formData.company}
+                onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="industry">Industry (Optional)</Label>
+              <Input
+                id="industry"
+                type="text"
+                value={formData.industry}
+                onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full bg-[#7B61FF] hover:bg-[#674edc]"
+            >
+              {isSubmitting ? 'Setting up...' : 'Complete Setup'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

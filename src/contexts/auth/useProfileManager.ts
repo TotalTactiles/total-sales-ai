@@ -1,87 +1,116 @@
 
 import { useState, useCallback } from 'react';
 import { User } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { Profile } from './types';
-import { fetchProfile, createProfile, updateLastLogin } from './profileService';
 import { logger } from '@/utils/logger';
 
 export const useProfileManager = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
 
-  const fetchOrCreateProfile = useCallback(async (user: User) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
-      logger.info('Starting fetchOrCreateProfile for user:', user.id, 'auth');
-      let userProfile = await fetchProfile(user.id);
+      logger.info('👤 Fetching profile for user:', { userId }, 'profile');
       
-      if (!userProfile) {
-        logger.info('Profile not found, creating new profile for user:', user.id, 'auth');
-        userProfile = await createProfile(user);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        logger.error('❌ Error fetching profile:', error, 'profile');
+        return null;
       }
 
-      if (userProfile) {
-        logger.info('Setting profile in state:', { 
-          userId: user.id, 
-          profileRole: userProfile.role,
-          profileId: userProfile.id
-        }, 'auth');
-        setProfile(userProfile);
-        
-        // Update last login timestamp (non-critical operation)
-        setTimeout(() => updateLastLogin(user.id), 0);
+      if (data) {
+        logger.info('✅ Profile fetched successfully:', { 
+          userId: data.id, 
+          role: data.role 
+        }, 'profile');
+        setProfile(data as Profile);
+        return data as Profile;
       }
+
+      logger.info('ℹ️ No profile found for user:', { userId }, 'profile');
+      return null;
     } catch (error) {
-      logger.error('Critical error in fetchOrCreateProfile:', error, 'auth');
-      // Set a fallback profile to prevent blocking access
-      const fallbackProfile: Profile = {
-        id: user.id,
-        full_name: user.email?.split('@')[0] || 'User',
-        role: 'sales_rep',
-        company_id: user.id,
-        email: user.email,
-        phone_number: null,
-        email_connected: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        last_login: new Date().toISOString(),
-        onboarding_step: null,
-        has_completed_onboarding: false,
-        user_metadata: {},
-        assistant_name: 'AI Assistant',
-        voice_style: 'professional',
-        industry: null,
-        onboarding_complete: false,
-        launched_at: null,
-        sales_personality: null,
-        sales_style: null,
-        strength_area: null,
-        rep_motivation: null,
-        primary_goal: null,
-        motivation_trigger: null,
-        weakness: null,
-        mental_state_trigger: null,
-        wishlist: null,
-        management_style: null,
-        team_size: null,
-        preferred_team_personality: null,
-        team_obstacle: null,
-        business_goal: null,
-        influence_style: null,
-        ai_assistant: null
-      };
-      logger.warn('Using fallback profile due to error:', fallbackProfile, 'auth');
-      setProfile(fallbackProfile);
+      logger.error('❌ Exception fetching profile:', error, 'profile');
+      return null;
     }
   }, []);
 
+  const createProfile = useCallback(async (user: User, additionalData?: any) => {
+    try {
+      logger.info('👤 Creating profile for user:', { 
+        userId: user.id, 
+        email: user.email 
+      }, 'profile');
+
+      const profileData = {
+        id: user.id,
+        full_name: user.user_metadata?.full_name || additionalData?.full_name || 'User',
+        role: additionalData?.role || user.user_metadata?.role || 'sales_rep',
+        company_id: user.id, // Use user ID as company ID for individual users
+        email_connected: false,
+        onboarding_complete: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        last_login: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert([profileData])
+        .select()
+        .single();
+
+      if (error) {
+        logger.error('❌ Error creating profile:', error, 'profile');
+        return null;
+      }
+
+      logger.info('✅ Profile created successfully:', { 
+        userId: data.id, 
+        role: data.role 
+      }, 'profile');
+      
+      setProfile(data as Profile);
+      return data as Profile;
+    } catch (error) {
+      logger.error('❌ Exception creating profile:', error, 'profile');
+      return null;
+    }
+  }, []);
+
+  const fetchOrCreateProfile = useCallback(async (user: User) => {
+    try {
+      // First try to fetch existing profile
+      let profile = await fetchProfile(user.id);
+      
+      // If no profile exists, create one
+      if (!profile) {
+        profile = await createProfile(user);
+      }
+
+      return profile;
+    } catch (error) {
+      logger.error('❌ Error in fetchOrCreateProfile:', error, 'profile');
+      return null;
+    }
+  }, [fetchProfile, createProfile]);
+
   const clearProfile = useCallback(() => {
+    logger.info('👤 Clearing profile', {}, 'profile');
     setProfile(null);
   }, []);
 
   return {
     profile,
     setProfile,
+    fetchProfile,
+    createProfile,
     fetchOrCreateProfile,
-    clearProfile,
-    fetchProfile
+    clearProfile
   };
 };

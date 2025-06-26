@@ -7,9 +7,13 @@ const DemoUserSetup: React.FC = () => {
   useEffect(() => {
     if (isDemoMode) {
       console.log('🎭 Setting up demo users on app start...');
-      ensureDemoUsersExist().catch(error => {
-        console.error('❌ Failed to setup demo users:', error);
-      });
+      ensureDemoUsersExist()
+        .then(() => {
+          console.log('✅ Demo users setup complete');
+        })
+        .catch(error => {
+          console.error('❌ Failed to setup demo users:', error);
+        });
     }
   }, []);
 

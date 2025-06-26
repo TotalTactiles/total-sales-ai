@@ -6,6 +6,7 @@ import { AuthContextType, Profile } from './types';
 import { logger } from '@/utils/logger';
 import { useProfileManager } from './useProfileManager';
 import { signIn, signUp, signUpWithOAuth, signOut } from './authService';
+import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -60,7 +61,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               
               if (session?.user) {
                 console.log('🔐 Auth state change: User found, fetching profile');
-                console.log('🔐 SESSION:', session);
                 // Don't block auth state update with profile fetching
                 setTimeout(() => {
                   if (mounted) {
@@ -90,7 +90,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             userId: session.user.id, 
             userEmail: session.user.email 
           }, 'auth');
-          console.log('🔐 INITIAL SESSION:', session);
           if (mounted) {
             setSession(session);
             setUser(session.user);
@@ -140,8 +139,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     } else {
       console.log('🔐 AuthProvider: Sign in successful, auth state will update via onAuthStateChange');
-      console.log('🔐 SIGN IN RESULT:', result);
       // Don't set loading to false here - let onAuthStateChange handle it
+    }
+    
+    return result;
+  };
+
+  const handleSignUp = async (email: string, password: string, options?: any) => {
+    console.log('🔐 AuthProvider: handleSignUp called for:', email);
+    setLoading(true);
+    
+    const result = await signUp(email, password, options);
+    
+    if (result.error) {
+      console.error('🔐 AuthProvider: Sign up failed:', result.error);
+      setLoading(false);
+    } else {
+      console.log('🔐 AuthProvider: Sign up successful');
+      // For signup, we might not get immediate session due to email confirmation
+      setLoading(false);
     }
     
     return result;
@@ -165,7 +181,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading,
     session,
     signIn: handleSignIn,
-    signUp,
+    signUp: handleSignUp,
     signUpWithOAuth,
     signOut: handleSignOut,
     fetchProfile
