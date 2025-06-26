@@ -30,6 +30,7 @@ export interface Profile {
   rep_motivation?: string;
   onboarding_step?: string;
   team_size?: number;
+  has_completed_onboarding?: boolean;
 }
 
 export type Role = 'admin' | 'developer' | 'manager' | 'sales_rep';

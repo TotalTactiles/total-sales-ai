@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -5,25 +6,34 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import DemoUserSetup from '@/components/DemoUserSetup';
+import DeveloperTrigger from '@/components/DeveloperTrigger';
 
 // Import pages
 import AuthPage from '@/pages/auth/AuthPage';
-import DeveloperDashboard from '@/pages/DeveloperDashboard';
+import OnboardingPage from '@/pages/onboarding/OnboardingPage';
 
 // Manager pages
-import ManagerOverview from '@/pages/manager/Overview';
-import ManagerDashboard from '@/pages/manager/Dashboard';
+import ManagerDashboard from '@/pages/manager/ManagerDashboard';
+import ManagerLeads from '@/pages/manager/ManagerLeads';
+import ManagerTeam from '@/pages/manager/ManagerTeam';
+import ManagerMetrics from '@/pages/manager/ManagerMetrics';
+import ManagerCoaching from '@/pages/manager/ManagerCoaching';
+import ManagerProfile from '@/pages/manager/ManagerProfile';
 
 // Sales Rep pages  
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
+import SalesLeads from '@/pages/sales/SalesLeads';
+import SalesActivity from '@/pages/sales/SalesActivity';
+import SalesAIInsights from '@/pages/sales/SalesAIInsights';
+import SalesProfile from '@/pages/sales/SalesProfile';
+import LeadWorkspace from '@/pages/sales/LeadWorkspace';
 
 // Developer pages
-import DevDashboard from '@/pages/developer/Dashboard';
-
-// Other pages
-import OnboardingPage from '@/pages/onboarding/OnboardingPage';
-import ManagerOnboarding from '@/pages/onboarding/manager';
-import SalesRepOnboarding from '@/pages/onboarding/sales-rep';
+import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
+import DeveloperLogs from '@/pages/developer/DeveloperLogs';
+import DeveloperFlags from '@/pages/developer/DeveloperFlags';
+import DeveloperUpdates from '@/pages/developer/DeveloperUpdates';
+import DeveloperBrain from '@/pages/developer/DeveloperBrain';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,30 +50,35 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <DemoUserSetup />
+          <DeveloperTrigger />
           <Router>
             <Routes>
               {/* Auth routes */}
               <Route path="/auth" element={<AuthPage />} />
+              <Route path="/onboarding" element={<OnboardingPage />} />
               
               {/* Manager routes */}
-              <Route path="/manager/overview" element={<ManagerOverview />} />
               <Route path="/manager/dashboard" element={<ManagerDashboard />} />
-              <Route path="/manager/*" element={<Navigate to="/manager/overview" replace />} />
+              <Route path="/manager/leads" element={<ManagerLeads />} />
+              <Route path="/manager/team" element={<ManagerTeam />} />
+              <Route path="/manager/conversion-metrics" element={<ManagerMetrics />} />
+              <Route path="/manager/coaching" element={<ManagerCoaching />} />
+              <Route path="/manager/profile" element={<ManagerProfile />} />
               
               {/* Sales Rep routes */}
-              <Route path="/os/rep/dashboard" element={<SalesRepDashboard />} />
               <Route path="/sales/dashboard" element={<SalesRepDashboard />} />
-              <Route path="/sales/*" element={<Navigate to="/sales/dashboard" replace />} />
+              <Route path="/sales/leads" element={<SalesLeads />} />
+              <Route path="/sales/lead/:leadId" element={<LeadWorkspace />} />
+              <Route path="/sales/activity" element={<SalesActivity />} />
+              <Route path="/sales/ai-insights" element={<SalesAIInsights />} />
+              <Route path="/sales/profile" element={<SalesProfile />} />
               
               {/* Developer routes */}
-              <Route path="/developer/dashboard" element={<DevDashboard />} />
-              <Route path="/developer/*" element={<Navigate to="/developer/dashboard" replace />} />
-              <Route path="/dev" element={<DeveloperDashboard />} />
-              
-              {/* Onboarding routes */}
-              <Route path="/onboarding" element={<OnboardingPage />} />
-              <Route path="/onboarding/manager" element={<ManagerOnboarding />} />
-              <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />
+              <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+              <Route path="/developer/logs" element={<DeveloperLogs />} />
+              <Route path="/developer/flags" element={<DeveloperFlags />} />
+              <Route path="/developer/system-updates" element={<DeveloperUpdates />} />
+              <Route path="/developer/tsam-brain" element={<DeveloperBrain />} />
               
               {/* Default route */}
               <Route path="/" element={<Navigate to="/auth" replace />} />

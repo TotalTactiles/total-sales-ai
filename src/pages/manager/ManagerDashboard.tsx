@@ -1,255 +1,164 @@
 
-import { logger } from '@/utils/logger';
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { toast } from 'sonner';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-import ManagerOverviewCards from '@/components/Manager/ManagerOverviewCards';
-import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
-import ManagerAIAssistant from '@/components/ManagerAI/ManagerAIAssistant';
-import ManagerRecognitionEngine from '@/components/Manager/ManagerRecognitionEngine';
-import ManagerEscalationCenter from '@/components/Manager/ManagerEscalationCenter';
-import ManagerBookingSystem from '@/components/Manager/ManagerBookingSystem';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Users, 
-  Brain, 
-  LineChart, 
-  Calendar, 
-  Award, 
-  Heart, 
-  AlertCircle, 
-  CheckCircle, 
-  Clock, 
-  UserPlus, 
-  MessageCircle, 
-  Video,
-  BarChart,
-  Bell,
-  AlertTriangle,
-  Trophy
+  TrendingUp, 
+  DollarSign, 
+  Target, 
+  Brain,
+  BarChart3,
+  Calendar,
+  AlertTriangle
 } from 'lucide-react';
-
-type TeamMember = {
-  id: string;
-  full_name: string | null;
-  last_login: string | null;
-  role: string;
-  stats: {
-    call_count: number;
-    win_count: number;
-    current_streak: number;
-    burnout_risk: number;
-    last_active: string | null;
-    mood_score: number | null;
-  }
-};
-
-type AIRecommendation = {
-  id: string;
-  type: 'follow-up' | 'burnout' | 'trending-down' | 'reward';
-  rep_name: string;
-  rep_id: string;
-  message: string;
-  action: string;
-};
+import { useAuth } from '@/contexts/AuthContext';
+import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 
 const ManagerDashboard = () => {
-  const { user, profile } = useAuth();
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [showSessionModal, setShowSessionModal] = useState(false);
-  const [selectedRep, setSelectedRep] = useState<TeamMember | null>(null);
-  
-  // Initialize with demo data since this is a demo environment
-  useEffect(() => {
-    initializeDemoData();
-  }, [user]);
+  const { profile } = useAuth();
 
-  const initializeDemoData = () => {
-    // Mock team members data
-    const mockTeamMembers: TeamMember[] = [
-      {
-        id: 'demo-tm-1',
-        full_name: 'Sarah Johnson',
-        last_login: new Date().toISOString(),
-        role: 'sales_rep',
-        stats: {
-          call_count: 172,
-          win_count: 45,
-          current_streak: 5,
-          burnout_risk: 10,
-          last_active: new Date().toISOString(),
-          mood_score: 85
-        }
-      },
-      {
-        id: 'demo-tm-2',
-        full_name: 'Michael Chen',
-        last_login: new Date(Date.now() - 3600000).toISOString(),
-        role: 'sales_rep',
-        stats: {
-          call_count: 143,
-          win_count: 32,
-          current_streak: 0,
-          burnout_risk: 75,
-          last_active: new Date(Date.now() - 3600000).toISOString(),
-          mood_score: 45
-        }
-      },
-      {
-        id: 'demo-tm-3',
-        full_name: 'Jasmine Lee',
-        last_login: new Date(Date.now() - 86400000).toISOString(),
-        role: 'sales_rep',
-        stats: {
-          call_count: 198,
-          win_count: 57,
-          current_streak: 7,
-          burnout_risk: 20,
-          last_active: new Date(Date.now() - 43200000).toISOString(),
-          mood_score: 90
-        }
-      }
-    ];
-    
-    const mockRecommendations: AIRecommendation[] = [
-      {
-        id: 'demo-rec-1',
-        type: 'follow-up',
-        rep_name: 'Sarah Johnson',
-        rep_id: 'demo-tm-1',
-        message: 'Sarah missed 3 follow-ups with Enterprise leads this week',
-        action: 'Assign Recovery Mode'
-      },
-      {
-        id: 'demo-rec-2',
-        type: 'burnout',
-        rep_name: 'Michael Chen',
-        rep_id: 'demo-tm-2',
-        message: 'Michael worked 12+ hours overtime this week and mood score is dropping',
-        action: 'Schedule 1-on-1'
-      }
-    ];
-    
-    setTeamMembers(mockTeamMembers);
-    setRecommendations(mockRecommendations);
-    setLoading(false);
+  // Mock data for manager dashboard
+  const teamStats = {
+    totalReps: 8,
+    activeReps: 6,
+    topPerformer: 'Sarah Johnson',
+    avgConversion: 23.5
   };
 
-  const scheduleSession = (type: '1on1' | 'video' | 'silent') => {
-    if (!selectedRep) return;
-    
-    toast.success(`${type === '1on1' ? 'One-on-one' : type === 'video' ? 'Video call' : 'Silent coaching'} session scheduled with ${selectedRep.full_name}`);
-    setShowSessionModal(false);
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-salesBlue"></div>
-      </div>
-    );
-  }
+  const recentActivity = [
+    { rep: 'Sarah Johnson', action: 'Closed deal with Acme Corp', time: '2 hours ago', value: '$25,000' },
+    { rep: 'Mike Chen', action: 'Scheduled demo with TechStart', time: '4 hours ago', value: '$15,000' },
+    { rep: 'Lisa Park', action: 'Follow-up call completed', time: '6 hours ago', value: '$8,000' }
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-50">
       <ManagerNavigation />
       
-      <main className="pt-[60px]">
-        <div className="flex-1 px-4 md:px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <ManagerOverviewCards 
-              teamMembers={teamMembers}
-              recommendations={recommendations}
-              demoMode={true}
-              profile={profile}
-            />
-            
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-              <div className="lg:col-span-2 space-y-6">
-                <ManagerTeamTable teamMembers={teamMembers} />
-                <ManagerRecognitionEngine />
-              </div>
-              
-              <div className="space-y-6">
-                <ManagerAIAssistant />
-                <ManagerBookingSystem demoMode={true} />
-                <ManagerEscalationCenter demoMode={true} />
-              </div>
-            </div>
+      <div className="ml-64 p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
+            <p className="text-gray-600">Welcome back, {profile?.full_name || 'Manager'}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <Brain className="h-3 w-3 mr-1" />
+              AI Assistant Active
+            </Badge>
           </div>
         </div>
-      </main>
-      
-      {/* 1-on-1 Booking Modal */}
-      {showSessionModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <h3 className="text-xl font-bold mb-4">
-              Schedule Session with {selectedRep?.full_name || 'Team Member'}
-            </h3>
-            
-            <div className="space-y-4 mb-6">
-              <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                  <button 
-                    onClick={() => scheduleSession('1on1')}
-                    className="w-full flex items-center p-4 hover:bg-slate-50 border-b"
-                  >
-                    <Calendar className="h-10 w-10 text-salesBlue mr-4" />
-                    <div className="text-left">
-                      <h4 className="font-medium">Calendar-Based 1-on-1</h4>
-                      <p className="text-sm text-slate-500">
-                        Schedule a formal meeting with calendar invite
-                      </p>
-                    </div>
-                  </button>
-                  
-                  <button 
-                    onClick={() => scheduleSession('video')}
-                    className="w-full flex items-center p-4 hover:bg-slate-50 border-b"
-                  >
-                    <Video className="h-10 w-10 text-salesCyan mr-4" />
-                    <div className="text-left">
-                      <h4 className="font-medium">Video Coaching</h4>
-                      <p className="text-sm text-slate-500">
-                        Immediate video call with recording feature
-                      </p>
-                    </div>
-                  </button>
-                  
-                  <button 
-                    onClick={() => scheduleSession('silent')}
-                    className="w-full flex items-center p-4 hover:bg-slate-50"
-                  >
-                    <MessageCircle className="h-10 w-10 text-salesGreen mr-4" />
-                    <div className="text-left">
-                      <h4 className="font-medium">Silent Coaching Session</h4>
-                      <p className="text-sm text-slate-500">
-                        Listen in on live calls with feedback channel
-                      </p>
-                    </div>
-                  </button>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div className="flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => setShowSessionModal(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Total Reps</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-blue-600" />
+                <span className="text-2xl font-bold">{teamStats.totalReps}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Active Now</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-2xl font-bold">{teamStats.activeReps}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Avg Conversion</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                <span className="text-2xl font-bold">{teamStats.avgConversion}%</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Top Performer</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-purple-600" />
+                <span className="text-lg font-semibold">{teamStats.topPerformer}</span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      )}
+
+        {/* Recent Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Recent Team Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium">{activity.rep}</p>
+                      <p className="text-sm text-gray-600">{activity.action}</p>
+                      <p className="text-xs text-gray-500">{activity.time}</p>
+                    </div>
+                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                      {activity.value}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-purple-600" />
+                AI Coaching Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+                  <p className="font-medium text-blue-900">Coaching Opportunity</p>
+                  <p className="text-sm text-blue-700">Mike Chen's call-to-demo ratio is 15% below team average</p>
+                  <Button size="sm" className="mt-2">Schedule 1-on-1</Button>
+                </div>
+                <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
+                  <p className="font-medium text-green-900">Success Pattern</p>
+                  <p className="text-sm text-green-700">Sarah's objection handling technique is working well - consider team training</p>
+                  <Button size="sm" variant="outline" className="mt-2">Share Best Practice</Button>
+                </div>
+                <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
+                  <p className="font-medium text-yellow-900">Pipeline Alert</p>
+                  <p className="text-sm text-yellow-700">3 high-value deals need manager review this week</p>
+                  <Button size="sm" variant="outline" className="mt-2">Review Deals</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

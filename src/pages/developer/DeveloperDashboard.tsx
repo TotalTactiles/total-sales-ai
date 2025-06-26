@@ -1,298 +1,171 @@
 
-import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { 
+  Activity, 
+  AlertTriangle, 
+  CheckCircle, 
+  Brain,
+  Zap,
+  Code,
+  Server,
+  Database
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
-import ProductionReadinessMonitor from '@/components/SystemHealth/ProductionReadinessMonitor';
-import UserAccountManager from '@/components/Developer/UserAccountManager';
-import AgentHealthDashboard from '@/components/Developer/AgentHealthDashboard';
-import ErrorBoundary from '@/components/auth/ErrorBoundary';
-import { relevanceAIConnection } from '@/services/relevance/RelevanceAIConnectionService';
-import { agentOrchestrator } from '@/services/agents/AgentOrchestrator';
-import { Activity, Brain, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
 
 const DeveloperDashboard = () => {
-  const { user, profile } = useAuth();
-  const [systemHealth, setSystemHealth] = useState<any>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState(new Date());
+  const { profile } = useAuth();
+  const [systemHealth, setSystemHealth] = useState(98);
 
-  useEffect(() => {
-    initializeAISystem();
-    const interval = setInterval(refreshSystemHealth, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
-
-  const initializeAISystem = async () => {
-    setIsInitializing(true);
-    try {
-      // Initialize Relevance AI connection
-      const connected = await relevanceAIConnection.initialize();
-      
-      // Get system health
-      await refreshSystemHealth();
-      
-      console.log('AI System initialized:', { connected });
-    } catch (error) {
-      console.error('Failed to initialize AI system:', error);
-    } finally {
-      setIsInitializing(false);
-    }
+  // Mock system stats
+  const systemStats = {
+    uptime: '99.8%',
+    activeUsers: 156,
+    apiCalls: 12420,
+    errorRate: 0.02
   };
 
-  const refreshSystemHealth = async () => {
-    try {
-      const health = relevanceAIConnection.getHealthStatus();
-      const performanceMetrics = agentOrchestrator.getPerformanceMetrics();
-      
-      setSystemHealth({
-        ...health,
-        performanceMetrics
-      });
-      setLastUpdate(new Date());
-    } catch (error) {
-      console.error('Failed to refresh system health:', error);
-    }
-  };
+  const recentLogs = [
+    { id: 1, type: 'info', message: 'User authentication successful', timestamp: '2 minutes ago', component: 'auth' },
+    { id: 2, type: 'warning', message: 'High memory usage detected', timestamp: '5 minutes ago', component: 'api' },
+    { id: 3, type: 'error', message: 'Database connection timeout', timestamp: '12 minutes ago', component: 'database' },
+    { id: 4, type: 'success', message: 'Auto-scaling event completed', timestamp: '18 minutes ago', component: 'infrastructure' }
+  ];
 
-  const handleTestAgent = async (agentType: string) => {
-    try {
-      const result = await agentOrchestrator.executeTask({
-        agentType: agentType as any,
-        taskType: 'health_check',
-        context: {
-          workspace: 'developer',
-          userRole: 'developer',
-          companyId: profile?.company_id || 'demo',
-          userId: user?.id || 'demo'
-        },
-        priority: 'medium'
-      });
-      
-      console.log(`${agentType} test result:`, result);
-      await refreshSystemHealth();
-    } catch (error) {
-      console.error(`Failed to test ${agentType}:`, error);
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'text-green-600';
-      case 'error': return 'text-red-600';
-      default: return 'text-yellow-600';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active': return <CheckCircle className="h-4 w-4" />;
-      case 'error': return <AlertTriangle className="h-4 w-4" />;
-      default: return <Activity className="h-4 w-4" />;
-    }
-  };
+  const jarvisInsights = [
+    { type: 'optimization', message: 'API response time improved by 15% after last deployment' },
+    { type: 'alert', message: 'Memory usage trending upward - consider scaling' },
+    { type: 'success', message: 'Zero critical errors in the last 24 hours' }
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gray-900 text-white">
       <DeveloperNavigation />
       
-      <main className="pt-[60px]">
-        <div className="flex-1 px-4 md:px-6 py-6">
-          <div className="max-w-7xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="border-b pb-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">Developer Dashboard</h1>
-                  <p className="text-muted-foreground mt-2">
-                    AI System monitoring, user management, and production readiness tools
-                  </p>
-                  {profile && (
-                    <div className="mt-4 text-sm text-muted-foreground">
-                      Logged in as: <span className="font-medium">{profile.full_name}</span> ({profile.role})
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    onClick={refreshSystemHealth}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                  </Button>
-                  <Badge variant={systemHealth?.apiConnected ? 'default' : 'destructive'}>
-                    {isInitializing ? 'Initializing...' : systemHealth?.apiConnected ? 'AI Online' : 'AI Offline'}
-                  </Badge>
-                </div>
-              </div>
-            </div>
-
-            {/* AI System Status */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">API Status</CardTitle>
-                  <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {systemHealth?.apiConnected ? 'Connected' : 'Disconnected'}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Last check: {lastUpdate.toLocaleTimeString()}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
-                  <Brain className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {systemHealth?.agentsRegistered?.filter((a: any) => a.status === 'active').length || 0}/
-                    {systemHealth?.agentsRegistered?.length || 4}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Agents operational
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Task Queue</CardTitle>
-                  <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">0</div>
-                  <p className="text-xs text-muted-foreground">
-                    Pending tasks
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Response Time</CardTitle>
-                  <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {systemHealth?.agentsRegistered?.[0]?.responseTimeMs || 0}ms
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Average agent response
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Agent Status Grid */}
-            <Card>
-              <CardHeader>
-                <CardTitle>AI Agents Status</CardTitle>
-                <CardDescription>Real-time status of all AI agents</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {systemHealth?.agentsRegistered?.map((agent: any) => (
-                    <div key={agent.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className={getStatusColor(agent.status)}>
-                          {getStatusIcon(agent.status)}
-                        </div>
-                        <div>
-                          <div className="font-medium">{agent.name}</div>
-                          <div className="text-sm text-muted-foreground">{agent.id}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleTestAgent(agent.id)}
-                        >
-                          Test
-                        </Button>
-                        <Badge variant={agent.status === 'active' ? 'default' : 'destructive'}>
-                          {agent.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  )) || (
-                    <div className="text-center py-4 text-muted-foreground">
-                      No agents registered
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Main Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* System Health */}
-              <ErrorBoundary>
-                <ProductionReadinessMonitor />
-              </ErrorBoundary>
-              
-              {/* User Management */}
-              <ErrorBoundary>
-                <UserAccountManager />
-              </ErrorBoundary>
-            </div>
-
-            {/* Agent Health Details */}
-            <ErrorBoundary>
-              <AgentHealthDashboard />
-            </ErrorBoundary>
-
-            {/* System Information */}
-            <ErrorBoundary>
-              <Card>
-                <CardHeader>
-                  <CardTitle>System Information</CardTitle>
-                  <CardDescription>Current system status and configuration</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <p className="font-medium">Environment</p>
-                      <p className="text-muted-foreground">
-                        {process.env.NODE_ENV || 'development'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Current Route</p>
-                      <p className="text-muted-foreground">
-                        {window.location.pathname}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium">User ID</p>
-                      <p className="text-muted-foreground font-mono text-xs">
-                        {user?.id || 'Not authenticated'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Timestamp</p>
-                      <p className="text-muted-foreground">
-                        {new Date().toLocaleTimeString()}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </ErrorBoundary>
+      <div className="ml-64 p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Developer Dashboard</h1>
+            <p className="text-gray-400">System monitoring and control, {profile?.full_name}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="bg-green-900 text-green-300 border-green-700">
+              <Brain className="h-3 w-3 mr-1" />
+              JARVIS Online
+            </Badge>
+            <Badge variant="outline" className="bg-blue-900 text-blue-300 border-blue-700">
+              System Health: {systemHealth}%
+            </Badge>
           </div>
         </div>
-      </main>
+
+        {/* System Health Bar */}
+        <Card className="mb-6 bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-green-400 flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              TSAM System Health
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="w-full bg-gray-700 rounded-full h-4 mb-4">
+              <div 
+                className="bg-gradient-to-r from-green-500 to-blue-500 h-4 rounded-full transition-all duration-300"
+                style={{ width: `${systemHealth}%` }}
+              ></div>
+            </div>
+            <div className="grid grid-cols-4 gap-4 text-sm">
+              <div>
+                <p className="text-gray-400">Uptime</p>
+                <p className="text-green-400 font-semibold">{systemStats.uptime}</p>
+              </div>
+              <div>
+                <p className="text-gray-400">Active Users</p>
+                <p className="text-blue-400 font-semibold">{systemStats.activeUsers}</p>
+              </div>
+              <div>
+                <p className="text-gray-400">API Calls/hr</p>
+                <p className="text-purple-400 font-semibold">{systemStats.apiCalls}</p>
+              </div>
+              <div>
+                <p className="text-gray-400">Error Rate</p>
+                <p className="text-yellow-400 font-semibold">{systemStats.errorRate}%</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* JARVIS AI Brain */}
+        <Card className="mb-6 bg-gradient-to-r from-purple-900 to-blue-900 border-purple-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Brain className="h-5 w-5 animate-pulse" />
+              JARVIS AI Brain
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {jarvisInsights.map((insight, index) => (
+                <div key={index} className={`p-3 rounded-lg border border-opacity-50 ${
+                  insight.type === 'success' ? 'bg-green-900 bg-opacity-50 border-green-600' :
+                  insight.type === 'alert' ? 'bg-yellow-900 bg-opacity-50 border-yellow-600' :
+                  'bg-blue-900 bg-opacity-50 border-blue-600'
+                }`}>
+                  <div className="flex items-start gap-2">
+                    {insight.type === 'success' ? <CheckCircle className="h-4 w-4 text-green-400 mt-0.5" /> :
+                     insight.type === 'alert' ? <AlertTriangle className="h-4 w-4 text-yellow-400 mt-0.5" /> :
+                     <Zap className="h-4 w-4 text-blue-400 mt-0.5" />}
+                    <p className="text-sm text-gray-200">{insight.message}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent System Logs */}
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Code className="h-5 w-5" />
+              Recent System Logs
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentLogs.map((log) => (
+                <div key={log.id} className="flex items-center justify-between p-3 bg-gray-900 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {log.type === 'error' ? <AlertTriangle className="h-4 w-4 text-red-400" /> :
+                     log.type === 'warning' ? <AlertTriangle className="h-4 w-4 text-yellow-400" /> :
+                     log.type === 'success' ? <CheckCircle className="h-4 w-4 text-green-400" /> :
+                     <Activity className="h-4 w-4 text-blue-400" />}
+                    <div>
+                      <p className="text-sm text-gray-200">{log.message}</p>
+                      <p className="text-xs text-gray-500">{log.component} • {log.timestamp}</p>
+                    </div>
+                  </div>
+                  <Badge 
+                    variant="outline" 
+                    className={
+                      log.type === 'error' ? 'border-red-500 text-red-400' :
+                      log.type === 'warning' ? 'border-yellow-500 text-yellow-400' :
+                      log.type === 'success' ? 'border-green-500 text-green-400' :
+                      'border-blue-500 text-blue-400'
+                    }
+                  >
+                    {log.type}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
