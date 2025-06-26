@@ -1,4 +1,3 @@
-
 // Demo mode configuration
 export const isDemoMode = true; // Set to false for production
 
@@ -9,21 +8,24 @@ export const demoUsers = [
     name: 'Demo Manager',
     email: 'manager@tsam.com',
     password: 'password123',
-    role: 'manager'
+    role: 'manager',
+    description: 'Access team performance analytics, lead assignments, and coaching insights'
   },
   {
     id: 'demo-sales-001', 
     name: 'Demo Sales Rep',
     email: 'sales@tsam.com',
     password: 'password123',
-    role: 'sales_rep'
+    role: 'sales_rep',
+    description: 'View your assigned leads, track activities, and get AI-powered insights'
   },
   {
     id: 'demo-dev-001',
     name: 'Demo Developer', 
     email: 'dev@tsam.ai',
     password: 'DevTSAM2025',
-    role: 'developer'
+    role: 'developer',
+    description: 'Monitor system health, manage feature flags, and access TSAM JARVIS AI'
   }
 ];
 
