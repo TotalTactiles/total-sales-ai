@@ -1,4 +1,3 @@
-
 // Demo Mock Data - Toggle this to enable/disable demo mode
 export const isDemoMode = true;
 
@@ -281,7 +280,7 @@ export const mockTSAMLogs = [
     type: 'error_detection',
     priority: 'critical',
     metadata: { error: 'lead_assignment_timeout', frequency: 3, last_occurrence: new Date().toISOString() },
-    created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
     resolved: false
   }
 ];
@@ -318,8 +317,17 @@ export const mockSystemUpdates = [
   }
 ];
 
+export const logDemoLogin = (userEmail: string, success: boolean) => {
+  const timestamp = new Date().toISOString();
+  console.log(`🎭 Demo Login [${timestamp}]:`, {
+    email: userEmail,
+    success,
+    tag: 'demo-seed-v1'
+  });
+};
+
 // Function to clear demo data (for production switch)
 export const clearDemoData = () => {
   // In production, this would clear all demo-related data
-  console.log('Demo data cleared - switching to production mode');
+  console.log('🎭 Demo data cleared - switching to production mode');
 };

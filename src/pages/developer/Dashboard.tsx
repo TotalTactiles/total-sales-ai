@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import TSAMLayout from '@/components/Developer/TSAMLayout';
 import TSAMCard from '@/components/Developer/TSAMCard';
@@ -53,7 +52,12 @@ const DeveloperDashboard: React.FC = () => {
   }
 
   const criticalIssues = displayLogs.filter(log => log.priority === 'critical').length;
-  const enabledFlags = displayFeatureFlags.filter(flag => flag.enabled).length;
+  
+  // Fix the TypeScript error by properly filtering feature flags
+  const enabledFlags = displayFeatureFlags.filter(item => {
+    // Check if item has 'enabled' property (it's a feature flag)
+    return 'enabled' in item && item.enabled;
+  }).length;
 
   const quickActions = [
     { 

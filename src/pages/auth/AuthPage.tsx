@@ -52,10 +52,40 @@ const AuthPage: React.FC = () => {
   useEffect(() => {
     const checkUserStatus = async () => {
       if (!user || loading) {
+        console.log('🔍 AuthPage: Waiting for user/loading state', { user: !!user, loading });
         return;
       }
 
+      console.log('🔍 AuthPage: Checking user status', { 
+        userId: user.id, 
+        userEmail: user.email,
+        profile: !!profile
+      });
+
       try {
+        // Check if this is a demo user first
+        const isDemoUser = demoUsers.some(du => du.email === user.email || du.id === user.id);
+        console.log('🎭 Is demo user?', isDemoUser);
+
+        if (isDemoUser) {
+          const demoUserData = demoUsers.find(du => du.email === user.email || du.id === user.id);
+          console.log('🎭 Demo user found:', demoUserData);
+          
+          // Route demo users directly to their OS
+          if (demoUserData?.role === 'manager') {
+            console.log('➡️ Routing demo manager to /manager/overview');
+            navigate('/manager/overview');
+          } else if (demoUserData?.role === 'developer') {
+            console.log('➡️ Routing demo developer to /developer/dashboard');
+            navigate('/developer/dashboard');
+          } else {
+            console.log('➡️ Routing demo sales rep to /os/rep/dashboard');
+            navigate('/os/rep/dashboard');
+          }
+          return;
+        }
+
+        // For non-demo users, check profile
         const { data: profileData, error } = await supabase
           .from('profiles')
           .select('onboarding_complete, role')
@@ -63,7 +93,7 @@ const AuthPage: React.FC = () => {
           .maybeSingle();
 
         if (error) {
-          console.error('Error checking user status:', error);
+          console.error('❌ Error checking user status:', error);
           return;
         }
 
@@ -75,9 +105,7 @@ const AuthPage: React.FC = () => {
           return;
         }
 
-        // Demo users bypass onboarding - direct to OS
-        const isDemoUser = demoUsers.some(du => du.id === user.id);
-        if (isDemoUser || profileData.onboarding_complete) {
+        if (profileData.onboarding_complete) {
           console.log('➡️ Redirecting to dashboard for role:', profileData.role);
           if (profileData.role === 'manager') {
             navigate('/manager/overview');
@@ -108,7 +136,7 @@ const AuthPage: React.FC = () => {
     };
 
     checkUserStatus();
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, profile]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,14 +147,14 @@ const AuthPage: React.FC = () => {
       const { error } = await signIn(email, password);
       
       if (error) {
-        console.error('Login error:', error);
+        console.error('❌ Login error:', error);
         return;
       }
 
       console.log('✅ Login successful');
       // Success - the useEffect above will handle the redirect
     } catch (error) {
-      console.error('Login exception:', error);
+      console.error('❌ Login exception:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -136,14 +164,21 @@ const AuthPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       console.log('🎭 Demo login attempt for:', demoEmail);
-      const { error } = await signIn(demoEmail, demoPassword);
+      
+      // First, let's check if the user exists in Supabase auth
+      const { data: existingUser } = await supabase.auth.admin.getUserByEmail(demoEmail);
+      console.log('🎭 Existing user check:', existingUser);
+
+      const { data, error } = await signIn(demoEmail, demoPassword);
       if (error) {
-        console.error('Demo login error:', error);
+        console.error('❌ Demo login error:', error);
+        // If user doesn't exist, we might need to create them
+        console.log('🎭 Demo login failed, user might not exist in auth.users table');
       } else {
-        console.log('✅ Demo login successful');
+        console.log('✅ Demo login successful', data);
       }
     } catch (error) {
-      console.error('Demo login exception:', error);
+      console.error('❌ Demo login exception:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -158,6 +193,7 @@ const AuthPage: React.FC = () => {
   }
 
   if (user) {
+    console.log('🔍 User exists, showing loading while checking status...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF]"></div>
