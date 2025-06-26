@@ -33,19 +33,19 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
 
   // If auth is required but no user, redirect to auth
   if (requireAuth && !user) {
-    logger.info('No user found, redirecting to auth');
+    logger.info('No user found, redirecting to auth', 'auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // If user exists but no profile, redirect to auth for completion
   if (requireAuth && user && !profile) {
-    logger.info('User found but no profile, redirecting to auth');
+    logger.info('User found but no profile, redirecting to auth', 'auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   // Check role-based access
   if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
-    logger.info(`User role ${profile.role} not in allowed roles ${allowedRoles.join(', ')}`);
+    logger.info(`User role ${profile.role} not in allowed roles ${allowedRoles.join(', ')}`, 'auth');
     
     // Redirect to appropriate dashboard based on actual role
     const roleRoutes = {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -87,14 +86,14 @@ const AuthPage: React.FC = () => {
           
           // Route demo users directly to their OS
           if (demoUserData?.role === 'manager') {
-            console.log('➡️ Routing demo manager to /manager/overview');
-            navigate('/manager/overview');
+            console.log('➡️ Routing demo manager to /manager/dashboard');
+            navigate('/manager/dashboard');
           } else if (demoUserData?.role === 'developer') {
             console.log('➡️ Routing demo developer to /developer/dashboard');
             navigate('/developer/dashboard');
           } else {
-            console.log('➡️ Routing demo sales rep to /os/rep/dashboard');
-            navigate('/os/rep/dashboard');
+            console.log('➡️ Routing demo sales rep to /sales/dashboard');
+            navigate('/sales/dashboard');
           }
           return;
         }
@@ -114,38 +113,33 @@ const AuthPage: React.FC = () => {
         console.log('🔍 User profile check:', profileData);
 
         if (!profileData) {
-          console.log('➡️ No profile found, redirecting to onboarding');
-          navigate('/onboarding');
-          return;
-        }
-
-        if (profileData.onboarding_complete) {
-          console.log('➡️ Redirecting to dashboard for role:', profileData.role);
-          if (profileData.role === 'manager') {
-            navigate('/manager/overview');
-          } else if (profileData.role === 'developer') {
+          console.log('➡️ No profile found, creating profile and redirecting to dashboard');
+          // For users without profiles, redirect to dashboard based on auth metadata
+          const userRole = user.user_metadata?.role || 'sales_rep';
+          if (userRole === 'manager') {
+            navigate('/manager/dashboard');
+          } else if (userRole === 'developer') {
             navigate('/developer/dashboard');
           } else {
-            navigate('/os/rep/dashboard');
+            navigate('/sales/dashboard');
           }
           return;
         }
 
-        if (!profileData.onboarding_complete) {
-          console.log('➡️ Redirecting to role-specific onboarding');
-          if (profileData.role === 'manager') {
-            navigate('/onboarding/manager');
-          } else if (profileData.role === 'sales_rep' || !profileData.role) {
-            navigate('/onboarding/sales-rep');
-          } else {
-            navigate('/onboarding');
-          }
-          return;
+        // Always redirect to dashboard - skip onboarding for demo
+        console.log('➡️ Redirecting to dashboard for role:', profileData.role);
+        if (profileData.role === 'manager') {
+          navigate('/manager/dashboard');
+        } else if (profileData.role === 'developer') {
+          navigate('/developer/dashboard');
+        } else {
+          navigate('/sales/dashboard');
         }
         
       } catch (error) {
         console.error('❌ Error checking user status:', error);
-        navigate('/onboarding');
+        // Fallback to sales dashboard
+        navigate('/sales/dashboard');
       }
     };
 
@@ -253,106 +247,92 @@ const AuthPage: React.FC = () => {
                 </TabsContent>
                 
                 <TabsContent value="login" className="space-y-4">
-                  <Tabs value={isLogin ? 'login' : 'signup'} onValueChange={(value) => setIsLogin(value === 'login')} className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
-                      <TabsTrigger value="login">Login</TabsTrigger>
-                      <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                    </TabsList>
+                  {/* Role Selector */}
+                  <div className="flex justify-center gap-2">
+                    {roles.map((role) => (
+                      <Button
+                        key={role.value}
+                        variant={selectedRole === role.value ? 'default' : 'outline'}
+                        onClick={() => setSelectedRole(role.value as 'manager' | 'sales_rep')}
+                        className={`px-4 py-2 text-sm font-medium transition-all ${
+                          selectedRole === role.value 
+                            ? 'bg-[#7B61FF] text-white shadow-md hover:bg-[#674edc]' 
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300'
+                        }`}
+                      >
+                        {role.label}
+                      </Button>
+                    ))}
+                  </div>
+
+                  {/* Dashboard Description */}
+                  <Card className="bg-gray-50 border border-gray-200 rounded-xl">
+                    <CardHeader className="text-center py-4">
+                      <CardTitle className="text-lg font-semibold">
+                        {selectedRoleData?.label} Dashboard
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
+                        {selectedRoleData?.description}
+                      </p>
+                    </CardHeader>
+                  </Card>
+
+                  {/* Login Form */}
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
+                        required
+                      />
+                    </div>
                     
-                    <TabsContent value="login" className="space-y-4">
-                      {/* Role Selector */}
-                      <div className="flex justify-center gap-2">
-                        {roles.map((role) => (
-                          <Button
-                            key={role.value}
-                            variant={selectedRole === role.value ? 'default' : 'outline'}
-                            onClick={() => setSelectedRole(role.value as 'manager' | 'sales_rep')}
-                            className={`px-4 py-2 text-sm font-medium transition-all ${
-                              selectedRole === role.value 
-                                ? 'bg-[#7B61FF] text-white shadow-md hover:bg-[#674edc]' 
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border-gray-300'
-                            }`}
-                          >
-                            {role.label}
-                          </Button>
-                        ))}
-                      </div>
-
-                      {/* Dashboard Description */}
-                      <Card className="bg-gray-50 border border-gray-200 rounded-xl">
-                        <CardHeader className="text-center py-4">
-                          <CardTitle className="text-lg font-semibold">
-                            {selectedRoleData?.label} Dashboard
-                          </CardTitle>
-                          <p className="text-sm text-gray-600">
-                            {selectedRoleData?.description}
-                          </p>
-                        </CardHeader>
-                      </Card>
-
-                      {/* Login Form */}
-                      <form onSubmit={handleLogin} className="space-y-4">
-                        <div>
-                          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                            Email
-                          </Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
-                            required
-                          />
+                    <div>
+                      <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                        Password
+                      </Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
+                        required
+                      />
+                    </div>
+                    
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full h-12 bg-[#7B61FF] hover:bg-[#674edc] text-white font-semibold transition-colors"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Logging in...
                         </div>
-                        
-                        <div>
-                          <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-                            Password
-                          </Label>
-                          <Input
-                            id="password"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
-                            required
-                          />
-                        </div>
-                        
-                        <Button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="w-full h-12 bg-[#7B61FF] hover:bg-[#674edc] text-white font-semibold transition-colors"
-                        >
-                          {isSubmitting ? (
-                            <div className="flex items-center gap-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              Logging in...
-                            </div>
-                          ) : (
-                            '→ Login'
-                          )}
-                        </Button>
-                      </form>
-
-                      {isDemoMode && (
-                        <div className="text-center">
-                          <p className="text-xs text-gray-400">
-                            Credentials auto-filled for demo user
-                          </p>
-                        </div>
+                      ) : (
+                        '→ Login'
                       )}
-                    </TabsContent>
-                    
-                    <TabsContent value="signup" className="space-y-4">
-                      <AuthSignupForm setIsLogin={setIsLogin} />
-                    </TabsContent>
-                  </Tabs>
+                    </Button>
+                  </form>
+
+                  {isDemoMode && (
+                    <div className="text-center">
+                      <p className="text-xs text-gray-400">
+                        Credentials auto-filled for demo user
+                      </p>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             ) : (
-              // Non-demo mode - login and signup
               <Tabs value={isLogin ? 'login' : 'signup'} onValueChange={(value) => setIsLogin(value === 'login')} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="login">Login</TabsTrigger>

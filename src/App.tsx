@@ -7,10 +7,10 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/ThemeProvider';
 import DemoUserSetup from '@/components/DemoUserSetup';
 import DeveloperTrigger from '@/components/DeveloperTrigger';
+import RouteGuard from '@/components/auth/RouteGuard';
 
 // Import pages
 import AuthPage from '@/pages/auth/AuthPage';
-import OnboardingPage from '@/pages/onboarding/OnboardingPage';
 
 // Manager pages
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
@@ -50,35 +50,102 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <DemoUserSetup />
-          <DeveloperTrigger />
           <Router>
+            <DeveloperTrigger />
             <Routes>
               {/* Auth routes */}
               <Route path="/auth" element={<AuthPage />} />
-              <Route path="/onboarding" element={<OnboardingPage />} />
               
               {/* Manager routes */}
-              <Route path="/manager/dashboard" element={<ManagerDashboard />} />
-              <Route path="/manager/leads" element={<ManagerLeads />} />
-              <Route path="/manager/team" element={<ManagerTeam />} />
-              <Route path="/manager/conversion-metrics" element={<ManagerMetrics />} />
-              <Route path="/manager/coaching" element={<ManagerCoaching />} />
-              <Route path="/manager/profile" element={<ManagerProfile />} />
+              <Route path="/manager/dashboard" element={
+                <RouteGuard allowedRoles={['manager']}>
+                  <ManagerDashboard />
+                </RouteGuard>
+              } />
+              <Route path="/manager/leads" element={
+                <RouteGuard allowedRoles={['manager']}>
+                  <ManagerLeads />
+                </RouteGuard>
+              } />
+              <Route path="/manager/team" element={
+                <RouteGuard allowedRoles={['manager']}>
+                  <ManagerTeam />
+                </RouteGuard>
+              } />
+              <Route path="/manager/conversion-metrics" element={
+                <RouteGuard allowedRoles={['manager']}>
+                  <ManagerMetrics />
+                </RouteGuard>
+              } />
+              <Route path="/manager/coaching" element={
+                <RouteGuard allowedRoles={['manager']}>
+                  <ManagerCoaching />
+                </RouteGuard>
+              } />
+              <Route path="/manager/profile" element={
+                <RouteGuard allowedRoles={['manager']}>
+                  <ManagerProfile />
+                </RouteGuard>
+              } />
               
               {/* Sales Rep routes */}
-              <Route path="/sales/dashboard" element={<SalesRepDashboard />} />
-              <Route path="/sales/leads" element={<SalesLeads />} />
-              <Route path="/sales/lead/:leadId" element={<LeadWorkspace />} />
-              <Route path="/sales/activity" element={<SalesActivity />} />
-              <Route path="/sales/ai-insights" element={<SalesAIInsights />} />
-              <Route path="/sales/profile" element={<SalesProfile />} />
+              <Route path="/sales/dashboard" element={
+                <RouteGuard allowedRoles={['sales_rep']}>
+                  <SalesRepDashboard />
+                </RouteGuard>
+              } />
+              <Route path="/sales/leads" element={
+                <RouteGuard allowedRoles={['sales_rep']}>
+                  <SalesLeads />
+                </RouteGuard>
+              } />
+              <Route path="/sales/lead/:leadId" element={
+                <RouteGuard allowedRoles={['sales_rep']}>
+                  <LeadWorkspace />
+                </RouteGuard>
+              } />
+              <Route path="/sales/activity" element={
+                <RouteGuard allowedRoles={['sales_rep']}>
+                  <SalesActivity />
+                </RouteGuard>
+              } />
+              <Route path="/sales/ai-insights" element={
+                <RouteGuard allowedRoles={['sales_rep']}>
+                  <SalesAIInsights />
+                </RouteGuard>
+              } />
+              <Route path="/sales/profile" element={
+                <RouteGuard allowedRoles={['sales_rep']}>
+                  <SalesProfile />
+                </RouteGuard>
+              } />
               
               {/* Developer routes */}
-              <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
-              <Route path="/developer/logs" element={<DeveloperLogs />} />
-              <Route path="/developer/flags" element={<DeveloperFlags />} />
-              <Route path="/developer/system-updates" element={<DeveloperUpdates />} />
-              <Route path="/developer/tsam-brain" element={<DeveloperBrain />} />
+              <Route path="/developer/dashboard" element={
+                <RouteGuard allowedRoles={['developer', 'admin']}>
+                  <DeveloperDashboard />
+                </RouteGuard>
+              } />
+              <Route path="/developer/logs" element={
+                <RouteGuard allowedRoles={['developer', 'admin']}>
+                  <DeveloperLogs />
+                </RouteGuard>
+              } />
+              <Route path="/developer/flags" element={
+                <RouteGuard allowedRoles={['developer', 'admin']}>
+                  <DeveloperFlags />
+                </RouteGuard>
+              } />
+              <Route path="/developer/system-updates" element={
+                <RouteGuard allowedRoles={['developer', 'admin']}>
+                  <DeveloperUpdates />
+                </RouteGuard>
+              } />
+              <Route path="/developer/tsam-brain" element={
+                <RouteGuard allowedRoles={['developer', 'admin']}>
+                  <DeveloperBrain />
+                </RouteGuard>
+              } />
               
               {/* Default route */}
               <Route path="/" element={<Navigate to="/auth" replace />} />

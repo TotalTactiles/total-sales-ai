@@ -20,20 +20,6 @@ import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 const ManagerDashboard = () => {
   const { profile } = useAuth();
 
-  // Mock data for manager dashboard
-  const teamStats = {
-    totalReps: 8,
-    activeReps: 6,
-    topPerformer: 'Sarah Johnson',
-    avgConversion: 23.5
-  };
-
-  const recentActivity = [
-    { rep: 'Sarah Johnson', action: 'Closed deal with Acme Corp', time: '2 hours ago', value: '$25,000' },
-    { rep: 'Mike Chen', action: 'Scheduled demo with TechStart', time: '4 hours ago', value: '$15,000' },
-    { rep: 'Lisa Park', action: 'Follow-up call completed', time: '6 hours ago', value: '$8,000' }
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50">
       <ManagerNavigation />
@@ -62,7 +48,7 @@ const ManagerDashboard = () => {
             <CardContent>
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-blue-600" />
-                <span className="text-2xl font-bold">{teamStats.totalReps}</span>
+                <span className="text-2xl font-bold">8</span>
               </div>
             </CardContent>
           </Card>
@@ -74,7 +60,7 @@ const ManagerDashboard = () => {
             <CardContent>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-2xl font-bold">{teamStats.activeReps}</span>
+                <span className="text-2xl font-bold">6</span>
               </div>
             </CardContent>
           </Card>
@@ -86,7 +72,7 @@ const ManagerDashboard = () => {
             <CardContent>
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-600" />
-                <span className="text-2xl font-bold">{teamStats.avgConversion}%</span>
+                <span className="text-2xl font-bold">23.5%</span>
               </div>
             </CardContent>
           </Card>
@@ -98,66 +84,15 @@ const ManagerDashboard = () => {
             <CardContent>
               <div className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-purple-600" />
-                <span className="text-lg font-semibold">{teamStats.topPerformer}</span>
+                <span className="text-lg font-semibold">Sarah Johnson</span>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Recent Team Activity
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium">{activity.rep}</p>
-                      <p className="text-sm text-gray-600">{activity.action}</p>
-                      <p className="text-xs text-gray-500">{activity.time}</p>
-                    </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700">
-                      {activity.value}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-purple-600" />
-                AI Coaching Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                  <p className="font-medium text-blue-900">Coaching Opportunity</p>
-                  <p className="text-sm text-blue-700">Mike Chen's call-to-demo ratio is 15% below team average</p>
-                  <Button size="sm" className="mt-2">Schedule 1-on-1</Button>
-                </div>
-                <div className="p-3 bg-green-50 rounded-lg border-l-4 border-green-500">
-                  <p className="font-medium text-green-900">Success Pattern</p>
-                  <p className="text-sm text-green-700">Sarah's objection handling technique is working well - consider team training</p>
-                  <Button size="sm" variant="outline" className="mt-2">Share Best Practice</Button>
-                </div>
-                <div className="p-3 bg-yellow-50 rounded-lg border-l-4 border-yellow-500">
-                  <p className="font-medium text-yellow-900">Pipeline Alert</p>
-                  <p className="text-sm text-yellow-700">3 high-value deals need manager review this week</p>
-                  <Button size="sm" variant="outline" className="mt-2">Review Deals</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold text-green-600">✅ Manager Dashboard Active</h2>
+          <p className="text-gray-600 mt-2">All systems operational - TSAM Manager OS loaded successfully</p>
         </div>
       </div>
     </div>

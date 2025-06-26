@@ -1,12 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useKeyboardShortcut } from '@/hooks/useKeyboardShortcut';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const DeveloperTrigger: React.FC = () => {
-  const navigate = useNavigate();
   const [isTriggered, setIsTriggered] = useState(false);
 
   useKeyboardShortcut({
@@ -37,10 +35,8 @@ const DeveloperTrigger: React.FC = () => {
       console.log('✅ Developer login successful');
       toast.success('Developer access granted - Welcome to TSAM OS');
       
-      // Navigate to developer dashboard
-      setTimeout(() => {
-        navigate('/developer/dashboard');
-      }, 500);
+      // The auth state change will handle navigation
+      // Don't use navigate here since we might not be in router context
 
     } catch (error) {
       console.error('Developer trigger error:', error);
