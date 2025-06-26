@@ -12,6 +12,7 @@ import DeveloperSecretLogin from '@/components/Developer/DeveloperSecretLogin';
 import DemoLoginCards from '@/components/auth/DemoLoginCards';
 import { useDeveloperSecretTrigger } from '@/hooks/useDeveloperSecretTrigger';
 import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
+import { ensureDemoUsersExist } from '@/utils/demoSetup';
 
 const roles = [
   { 
@@ -34,9 +35,20 @@ const AuthPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('demo');
+  const [demoUsersReady, setDemoUsersReady] = useState(false);
   
   // Developer secret trigger
   const { showDeveloperLogin, setShowDeveloperLogin } = useDeveloperSecretTrigger();
+
+  // Ensure demo users exist on component mount
+  useEffect(() => {
+    if (isDemoMode) {
+      ensureDemoUsersExist().then(() => {
+        setDemoUsersReady(true);
+        console.log('🎭 Demo users setup complete');
+      });
+    }
+  }, []);
 
   // Auto-fill demo credentials based on selected role
   useEffect(() => {
@@ -64,11 +76,11 @@ const AuthPage: React.FC = () => {
 
       try {
         // Check if this is a demo user first
-        const isDemoUser = demoUsers.some(du => du.email === user.email || du.id === user.id);
+        const isDemoUser = demoUsers.some(du => du.email === user.email);
         console.log('🎭 Is demo user?', isDemoUser);
 
         if (isDemoUser) {
-          const demoUserData = demoUsers.find(du => du.email === user.email || du.id === user.id);
+          const demoUserData = demoUsers.find(du => du.email === user.email);
           console.log('🎭 Demo user found:', demoUserData);
           
           // Route demo users directly to their OS
@@ -165,13 +177,22 @@ const AuthPage: React.FC = () => {
     try {
       console.log('🎭 Demo login attempt for:', demoEmail);
       
-      // Use proper Supabase authentication instead of bypassing it
+      // Use proper Supabase authentication
       const result = await signIn(demoEmail, demoPassword);
       if (result?.error) {
         console.error('❌ Demo login error:', result.error);
-        console.log('🎭 Demo login failed, user might not exist in auth.users table');
+        // If login fails, try to create the user first
+        if (result.error.message.includes('Invalid login credentials')) {
+          console.log('🎭 User may not exist, ensuring demo users are created...');
+          await ensureDemoUsersExist();
+          // Try login again
+          const retryResult = await signIn(demoEmail, demoPassword);
+          if (retryResult?.error) {
+            console.error('❌ Demo login failed after user creation:', retryResult.error);
+          }
+        }
       } else {
-        console.log('✅ Demo login successful via Supabase auth', result);
+        console.log('✅ Demo login successful');
       }
     } catch (error) {
       console.error('❌ Demo login exception:', error);
@@ -219,7 +240,14 @@ const AuthPage: React.FC = () => {
                 </TabsList>
                 
                 <TabsContent value="demo" className="space-y-4">
-                  <DemoLoginCards onDemoLogin={handleDemoLogin} />
+                  {demoUsersReady ? (
+                    <DemoLoginCards onDemoLogin={handleDemoLogin} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B61FF] mx-auto mb-4"></div>
+                      <p className="text-sm text-gray-600">Setting up demo accounts...</p>
+                    </div>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="login" className="space-y-4">

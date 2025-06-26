@@ -50,7 +50,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               event, 
               userId: session?.user?.id,
               hasSession: !!session,
-              hasUser: !!session?.user
+              hasUser: !!session?.user,
+              userEmail: session?.user?.email
             }, 'auth');
             
             if (mounted) {
@@ -59,6 +60,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               
               if (session?.user) {
                 console.log('🔐 Auth state change: User found, fetching profile');
+                console.log('🔐 SESSION:', session);
                 // Don't block auth state update with profile fetching
                 setTimeout(() => {
                   if (mounted) {
@@ -84,7 +86,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (error) {
           logger.error('❌ Error getting initial session:', error, 'auth');
         } else if (session) {
-          logger.info('🔐 Initial session found:', { userId: session.user.id }, 'auth');
+          logger.info('🔐 Initial session found:', { 
+            userId: session.user.id, 
+            userEmail: session.user.email 
+          }, 'auth');
+          console.log('🔐 INITIAL SESSION:', session);
           if (mounted) {
             setSession(session);
             setUser(session.user);
@@ -134,6 +140,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     } else {
       console.log('🔐 AuthProvider: Sign in successful, auth state will update via onAuthStateChange');
+      console.log('🔐 SIGN IN RESULT:', result);
       // Don't set loading to false here - let onAuthStateChange handle it
     }
     

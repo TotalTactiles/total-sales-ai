@@ -7,27 +7,25 @@ export const ensureDemoUsersExist = async () => {
   
   for (const demoUser of demoUsers) {
     try {
-      // List all users and find by email (since getUserByEmail doesn't exist)
-      const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
-      
-      if (listError) {
-        console.error(`❌ Failed to list users:`, listError);
-        continue;
-      }
+      // Try to sign in first to check if user exists
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: demoUser.email,
+        password: demoUser.password
+      });
 
-      const existingUser = userList?.users?.find(u => u.email === demoUser.email);
-      
-      if (!existingUser) {
-        console.log(`🎭 Creating demo user: ${demoUser.email}`);
+      if (signInError && signInError.message.includes('Invalid login credentials')) {
+        console.log(`🎭 Demo user ${demoUser.email} doesn't exist, creating...`);
         
-        // Create the user
-        const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        // User doesn't exist, create them
+        const { data: newUser, error: createError } = await supabase.auth.signUp({
           email: demoUser.email,
           password: demoUser.password,
-          email_confirm: true,
-          user_metadata: {
-            full_name: demoUser.name,
-            role: demoUser.role
+          options: {
+            data: {
+              full_name: demoUser.name,
+              role: demoUser.role
+            },
+            emailRedirectTo: `${window.location.origin}/`
           }
         });
 
@@ -36,10 +34,10 @@ export const ensureDemoUsersExist = async () => {
           continue;
         }
 
-        console.log(`✅ Demo user created: ${demoUser.email}`);
-        
-        // Create profile for the user
         if (newUser.user) {
+          console.log(`✅ Demo user created: ${demoUser.email}`);
+          
+          // Create profile for the user
           const { error: profileError } = await supabase
             .from('profiles')
             .upsert({
@@ -60,8 +58,10 @@ export const ensureDemoUsersExist = async () => {
             console.log(`✅ Profile created for demo user: ${demoUser.email}`);
           }
         }
-      } else {
+      } else if (!signInError) {
         console.log(`🎭 Demo user already exists: ${demoUser.email}`);
+        // Sign out after checking
+        await supabase.auth.signOut();
       }
     } catch (error) {
       console.error(`❌ Error processing demo user ${demoUser.email}:`, error);
