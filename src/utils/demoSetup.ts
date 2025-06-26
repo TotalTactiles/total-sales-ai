@@ -7,10 +7,17 @@ export const ensureDemoUsersExist = async () => {
   
   for (const demoUser of demoUsers) {
     try {
-      // Check if user exists
-      const { data: existingUser, error: checkError } = await supabase.auth.admin.getUserByEmail(demoUser.email);
+      // List all users and find by email (since getUserByEmail doesn't exist)
+      const { data: userList, error: listError } = await supabase.auth.admin.listUsers();
       
-      if (!existingUser.user) {
+      if (listError) {
+        console.error(`❌ Failed to list users:`, listError);
+        continue;
+      }
+
+      const existingUser = userList?.users?.find(u => u.email === demoUser.email);
+      
+      if (!existingUser) {
         console.log(`🎭 Creating demo user: ${demoUser.email}`);
         
         // Create the user
@@ -66,20 +73,20 @@ export const performDemoLogin = async (email: string, password: string) => {
   console.log('🎭 Performing demo login for:', email);
   
   try {
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const result = await supabase.auth.signInWithPassword({
       email,
       password
     });
 
-    if (error) {
-      console.error('❌ Demo login failed:', error);
+    if (result.error) {
+      console.error('❌ Demo login failed:', result.error);
       logDemoLogin(email, false);
-      return { success: false, error };
+      return { success: false, error: result.error };
     }
 
-    console.log('✅ Demo login successful:', data);
+    console.log('✅ Demo login successful:', result.data);
     logDemoLogin(email, true);
-    return { success: true, data };
+    return { success: true, data: result.data };
   } catch (error) {
     console.error('❌ Demo login exception:', error);
     logDemoLogin(email, false);

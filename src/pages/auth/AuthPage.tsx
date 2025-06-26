@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -144,10 +143,10 @@ const AuthPage: React.FC = () => {
 
     try {
       console.log('🔐 Login attempt for:', email);
-      const { error } = await signIn(email, password);
+      const result = await signIn(email, password);
       
-      if (error) {
-        console.error('❌ Login error:', error);
+      if (result?.error) {
+        console.error('❌ Login error:', result.error);
         return;
       }
 
@@ -165,17 +164,12 @@ const AuthPage: React.FC = () => {
     try {
       console.log('🎭 Demo login attempt for:', demoEmail);
       
-      // First, let's check if the user exists in Supabase auth
-      const { data: existingUser } = await supabase.auth.admin.getUserByEmail(demoEmail);
-      console.log('🎭 Existing user check:', existingUser);
-
-      const { data, error } = await signIn(demoEmail, demoPassword);
-      if (error) {
-        console.error('❌ Demo login error:', error);
-        // If user doesn't exist, we might need to create them
+      const result = await signIn(demoEmail, demoPassword);
+      if (result?.error) {
+        console.error('❌ Demo login error:', result.error);
         console.log('🎭 Demo login failed, user might not exist in auth.users table');
       } else {
-        console.log('✅ Demo login successful', data);
+        console.log('✅ Demo login successful', result);
       }
     } catch (error) {
       console.error('❌ Demo login exception:', error);

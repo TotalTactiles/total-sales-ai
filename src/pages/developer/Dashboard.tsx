@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import TSAMLayout from '@/components/Developer/TSAMLayout';
 import TSAMCard from '@/components/Developer/TSAMCard';
@@ -51,7 +52,10 @@ const DeveloperDashboard: React.FC = () => {
     return <div>Access Denied</div>;
   }
 
-  const criticalIssues = displayLogs.filter(log => log.priority === 'critical').length;
+  const criticalIssues = displayLogs.filter(log => {
+    // Type guard to check if the item has priority property
+    return 'priority' in log && log.priority === 'critical';
+  }).length;
   
   // Fix the TypeScript error by properly filtering feature flags
   const enabledFlags = displayFeatureFlags.filter(item => {
@@ -150,17 +154,21 @@ const DeveloperDashboard: React.FC = () => {
               {displayLogs.slice(0, 5).map((log, index) => (
                 <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                   <div>
-                    <p className="text-sm text-white">{log.type}</p>
-                    <p className="text-xs text-gray-400">{new Date(log.created_at).toLocaleTimeString()}</p>
+                    <p className="text-sm text-white">{'type' in log ? log.type : 'Unknown'}</p>
+                    <p className="text-xs text-gray-400">
+                      {new Date('created_at' in log ? log.created_at : Date.now()).toLocaleTimeString()}
+                    </p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    log.priority === 'critical' ? 'bg-red-500/20 text-red-400' :
-                    log.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                    log.priority === 'medium' ? 'bg-blue-500/20 text-blue-400' :
-                    'bg-green-500/20 text-green-400'
-                  }`}>
-                    {log.priority}
-                  </span>
+                  {'priority' in log && (
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      log.priority === 'critical' ? 'bg-red-500/20 text-red-400' :
+                      log.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                      log.priority === 'medium' ? 'bg-blue-500/20 text-blue-400' :
+                      'bg-green-500/20 text-green-400'
+                    }`}>
+                      {log.priority}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
