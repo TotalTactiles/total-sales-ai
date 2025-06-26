@@ -3,9 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
 import { demoUsers } from '@/data/demo.mock.data';
-import { performDemoLogin } from '@/utils/demoSetup';
 import { User, Settings, Code } from 'lucide-react';
 
 interface DemoLoginCardsProps {
@@ -33,23 +31,12 @@ const DemoLoginCards: React.FC<DemoLoginCardsProps> = ({ onDemoLogin }) => {
 
   const handleDemoLogin = async (email: string, password: string) => {
     try {
-      console.log('🎭 Initiating demo login for:', email);
+      console.log('🎭 DemoLoginCards: Initiating demo login for:', email);
       
-      // Use the new demo login utility
-      const result = await performDemoLogin(email, password);
-      
-      if (result.success) {
-        console.log('🎭 Demo login successful, calling parent handler');
-        // The auth context will handle the session update
-      } else {
-        console.error('🎭 Demo login failed:', result.error);
-        // Try the fallback method
-        await onDemoLogin(email, password);
-      }
+      // Call the parent handler which will use proper Supabase auth
+      await onDemoLogin(email, password);
     } catch (error) {
       console.error('🎭 Demo login failed:', error);
-      // Fallback to parent handler
-      await onDemoLogin(email, password);
     }
   };
 

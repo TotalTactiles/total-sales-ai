@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -164,12 +165,13 @@ const AuthPage: React.FC = () => {
     try {
       console.log('🎭 Demo login attempt for:', demoEmail);
       
+      // Use proper Supabase authentication instead of bypassing it
       const result = await signIn(demoEmail, demoPassword);
       if (result?.error) {
         console.error('❌ Demo login error:', result.error);
         console.log('🎭 Demo login failed, user might not exist in auth.users table');
       } else {
-        console.log('✅ Demo login successful', result);
+        console.log('✅ Demo login successful via Supabase auth', result);
       }
     } catch (error) {
       console.error('❌ Demo login exception:', error);

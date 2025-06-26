@@ -41,19 +41,54 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
-        logger.info('Initializing auth state...', {}, 'auth');
+        logger.info('🔐 Initializing auth state...', {}, 'auth');
         
-        // Get initial session
+        // Set up auth state change listener FIRST
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            logger.info('🔐 Auth state changed:', { 
+              event, 
+              userId: session?.user?.id,
+              hasSession: !!session,
+              hasUser: !!session?.user
+            }, 'auth');
+            
+            if (mounted) {
+              setSession(session);
+              setUser(session?.user ?? null);
+              
+              if (session?.user) {
+                console.log('🔐 Auth state change: User found, fetching profile');
+                // Don't block auth state update with profile fetching
+                setTimeout(() => {
+                  if (mounted) {
+                    fetchOrCreateProfile(session.user);
+                  }
+                }, 0);
+              } else {
+                console.log('🔐 Auth state change: No user, clearing profile');
+                clearProfile();
+              }
+              
+              // Ensure loading is false after auth state change
+              if (initialized) {
+                setLoading(false);
+              }
+            }
+          }
+        );
+
+        // THEN get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          logger.error('Error getting initial session:', error, 'auth');
+          logger.error('❌ Error getting initial session:', error, 'auth');
         } else if (session) {
-          logger.info('Initial session found:', { userId: session.user.id }, 'auth');
+          logger.info('🔐 Initial session found:', { userId: session.user.id }, 'auth');
           if (mounted) {
             setSession(session);
             setUser(session.user);
-            // Defer profile fetching to avoid blocking the loading state
+            // Defer profile fetching to avoid blocking loading state
             setTimeout(() => {
               if (mounted) {
                 fetchOrCreateProfile(session.user);
@@ -61,15 +96,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             }, 0);
           }
         } else {
-          logger.info('No initial session found', {}, 'auth');
+          logger.info('🔐 No initial session found', {}, 'auth');
         }
         
         if (mounted) {
           setInitialized(true);
           setLoading(false);
         }
+
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
-        logger.error('Error initializing auth:', error, 'auth');
+        logger.error('❌ Error initializing auth:', error, 'auth');
         if (mounted) {
           setInitialized(true);
           setLoading(false);
@@ -77,59 +116,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        logger.info('Auth state changed:', { 
-          event, 
-          userId: session?.user?.id,
-          hasSession: !!session,
-          hasUser: !!session?.user
-        }, 'auth');
-        
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            // Defer profile fetching to avoid blocking auth state changes
-            setTimeout(() => {
-              if (mounted) {
-                fetchOrCreateProfile(session.user);
-              }
-            }, 0);
-          } else {
-            clearProfile();
-          }
-          
-          // Ensure loading is false after auth state change
-          if (initialized) {
-            setLoading(false);
-          }
-        }
-      }
-    );
-
-    // Initialize auth
     initializeAuth();
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
     };
   }, [fetchOrCreateProfile, clearProfile, initialized]);
 
   const handleSignIn = async (email: string, password: string) => {
+    console.log('🔐 AuthProvider: handleSignIn called for:', email);
     setLoading(true);
     
     const result = await signIn(email, password);
     
     if (result.error) {
+      console.error('🔐 AuthProvider: Sign in failed:', result.error);
       setLoading(false);
+    } else {
+      console.log('🔐 AuthProvider: Sign in successful, auth state will update via onAuthStateChange');
+      // Don't set loading to false here - let onAuthStateChange handle it
     }
-    
-    // Always set loading to false after a reasonable delay
-    setTimeout(() => setLoading(false), 1000);
     
     return result;
   };
