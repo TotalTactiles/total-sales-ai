@@ -4,9 +4,10 @@ interface LogContext {
 }
 
 export const logger = {
-  info: (message: string, context?: LogContext, category?: string) => {
+  info: (message: string, context?: LogContext | string, category?: string) => {
     const prefix = category ? `[${category.toUpperCase()}]` : '';
-    console.log(`${prefix} ${message}`, context || '');
+    const contextData = typeof context === 'string' ? { data: context } : context;
+    console.log(`${prefix} ${message}`, contextData || '');
   },
   
   error: (message: string, error?: any, category?: string) => {
@@ -14,13 +15,15 @@ export const logger = {
     console.error(`${prefix} ${message}`, error || '');
   },
   
-  warn: (message: string, context?: LogContext, category?: string) => {
+  warn: (message: string, context?: LogContext | string, category?: string) => {
     const prefix = category ? `[${category.toUpperCase()}]` : '';
-    console.warn(`${prefix} ${message}`, context || '');
+    const contextData = typeof context === 'string' ? { data: context } : context;
+    console.warn(`${prefix} ${message}`, contextData || '');
   },
   
-  debug: (message: string, context?: LogContext, category?: string) => {
+  debug: (message: string, context?: LogContext | string, category?: string) => {
     const prefix = category ? `[${category.toUpperCase()}]` : '';
-    console.debug(`${prefix} ${message}`, context || '');
+    const contextData = typeof context === 'string' ? { data: context } : context;
+    console.debug(`${prefix} ${message}`, contextData || '');
   }
 };

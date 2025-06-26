@@ -72,3 +72,17 @@ export const useTheme = () => {
 
   return context;
 };
+
+// Simple ThemeToggle component for backward compatibility
+export const ThemeToggle = () => {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <button
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+      className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+    >
+      {theme === 'dark' ? '🌞' : '🌙'}
+    </button>
+  );
+};

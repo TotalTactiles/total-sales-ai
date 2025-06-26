@@ -28,6 +28,8 @@ export interface Profile {
   sales_style?: string;
   strength_area?: string;
   rep_motivation?: string;
+  onboarding_step?: string;
+  team_size?: number;
 }
 
 export type Role = 'admin' | 'developer' | 'manager' | 'sales_rep';
