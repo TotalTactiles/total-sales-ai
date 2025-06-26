@@ -11,7 +11,8 @@ import {
   Brain,
   BarChart3,
   Calendar,
-  AlertTriangle
+  AlertTriangle,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';

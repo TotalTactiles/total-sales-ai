@@ -63,12 +63,10 @@ export const createProfile = async (user: User): Promise<Profile | null> => {
       last_login: new Date().toISOString(),
       onboarding_step: null,
       has_completed_onboarding: false,
-      user_metadata: user.user_metadata || {},
       assistant_name: 'AI Assistant',
       voice_style: 'professional',
       industry: null,
       onboarding_complete: false,
-      launched_at: null,
       sales_personality: null,
       sales_style: null,
       strength_area: null,
@@ -77,14 +75,12 @@ export const createProfile = async (user: User): Promise<Profile | null> => {
       motivation_trigger: null,
       weakness: null,
       mental_state_trigger: null,
-      wishlist: null,
       management_style: null,
       team_size: null,
       preferred_team_personality: null,
       team_obstacle: null,
       business_goal: null,
-      influence_style: null,
-      ai_assistant: null
+      influence_style: null
     };
 
     logger.info('Attempting to create profile with data:', profileData, 'auth');
@@ -134,12 +130,10 @@ const createFallbackProfile = (user: User): Profile => {
     last_login: new Date().toISOString(),
     onboarding_step: null,
     has_completed_onboarding: false,
-    user_metadata: user.user_metadata || {},
     assistant_name: 'AI Assistant',
     voice_style: 'professional',
     industry: null,
     onboarding_complete: false,
-    launched_at: null,
     sales_personality: null,
     sales_style: null,
     strength_area: null,
@@ -148,14 +142,12 @@ const createFallbackProfile = (user: User): Profile => {
     motivation_trigger: null,
     weakness: null,
     mental_state_trigger: null,
-    wishlist: null,
     management_style: null,
     team_size: null,
     preferred_team_personality: null,
     team_obstacle: null,
     business_goal: null,
-    influence_style: null,
-    ai_assistant: null
+    influence_style: null
   };
   return fallbackProfile;
 };
