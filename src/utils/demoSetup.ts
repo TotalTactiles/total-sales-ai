@@ -1,95 +1,98 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { demoUsers, logDemoLogin } from '@/data/demo.mock.data';
+import { demoUsers } from '@/data/demo.mock.data';
+import { logger } from '@/utils/logger';
 
-export const ensureDemoUsersExist = async () => {
-  console.log('🎭 Checking if demo users exist in Supabase...');
+// Cache to avoid repeated setup attempts
+let setupAttempted = false;
+let setupPromise: Promise<void> | null = null;
+
+export const ensureDemoUsersExist = async (): Promise<void> => {
+  // Return existing promise if setup is in progress
+  if (setupPromise) {
+    return setupPromise;
+  }
+
+  // Skip if already attempted
+  if (setupAttempted) {
+    return;
+  }
+
+  setupAttempted = true;
+  setupPromise = performDemoSetup();
   
-  for (const demoUser of demoUsers) {
-    try {
-      // Try to sign in first to check if user exists
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email: demoUser.email,
-        password: demoUser.password
-      });
-
-      if (signInError && signInError.message.includes('Invalid login credentials')) {
-        console.log(`🎭 Demo user ${demoUser.email} doesn't exist, creating...`);
-        
-        // User doesn't exist, create them
-        const { data: newUser, error: createError } = await supabase.auth.signUp({
-          email: demoUser.email,
-          password: demoUser.password,
-          options: {
-            data: {
-              full_name: demoUser.name,
-              role: demoUser.role
-            },
-            emailRedirectTo: `${window.location.origin}/`
-          }
-        });
-
-        if (createError) {
-          console.error(`❌ Failed to create demo user ${demoUser.email}:`, createError);
-          continue;
-        }
-
-        if (newUser.user) {
-          console.log(`✅ Demo user created: ${demoUser.email}`);
-          
-          // Create profile for the user
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-              id: newUser.user.id,
-              full_name: demoUser.name,
-              role: demoUser.role,
-              company_id: newUser.user.id,
-              email_connected: true,
-              onboarding_complete: true,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              last_login: new Date().toISOString()
-            });
-
-          if (profileError) {
-            console.error(`❌ Failed to create profile for ${demoUser.email}:`, profileError);
-          } else {
-            console.log(`✅ Profile created for demo user: ${demoUser.email}`);
-          }
-        }
-      } else if (!signInError) {
-        console.log(`🎭 Demo user already exists: ${demoUser.email}`);
-        // Sign out after checking
-        await supabase.auth.signOut();
-      }
-    } catch (error) {
-      console.error(`❌ Error processing demo user ${demoUser.email}:`, error);
-    }
+  try {
+    await setupPromise;
+  } finally {
+    setupPromise = null;
   }
 };
 
-export const performDemoLogin = async (email: string, password: string) => {
-  console.log('🎭 Performing demo login for:', email);
-  
+const performDemoSetup = async (): Promise<void> => {
   try {
-    const result = await supabase.auth.signInWithPassword({
-      email,
-      password
+    logger.info('🎭 Setting up demo users...', {}, 'demo');
+
+    // Batch create all demo users
+    const userCreationPromises = demoUsers.map(async (demoUser) => {
+      try {
+        // Check if user already exists
+        const { data: existingUser } = await supabase.auth.admin.getUserById(demoUser.id);
+        
+        if (existingUser.user) {
+          logger.info(`🎭 Demo user ${demoUser.email} already exists`, {}, 'demo');
+          return;
+        }
+
+        // Create user with admin API for immediate availability
+        const { data, error } = await supabase.auth.admin.createUser({
+          email: demoUser.email,
+          password: demoUser.password,
+          email_confirm: true, // Skip email confirmation for demo
+          user_metadata: {
+            full_name: demoUser.name,
+            role: demoUser.role
+          }
+        });
+
+        if (error) {
+          // If user already exists, that's okay
+          if (error.message.includes('already registered')) {
+            logger.info(`🎭 Demo user ${demoUser.email} already registered`, {}, 'demo');
+            return;
+          }
+          throw error;
+        }
+
+        logger.info(`✅ Demo user created: ${demoUser.email}`, {}, 'demo');
+
+        // Ensure profile is created immediately
+        if (data.user) {
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            full_name: demoUser.name,
+            role: demoUser.role,
+            company_id: data.user.id,
+            email_connected: false,
+            onboarding_complete: true, // Skip onboarding for demo users
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            last_login: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          });
+        }
+
+      } catch (error) {
+        logger.error(`❌ Failed to create demo user ${demoUser.email}:`, error, 'demo');
+      }
     });
 
-    if (result.error) {
-      console.error('❌ Demo login failed:', result.error);
-      logDemoLogin(email, false);
-      return { success: false, error: result.error };
-    }
+    // Wait for all users to be created
+    await Promise.all(userCreationPromises);
+    logger.info('✅ Demo setup completed', {}, 'demo');
 
-    console.log('✅ Demo login successful:', result.data);
-    logDemoLogin(email, true);
-    return { success: true, data: result.data };
   } catch (error) {
-    console.error('❌ Demo login exception:', error);
-    logDemoLogin(email, false);
-    return { success: false, error };
+    logger.error('❌ Demo setup failed:', error, 'demo');
+    throw error;
   }
 };

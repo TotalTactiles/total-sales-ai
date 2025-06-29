@@ -10,9 +10,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DeveloperSecretLogin from '@/components/Developer/DeveloperSecretLogin';
 import DemoLoginCards from '@/components/auth/DemoLoginCards';
 import AuthSignupForm from './components/AuthSignupForm';
+import LoginLoadingState from '@/components/auth/LoginLoadingState';
 import { useDeveloperSecretTrigger } from '@/hooks/useDeveloperSecretTrigger';
 import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 import { ensureDemoUsersExist } from '@/utils/demoSetup';
+import { fetchUserProfileOptimized, logAuthPerformance, updateUserMetadataDeferred } from '@/utils/authOptimizer';
 
 const roles = [
   { 
@@ -37,6 +39,8 @@ const AuthPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(isDemoMode ? 'demo' : 'login');
   const [isLogin, setIsLogin] = useState(true);
   const [demoUsersReady, setDemoUsersReady] = useState(false);
+  const [loginStage, setLoginStage] = useState<'authenticating' | 'loading_profile' | 'preparing_dashboard'>('authenticating');
+  const [currentLoginRole, setCurrentLoginRole] = useState<string>('');
   
   // Developer secret trigger
   const { showDeveloperLogin, setShowDeveloperLogin } = useDeveloperSecretTrigger();
@@ -76,6 +80,8 @@ const AuthPage: React.FC = () => {
       });
 
       try {
+        const performanceStart = performance.now();
+        
         // Check if this is a demo user first
         const isDemoUser = isDemoMode && demoUsers.some(du => du.email === user.email);
         console.log('🎭 Is demo user?', isDemoUser);
@@ -84,57 +90,60 @@ const AuthPage: React.FC = () => {
           const demoUserData = demoUsers.find(du => du.email === user.email);
           console.log('🎭 Demo user found:', demoUserData);
           
+          // Prefetch the route before navigating
+          const targetRoute = demoUserData?.role === 'manager' ? '/manager/dashboard' 
+            : demoUserData?.role === 'developer' ? '/developer/dashboard' 
+            : '/sales/dashboard';
+          
           // Route demo users directly to their OS
-          if (demoUserData?.role === 'manager') {
-            console.log('➡️ Routing demo manager to /manager/dashboard');
-            navigate('/manager/dashboard');
-          } else if (demoUserData?.role === 'developer') {
-            console.log('➡️ Routing demo developer to /developer/dashboard');
-            navigate('/developer/dashboard');
-          } else {
-            console.log('➡️ Routing demo sales rep to /sales/dashboard');
-            navigate('/sales/dashboard');
-          }
+          console.log(`➡️ Routing demo user to ${targetRoute}`);
+          navigate(targetRoute);
+          
+          // Deferred metadata update
+          setTimeout(() => {
+            updateUserMetadataDeferred(user.id);
+          }, 100);
+          
           return;
         }
 
-        // For non-demo users, check profile
-        const { data: profileData, error } = await supabase
-          .from('profiles')
-          .select('onboarding_complete, role')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error('❌ Error checking user status:', error);
-          return;
-        }
-
+        // For non-demo users, fetch profile optimized
+        const profileData = await fetchUserProfileOptimized(user.id);
+        const performanceEnd = performance.now();
+        
         console.log('🔍 User profile check:', profileData);
 
         if (!profileData) {
           console.log('➡️ No profile found, creating profile and redirecting to dashboard');
           // For users without profiles, redirect to dashboard based on auth metadata
           const userRole = user.user_metadata?.role || 'sales_rep';
-          if (userRole === 'manager') {
-            navigate('/manager/dashboard');
-          } else if (userRole === 'developer') {
-            navigate('/developer/dashboard');
-          } else {
-            navigate('/sales/dashboard');
-          }
+          const targetRoute = userRole === 'manager' ? '/manager/dashboard'
+            : userRole === 'developer' ? '/developer/dashboard'
+            : '/sales/dashboard';
+          navigate(targetRoute);
           return;
         }
 
         // Always redirect to dashboard - skip onboarding for demo
         console.log('➡️ Redirecting to dashboard for role:', profileData.role);
-        if (profileData.role === 'manager') {
-          navigate('/manager/dashboard');
-        } else if (profileData.role === 'developer') {
-          navigate('/developer/dashboard');
-        } else {
-          navigate('/sales/dashboard');
-        }
+        const targetRoute = profileData.role === 'manager' ? '/manager/dashboard'
+          : profileData.role === 'developer' ? '/developer/dashboard'
+          : '/sales/dashboard';
+        
+        navigate(targetRoute);
+        
+        // Log performance metrics
+        await logAuthPerformance({
+          loginStart: performanceStart,
+          sessionRetrieved: performanceStart,
+          profileFetched: performanceEnd,
+          routingComplete: performance.now()
+        }, profileData.role);
+        
+        // Deferred metadata update
+        setTimeout(() => {
+          updateUserMetadataDeferred(user.id);
+        }, 100);
         
       } catch (error) {
         console.error('❌ Error checking user status:', error);
@@ -149,6 +158,9 @@ const AuthPage: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
+    const performanceStart = performance.now();
+    setLoginStage('authenticating');
 
     try {
       console.log('🔐 Login attempt for:', email);
@@ -156,20 +168,31 @@ const AuthPage: React.FC = () => {
       
       if (result?.error) {
         console.error('❌ Login error:', result.error);
+        setIsSubmitting(false);
         return;
       }
 
+      const sessionTime = performance.now();
+      setLoginStage('loading_profile');
+      
       console.log('✅ Login successful');
       // Success - the useEffect above will handle the redirect
     } catch (error) {
       console.error('❌ Login exception:', error);
-    } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDemoLogin = async (demoEmail: string, demoPassword: string) => {
     setIsSubmitting(true);
+    setLoginStage('authenticating');
+    
+    // Set current role for loading state
+    const demoUser = demoUsers.find(u => u.email === demoEmail);
+    if (demoUser) {
+      setCurrentLoginRole(demoUser.role);
+    }
+    
     try {
       console.log('🎭 Demo login attempt for:', demoEmail);
       
@@ -185,17 +208,25 @@ const AuthPage: React.FC = () => {
           const retryResult = await signIn(demoEmail, demoPassword);
           if (retryResult?.error) {
             console.error('❌ Demo login failed after user creation:', retryResult.error);
+            setIsSubmitting(false);
           }
+        } else {
+          setIsSubmitting(false);
         }
       } else {
         console.log('✅ Demo login successful');
+        setLoginStage('loading_profile');
       }
     } catch (error) {
       console.error('❌ Demo login exception:', error);
-    } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading state during authentication
+  if ((loading || isSubmitting) && currentLoginRole) {
+    return <LoginLoadingState role={currentLoginRole} stage={loginStage} />;
+  }
 
   if (loading || isSubmitting) {
     return (

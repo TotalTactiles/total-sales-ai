@@ -6,6 +6,7 @@ import { AuthContextType, Profile } from './types';
 import { logger } from '@/utils/logger';
 import { useProfileManager } from './useProfileManager';
 import { signIn, signUp, signUpWithOAuth, signOut } from './authService';
+import { fetchUserProfileOptimized } from '@/utils/authOptimizer';
 import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,11 +61,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               setUser(session?.user ?? null);
               
               if (session?.user) {
-                console.log('🔐 Auth state change: User found, fetching profile');
-                // Don't block auth state update with profile fetching
-                setTimeout(() => {
+                console.log('🔐 Auth state change: User found, fetching profile optimized');
+                // Use optimized profile fetching
+                setTimeout(async () => {
                   if (mounted) {
-                    fetchOrCreateProfile(session.user);
+                    const optimizedProfile = await fetchUserProfileOptimized(session.user.id);
+                    if (optimizedProfile) {
+                      setProfile(optimizedProfile);
+                    }
                   }
                 }, 0);
               } else {
@@ -93,10 +97,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (mounted) {
             setSession(session);
             setUser(session.user);
-            // Defer profile fetching to avoid blocking loading state
-            setTimeout(() => {
+            // Use optimized profile fetching for initial load
+            setTimeout(async () => {
               if (mounted) {
-                fetchOrCreateProfile(session.user);
+                const optimizedProfile = await fetchUserProfileOptimized(session.user.id);
+                if (optimizedProfile) {
+                  setProfile(optimizedProfile);
+                }
               }
             }, 0);
           }
@@ -126,7 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       mounted = false;
     };
-  }, [fetchOrCreateProfile, clearProfile, initialized]);
+  }, [setProfile, clearProfile, initialized]);
 
   const handleSignIn = async (email: string, password: string) => {
     console.log('🔐 AuthProvider: handleSignIn called for:', email);
