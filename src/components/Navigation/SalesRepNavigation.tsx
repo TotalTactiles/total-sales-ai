@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
@@ -12,12 +12,26 @@ import {
   LogOut,
   Target
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOptimizedLogout } from '@/utils/logoutOptimizer';
 
 const SalesRepNavigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { logout } = useOptimizedLogout();
+
+  // Prefetch auth page for faster logout
+  useEffect(() => {
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = '/auth';
+    document.head.appendChild(link);
+    
+    return () => {
+      if (document.head.contains(link)) {
+        document.head.removeChild(link);
+      }
+    };
+  }, []);
 
   const navItems = [
     { path: '/sales/dashboard', label: 'Dashboard', icon: Home },
@@ -27,9 +41,8 @@ const SalesRepNavigation: React.FC = () => {
     { path: '/sales/profile', label: 'Profile', icon: User },
   ];
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
+  const handleSignOut = () => {
+    logout();
   };
 
   return (

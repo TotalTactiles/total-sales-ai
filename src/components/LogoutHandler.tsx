@@ -1,13 +1,13 @@
 
 import { useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useOptimizedLogout } from '@/utils/logoutOptimizer';
 
 const LogoutHandler = () => {
-  const { signOut } = useAuth();
+  const { logout } = useOptimizedLogout();
 
   useEffect(() => {
-    signOut();
-  }, [signOut]);
+    logout();
+  }, [logout]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
