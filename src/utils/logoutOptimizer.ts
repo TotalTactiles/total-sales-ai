@@ -20,6 +20,8 @@ export const optimizedLogout = async (navigate: (path: string) => void) => {
           timestamp: new Date().toISOString(),
           source: 'optimized_logout'
         }
+      }).then(() => {
+        logger.info('Logout event logged successfully', {}, 'auth');
       }).catch(error => {
         logger.warn('Non-critical: Failed to log logout event:', error, 'auth');
       });

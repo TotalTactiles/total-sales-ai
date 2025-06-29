@@ -15,6 +15,7 @@ import { useDeveloperSecretTrigger } from '@/hooks/useDeveloperSecretTrigger';
 import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 import { ensureDemoUsersExist } from '@/utils/demoSetup';
 import { fetchUserProfileOptimized, logAuthPerformance, updateUserMetadataDeferred } from '@/utils/authOptimizer';
+import { preloadSalesOSData, setCachedSession } from '@/utils/salesDataOptimizer';
 
 const roles = [
   { 
@@ -90,14 +91,25 @@ const AuthPage: React.FC = () => {
           const demoUserData = demoUsers.find(du => du.email === user.email);
           console.log('🎭 Demo user found:', demoUserData);
           
-          // Prefetch the route before navigating
+          // Set cached session for faster subsequent loads
+          if (demoUserData) {
+            setCachedSession(user.id, user.id, demoUserData.role);
+          }
+          
+          // Prefetch route and data based on role
           const targetRoute = demoUserData?.role === 'manager' ? '/manager/dashboard' 
             : demoUserData?.role === 'developer' ? '/developer/dashboard' 
             : '/sales/dashboard';
           
-          // Route demo users directly to their OS
-          console.log(`➡️ Routing demo user to ${targetRoute}`);
-          navigate(targetRoute);
+          // Prefetch the route
+          navigate(targetRoute, { replace: true });
+          
+          // Preload data in background for sales role
+          if (demoUserData?.role === 'sales_rep') {
+            setTimeout(() => {
+              preloadSalesOSData(user.id, user.id).catch(console.error);
+            }, 0);
+          }
           
           // Deferred metadata update
           setTimeout(() => {
@@ -120,9 +132,12 @@ const AuthPage: React.FC = () => {
           const targetRoute = userRole === 'manager' ? '/manager/dashboard'
             : userRole === 'developer' ? '/developer/dashboard'
             : '/sales/dashboard';
-          navigate(targetRoute);
+          navigate(targetRoute, { replace: true });
           return;
         }
+
+        // Set cached session for faster loads
+        setCachedSession(user.id, profileData.company_id || user.id, profileData.role);
 
         // Always redirect to dashboard - skip onboarding for demo
         console.log('➡️ Redirecting to dashboard for role:', profileData.role);
@@ -130,7 +145,14 @@ const AuthPage: React.FC = () => {
           : profileData.role === 'developer' ? '/developer/dashboard'
           : '/sales/dashboard';
         
-        navigate(targetRoute);
+        // Preload data for sales users
+        if (profileData.role === 'sales_rep') {
+          setTimeout(() => {
+            preloadSalesOSData(user.id, profileData.company_id || user.id).catch(console.error);
+          }, 0);
+        }
+        
+        navigate(targetRoute, { replace: true });
         
         // Log performance metrics
         await logAuthPerformance({
@@ -148,7 +170,7 @@ const AuthPage: React.FC = () => {
       } catch (error) {
         console.error('❌ Error checking user status:', error);
         // Fallback to sales dashboard
-        navigate('/sales/dashboard');
+        navigate('/sales/dashboard', { replace: true });
       }
     };
 
@@ -164,6 +186,22 @@ const AuthPage: React.FC = () => {
 
     try {
       console.log('🔐 Login attempt for:', email);
+      
+      // Prefetch the likely destination route
+      const demoUser = demoUsers.find(u => u.email === email);
+      const expectedRole = demoUser?.role || selectedRole;
+      const expectedRoute = expectedRole === 'manager' ? '/manager/dashboard'
+        : expectedRole === 'developer' ? '/developer/dashboard'
+        : '/sales/dashboard';
+      
+      // Prefetch route while authenticating
+      setTimeout(() => {
+        const router = document.createElement('link');
+        router.rel = 'prefetch';
+        router.href = expectedRoute;
+        document.head.appendChild(router);
+      }, 0);
+      
       const result = await signIn(email, password);
       
       if (result?.error) {
@@ -191,12 +229,21 @@ const AuthPage: React.FC = () => {
     const demoUser = demoUsers.find(u => u.email === demoEmail);
     if (demoUser) {
       setCurrentLoginRole(demoUser.role);
+      
+      // Prefetch the destination route immediately
+      const targetRoute = demoUser.role === 'manager' ? '/manager/dashboard'
+        : demoUser.role === 'developer' ? '/developer/dashboard'
+        : '/sales/dashboard';
+      
+      const prefetchLink = document.createElement('link');
+      prefetchLink.rel = 'prefetch';
+      prefetchLink.href = targetRoute;
+      document.head.appendChild(prefetchLink);
     }
     
     try {
       console.log('🎭 Demo login attempt for:', demoEmail);
       
-      // Use proper Supabase authentication
       const result = await signIn(demoEmail, demoPassword);
       if (result?.error) {
         console.error('❌ Demo login error:', result.error);
