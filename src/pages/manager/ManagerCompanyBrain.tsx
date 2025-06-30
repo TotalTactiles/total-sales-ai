@@ -25,13 +25,22 @@ import {
   Activity,
   TrendingUp,
   Zap,
-  Target
+  Target,
+  Linkedin,
+  Instagram,
+  Facebook,
+  Twitter,
+  Youtube,
+  Plus,
+  ExternalLink
 } from 'lucide-react';
 
 const ManagerCompanyBrain: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [isWebsiteCrawling, setIsWebsiteCrawling] = useState(false);
 
   // Mock data for AI engagements
   const aiEngagements = [
@@ -118,6 +127,15 @@ const ManagerCompanyBrain: React.FC = () => {
     }
   ];
 
+  // Mock social media connections
+  const socialConnections = [
+    { platform: 'linkedin', name: 'LinkedIn', connected: false, icon: <Linkedin className="h-5 w-5" />, color: 'text-blue-600' },
+    { platform: 'facebook', name: 'Facebook', connected: false, icon: <Facebook className="h-5 w-5" />, color: 'text-blue-800' },
+    { platform: 'instagram', name: 'Instagram', connected: false, icon: <Instagram className="h-5 w-5" />, color: 'text-pink-600' },
+    { platform: 'twitter', name: 'Twitter', connected: false, icon: <Twitter className="h-5 w-5" />, color: 'text-sky-500' },
+    { platform: 'youtube', name: 'YouTube', connected: false, icon: <Youtube className="h-5 w-5" />, color: 'text-red-600' }
+  ];
+
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const files = Array.from(event.target.files);
@@ -135,6 +153,22 @@ const ManagerCompanyBrain: React.FC = () => {
         });
       }, 200);
     }
+  };
+
+  const handleWebsiteCrawl = () => {
+    if (!websiteUrl) return;
+    
+    setIsWebsiteCrawling(true);
+    // Simulate crawling process
+    setTimeout(() => {
+      setIsWebsiteCrawling(false);
+      setWebsiteUrl('');
+    }, 3000);
+  };
+
+  const handleSocialConnect = (platform: string) => {
+    // In a real implementation, this would trigger OAuth flow
+    console.log(`Connecting to ${platform}...`);
   };
 
   const getSourceColor = (status: string) => {
@@ -376,35 +410,112 @@ const ManagerCompanyBrain: React.FC = () => {
             ))}
           </div>
 
-          {/* Web & Social Integrations */}
+          {/* Website Crawling */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5" />
-                Web & Social Integrations
+                Website Parsing & Scraping
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="https://your-website.com"
+                  value={websiteUrl}
+                  onChange={(e) => setWebsiteUrl(e.target.value)}
+                  className="flex-1"
+                />
+                <Button 
+                  onClick={handleWebsiteCrawl}
+                  disabled={!websiteUrl || isWebsiteCrawling}
+                >
+                  {isWebsiteCrawling ? (
+                    <>
+                      <Activity className="h-4 w-4 mr-2 animate-spin" />
+                      Crawling...
+                    </>
+                  ) : (
+                    <>
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Crawl Website
+                    </>
+                  )}
+                </Button>
+              </div>
+              <p className="text-sm text-gray-600">
+                AI will automatically parse your website content, extract key information, and integrate it into your knowledge base.
+              </p>
+              
+              {/* Website Status */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Website URLs</label>
-                  <Input placeholder="https://your-website.com" />
-                  <Button size="sm" variant="outline">
-                    <Link className="h-4 w-4 mr-2" />
-                    Add URL
-                  </Button>
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Company Website</span>
+                    <Badge variant="outline" className="text-gray-600">Not Connected</Badge>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">0 pages indexed</p>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Social Media</label>
-                  <div className="space-y-2">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      Connect LinkedIn
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      Connect Twitter
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Product Pages</span>
+                    <Badge variant="outline" className="text-gray-600">Not Connected</Badge>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">0 pages indexed</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Social Media Integrations */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Social Media Integrations
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Connect your social media accounts to help AI understand your brand voice, tone, and communication style.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {socialConnections.map((connection, index) => (
+                  <div key={index} className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className={connection.color}>
+                          {connection.icon}
+                        </span>
+                        <span className="font-medium">{connection.name}</span>
+                      </div>
+                      <Badge variant="outline" className="text-gray-600">
+                        {connection.connected ? 'Connected' : 'Not Connected'}
+                      </Badge>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => handleSocialConnect(connection.platform)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Connect {connection.name}
                     </Button>
                   </div>
-                </div>
+                ))}
+              </div>
+
+              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">What AI learns from social media:</h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Brand voice and tone patterns</li>
+                  <li>• Customer interaction styles</li>
+                  <li>• Product positioning and messaging</li>
+                  <li>• Industry trends and conversations</li>
+                  <li>• Competitor analysis and market insights</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
@@ -433,6 +544,20 @@ const ManagerCompanyBrain: React.FC = () => {
                 <div>
                   <h4 className="font-medium">Auto-update knowledge base from CRM data</h4>
                   <p className="text-sm text-gray-600">Automatically parse and index CRM interactions</p>
+                </div>
+                <Badge variant="outline">Disabled</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Social media content analysis</h4>
+                  <p className="text-sm text-gray-600">Analyze connected social accounts for brand insights</p>
+                </div>
+                <Badge variant="outline">Disabled</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium">Website content monitoring</h4>
+                  <p className="text-sm text-gray-600">Automatically detect and index website updates</p>
                 </div>
                 <Badge variant="outline">Disabled</Badge>
               </div>
