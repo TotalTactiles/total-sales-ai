@@ -15,7 +15,9 @@ import {
   Filter,
   AlertTriangle,
   CheckCircle,
-  Zap
+  Zap,
+  Activity,
+  Calendar
 } from 'lucide-react';
 
 const BusinessOps = () => {
@@ -62,7 +64,7 @@ const BusinessOps = () => {
         <TabsContent value="overview" className="space-y-6">
           {/* Key Business Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Monthly ARR</CardTitle>
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -75,7 +77,7 @@ const BusinessOps = () => {
               </CardContent>
             </Card>
 
-            <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">CAC</CardTitle>
                 <Target className="h-4 w-4 text-muted-foreground" />
@@ -88,7 +90,7 @@ const BusinessOps = () => {
               </CardContent>
             </Card>
 
-            <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">LTV</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -101,7 +103,7 @@ const BusinessOps = () => {
               </CardContent>
             </Card>
 
-            <Card className="rounded-lg shadow-md hover:shadow-lg transition-shadow">
+            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
                 <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -117,7 +119,7 @@ const BusinessOps = () => {
 
           {/* AI Interpretation Blocks */}
           {aiAnalyticsActive && (
-            <Card className="rounded-lg shadow-md">
+            <Card className="rounded-lg shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Brain className="h-5 w-5 text-blue-600" />
@@ -130,7 +132,7 @@ const BusinessOps = () => {
                     <div className="flex items-start gap-3">
                       <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                       <div>
-                        <h4 className="font-medium text-green-800">Strong Performance Indicator</h4>
+                        <h4 className="font-medium text-green-800">🔥 Strong Performance Indicator</h4>
                         <p className="text-sm text-green-700 mt-1">
                           Your team's LTV:CAC ratio of 14.9:1 exceeds industry standards (3:1), indicating highly efficient customer acquisition and strong unit economics.
                         </p>
@@ -142,7 +144,7 @@ const BusinessOps = () => {
                     <div className="flex items-start gap-3">
                       <Zap className="h-5 w-5 text-blue-600 mt-0.5" />
                       <div>
-                        <h4 className="font-medium text-blue-800">Optimization Opportunity</h4>
+                        <h4 className="font-medium text-blue-800">📈 Optimization Opportunity</h4>
                         <p className="text-sm text-blue-700 mt-1">
                           Email campaigns show 34% higher conversion than cold calls. Consider reallocating 20% of calling time to email sequences for improved ROI.
                         </p>
@@ -154,7 +156,7 @@ const BusinessOps = () => {
                     <div className="flex items-start gap-3">
                       <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
                       <div>
-                        <h4 className="font-medium text-yellow-800">Attention Required</h4>
+                        <h4 className="font-medium text-yellow-800">⚠️ Attention Required</h4>
                         <p className="text-sm text-yellow-700 mt-1">
                           Deal velocity has decreased by 12% this quarter. AI recommends implementing automated follow-up sequences and proposal templates.
                         </p>
@@ -166,8 +168,8 @@ const BusinessOps = () => {
             </Card>
           )}
 
-          {/* AI Forecast Toggle Section */}
-          <Card className="rounded-lg shadow-md">
+          {/* AI Forecast Section */}
+          <Card className="rounded-lg shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
@@ -194,10 +196,40 @@ const BusinessOps = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Quick AI Actions Bar */}
+          <Card className="rounded-lg shadow-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5" />
+                AI Actions Center
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Button variant="outline" className="h-16 flex flex-col items-center justify-center">
+                  <Activity className="h-5 w-5 mb-1" />
+                  <span className="text-xs">Auto-Generate Weekly Insights</span>
+                </Button>
+                <Button variant="outline" className="h-16 flex flex-col items-center justify-center">
+                  <TrendingUp className="h-5 w-5 mb-1" />
+                  <span className="text-xs">Reallocate Call Time</span>
+                </Button>
+                <Button variant="outline" className="h-16 flex flex-col items-center justify-center">
+                  <Users className="h-5 w-5 mb-1" />
+                  <span className="text-xs">Performance Review</span>
+                </Button>
+                <Button variant="outline" className="h-16 flex flex-col items-center justify-center">
+                  <Calendar className="h-5 w-5 mb-1" />
+                  <span className="text-xs">Schedule Team 1-on-1s</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="sales-reps" className="space-y-6">
-          <Card className="rounded-lg shadow-md">
+          <Card className="rounded-lg shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -207,15 +239,15 @@ const BusinessOps = () => {
             <CardContent>
               <div className="space-y-4">
                 {[
-                  { name: 'Sarah Chen', deals: 12, value: '$145K', conversion: '28%', status: 'exceeding', calls: 89, training: 92 },
-                  { name: 'Mike Johnson', deals: 8, value: '$98K', conversion: '22%', status: 'on-track', calls: 67, training: 78 },
-                  { name: 'Emma Davis', deals: 6, value: '$67K', conversion: '18%', status: 'needs-support', calls: 45, training: 56 },
-                  { name: 'James Wilson', deals: 10, value: '$123K', conversion: '25%', status: 'on-track', calls: 78, training: 84 }
+                  { name: 'Sarah Chen', deals: 12, value: '$145K', conversion: '28%', status: 'exceeding', calls: 89, training: 92, emoji: '🔥' },
+                  { name: 'Mike Johnson', deals: 8, value: '$98K', conversion: '22%', status: 'on-track', calls: 67, training: 78, emoji: '📈' },
+                  { name: 'Emma Davis', deals: 6, value: '$67K', conversion: '18%', status: 'needs-support', calls: 45, training: 56, emoji: '⚠️' },
+                  { name: 'James Wilson', deals: 10, value: '$123K', conversion: '25%', status: 'on-track', calls: 78, training: 84, emoji: '📊' }
                 ].map((rep, index) => (
                   <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-medium">{rep.name.split(' ').map(n => n[0]).join('')}</span>
+                        <span className="text-lg">{rep.emoji}</span>
                       </div>
                       <div>
                         <h4 className="font-medium">{rep.name}</h4>
@@ -241,7 +273,7 @@ const BusinessOps = () => {
         </TabsContent>
 
         <TabsContent value="funnels" className="space-y-6">
-          <Card className="rounded-lg shadow-md">
+          <Card className="rounded-lg shadow-sm">
             <CardHeader>
               <CardTitle>Conversion Funnel Analysis</CardTitle>
             </CardHeader>
@@ -276,7 +308,7 @@ const BusinessOps = () => {
 
         <TabsContent value="retention" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="rounded-lg shadow-md">
+            <Card className="rounded-lg shadow-sm">
               <CardHeader>
                 <CardTitle>Customer Retention Metrics</CardTitle>
               </CardHeader>
@@ -302,22 +334,22 @@ const BusinessOps = () => {
               </CardContent>
             </Card>
 
-            <Card className="rounded-lg shadow-md">
+            <Card className="rounded-lg shadow-sm">
               <CardHeader>
                 <CardTitle>Revenue Health Score</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-medium text-green-800">Expansion Opportunities (12 accounts)</h4>
+                    <h4 className="font-medium text-green-800">🚀 Expansion Opportunities (12 accounts)</h4>
                     <p className="text-sm text-green-700">High usage, feature requests, growth indicators</p>
                   </div>
                   <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-yellow-800">Medium Risk (7 accounts)</h4>
+                    <h4 className="font-medium text-yellow-800">🧊 Medium Risk (7 accounts)</h4>
                     <p className="text-sm text-yellow-700">Reduced engagement, missed check-ins</p>
                   </div>
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <h4 className="font-medium text-red-800">High Risk (3 accounts)</h4>
+                    <h4 className="font-medium text-red-800">⚠️ High Risk (3 accounts)</h4>
                     <p className="text-sm text-red-700">Decreased usage, support tickets, payment delays</p>
                   </div>
                 </div>
