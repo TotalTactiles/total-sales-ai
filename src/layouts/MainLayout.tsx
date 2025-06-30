@@ -17,12 +17,12 @@ import ManagerDashboard from '@/pages/ManagerDashboard';
 const MainLayout: React.FC = () => {
   const { user, profile, loading } = useAuth();
   const location = useLocation();
-  const { isDemoMode, demoUserRole } = useDemoMode();
+  const { isDemoMode, demoUser } = useDemoMode();
 
   // Determine user role with better fallback logic
   const getUserRole = () => {
-    if (isDemoMode && demoUserRole) {
-      return demoUserRole;
+    if (isDemoMode && demoUser?.role) {
+      return demoUser.role;
     }
     if (profile?.role) {
       return profile.role;
@@ -42,7 +42,7 @@ const MainLayout: React.FC = () => {
   logger.info('🔄 MainLayout routing:', {
     userRole,
     isDemo: isDemoMode,
-    demoUserRole,
+    demoUserRole: demoUser?.role,
     profileRole: profile?.role,
     userId: user?.id,
     currentPath: location.pathname
