@@ -4,7 +4,7 @@ import { isDemoMode, demoUsers, mockManagerLeads, mockSalesLeads, mockTSAMLogs, 
 import { useAuth } from '@/contexts/AuthContext';
 
 export const useDemoMode = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [isDemo, setIsDemo] = useState(false);
   const [demoUser, setDemoUser] = useState<any>(null);
 
@@ -12,10 +12,23 @@ export const useDemoMode = () => {
     console.log('🎭 useDemoMode: Checking demo status', { 
       isDemoMode, 
       user: user?.id, 
-      userEmail: user?.email 
+      userEmail: user?.email,
+      profileRole: profile?.role
     });
 
-    if (isDemoMode && user) {
+    // For Sales Rep OS consistency, always provide enhanced data for sales_rep role
+    if (user && profile?.role === 'sales_rep') {
+      const foundDemoUser = demoUsers.find(du => du.role === 'sales_rep') || {
+        id: user.id,
+        email: user.email,
+        name: profile.full_name || 'Sales Rep',
+        role: 'sales_rep'
+      };
+      
+      setIsDemo(true);
+      setDemoUser(foundDemoUser);
+      console.log('🎯 Sales Rep OS mode activated for:', foundDemoUser.name, foundDemoUser.role);
+    } else if (isDemoMode && user) {
       const foundDemoUser = demoUsers.find(du => du.email === user.email || du.id === user.id);
       if (foundDemoUser) {
         setIsDemo(true);
@@ -30,19 +43,19 @@ export const useDemoMode = () => {
       setIsDemo(false);
       setDemoUser(null);
     }
-  }, [user]);
+  }, [user, profile]);
 
   const getDemoData = (dataType: string) => {
-    if (!isDemo) {
+    if (!isDemo && profile?.role !== 'sales_rep') {
       console.log('🎭 getDemoData: Not in demo mode');
       return null;
     }
 
-    console.log('🎭 Getting demo data for:', dataType, 'user role:', demoUser?.role);
+    console.log('🎭 Getting demo data for:', dataType, 'user role:', demoUser?.role || profile?.role);
 
     switch (dataType) {
       case 'leads':
-        return demoUser?.role === 'manager' ? mockManagerLeads : mockSalesLeads;
+        return (demoUser?.role === 'manager' || profile?.role === 'manager') ? mockManagerLeads : mockSalesLeads;
       case 'tsam_logs':
         return mockTSAMLogs;
       case 'feature_flags':
@@ -54,9 +67,14 @@ export const useDemoMode = () => {
   };
 
   return {
-    isDemo,
-    demoUser,
+    isDemo: isDemo || profile?.role === 'sales_rep', // Always provide enhanced data for sales reps
+    demoUser: demoUser || (profile?.role === 'sales_rep' ? { 
+      id: user?.id, 
+      email: user?.email, 
+      name: profile?.full_name || 'Sales Rep', 
+      role: 'sales_rep' 
+    } : null),
     getDemoData,
-    isDemoMode: isDemoMode
+    isDemoMode: isDemoMode || profile?.role === 'sales_rep'
   };
 };

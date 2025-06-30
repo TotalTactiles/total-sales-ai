@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
 import { useMockData } from '@/hooks/useMockData';
 
-// Sales Rep Pages
+// Sales Rep Pages  
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import LeadManagement from '@/pages/LeadManagement';
 import LeadWorkspace from '@/pages/LeadWorkspace';
@@ -23,6 +23,10 @@ const SalesRepOS: React.FC = () => {
           <Route path="dashboard" element={<SalesRepDashboard />} />
           <Route path="leads" element={<LeadManagement />} />
           <Route path="leads/:leadId" element={<LeadWorkspace />} />
+          <Route path="my-leads" element={<LeadManagement />} />
+          <Route path="activity" element={<SalesRepDashboard />} />
+          <Route path="ai-insights" element={<SalesRepDashboard />} />
+          <Route path="profile" element={<SalesRepDashboard />} />
           <Route path="dialer" element={<AutoDialerInterface leads={leads} onLeadSelect={() => {}} />} />
           <Route path="brain" element={<CompanyBrainSalesRep />} />
           <Route path="*" element={<Navigate to="dashboard" replace />} />
