@@ -1,34 +1,21 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Phone, 
-  Settings, 
-  Play,
-  AlertTriangle,
-  Clock,
-  Users,
-  TrendingUp,
-  CheckCircle,
-  XCircle,
-  Shield,
-  Eye
-} from 'lucide-react';
+import { Phone, Settings, Play, AlertTriangle, Clock, Users, TrendingUp, CheckCircle, XCircle, Shield, Eye } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
-
 interface TSAMDialerLayoutProps {
   leads: Lead[];
   onLeadSelect: (lead: Lead) => void;
 }
-
-const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect }) => {
+const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({
+  leads,
+  onLeadSelect
+}) => {
   const [dialerStatus, setDialerStatus] = useState('Stopped');
   const [complianceStatus, setComplianceStatus] = useState('As Issues');
   const [currentLead, setCurrentLead] = useState<Lead | null>(null);
-
   const handleStartDialing = () => {
     if (complianceStatus === 'As Issues') {
       toast.error('Please resolve compliance issues before starting dialer');
@@ -37,12 +24,10 @@ const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect
     setDialerStatus('Running');
     toast.success('Auto-dialer started');
   };
-
   const handleStopDialing = () => {
     setDialerStatus('Stopped');
     toast.info('Auto-dialer stopped');
   };
-
   const handleDemoMockCall = () => {
     if (leads.length > 0) {
       const demoLead = leads[0];
@@ -53,12 +38,9 @@ const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect
       toast.error('No leads available for demo');
     }
   };
-
   const repQueue = leads.filter(lead => lead.priority === 'high').slice(0, 5);
   const aiQueue = leads.filter(lead => lead.priority !== 'high').slice(0, 5);
-
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -67,10 +49,7 @@ const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect
             <p className="text-gray-600">AI-Augmented Legal Compliant Dialing</p>
           </div>
           <div className="flex items-center gap-4">
-            <Button 
-              onClick={handleDemoMockCall}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
+            <Button onClick={handleDemoMockCall} className="bg-purple-600 hover:bg-purple-700">
               Demo Mock Call
             </Button>
             <div className="flex items-center gap-2 text-sm">
@@ -179,11 +158,7 @@ const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect
                   <Badge variant="destructive">{complianceStatus}</Badge>
                 </div>
                 <div className="flex gap-2">
-                  <Button 
-                    onClick={handleStartDialing}
-                    disabled={complianceStatus === 'As Issues'}
-                    className="flex-1"
-                  >
+                  <Button onClick={handleStartDialing} disabled={complianceStatus === 'As Issues'} className="flex-1">
                     <Play className="h-4 w-4 mr-2" />
                     Start Dialing
                   </Button>
@@ -219,9 +194,7 @@ const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {repQueue.map((lead, index) => (
-                  <div key={lead.id} className="flex items-center justify-between p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100"
-                       onClick={() => onLeadSelect(lead)}>
+                {repQueue.map((lead, index) => <div key={lead.id} className="flex items-center justify-between p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100" onClick={() => onLeadSelect(lead)}>
                     <div>
                       <p className="text-sm font-medium">{lead.name}</p>
                       <p className="text-xs text-gray-600">{lead.company}</p>
@@ -236,8 +209,7 @@ const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect
                         {lead.priority || 'high'}
                       </Badge>
                     </div>
-                  </div>
-                ))}
+                  </div>)}
               </CardContent>
             </Card>
           </div>
@@ -249,11 +221,9 @@ const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect
                 <Phone className="h-16 w-16 text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-600 mb-2">No Active Call</h3>
                 <p className="text-gray-500 mb-4">Select a lead to start dialing</p>
-                {currentLead && (
-                  <div className="text-sm text-blue-600">
+                {currentLead && <div className="text-sm text-blue-600">
                     Ready to call: {currentLead.name}
-                  </div>
-                )}
+                  </div>}
               </CardContent>
             </Card>
           </div>
@@ -337,32 +307,12 @@ const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect
 
             {/* System Health */}
             <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">System Health</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Auth OK</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <XCircle className="h-4 w-4 text-red-600" />
-                    <span>DS Issue</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Route OK</span>
-                  </div>
-                  <div className="text-xs text-gray-600">22:19:24</div>
-                </div>
-              </CardContent>
+              
+              
             </Card>
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default TSAMDialerLayout;
