@@ -58,6 +58,27 @@ const Dashboard: React.FC = () => {
     }
   ];
 
+  // Convert pipeline data to proper Lead format
+  const convertedLeads = dashboardData.pipelineData.map(item => ({
+    id: item.lead.replace(/\s+/g, '-').toLowerCase(),
+    name: item.lead,
+    email: `${item.lead.toLowerCase().replace(/\s+/g, '.')}@${item.company.toLowerCase().replace(/\s+/g, '')}.com`,
+    phone: '+1-555-0123',
+    company: item.company,
+    status: item.status as any,
+    priority: item.priority as any,
+    source: 'Website',
+    score: 85,
+    conversionLikelihood: 78,
+    lastContact: item.lastContact === 'Never' ? 'Never contacted' : new Date(item.lastContact).toLocaleDateString(),
+    speedToLead: 0,
+    tags: ['Demo Lead'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    companyId: 'demo-company',
+    isSensitive: false
+  }));
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navigation />
@@ -93,7 +114,7 @@ const Dashboard: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <PipelinePulse leads={dashboardData.pipelineData} onLeadClick={() => {}} />
+              <PipelinePulse leads={convertedLeads} onLeadClick={() => {}} />
             </CardContent>
           </Card>
           <AIAssistantHub stats={dashboardData.aiAssistant} />
