@@ -20,6 +20,7 @@ export const ROUTES = {
   SALES_LEAD_WORKSPACE: '/sales/leads/:leadId',
   SALES_DIALER: '/sales/dialer',
   SALES_BRAIN: '/sales/brain',
+  SALES_ANALYTICS: '/sales/analytics',
   
   // Manager routes
   MANAGER_DASHBOARD: '/manager/dashboard',
@@ -64,6 +65,12 @@ export const ROUTE_CONFIGS: RouteConfig[] = [
     path: ROUTES.SALES_BRAIN,
     label: 'Company Brain',
     icon: 'Brain',
+    allowedRoles: ['sales_rep']
+  },
+  {
+    path: ROUTES.SALES_ANALYTICS,
+    label: 'Analytics',
+    icon: 'BarChart3',
     allowedRoles: ['sales_rep']
   },
   
