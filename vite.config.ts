@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -24,7 +25,7 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           auth: [
-            'src/contexts/AuthContext',
+            'src/contexts/auth/AuthProvider',
             'src/services/authService'
           ],
           dashboard: ['src/pages/Dashboard']
