@@ -22,7 +22,7 @@ export const optimizedLogout = async (navigate: (path: string) => void) => {
         }
       }).then(() => {
         logger.info('Logout event logged successfully', {}, 'auth');
-      }).catch(error => {
+      }).catch((error: any) => {
         logger.warn('Non-critical: Failed to log logout event:', error, 'auth');
       });
     }, 0);

@@ -71,7 +71,7 @@ export const preloadSalesOSData = async (userId: string, companyId: string): Pro
         }
       }).then(() => {
         logger.info('Sales data preload logged successfully', {}, 'sales');
-      }).catch(error => {
+      }).catch((error: any) => {
         logger.warn('Failed to log sales preload performance:', error, 'sales');
       });
     }, 0);

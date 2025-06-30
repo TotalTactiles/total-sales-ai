@@ -1,82 +1,73 @@
 
 import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAppState } from '@/hooks/useAppState';
-import SalesRepOS from './SalesRepOS';
-import ManagerOS from './ManagerOS';
-import DeveloperOS from './DeveloperOS';
-import NavigationFallback from '@/components/Navigation/NavigationFallback';
-import EnhancedErrorBoundary from '@/components/ErrorBoundary/EnhancedErrorBoundary';
-import UnifiedAIAssistant from '@/components/AI/UnifiedAIAssistant';
-import { logger } from '@/utils/logger';
-import { useLocation } from 'react-router-dom';
+
+// Manager Pages
+import ManagerDashboard from '@/pages/manager/ManagerDashboard';
+
+// Sales Rep Pages  
+import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
+import LeadManagement from '@/pages/LeadManagement';
+import LeadWorkspace from '@/pages/LeadWorkspace';
+
+// Developer Pages
+import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
 
 const MainLayout: React.FC = () => {
-  const { user, profile, loading } = useAuth();
-  const { setError } = useAppState();
-  const location = useLocation();
+  const { profile } = useAuth();
 
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
+  if (!profile) {
+    return <Navigate to="/auth" replace />;
   }
 
-  // Handle authenticated users
-  if (user && profile) {
-    logger.info('Authenticated user with role:', profile.role);
-    
-    try {
-      const getAIContext = () => ({
-        workspace: location.pathname.split('/')[1] || 'dashboard',
-        userRole: profile.role,
-        userId: user.id,
-        companyId: profile.company_id
-      });
-
-      switch (profile.role) {
-        case 'manager':
-          return (
-            <EnhancedErrorBoundary>
-              <ManagerOS />
-              <UnifiedAIAssistant context={getAIContext()} />
-            </EnhancedErrorBoundary>
-          );
-        case 'sales_rep':
-          return (
-            <EnhancedErrorBoundary>
-              <SalesRepOS />
-              <UnifiedAIAssistant context={getAIContext()} />
-            </EnhancedErrorBoundary>
-          );
-        case 'developer':
-        case 'admin':
-          return (
-            <EnhancedErrorBoundary>
-              <DeveloperOS />
-              <UnifiedAIAssistant context={getAIContext()} />
-            </EnhancedErrorBoundary>
-          );
-        default:
-          logger.warn('Unknown user role:', profile.role);
-          return <NavigationFallback />;
-      }
-    } catch (error) {
-      logger.error('Error in authenticated layout:', error);
-      setError('Failed to load dashboard');
-      return <NavigationFallback />;
+  // Route based on user role
+  const getDefaultRoute = () => {
+    switch (profile.role) {
+      case 'manager':
+        return '/manager/dashboard';
+      case 'sales_rep':
+        return '/sales/dashboard';
+      case 'developer':
+        return '/developer/dashboard';
+      default:
+        return '/sales/dashboard';
     }
-  }
+  };
 
-  // Fallback for edge cases
-  logger.warn('MainLayout fallback triggered', { user: !!user, profile: !!profile });
-  return <NavigationFallback />;
+  return (
+    <div className="min-h-screen bg-background">
+      <Routes>
+        {/* Root redirect based on role */}
+        <Route index element={<Navigate to={getDefaultRoute()} replace />} />
+        
+        {/* Manager Routes */}
+        <Route path="/manager/dashboard" element={<ManagerDashboard />} />
+        <Route path="/manager/leads" element={<ManagerDashboard />} />
+        <Route path="/manager/team" element={<ManagerDashboard />} />
+        <Route path="/manager/coaching" element={<ManagerDashboard />} />
+        <Route path="/manager/profile" element={<ManagerDashboard />} />
+        
+        {/* Sales Rep Routes */}
+        <Route path="/sales/dashboard" element={<SalesRepDashboard />} />
+        <Route path="/sales/leads" element={<LeadManagement />} />
+        <Route path="/sales/leads/:leadId" element={<LeadWorkspace />} />
+        <Route path="/sales/activity" element={<SalesRepDashboard />} />
+        <Route path="/sales/ai-insights" element={<SalesRepDashboard />} />
+        <Route path="/sales/profile" element={<SalesRepDashboard />} />
+        
+        {/* Developer Routes */}
+        <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+        <Route path="/developer/logs" element={<DeveloperDashboard />} />
+        <Route path="/developer/performance" element={<DeveloperDashboard />} />
+        <Route path="/developer/jarvis" element={<DeveloperDashboard />} />
+        <Route path="/developer/updates" element={<DeveloperDashboard />} />
+        
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
+      </Routes>
+    </div>
+  );
 };
 
 export default MainLayout;
