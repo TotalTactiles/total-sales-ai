@@ -59,23 +59,23 @@ export const preloadSalesOSData = async (userId: string, companyId: string): Pro
     }, 'sales');
 
     // Log performance for monitoring
-    setTimeout(() => {
-      const logPromise = supabase.from('tsam_logs').insert({
-        type: 'sales_data_preload',
-        priority: 'low',
-        message: `Sales data preloaded in ${loadTime}ms`,
-        metadata: {
-          userId,
-          loadTime,
-          timestamp: new Date().toISOString()
-        }
-      });
-      
-      logPromise.then(() => {
+    setTimeout(async () => {
+      try {
+        await supabase.from('tsam_logs').insert({
+          type: 'sales_data_preload',
+          priority: 'low',
+          message: `Sales data preloaded in ${loadTime}ms`,
+          metadata: {
+            userId,
+            loadTime,
+            timestamp: new Date().toISOString()
+          }
+        });
+        
         logger.info('Sales data preload logged successfully', {}, 'sales');
-      }).catch((error: any) => {
+      } catch (error: any) {
         logger.warn('Failed to log sales preload performance:', error, 'sales');
-      });
+      }
     }, 0);
 
     return {

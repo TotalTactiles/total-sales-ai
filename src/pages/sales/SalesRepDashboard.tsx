@@ -2,111 +2,111 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import TopNavigation from '@/components/Navigation/TopNavigation';
 import StatsCard from '@/components/Dashboard/StatsCard';
 import { 
-  Users, 
-  Phone, 
   Target, 
-  TrendingUp,
-  Calendar,
+  Phone, 
+  TrendingUp, 
+  DollarSign,
+  Clock,
+  Users,
   Brain,
   Activity,
+  Calendar,
   CheckCircle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { preloadSalesOSData, getCachedSession } from '@/utils/salesDataOptimizer';
-
-interface SalesData {
-  leads: any[];
-  activityLogs: any[];
-  metrics: any;
-  notifications: any[];
-}
+import { preloadSalesOSData } from '@/utils/salesDataOptimizer';
 
 const SalesRepDashboard = () => {
   const { profile, user } = useAuth();
-  const [salesData, setSalesData] = useState<SalesData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<any>(null);
 
   useEffect(() => {
-    const loadSalesData = async () => {
-      if (!user?.id || !profile?.company_id) return;
-      
-      try {
-        // Check cache first
-        const cachedSession = getCachedSession();
-        if (cachedSession && cachedSession.userId === user.id) {
-          console.log('Using cached session data for faster load');
+    const loadDashboardData = async () => {
+      if (user && profile) {
+        try {
+          const data = await preloadSalesOSData(user.id, profile.company_id || user.id);
+          setDashboardData(data);
+        } catch (error) {
+          console.error('Failed to load dashboard data:', error);
         }
-
-        const data = await preloadSalesOSData(user.id, profile.company_id);
-        setSalesData(data);
-      } catch (error) {
-        console.error('Failed to load sales data:', error);
-        // Set empty data to prevent infinite loading
-        setSalesData({
-          leads: [],
-          activityLogs: [],
-          metrics: null,
-          notifications: []
-        });
-      } finally {
-        setLoading(false);
       }
+      // Always set loading to false after a short delay to show loading state
+      setTimeout(() => setLoading(false), 500);
     };
 
-    loadSalesData();
-  }, [user?.id, profile?.company_id]);
+    loadDashboardData();
+  }, [user, profile]);
 
   const mockStats = [
     {
       title: "Active Leads",
-      value: salesData?.leads?.length || 23,
-      change: "+5 this week",
+      value: "47",
+      change: "+12 this week",
       changeType: "positive" as const,
-      icon: Users,
+      icon: Target,
       iconColor: "text-blue-600"
     },
     {
       title: "Calls Today",
-      value: salesData?.activityLogs?.filter(log => 
-        log.created_at && new Date(log.created_at).toDateString() === new Date().toDateString()
-      )?.length || 12,
-      change: "Target: 15",
-      changeType: "neutral" as const,
+      value: "23",
+      change: "8 connected",
+      changeType: "positive" as const,
       icon: Phone,
       iconColor: "text-green-600"
     },
     {
-      title: "Conversion Rate",
-      value: salesData?.metrics?.conversion_rate || "28%",
-      change: "+3% this month",
+      title: "Revenue Pipeline",
+      value: "$89K",
+      change: "+15% this month",
       changeType: "positive" as const,
-      icon: TrendingUp,
+      icon: DollarSign,
       iconColor: "text-purple-600"
     },
     {
-      title: "Revenue Goal",
-      value: `$${((salesData?.metrics?.monthly_revenue || 45000) / 1000).toFixed(0)}k`,
-      change: "67% of target",
+      title: "Conversion Rate",
+      value: "34%",
+      change: "+5% improvement",
       changeType: "positive" as const,
-      icon: Target,
+      icon: TrendingUp,
       iconColor: "text-orange-600"
     }
   ];
 
-  const todaysKillList = [
-    { name: "Acme Corp", priority: "high", value: "$25K", status: "pending" },
-    { name: "TechStart Inc", priority: "medium", value: "$18K", status: "follow-up" },
-    { name: "Global Solutions", priority: "high", value: "$35K", status: "demo" },
-    { name: "Modern Co", priority: "low", value: "$12K", status: "qualified" },
+  const recentLeads = [
+    { name: "Acme Corp", contact: "John Smith", status: "hot", value: "$12K", lastContact: "2 hours ago" },
+    { name: "TechStart Inc", contact: "Sarah Jones", status: "warm", value: "$8K", lastContact: "1 day ago" },
+    { name: "Global Solutions", contact: "Mike Chen", status: "cold", value: "$15K", lastContact: "3 days ago" },
+    { name: "Innovation Labs", contact: "Lisa Brown", status: "hot", value: "$20K", lastContact: "4 hours ago" },
+  ];
+
+  const aiInsights = [
+    {
+      type: "opportunity",
+      title: "Follow-up Opportunity",
+      message: "3 leads haven't been contacted in 48+ hours",
+      priority: "high"
+    },
+    {
+      type: "performance",
+      title: "Call Performance",
+      message: "Your conversion rate increased by 12% this week!",
+      priority: "low"
+    },
+    {
+      type: "strategy",
+      title: "Best Time to Call",
+      message: "Tuesday 2-4 PM shows highest connection rates",
+      priority: "medium"
+    }
   ];
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen bg-gray-50">
         <TopNavigation />
         <div className="p-6">
           <div className="animate-pulse space-y-6">
@@ -123,7 +123,7 @@ const SalesRepDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       <TopNavigation />
       
       <div className="p-6 space-y-8">
@@ -135,8 +135,8 @@ const SalesRepDashboard = () => {
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              <Brain className="h-3 w-3 mr-1" />
-              AI Coach Active
+              <CheckCircle className="h-3 w-3 mr-1" />
+              AI Assistant Active
             </Badge>
           </div>
         </div>
@@ -150,35 +150,34 @@ const SalesRepDashboard = () => {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Today's Kill List */}
+          {/* Recent Leads */}
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-red-600" />
-                Today's Kill List
+                <Target className="h-5 w-5 text-blue-600" />
+                Recent Leads
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {todaysKillList.map((lead, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-white rounded-lg border hover:shadow-sm transition-shadow">
+                {recentLeads.map((lead, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-4">
-                      <div className={`w-3 h-3 rounded-full ${
-                        lead.priority === 'high' ? 'bg-red-500' :
-                        lead.priority === 'medium' ? 'bg-yellow-500' : 'bg-green-500'
-                      }`}></div>
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                        {lead.name.charAt(0)}
+                      </div>
                       <div>
                         <p className="font-medium text-gray-900">{lead.name}</p>
-                        <p className="text-sm text-gray-600 capitalize">{lead.status}</p>
+                        <p className="text-sm text-gray-600">{lead.contact}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <span className="font-semibold text-green-600">{lead.value}</span>
-                      <Button size="sm" variant="outline">
-                        <Phone className="h-4 w-4 mr-1" />
-                        Call
-                      </Button>
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{lead.value}</p>
+                      <p className="text-sm text-gray-600">{lead.lastContact}</p>
                     </div>
+                    <Badge variant={lead.status === 'hot' ? 'default' : lead.status === 'warm' ? 'secondary' : 'outline'}>
+                      {lead.status}
+                    </Badge>
                   </div>
                 ))}
               </div>
@@ -195,35 +194,25 @@ const SalesRepDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <div className="flex items-start gap-3">
-                    <Brain className="h-5 w-5 text-purple-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-purple-900">Best Time to Call</p>
-                      <p className="text-xs text-purple-700 mt-1">TechStart Inc responds best around 2-4 PM</p>
+                {aiInsights.map((insight, index) => (
+                  <div key={index} className={`p-4 rounded-lg border ${
+                    insight.priority === 'high' ? 'bg-red-50 border-red-200' :
+                    insight.priority === 'medium' ? 'bg-yellow-50 border-yellow-200' :
+                    'bg-green-50 border-green-200'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-2 h-2 rounded-full mt-2 ${
+                        insight.priority === 'high' ? 'bg-red-500' :
+                        insight.priority === 'medium' ? 'bg-yellow-500' :
+                        'bg-green-500'
+                      }`}></div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{insight.title}</p>
+                        <p className="text-xs text-gray-600 mt-1">{insight.message}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-start gap-3">
-                    <TrendingUp className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-blue-900">Trend Alert</p>
-                      <p className="text-xs text-blue-700 mt-1">Enterprise deals are converting 40% faster this month</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-green-900">Success Pattern</p>
-                      <p className="text-xs text-green-700 mt-1">Your follow-up emails have 85% open rate</p>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -234,45 +223,40 @@ const SalesRepDashboard = () => {
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
               <Phone className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Start Calling</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Start Dialing</h3>
               <p className="text-sm text-gray-600">Begin your call session</p>
             </CardContent>
           </Card>
           
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
-              <Calendar className="h-8 w-8 text-green-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Schedule Demo</h3>
-              <p className="text-sm text-gray-600">Book meetings</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-6 text-center">
-              <Activity className="h-8 w-8 text-orange-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">Log Activity</h3>
+              <Users className="h-8 w-8 text-green-600 mx-auto mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">Manage Leads</h3>
               <p className="text-sm text-gray-600">Update lead status</p>
             </CardContent>
           </Card>
           
           <Card className="hover:shadow-md transition-shadow cursor-pointer">
             <CardContent className="p-6 text-center">
-              <Brain className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-              <h3 className="font-semibold text-gray-900 mb-2">AI Coach</h3>
-              <p className="text-sm text-gray-600">Get recommendations</p>
+              <Calendar className="h-8 w-8 text-orange-600 mx-auto mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">Schedule Follow-up</h3>
+              <p className="text-sm text-gray-600">Book meetings</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover:shadow-md transition-shadow cursor-pointer">
+            <CardContent className="p-6 text-center">
+              <Activity className="h-8 w-8 text-purple-600 mx-auto mb-3" />
+              <h3 className="font-semibold text-gray-900 mb-2">View Analytics</h3>
+              <p className="text-sm text-gray-600">Track performance</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Status Message */}
         <div className="text-center py-8">
-          <h2 className="text-xl font-semibold text-green-600">✅ Sales OS Active</h2>
-          <p className="text-gray-600 mt-2">All systems operational - TSAM Sales Rep OS loaded successfully</p>
-          {salesData?.notifications && salesData.notifications.length > 0 && (
-            <p className="text-sm text-blue-600 mt-1">
-              {salesData.notifications.length} new notifications
-            </p>
-          )}
+          <h2 className="text-xl font-semibold text-blue-600">🎯 Sales Rep OS Active</h2>
+          <p className="text-gray-600 mt-2">Your AI-powered sales dashboard is ready to accelerate your performance</p>
         </div>
       </div>
     </div>
