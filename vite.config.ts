@@ -19,4 +19,20 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          auth: [
+            'src/contexts/AuthContext',
+            'src/services/authService'
+          ],
+          dashboard: ['src/pages/Dashboard']
+        }
+      }
+    }
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom']
+  }
 }));
