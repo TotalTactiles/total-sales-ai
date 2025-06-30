@@ -396,18 +396,38 @@ const ManagerCompanyBrain: React.FC = () => {
 
           {/* Knowledge Categories */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {knowledgeBase.map((category, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle className="text-base">{category.category}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold mb-2">{category.count} articles</div>
-                  <Badge variant="outline" className="mb-2">{category.status}</Badge>
-                  <p className="text-xs text-gray-600">{category.usage}</p>
-                </CardContent>
-              </Card>
-            ))}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Sales Playbooks</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold mb-2">342 articles</div>
+                <Badge variant="outline" className="mb-2">Most Active</Badge>
+                <p className="text-xs text-gray-600">Sales Academy + AI Assistant</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Product Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold mb-2">189 articles</div>
+                <Badge variant="outline" className="mb-2">Updated Recently</Badge>
+                <p className="text-xs text-gray-600">AI Assistant Only</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Competitor Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold mb-2">96 articles</div>
+                <Badge variant="outline" className="mb-2">High Impact</Badge>
+                <p className="text-xs text-gray-600">All Systems</p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Website Crawling */}
@@ -481,30 +501,120 @@ const ManagerCompanyBrain: React.FC = () => {
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {socialConnections.map((connection, index) => (
-                  <div key={index} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className={connection.color}>
-                          {connection.icon}
-                        </span>
-                        <span className="font-medium">{connection.name}</span>
-                      </div>
-                      <Badge variant="outline" className="text-gray-600">
-                        {connection.connected ? 'Connected' : 'Not Connected'}
-                      </Badge>
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-600">
+                        <Linkedin className="h-5 w-5" />
+                      </span>
+                      <span className="font-medium">LinkedIn</span>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => handleSocialConnect(connection.platform)}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Connect {connection.name}
-                    </Button>
+                    <Badge variant="outline" className="text-gray-600">
+                      Not Connected
+                    </Badge>
                   </div>
-                ))}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleSocialConnect('linkedin')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Connect LinkedIn
+                  </Button>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-800">
+                        <Facebook className="h-5 w-5" />
+                      </span>
+                      <span className="font-medium">Facebook</span>
+                    </div>
+                    <Badge variant="outline" className="text-gray-600">
+                      Not Connected
+                    </Badge>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleSocialConnect('facebook')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Connect Facebook
+                  </Button>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-pink-600">
+                        <Instagram className="h-5 w-5" />
+                      </span>
+                      <span className="font-medium">Instagram</span>
+                    </div>
+                    <Badge variant="outline" className="text-gray-600">
+                      Not Connected
+                    </Badge>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleSocialConnect('instagram')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Connect Instagram
+                  </Button>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sky-500">
+                        <Twitter className="h-5 w-5" />
+                      </span>
+                      <span className="font-medium">Twitter</span>
+                    </div>
+                    <Badge variant="outline" className="text-gray-600">
+                      Not Connected
+                    </Badge>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleSocialConnect('twitter')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Connect Twitter
+                  </Button>
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-red-600">
+                        <Youtube className="h-5 w-5" />
+                      </span>
+                      <span className="font-medium">YouTube</span>
+                    </div>
+                    <Badge variant="outline" className="text-gray-600">
+                      Not Connected
+                    </Badge>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handleSocialConnect('youtube')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Connect YouTube
+                  </Button>
+                </div>
               </div>
 
               <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
