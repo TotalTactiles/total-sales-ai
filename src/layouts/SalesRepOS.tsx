@@ -10,7 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import LeadManagement from '@/pages/LeadManagement';
 import LeadWorkspace from '@/pages/LeadWorkspace';
-import AutoDialerInterface from '@/components/AutoDialer/AutoDialerInterface';
+import Dialer from '@/pages/Dialer';
 import CompanyBrainSalesRep from '@/components/CompanyBrain/CompanyBrainSalesRep';
 
 const SalesRepOS: React.FC = () => {
@@ -36,7 +36,7 @@ const SalesRepOS: React.FC = () => {
           <Route path="analytics" element={<SalesRepDashboard />} />
           <Route path="settings" element={<SalesRepDashboard />} />
           <Route path="profile" element={<SalesRepDashboard />} />
-          <Route path="dialer" element={<AutoDialerInterface leads={leads} onLeadSelect={() => {}} />} />
+          <Route path="dialer" element={<Dialer />} />
           <Route path="brain" element={<CompanyBrainSalesRep />} />
           <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Routes>
