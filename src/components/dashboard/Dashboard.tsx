@@ -16,7 +16,7 @@ import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import { AIAssistantHub } from './AIAssistantHub';
 import { SuggestedSchedule } from './SuggestedSchedule';
 import { PriorityTasks } from './PriorityTasks';
-import PipelinePulse from '@/components/Dashboard/PipelinePulse';
+import PipelinePulse from '@/components/dashboard/PipelinePulse';
 import { useDashboardData } from '../../hooks/useDashboardData';
 
 const Dashboard: React.FC = () => {
@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
     source: 'Website',
     score: 85,
     conversionLikelihood: 78,
-    lastContact: item.lastContactDate === 'Never' ? 'Never contacted' : new Date(item.lastContactDate || Date.now()).toLocaleDateString(),
+    lastContact: item.lastContact === 'Never' ? 'Never contacted' : new Date(item.lastContact || Date.now()).toLocaleDateString(),
     speedToLead: 0,
     tags: ['Demo Lead'],
     createdAt: new Date().toISOString(),
