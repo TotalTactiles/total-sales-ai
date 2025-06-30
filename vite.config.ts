@@ -20,15 +20,6 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          dashboard: ['src/pages/Dashboard']
-        }
-      }
-    }
-  },
   optimizeDeps: {
     include: ['react', 'react-dom']
   }

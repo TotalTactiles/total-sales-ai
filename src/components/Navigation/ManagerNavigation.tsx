@@ -31,7 +31,6 @@ const ManagerNavigation: React.FC = () => {
     { name: 'Dashboard', href: '/manager/dashboard', icon: Grid3X3 },
     { name: 'Business Ops', href: '/manager/business-ops', icon: BarChart3 },
     { name: 'Team', href: '/manager/team', icon: Users },
-    { name: 'Analytics', href: '/manager/analytics', icon: Target },
     { name: 'Leads', href: '/manager/leads', icon: Target },
     { name: 'AI Assistant', href: '/manager/ai', icon: Brain },
     { name: 'Integrations', href: '/manager/integrations', icon: Puzzle },
