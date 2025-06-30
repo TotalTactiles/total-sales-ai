@@ -1,14 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
+import { useAuth } from '@/contexts/AuthContext';
 
-export const optimizedLogout = async (navigate: (path: string) => void) => {
+export const optimizedLogout = async (
+  signOut: () => Promise<any>,
+  navigate: (path: string) => void
+) => {
   try {
     // Immediate UI feedback - clear local state first
     const startTime = performance.now();
-    
-    // Fast logout without waiting for server response
-    const logoutPromise = supabase.auth.signOut();
+
+    // Trigger auth context sign out for immediate state clearing
+    const logoutPromise = signOut();
     
     // Immediate navigation - don't wait for logout to complete
     setTimeout(() => {
@@ -50,12 +54,13 @@ export const optimizedLogout = async (navigate: (path: string) => void) => {
 
 // Hook for consistent logout behavior
 export const useOptimizedLogout = () => {
+  const { signOut } = useAuth();
   const navigate = (path: string) => {
     // Use replace for instant navigation
     window.location.replace(path);
   };
 
   return {
-    logout: () => optimizedLogout(navigate)
+    logout: () => optimizedLogout(signOut, navigate)
   };
 };
