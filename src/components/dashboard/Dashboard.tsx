@@ -16,7 +16,7 @@ import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import { AIAssistantHub } from './AIAssistantHub';
 import { SuggestedSchedule } from './SuggestedSchedule';
 import { PriorityTasks } from './PriorityTasks';
-import PipelinePulse from '@/components/Dashboard/PipelinePulse';
+import PipelinePulse from '@/components/dashboard/PipelinePulse';
 import { useDashboardData } from '../../hooks/useDashboardData';
 
 const Dashboard: React.FC = () => {
@@ -76,7 +76,8 @@ const Dashboard: React.FC = () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     companyId: 'demo-company',
-    isSensitive: false
+    isSensitive: false,
+    value: item.value ? parseInt(item.value.replace(/[$,]/g, '')) : 0
   }));
 
   return (
