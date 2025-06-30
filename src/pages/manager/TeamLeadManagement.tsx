@@ -14,7 +14,7 @@ import {
   Download,
   Search,
   Brain,
-  Fire,
+  Flame,
   Clock,
   Award
 } from 'lucide-react';
@@ -88,6 +88,32 @@ const TeamLeadManagement: React.FC = () => {
         assignedTo: 'Sarah Chen',
         status: 'proposal',
         priority: 'high'
+      },
+      {
+        id: '4',
+        name: 'David Kim',
+        company: 'Enterprise Solutions',
+        email: 'd.kim@enterprise.com',
+        stage: 'Follow-up needed',
+        score: 68,
+        daysInPipeline: 18,
+        lastAction: 'Email sent',
+        assignedTo: 'Mike Johnson',
+        status: 'stalled',
+        priority: 'medium'
+      },
+      {
+        id: '5',
+        name: 'Lisa Thompson',
+        company: 'Innovation Labs',
+        email: 'lisa.t@innovlabs.com',
+        stage: 'Negotiation',
+        score: 88,
+        daysInPipeline: 6,
+        lastAction: 'Contract review',
+        assignedTo: 'James Wilson',
+        status: 'proposal',
+        priority: 'high'
       }
     ];
 
@@ -125,7 +151,7 @@ const TeamLeadManagement: React.FC = () => {
   const getInsightIcon = (type: string) => {
     switch (type) {
       case 'high-performer':
-        return <Fire className="h-4 w-4 text-green-600" />;
+        return <Flame className="h-4 w-4 text-green-600" />;
       case 'bottleneck':
         return <AlertTriangle className="h-4 w-4 text-orange-600" />;
       case 'opportunity':
@@ -221,7 +247,7 @@ const TeamLeadManagement: React.FC = () => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5</div>
+            <div className="text-2xl font-bold">{teamLeads.length}</div>
             <p className="text-xs text-green-600">+12% from last week</p>
           </CardContent>
         </Card>
@@ -229,10 +255,10 @@ const TeamLeadManagement: React.FC = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Hot Leads</CardTitle>
-            <Fire className="h-4 w-4 text-orange-500" />
+            <Flame className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            <div className="text-2xl font-bold">{teamLeads.filter(l => l.score >= 80).length}</div>
             <p className="text-xs text-orange-600">Require immediate attention</p>
           </CardContent>
         </Card>
@@ -243,7 +269,7 @@ const TeamLeadManagement: React.FC = () => {
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2</div>
+            <div className="text-2xl font-bold">{teamLeads.filter(l => l.daysInPipeline > 20).length}</div>
             <p className="text-xs text-red-600">20+ days in pipeline</p>
           </CardContent>
         </Card>
@@ -254,7 +280,7 @@ const TeamLeadManagement: React.FC = () => {
             <Award className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">76%</div>
+            <div className="text-2xl font-bold">{Math.round(teamLeads.reduce((acc, l) => acc + l.score, 0) / teamLeads.length)}%</div>
             <p className="text-xs text-green-600">+5% improvement</p>
           </CardContent>
         </Card>
