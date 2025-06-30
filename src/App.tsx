@@ -9,7 +9,7 @@ import NewLandingPage from '@/pages/NewLandingPage';
 import { useAuth } from '@/contexts/AuthContext';
 
 const AppRoutes: React.FC = () => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
 
   if (loading) {
     return (

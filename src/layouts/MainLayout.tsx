@@ -2,6 +2,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import OSLayout from '@/components/layouts/OSLayout';
 
 // Manager Pages
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
@@ -50,7 +51,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <OSLayout>
       <Routes>
         {/* Root redirect based on role */}
         <Route index element={<Navigate to={getDefaultRoute()} replace />} />
@@ -87,7 +88,7 @@ const MainLayout: React.FC = () => {
         {/* Fallback */}
         <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
       </Routes>
-    </div>
+    </OSLayout>
   );
 };
 
