@@ -16,7 +16,7 @@ import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import { AIAssistantHub } from './AIAssistantHub';
 import { SuggestedSchedule } from './SuggestedSchedule';
 import { PriorityTasks } from './PriorityTasks';
-import { PipelinePulse } from '@/components/Dashboard/PipelinePulse';
+import PipelinePulse from '@/components/Dashboard/PipelinePulse';
 import { useDashboardData } from '../../hooks/useDashboardData';
 
 const Dashboard: React.FC = () => {
@@ -60,9 +60,9 @@ const Dashboard: React.FC = () => {
 
   // Convert pipeline data to proper Lead format
   const convertedLeads = dashboardData.pipelineData.map(item => ({
-    id: item.name.replace(/\s+/g, '-').toLowerCase(),
-    name: item.name,
-    email: `${item.name.toLowerCase().replace(/\s+/g, '.')}@${item.company.toLowerCase().replace(/\s+/g, '')}.com`,
+    id: item.lead || item.title || `lead-${Math.random()}`,
+    name: item.lead || item.title || 'Unknown Lead',
+    email: `${(item.lead || item.title || 'unknown').toLowerCase().replace(/\s+/g, '.')}@${item.company.toLowerCase().replace(/\s+/g, '')}.com`,
     phone: '+1-555-0123',
     company: item.company,
     status: item.status as any,
@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
     source: 'Website',
     score: 85,
     conversionLikelihood: 78,
-    lastContact: item.lastContact === 'Never' ? 'Never contacted' : new Date(item.lastContact).toLocaleDateString(),
+    lastContact: item.lastContact === 'Never' ? 'Never contacted' : new Date(item.lastContact || Date.now()).toLocaleDateString(),
     speedToLead: 0,
     tags: ['Demo Lead'],
     createdAt: new Date().toISOString(),
