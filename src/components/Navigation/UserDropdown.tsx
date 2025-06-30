@@ -11,18 +11,27 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { LogOut, User, Settings } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useOptimizedLogout } from '@/utils/logoutOptimizer';
 import { toast } from 'sonner';
 
-export interface UserProfileProps {
-  name: string;
-  role: string;
+interface UserDropdownProps {
+  userRole?: 'sales_rep' | 'manager' | 'admin';
+  userAvatar?: string;
   onLogout?: () => void | Promise<void>;
 }
 
-const UserProfile: React.FC<UserProfileProps> = ({ name, role, onLogout }) => {
+const UserDropdown: React.FC<UserDropdownProps> = ({ 
+  userRole, 
+  userAvatar, 
+  onLogout 
+}) => {
+  const { profile, user } = useAuth();
+  const { logout } = useOptimizedLogout();
   const navigate = useNavigate();
-  
-  const initials = name
+
+  const displayName = profile?.full_name || user?.email || 'User';
+  const initials = displayName
     .split(' ')
     .map(n => n[0])
     .join('')
@@ -33,6 +42,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ name, role, onLogout }) => {
     try {
       if (onLogout) {
         await onLogout();
+      } else {
+        await logout();
       }
       toast.success('Logged out successfully');
     } catch (error) {
@@ -77,8 +88,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ name, role, onLogout }) => {
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <p className="font-medium text-sm text-gray-900">{name}</p>
-            <p className="text-xs text-gray-500 capitalize">{role}</p>
+            <p className="font-medium text-sm text-gray-900">{displayName}</p>
+            <p className="text-xs text-gray-500 capitalize">
+              {profile?.role?.replace('_', ' ') || 'User'}
+            </p>
           </div>
         </div>
 
@@ -115,4 +128,4 @@ const UserProfile: React.FC<UserProfileProps> = ({ name, role, onLogout }) => {
   );
 };
 
-export default UserProfile;
+export default UserDropdown;

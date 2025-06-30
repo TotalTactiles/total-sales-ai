@@ -1,148 +1,138 @@
 
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useOptimizedLogout } from '@/utils/logoutOptimizer';
-import { Bell, User } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { 
+  Grid3X3,
+  Users,
+  Target,
+  Bot,
+  Phone,
+  BarChart3,
+  GraduationCap,
+  Settings,
+  Brain,
+  Menu,
+  X
+} from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import UserDropdown from './UserDropdown';
+import UnifiedNotificationCenter from './UnifiedNotificationCenter';
 
 const SalesRepNavigation: React.FC = () => {
-  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { profile } = useAuth();
-  const { logout } = useOptimizedLogout();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  // Updated navigation items with AI Agent in the correct position
   const navItems = [
-    { name: 'Dashboard', href: '/sales/dashboard', emoji: '📊' },
-    { name: 'Lead Management', href: '/sales/leads', emoji: '👥' },
-    { name: 'AI Agent', href: '/sales/ai-agent', emoji: '🤖' },
-    { name: 'Dialer', href: '/sales/dialer', emoji: '📞' },
-    { name: 'Analytics', href: '/sales/analytics', emoji: '📈' },
-    { name: 'Academy', href: '/sales/brain', emoji: '🎓' },
-    { name: 'Settings', href: '/sales/settings', emoji: '⚙️' },
+    { name: 'Dashboard', href: '/sales/dashboard', icon: Grid3X3 },
+    { name: 'Lead Management', href: '/sales/leads', icon: Users },
+    { name: 'AI Agent', href: '/sales/ai-agent', icon: Bot },
+    { name: 'Dialer', href: '/sales/dialer', icon: Phone },
+    { name: 'Analytics', href: '/sales/analytics', icon: BarChart3 },
+    { name: 'Academy', href: '/sales/academy', icon: GraduationCap },
+    { name: 'Company Brain', href: '/sales/brain', icon: Brain },
+    { name: 'Settings', href: '/sales/settings', icon: Settings }
   ];
 
   const isActive = (href: string) => {
     return location.pathname === href || location.pathname.startsWith(href + '/');
   };
 
-  // Keyboard shortcuts effect
-  React.useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.shiftKey) {
-        switch (e.key) {
-          case '1':
-            navigate('/sales/dashboard');
-            break;
-          case '2':
-            navigate('/sales/leads');
-            break;
-          case '3':
-            navigate('/sales/ai-agent');
-            break;
-          case '4':
-            navigate('/sales/dialer');
-            break;
-          case '5':
-            navigate('/sales/analytics');
-            break;
-          case '6':
-            navigate('/sales/brain');
-            break;
-          case '7':
-            navigate('/sales/settings');
-            break;
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [navigate]);
-
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 h-16">
-      <div className="flex items-center justify-between px-6 h-full max-w-7xl mx-auto">
-        {/* Left: TSAM Branding */}
-        <div className="flex items-center space-x-8">
-          <div className="flex items-center space-x-2">
-            <h1 className="text-xl font-bold text-blue-600">TSAM</h1>
-            <span className="text-sm text-gray-500">AI Sales OS</span>
-          </div>
-        </div>
-        
-        {/* Center: Navigation Items */}
-        <div className="hidden lg:flex items-center space-x-1">
-          {navItems.map(item => (
-            <button
-              key={item.href}
-              onClick={() => navigate(item.href)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive(item.href)
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-              }`}
-            >
-              <span className="text-center">{item.name}</span>
-            </button>
-          ))}
-        </div>
-        
-        {/* Right: User Profile & Actions */}
-        <div className="flex items-center space-x-4">
-          {/* AI Assistant Active Indicator */}
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 hidden md:flex">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2"></div>
-            AI Assistant Active
-          </Badge>
-          
-          {/* Notifications */}
-          <button className="p-2 text-gray-400 hover:text-gray-600 relative">
-            <Bell size={20} />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              3
-            </span>
-          </button>
-          
-          {/* User Profile */}
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-              {profile?.full_name ? profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 'SR'}
+    <nav className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo and Brand */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">T</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">TSAM</span>
             </div>
-            <button onClick={handleLogout} className="text-sm text-gray-600 hover:text-gray-800 hidden md:block">
-              Sign Out
-            </button>
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+              Sales OS
+            </Badge>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-1">
+            {navItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <IconComponent className="h-4 w-4 mr-2" />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Right Side - Notifications, AI Status, User Menu */}
+          <div className="flex items-center gap-3">
+            {/* AI Assistant Status */}
+            <Badge variant="outline" className="hidden sm:flex bg-green-50 text-green-700 border-green-200">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              AI Assistant Active
+            </Badge>
+
+            {/* Notifications */}
+            <UnifiedNotificationCenter />
+
+            {/* User Profile */}
+            <UserDropdown />
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden p-2"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
           </div>
         </div>
-      </div>
-      
-      {/* Mobile Navigation */}
-      <div className="lg:hidden bg-white border-t border-gray-200 px-4 py-2">
-        <div className="flex space-x-1 overflow-x-auto">
-          {navItems.slice(0, 4).map(item => (
-            <button
-              key={item.href}
-              onClick={() => navigate(item.href)}
-              className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
-                isActive(item.href)
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <span>{item.emoji}</span>
-              <span>{item.name}</span>
-            </button>
-          ))}
-        </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-200 py-3">
+            <div className="space-y-1">
+              {navItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <IconComponent className="h-4 w-4 mr-3" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
