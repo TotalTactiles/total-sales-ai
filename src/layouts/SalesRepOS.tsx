@@ -13,6 +13,8 @@ import Dialer from '@/pages/Dialer';
 import AIAgent from '@/pages/AIAgent';
 import CompanyBrainSalesRep from '@/components/CompanyBrain/CompanyBrainSalesRep';
 import SalesRepAnalytics from '@/pages/sales/Analytics';
+import SalesAcademy from '@/pages/sales/Academy';
+import SalesSettings from '@/pages/sales/Settings';
 
 const SalesRepOS: React.FC = () => {
   const { leads } = useMockData();
@@ -31,11 +33,9 @@ const SalesRepOS: React.FC = () => {
           <Route path="leads/:leadId" element={<LeadWorkspace />} />
           <Route path="my-leads" element={<LeadManagement />} />
           <Route path="ai-agent/*" element={<AIAgent />} />
-          <Route path="activity" element={<SalesRepDashboard />} />
-          <Route path="ai-insights" element={<SalesRepDashboard />} />
           <Route path="analytics" element={<SalesRepAnalytics />} />
-          <Route path="settings" element={<SalesRepDashboard />} />
-          <Route path="profile" element={<SalesRepDashboard />} />
+          <Route path="academy" element={<SalesAcademy />} />
+          <Route path="settings" element={<SalesSettings />} />
           <Route path="dialer" element={<Dialer />} />
           <Route path="brain" element={<CompanyBrainSalesRep />} />
           <Route path="*" element={<Navigate to="dashboard" replace />} />
