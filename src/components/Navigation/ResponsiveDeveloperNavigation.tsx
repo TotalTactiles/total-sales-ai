@@ -36,20 +36,20 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
   const location = useLocation();
   const { logout } = useOptimizedLogout();
   const isMobile = useIsMobile();
-  const { collapsed, setCollapsed } = useSidebar();
+  const { open, setOpen } = useSidebar();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Persist sidebar state
   useEffect(() => {
-    const savedState = localStorage.getItem('developer-sidebar-collapsed');
+    const savedState = localStorage.getItem('developer-sidebar-open');
     if (savedState !== null) {
-      setCollapsed(JSON.parse(savedState));
+      setOpen(JSON.parse(savedState));
     }
-  }, [setCollapsed]);
+  }, [setOpen]);
 
   useEffect(() => {
-    localStorage.setItem('developer-sidebar-collapsed', JSON.stringify(collapsed));
-  }, [collapsed]);
+    localStorage.setItem('developer-sidebar-open', JSON.stringify(open));
+  }, [open]);
 
   const navItems = [
     { path: '/developer/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -79,11 +79,11 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
       <div className="p-6">
         <div className="mb-8">
           <h2 className={`text-xl font-bold text-green-400 transition-all duration-300 ${
-            collapsed && !isMobile ? 'text-center text-sm' : ''
+            !open && !isMobile ? 'text-center text-sm' : ''
           }`}>
-            {collapsed && !isMobile ? 'DEV' : 'Developer OS'}
+            {!open && !isMobile ? 'DEV' : 'Developer OS'}
           </h2>
-          {(!collapsed || isMobile) && (
+          {(open || isMobile) && (
             <>
               <p className="text-sm text-gray-400">TSAM Development</p>
               <div className="flex items-center gap-2 mt-2">
@@ -102,17 +102,17 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
                 key={item.path}
                 variant={isActive ? 'default' : 'ghost'}
                 className={`w-full gap-3 transition-all duration-300 ${
-                  collapsed && !isMobile ? 'justify-center px-2' : 'justify-start'
+                  !open && !isMobile ? 'justify-center px-2' : 'justify-start'
                 } ${
                   isActive 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
                     : 'hover:bg-gray-800 text-gray-300'
                 }`}
                 onClick={() => handleNavigation(item.path)}
-                title={collapsed && !isMobile ? item.label : undefined}
+                title={!open && !isMobile ? item.label : undefined}
               >
                 <item.icon className="h-4 w-4 flex-shrink-0" />
-                {(!collapsed || isMobile) && (
+                {(open || isMobile) && (
                   <span className="truncate">{item.label}</span>
                 )}
               </Button>
@@ -124,13 +124,13 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
           <Button
             variant="outline"
             className={`w-full gap-3 text-red-400 border-red-400 hover:bg-red-900/20 transition-all duration-300 ${
-              collapsed && !isMobile ? 'justify-center px-2' : 'justify-start'
+              !open && !isMobile ? 'justify-center px-2' : 'justify-start'
             }`}
             onClick={handleSignOut}
-            title={collapsed && !isMobile ? 'Sign Out' : undefined}
+            title={!open && !isMobile ? 'Sign Out' : undefined}
           >
             <LogOut className="h-4 w-4 flex-shrink-0" />
-            {(!collapsed || isMobile) && <span>Sign Out</span>}
+            {(open || isMobile) && <span>Sign Out</span>}
           </Button>
         </div>
       </div>
@@ -171,9 +171,9 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
   return (
     <Sidebar
       className={`fixed left-0 top-0 h-full bg-gray-900 text-white shadow-lg z-40 transition-all duration-300 ease-in-out ${
-        collapsed ? 'w-16' : 'w-64'
+        open ? 'w-64' : 'w-16'
       }`}
-      collapsible
+      collapsible="icon"
     >
       <SidebarTrigger className="absolute -right-3 top-6 bg-gray-900 border border-gray-700 hover:bg-gray-800 z-50" />
       <div className="relative h-full">

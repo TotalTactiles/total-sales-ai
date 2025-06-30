@@ -10,21 +10,20 @@ interface ResponsiveLayoutProps {
 
 const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children, className = '' }) => {
   const isMobile = useIsMobile();
-  const { collapsed } = useSidebar();
+  const { open } = useSidebar();
 
   const getLayoutClasses = () => {
     if (isMobile) {
       return 'w-full px-4 sm:px-6';
     }
     
-    const sidebarWidth = collapsed ? 64 : 256; // 16px = 4rem collapsed, 64px = 16rem expanded
     return `transition-all duration-300 ease-in-out`;
   };
 
   const getMarginStyle = () => {
     if (isMobile) return {};
     
-    const sidebarWidth = collapsed ? 64 : 256;
+    const sidebarWidth = open ? 256 : 64; // 16rem expanded, 4rem collapsed
     return {
       marginLeft: `${sidebarWidth}px`,
       width: `calc(100vw - ${sidebarWidth}px)`
