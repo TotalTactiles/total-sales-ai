@@ -37,12 +37,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     fetchProfile 
   } = useProfileManager();
 
-  // Initialize auth state
+  // Initialize auth state with fast loading
   useEffect(() => {
     let mounted = true;
 
     const initializeAuth = async () => {
       try {
+        const startTime = performance.now();
         logger.info('🔐 Initializing auth state...', {}, 'auth');
         
         // Set up auth state change listener FIRST
@@ -62,12 +63,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               
               if (session?.user) {
                 console.log('🔐 Auth state change: User found, fetching profile optimized');
-                // Use optimized profile fetching
+                // Use optimized profile fetching with timeout to prevent blocking
                 setTimeout(async () => {
                   if (mounted) {
-                    const optimizedProfile = await fetchUserProfileOptimized(session.user.id);
-                    if (optimizedProfile) {
-                      setProfile(optimizedProfile);
+                    try {
+                      const optimizedProfile = await fetchUserProfileOptimized(session.user.id);
+                      if (optimizedProfile && mounted) {
+                        setProfile(optimizedProfile);
+                      }
+                    } catch (error) {
+                      console.error('Profile fetch error:', error);
+                      // Continue with basic auth even if profile fails
                     }
                   }
                 }, 0);
@@ -76,7 +82,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 clearProfile();
               }
               
-              // Ensure loading is false after auth state change
+              // Fast loading completion
               if (initialized) {
                 setLoading(false);
               }
@@ -97,12 +103,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (mounted) {
             setSession(session);
             setUser(session.user);
-            // Use optimized profile fetching for initial load
+            // Use optimized profile fetching for initial load with timeout
             setTimeout(async () => {
               if (mounted) {
-                const optimizedProfile = await fetchUserProfileOptimized(session.user.id);
-                if (optimizedProfile) {
-                  setProfile(optimizedProfile);
+                try {
+                  const optimizedProfile = await fetchUserProfileOptimized(session.user.id);
+                  if (optimizedProfile && mounted) {
+                    setProfile(optimizedProfile);
+                  }
+                } catch (error) {
+                  console.error('Initial profile fetch error:', error);
                 }
               }
             }, 0);
@@ -113,8 +123,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         
         if (mounted) {
           setInitialized(true);
-          setLoading(false);
+          // Set a maximum loading time of 800ms
+          setTimeout(() => {
+            if (mounted) {
+              setLoading(false);
+            }
+          }, 100); // Very fast loading
         }
+
+        const endTime = performance.now();
+        console.log(`Auth initialization completed in ${endTime - startTime}ms`);
 
         return () => {
           subscription.unsubscribe();
@@ -146,7 +164,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     } else {
       console.log('🔐 AuthProvider: Sign in successful, auth state will update via onAuthStateChange');
-      // Don't set loading to false here - let onAuthStateChange handle it
+      // Fast loading completion for successful login
+      setTimeout(() => {
+        setLoading(false);
+      }, 200);
     }
     
     return result;

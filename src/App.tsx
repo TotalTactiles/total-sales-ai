@@ -15,20 +15,32 @@ const AppRoutes: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF] mx-auto mb-4"></div>
-          <p className="text-gray-600">Initializing TSAM OS...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#7B61FF] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Loading TSAM OS...</p>
+          <p className="text-gray-400 text-sm mt-2">Preparing your workspace</p>
         </div>
       </div>
     );
   }
 
+  // If user is authenticated, always redirect to dashboard
+  if (user && profile) {
+    return (
+      <Routes>
+        <Route path="/logout" element={<LogoutHandler />} />
+        <Route path="/dashboard/*" element={<MainLayout />} />
+        <Route path="/*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    );
+  }
+
+  // If not authenticated, show auth or landing page
   return (
     <Routes>
       <Route path="/" element={<NewLandingPage />} />
-      <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
+      <Route path="/auth" element={<AuthPage />} />
       <Route path="/logout" element={<LogoutHandler />} />
-      <Route path="/dashboard/*" element={user ? <MainLayout /> : <Navigate to="/auth" replace />} />
-      <Route path="/*" element={user ? <MainLayout /> : <Navigate to="/" replace />} />
+      <Route path="/*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

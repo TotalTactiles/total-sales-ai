@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import OSLayout from '@/components/layouts/OSLayout';
 
@@ -17,14 +17,36 @@ import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
 
 const MainLayout: React.FC = () => {
   const { profile, user, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Fast redirect based on role
+  useEffect(() => {
+    if (!loading && user && profile) {
+      // Only redirect if we're on the base dashboard route
+      if (location.pathname === '/dashboard' || location.pathname === '/dashboard/') {
+        const roleRoutes = {
+          'manager': '/dashboard/manager',
+          'sales_rep': '/dashboard/sales',
+          'developer': '/dashboard/developer'
+        };
+        
+        const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
+        if (targetRoute) {
+          navigate(targetRoute, { replace: true });
+        }
+      }
+    }
+  }, [profile, user, loading, location.pathname, navigate]);
 
   // Show loading while determining auth state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your workspace...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#7B61FF] border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Loading your workspace...</p>
+          <p className="text-gray-400 text-sm mt-2">Setting up {profile?.role?.replace('_', ' ') || 'your'} OS</p>
         </div>
       </div>
     );
@@ -35,26 +57,24 @@ const MainLayout: React.FC = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  // Route based on user role with proper error handling
-  const getDefaultRoute = () => {
-    switch (profile.role) {
-      case 'manager':
-        return '/dashboard/manager';
-      case 'sales_rep':
-        return '/dashboard/sales';
-      case 'developer':
-        return '/dashboard/developer';
-      default:
-        console.warn('Unknown user role:', profile.role);
-        return '/dashboard/sales'; // Fallback to sales
-    }
-  };
-
   return (
     <OSLayout>
       <Routes>
         {/* Root redirect based on role */}
-        <Route index element={<Navigate to={getDefaultRoute()} replace />} />
+        <Route 
+          index 
+          element={
+            <Navigate 
+              to={
+                profile.role === 'manager' ? '/dashboard/manager' :
+                profile.role === 'sales_rep' ? '/dashboard/sales' :
+                profile.role === 'developer' ? '/dashboard/developer' :
+                '/dashboard/sales'
+              } 
+              replace 
+            />
+          } 
+        />
         
         {/* Manager Routes */}
         <Route path="/manager" element={<ManagerDashboard />} />
@@ -86,7 +106,20 @@ const MainLayout: React.FC = () => {
         <Route path="/developer/updates" element={<DeveloperDashboard />} />
         
         {/* Fallback */}
-        <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
+        <Route 
+          path="*" 
+          element={
+            <Navigate 
+              to={
+                profile.role === 'manager' ? '/dashboard/manager' :
+                profile.role === 'sales_rep' ? '/dashboard/sales' :
+                profile.role === 'developer' ? '/dashboard/developer' :
+                '/dashboard/sales'
+              } 
+              replace 
+            />
+          } 
+        />
       </Routes>
     </OSLayout>
   );
