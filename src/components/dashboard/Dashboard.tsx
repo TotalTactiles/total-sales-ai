@@ -70,7 +70,7 @@ const Dashboard: React.FC = () => {
     source: 'Website',
     score: 85,
     conversionLikelihood: 78,
-    lastContact: item.lastContact === 'Never' ? 'Never contacted' : new Date(item.lastContact || Date.now()).toLocaleDateString(),
+    lastContact: item.lastContactDate === 'Never' ? 'Never contacted' : new Date(item.lastContactDate || Date.now()).toLocaleDateString(),
     speedToLead: 0,
     tags: ['Demo Lead'],
     createdAt: new Date().toISOString(),

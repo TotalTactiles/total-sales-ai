@@ -12,7 +12,6 @@ import {
   BarChart3,
   GraduationCap,
   Settings,
-  Brain,
   Menu,
   X
 } from 'lucide-react';
@@ -32,7 +31,6 @@ const SalesRepNavigation: React.FC = () => {
     { name: 'Dialer', href: '/sales/dialer', icon: Phone },
     { name: 'Analytics', href: '/sales/analytics', icon: BarChart3 },
     { name: 'Academy', href: '/sales/academy', icon: GraduationCap },
-    { name: 'Company Brain', href: '/sales/brain', icon: Brain },
     { name: 'Settings', href: '/sales/settings', icon: Settings }
   ];
 
