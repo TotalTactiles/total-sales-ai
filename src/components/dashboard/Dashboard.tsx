@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { AIDailySummary } from './AIDailySummary';
+import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import { AIAssistantHub } from './AIAssistantHub';
 import { SuggestedSchedule } from './SuggestedSchedule';
 import { PriorityTasks } from './PriorityTasks';
@@ -72,7 +73,7 @@ const Dashboard: React.FC = () => {
           </Badge>
         </div>
 
-        <AIDailySummary summary={dashboardData.aiSummary} />
+        <AIDailySummary summary={dashboardData.aiSummary} isFullUser={true} />
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {mockStats.map((stat, index) => (
