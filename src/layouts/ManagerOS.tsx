@@ -7,7 +7,7 @@ import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
 import TeamLeadManagement from '@/pages/manager/TeamLeadManagement';
 import BusinessOps from '@/pages/manager/BusinessOps';
-import LeadManagement from '@/pages/LeadManagement';
+import LeadIntelligenceCommand from '@/pages/manager/LeadIntelligenceCommand';
 import LeadWorkspace from '@/pages/LeadWorkspace';
 
 // Additional Manager Pages
@@ -28,7 +28,7 @@ const ManagerOS: React.FC = () => {
           <Route path="dashboard" element={<ManagerDashboard />} />
           <Route path="business-ops" element={<BusinessOps />} />
           <Route path="team" element={<TeamLeadManagement />} />
-          <Route path="leads" element={<LeadManagement />} />
+          <Route path="leads" element={<LeadIntelligenceCommand />} />
           <Route path="leads/:leadId" element={<LeadWorkspace />} />
           <Route path="ai" element={<ManagerAI />} />
           <Route path="company-brain" element={<ManagerCompanyBrain />} />
