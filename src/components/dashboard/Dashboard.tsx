@@ -16,7 +16,7 @@ import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import { AIAssistantHub } from './AIAssistantHub';
 import { SuggestedSchedule } from './SuggestedSchedule';
 import { PriorityTasks } from './PriorityTasks';
-import { PipelinePulse } from '@/components/Dashboard/PipelinePulse';
+import PipelinePulse from '@/components/Dashboard/PipelinePulse';
 import { useDashboardData } from '../../hooks/useDashboardData';
 
 const Dashboard: React.FC = () => {
