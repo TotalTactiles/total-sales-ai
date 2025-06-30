@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import ResponsiveLayout from '@/components/Developer/ResponsiveLayout';
 
 // Developer Pages
 import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
@@ -22,11 +23,11 @@ import AIIntegrationMapper from '@/pages/developer/AIIntegrationMapper';
 
 const DeveloperOS: React.FC = () => {
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen bg-background flex w-full">
         <DeveloperNavigation />
-        <main className="flex-1 transition-all duration-300 ease-in-out">
-          <div className="responsive-container section-spacing">
+        <main className="flex-1 min-w-0">
+          <ResponsiveLayout>
             <Routes>
               <Route index element={<Navigate to="/developer/dashboard" replace />} />
               <Route path="dashboard" element={<DeveloperDashboard />} />
@@ -45,7 +46,7 @@ const DeveloperOS: React.FC = () => {
               <Route path="ai-integration" element={<AIIntegrationMapper />} />
               <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
             </Routes>
-          </div>
+          </ResponsiveLayout>
         </main>
       </div>
     </SidebarProvider>

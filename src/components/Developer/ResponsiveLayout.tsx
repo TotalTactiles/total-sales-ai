@@ -17,16 +17,17 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children, className
       return 'w-full px-4 sm:px-6';
     }
     
-    return `transition-all duration-300 ease-in-out`;
+    return `transition-all duration-300 ease-in-out px-6`;
   };
 
   const getMarginStyle = () => {
-    if (isMobile) return {};
+    if (isMobile) return { width: '100%' };
     
     const sidebarWidth = open ? 256 : 64; // 16rem expanded, 4rem collapsed
     return {
       marginLeft: `${sidebarWidth}px`,
-      width: `calc(100vw - ${sidebarWidth}px)`
+      width: `calc(100vw - ${sidebarWidth}px)`,
+      maxWidth: `calc(100vw - ${sidebarWidth}px)`
     };
   };
 
