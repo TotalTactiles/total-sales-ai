@@ -1,90 +1,142 @@
 
-import React, { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
-  LayoutDashboard, 
-  Users, 
-  BarChart3, 
-  UserPlus, 
+  Grid3X3,
+  BarChart3,
+  Users,
   Target,
   Brain,
+  Puzzle,
+  Shield,
+  FileText,
   Settings,
-  LogOut,
-  TrendingUp,
-  MessageSquare
+  Bell,
+  Menu,
+  X
 } from 'lucide-react';
-import { useOptimizedLogout } from '@/utils/logoutOptimizer';
+import { useAuth } from '@/contexts/AuthContext';
+import UserDropdown from './UserDropdown';
+import UnifiedNotificationCenter from './UnifiedNotificationCenter';
 
 const ManagerNavigation: React.FC = () => {
-  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
-  const { logout } = useOptimizedLogout();
-
-  // Prefetch auth page for faster logout
-  useEffect(() => {
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = '/auth';
-    document.head.appendChild(link);
-    
-    return () => {
-      if (document.head.contains(link)) {
-        document.head.removeChild(link);
-      }
-    };
-  }, []);
+  const navigate = useNavigate();
+  const { profile } = useAuth();
 
   const navItems = [
-    { path: '/manager/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/manager/leads', label: 'Leads', icon: UserPlus },
-    { path: '/manager/team', label: 'Team', icon: Users },
-    { path: '/manager/conversion-metrics', label: 'Metrics', icon: BarChart3 },
-    { path: '/manager/coaching', label: 'Coaching', icon: MessageSquare },
-    { path: '/manager/profile', label: 'Profile', icon: Settings },
+    { name: 'Dashboard', href: '/manager/dashboard', icon: Grid3X3 },
+    { name: 'Business Ops', href: '/manager/business-ops', icon: BarChart3 },
+    { name: 'Team', href: '/manager/team', icon: Users },
+    { name: 'Analytics', href: '/manager/analytics', icon: Target },
+    { name: 'Leads', href: '/manager/leads', icon: Target },
+    { name: 'AI Assistant', href: '/manager/ai', icon: Brain },
+    { name: 'Integrations', href: '/manager/integrations', icon: Puzzle },
+    { name: 'Security', href: '/manager/security', icon: Shield },
+    { name: 'Reports', href: '/manager/reports', icon: FileText },
+    { name: 'Settings', href: '/manager/settings', icon: Settings }
   ];
 
-  const handleSignOut = () => {
-    logout();
+  const isActive = (href: string) => {
+    return location.pathname === href || location.pathname.startsWith(href + '/');
   };
 
   return (
-    <nav className="fixed left-0 top-0 h-full w-64 bg-white/70 backdrop-blur-sm border-r border-gray-200 shadow-lg z-50">
-      <div className="p-6">
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-gray-900">Manager OS</h2>
-          <p className="text-sm text-gray-600">TSAM Management</p>
-        </div>
-        
-        <div className="space-y-2">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Button
-                key={item.path}
-                variant={isActive ? 'default' : 'ghost'}
-                className={`w-full justify-start gap-3 ${
-                  isActive ? 'bg-blue-600 hover:bg-blue-700' : 'hover:bg-gray-100'
-                }`}
-                onClick={() => navigate(item.path)}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Button>
-            );
-          })}
+    <nav className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo and Brand */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">T</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">TSAM</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+              Manager OS
+            </Badge>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-1">
+            {navItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <IconComponent className="h-4 w-4 mr-2" />
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Right Side - Notifications, AI Status, User Menu */}
+          <div className="flex items-center gap-3">
+            {/* AI Assistant Status */}
+            <Badge variant="outline" className="hidden sm:flex bg-purple-50 text-purple-700 border-purple-200">
+              <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+              Manager AI Active
+            </Badge>
+
+            {/* Notifications */}
+            <UnifiedNotificationCenter />
+
+            {/* User Profile */}
+            <UserDropdown />
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden p-2"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
 
-        <div className="absolute bottom-6 left-6 right-6">
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-3 text-red-600 border-red-200 hover:bg-red-50"
-            onClick={handleSignOut}
-          >
-            <LogOut className="h-4 w-4" />
-            Sign Out
-          </Button>
-        </div>
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-200 py-3">
+            <div className="space-y-1">
+              {navItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <IconComponent className="h-4 w-4 mr-3" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
