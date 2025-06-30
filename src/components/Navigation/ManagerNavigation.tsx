@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,7 @@ const ManagerNavigation: React.FC = () => {
     { name: 'Team', href: '/manager/team', icon: Users },
     { name: 'Leads', href: '/manager/leads', icon: Target },
     { name: 'AI Assistant', href: '/manager/ai', icon: Brain },
-    { name: 'Integrations', href: '/manager/integrations', icon: Puzzle },
+    { name: 'Company Brain', href: '/manager/company-brain', icon: Puzzle },
     { name: 'Security', href: '/manager/security', icon: Shield },
     { name: 'Reports', href: '/manager/reports', icon: FileText },
     { name: 'Settings', href: '/manager/settings', icon: Settings }
