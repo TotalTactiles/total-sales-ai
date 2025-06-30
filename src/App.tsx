@@ -2,6 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { DemoDataProvider } from '@/contexts/DemoDataContext';
 import AuthPage from '@/pages/auth/AuthPage';
 import MainLayout from '@/layouts/MainLayout';
 import LogoutHandler from '@/components/LogoutHandler';
@@ -23,13 +24,12 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // If user is authenticated, always redirect to dashboard
-  if (user && profile) {
+  // If user is authenticated, redirect to dashboard
+  if (user) {
     return (
       <Routes>
         <Route path="/logout" element={<LogoutHandler />} />
-        <Route path="/dashboard/*" element={<MainLayout />} />
-        <Route path="/*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/*" element={<MainLayout />} />
       </Routes>
     );
   }
@@ -49,7 +49,9 @@ const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <DemoDataProvider>
+          <AppRoutes />
+        </DemoDataProvider>
       </AuthProvider>
     </Router>
   );

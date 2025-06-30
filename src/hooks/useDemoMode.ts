@@ -16,46 +16,48 @@ export const useDemoMode = () => {
       profileRole: profile?.role
     });
 
-    // For Sales Rep OS consistency, always provide enhanced data for sales_rep role
+    if (isDemoMode && user) {
+      // First check if user email matches a demo user
+      const foundDemoUser = demoUsers.find(du => du.email === user.email);
+      if (foundDemoUser) {
+        setIsDemo(true);
+        setDemoUser(foundDemoUser);
+        console.log('🎭 Demo mode activated for:', foundDemoUser.name, foundDemoUser.role);
+        return;
+      }
+    }
+
+    // For sales reps, always provide enhanced data (even if not demo mode)
     if (user && profile?.role === 'sales_rep') {
-      const foundDemoUser = demoUsers.find(du => du.role === 'sales_rep') || {
+      const salesRepUser = {
         id: user.id,
         email: user.email,
         name: profile.full_name || 'Sales Rep',
         role: 'sales_rep'
       };
       
-      setIsDemo(true);
-      setDemoUser(foundDemoUser);
-      console.log('🎯 Sales Rep OS mode activated for:', foundDemoUser.name, foundDemoUser.role);
-    } else if (isDemoMode && user) {
-      const foundDemoUser = demoUsers.find(du => du.email === user.email || du.id === user.id);
-      if (foundDemoUser) {
-        setIsDemo(true);
-        setDemoUser(foundDemoUser);
-        console.log('🎭 Demo mode activated for:', foundDemoUser.name, foundDemoUser.role);
-      } else {
-        console.log('🎭 User not found in demo users list');
-        setIsDemo(false);
-        setDemoUser(null);
-      }
-    } else {
-      setIsDemo(false);
-      setDemoUser(null);
+      setIsDemo(true); // Treat as demo for enhanced features
+      setDemoUser(salesRepUser);
+      console.log('🎯 Sales Rep OS mode activated for:', salesRepUser.name);
+      return;
     }
+
+    // If not demo mode and not sales rep, clear demo state
+    setIsDemo(false);
+    setDemoUser(null);
   }, [user, profile]);
 
   const getDemoData = (dataType: string) => {
-    if (!isDemo && profile?.role !== 'sales_rep') {
+    if (!isDemo) {
       console.log('🎭 getDemoData: Not in demo mode');
       return null;
     }
 
-    console.log('🎭 Getting demo data for:', dataType, 'user role:', demoUser?.role || profile?.role);
+    console.log('🎭 Getting demo data for:', dataType, 'user role:', demoUser?.role);
 
     switch (dataType) {
       case 'leads':
-        return (demoUser?.role === 'manager' || profile?.role === 'manager') ? mockManagerLeads : mockSalesLeads;
+        return (demoUser?.role === 'manager') ? mockManagerLeads : mockSalesLeads;
       case 'tsam_logs':
         return mockTSAMLogs;
       case 'feature_flags':
@@ -67,14 +69,9 @@ export const useDemoMode = () => {
   };
 
   return {
-    isDemo: isDemo || profile?.role === 'sales_rep', // Always provide enhanced data for sales reps
-    demoUser: demoUser || (profile?.role === 'sales_rep' ? { 
-      id: user?.id, 
-      email: user?.email, 
-      name: profile?.full_name || 'Sales Rep', 
-      role: 'sales_rep' 
-    } : null),
+    isDemo,
+    demoUser,
     getDemoData,
-    isDemoMode: isDemoMode || profile?.role === 'sales_rep'
+    isDemoMode: isDemo
   };
 };

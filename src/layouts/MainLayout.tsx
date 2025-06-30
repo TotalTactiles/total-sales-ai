@@ -1,128 +1,96 @@
 
-import React, { useEffect } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import OSLayout from '@/components/layouts/OSLayout';
+import { useDemoMode } from '@/hooks/useDemoMode';
 
-// Manager Pages
+// Manager Components
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
+import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 
-// Sales Rep Pages  
-import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
-import LeadManagement from '@/pages/LeadManagement';
-import LeadWorkspace from '@/pages/LeadWorkspace';
+// Sales Rep Components  
+import SalesRepOS from '@/layouts/SalesRepOS';
 
-// Developer Pages
+// Developer Components
 import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
+import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+
+// Fallback
+import NavigationFallback from '@/components/Navigation/NavigationFallback';
 
 const MainLayout: React.FC = () => {
-  const { profile, user, loading } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { user, profile, loading } = useAuth();
+  const { isDemo, demoUser } = useDemoMode();
 
-  // Fast redirect based on role
-  useEffect(() => {
-    if (!loading && user && profile) {
-      // Only redirect if we're on the base dashboard route
-      if (location.pathname === '/dashboard' || location.pathname === '/dashboard/') {
-        const roleRoutes = {
-          'manager': '/dashboard/manager',
-          'sales_rep': '/dashboard/sales',
-          'developer': '/dashboard/developer'
-        };
-        
-        const targetRoute = roleRoutes[profile.role as keyof typeof roleRoutes];
-        if (targetRoute) {
-          navigate(targetRoute, { replace: true });
-        }
-      }
-    }
-  }, [profile, user, loading, location.pathname, navigate]);
-
-  // Show loading while determining auth state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#7B61FF] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Loading your workspace...</p>
-          <p className="text-gray-400 text-sm mt-2">Setting up {profile?.role?.replace('_', ' ') || 'your'} OS</p>
+          <p className="text-gray-600 text-lg font-medium">Loading TSAM OS...</p>
+          <p className="text-gray-400 text-sm mt-2">Preparing your workspace</p>
         </div>
       </div>
     );
   }
 
-  // If no user or profile, redirect to auth
-  if (!user || !profile) {
+  if (!user) {
     return <Navigate to="/auth" replace />;
   }
 
-  return (
-    <OSLayout>
-      <Routes>
-        {/* Root redirect based on role */}
-        <Route 
-          index 
-          element={
-            <Navigate 
-              to={
-                profile.role === 'manager' ? '/dashboard/manager' :
-                profile.role === 'sales_rep' ? '/dashboard/sales' :
-                profile.role === 'developer' ? '/dashboard/developer' :
-                '/dashboard/sales'
-              } 
-              replace 
-            />
-          } 
-        />
-        
-        {/* Manager Routes */}
-        <Route path="/manager" element={<ManagerDashboard />} />
-        <Route path="/manager/dashboard" element={<ManagerDashboard />} />
-        <Route path="/manager/leads" element={<LeadManagement />} />
-        <Route path="/manager/team" element={<ManagerDashboard />} />
-        <Route path="/manager/insights" element={<ManagerDashboard />} />
-        <Route path="/manager/profile" element={<ManagerDashboard />} />
-        
-        {/* Sales Rep Routes */}
-        <Route path="/sales" element={<SalesRepDashboard />} />
-        <Route path="/sales/dashboard" element={<SalesRepDashboard />} />
-        <Route path="/sales/leads" element={<LeadManagement />} />
-        <Route path="/sales/leads/:leadId" element={<LeadWorkspace />} />
-        <Route path="/sales/my-leads" element={<LeadManagement />} />
-        <Route path="/sales/activity" element={<SalesRepDashboard />} />
-        <Route path="/sales/ai-insights" element={<SalesRepDashboard />} />
-        <Route path="/sales/profile" element={<SalesRepDashboard />} />
-        
-        {/* Developer Routes */}
-        <Route path="/developer" element={<DeveloperDashboard />} />
-        <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
-        <Route path="/developer/logs" element={<DeveloperDashboard />} />
-        <Route path="/developer/features" element={<DeveloperDashboard />} />
-        <Route path="/developer/tickets" element={<DeveloperDashboard />} />
-        <Route path="/developer/profile" element={<DeveloperDashboard />} />
-        <Route path="/developer/performance" element={<DeveloperDashboard />} />
-        <Route path="/developer/jarvis" element={<DeveloperDashboard />} />
-        <Route path="/developer/updates" element={<DeveloperDashboard />} />
-        
-        {/* Fallback */}
-        <Route 
-          path="*" 
-          element={
-            <Navigate 
-              to={
-                profile.role === 'manager' ? '/dashboard/manager' :
-                profile.role === 'sales_rep' ? '/dashboard/sales' :
-                profile.role === 'developer' ? '/dashboard/developer' :
-                '/dashboard/sales'
-              } 
-              replace 
-            />
-          } 
-        />
-      </Routes>
-    </OSLayout>
-  );
+  // Determine user role - prioritize demo user role if available
+  const userRole = demoUser?.role || profile?.role;
+  
+  console.log('🔄 MainLayout routing:', { 
+    userRole, 
+    isDemo, 
+    demoUserRole: demoUser?.role,
+    profileRole: profile?.role,
+    userId: user.id 
+  });
+
+  // Role-based routing with proper redirects
+  switch (userRole) {
+    case 'manager':
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <ManagerNavigation />
+          <main className="ml-64 p-6">
+            <Routes>
+              <Route path="/dashboard/manager" element={<ManagerDashboard />} />
+              <Route path="/dashboard/manager/*" element={<ManagerDashboard />} />
+              <Route path="/*" element={<Navigate to="/dashboard/manager" replace />} />
+            </Routes>
+          </main>
+        </div>
+      );
+
+    case 'sales_rep':
+      return (
+        <Routes>
+          <Route path="/sales/*" element={<SalesRepOS />} />
+          <Route path="/*" element={<Navigate to="/sales/dashboard" replace />} />
+        </Routes>
+      );
+
+    case 'developer':
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <DeveloperNavigation />
+          <main className="ml-64 p-6">
+            <Routes>
+              <Route path="/dashboard/developer" element={<DeveloperDashboard />} />
+              <Route path="/dashboard/developer/*" element={<DeveloperDashboard />} />
+              <Route path="/*" element={<Navigate to="/dashboard/developer" replace />} />
+            </Routes>
+          </main>
+        </div>
+      );
+
+    default:
+      console.warn('🚨 Unknown user role or missing role:', userRole);
+      return <NavigationFallback />;
+  }
 };
 
 export default MainLayout;
