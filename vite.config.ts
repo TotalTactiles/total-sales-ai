@@ -24,9 +24,6 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          auth: [
-            'src/contexts/auth/AuthProvider'
-          ],
           dashboard: ['src/pages/Dashboard']
         }
       }

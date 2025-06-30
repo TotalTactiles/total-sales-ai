@@ -25,7 +25,7 @@ const ManagerOS: React.FC = () => {
       <ManagerNavigation />
       <main className="pt-[60px]">
         <Routes>
-          <Route index element={<Navigate to="/manager/dashboard" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<ManagerDashboard />} />
           <Route path="business-ops" element={<BusinessOps />} />
           <Route path="team" element={<TeamOverview />} />
@@ -40,8 +40,8 @@ const ManagerOS: React.FC = () => {
           <Route path="reports" element={<ManagerReports />} />
           <Route path="settings" element={<ManagerSettings />} />
           {/* Legacy routes for backwards compatibility */}
-          <Route path="metrics" element={<Navigate to="/manager/business-ops" replace />} />
-          <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
+          <Route path="metrics" element={<Navigate to="business-ops" replace />} />
+          <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Routes>
       </main>
     </div>

@@ -1,26 +1,52 @@
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDemoMode } from '@/hooks/useDemoMode';
+import { logger } from '@/utils/logger';
 
-// Manager Components
-import ManagerDashboard from '@/pages/manager/ManagerDashboard';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-
-// Sales Rep Components  
+// Layout imports
 import SalesRepOS from '@/layouts/SalesRepOS';
+import ManagerOS from '@/layouts/ManagerOS';
+import DeveloperOS from '@/layouts/DeveloperOS';
 
-// Developer Components
-import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
-import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
-
-// Fallback
-import NavigationFallback from '@/components/Navigation/NavigationFallback';
+// Legacy imports for backward compatibility
+import Dashboard from '@/components/dashboard/Dashboard';
+import ManagerDashboard from '@/pages/ManagerDashboard';
 
 const MainLayout: React.FC = () => {
   const { user, profile, loading } = useAuth();
-  const { isDemo, demoUser } = useDemoMode();
+  const location = useLocation();
+  const { isDemoMode, demoUserRole } = useDemoMode();
+
+  // Determine user role with better fallback logic
+  const getUserRole = () => {
+    if (isDemoMode && demoUserRole) {
+      return demoUserRole;
+    }
+    if (profile?.role) {
+      return profile.role;
+    }
+    // Fallback based on current path
+    if (location.pathname.startsWith('/manager')) {
+      return 'manager';
+    }
+    if (location.pathname.startsWith('/developer')) {
+      return 'developer';
+    }
+    return 'sales_rep';
+  };
+
+  const userRole = getUserRole();
+
+  logger.info('🔄 MainLayout routing:', {
+    userRole,
+    isDemo: isDemoMode,
+    demoUserRole,
+    profileRole: profile?.role,
+    userId: user?.id,
+    currentPath: location.pathname
+  });
 
   if (loading) {
     return (
@@ -35,62 +61,56 @@ const MainLayout: React.FC = () => {
   }
 
   if (!user) {
+    logger.warn('🚨 User not authenticated in MainLayout');
     return <Navigate to="/auth" replace />;
   }
 
-  // Determine user role - prioritize demo user role if available
-  const userRole = demoUser?.role || profile?.role;
-  
-  console.log('🔄 MainLayout routing:', { 
-    userRole, 
-    isDemo, 
-    demoUserRole: demoUser?.role,
-    profileRole: profile?.role,
-    userId: user.id 
-  });
-
-  // Role-based routing with proper redirects
-  switch (userRole) {
-    case 'manager':
-      return (
-        <div className="min-h-screen bg-gray-50">
-          <ManagerNavigation />
-          <main className="ml-64 p-6">
-            <Routes>
-              <Route path="/dashboard/manager" element={<ManagerDashboard />} />
-              <Route path="/dashboard/manager/*" element={<ManagerDashboard />} />
-              <Route path="/*" element={<Navigate to="/dashboard/manager" replace />} />
-            </Routes>
-          </main>
-        </div>
-      );
-
-    case 'sales_rep':
-      return (
-        <Routes>
-          <Route path="/sales/*" element={<SalesRepOS />} />
-          <Route path="/*" element={<Navigate to="/sales/dashboard" replace />} />
-        </Routes>
-      );
-
-    case 'developer':
-      return (
-        <div className="min-h-screen bg-gray-50">
-          <DeveloperNavigation />
-          <main className="ml-64 p-6">
-            <Routes>
-              <Route path="/dashboard/developer" element={<DeveloperDashboard />} />
-              <Route path="/dashboard/developer/*" element={<DeveloperDashboard />} />
-              <Route path="/*" element={<Navigate to="/dashboard/developer" replace />} />
-            </Routes>
-          </main>
-        </div>
-      );
-
-    default:
-      console.warn('🚨 Unknown user role or missing role:', userRole);
-      return <NavigationFallback />;
+  // Handle Manager OS routing
+  if (userRole === 'manager') {
+    return (
+      <Routes>
+        {/* Manager OS routes */}
+        <Route path="/manager/*" element={<ManagerOS />} />
+        
+        {/* Legacy manager routes - redirect to new structure */}
+        <Route path="/dashboard/manager" element={<Navigate to="/manager/dashboard" replace />} />
+        <Route path="/manager-dashboard" element={<Navigate to="/manager/dashboard" replace />} />
+        
+        {/* Root redirect for managers */}
+        <Route path="/" element={<Navigate to="/manager/dashboard" replace />} />
+        <Route path="/*" element={<Navigate to="/manager/dashboard" replace />} />
+      </Routes>
+    );
   }
+
+  // Handle Developer OS routing
+  if (userRole === 'developer' || userRole === 'admin') {
+    return (
+      <Routes>
+        <Route path="/developer/*" element={<DeveloperOS />} />
+        <Route path="/" element={<Navigate to="/developer/dashboard" replace />} />
+        <Route path="/*" element={<Navigate to="/developer/dashboard" replace />} />
+      </Routes>
+    );
+  }
+
+  // Handle Sales Rep OS routing (default)
+  return (
+    <Routes>
+      <Route path="/sales/*" element={<SalesRepOS />} />
+      
+      {/* Legacy sales routes */}
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/leads" element={<Navigate to="/sales/leads" replace />} />
+      <Route path="/dialer" element={<Navigate to="/sales/dialer" replace />} />
+      <Route path="/analytics" element={<Navigate to="/sales/analytics" replace />} />
+      <Route path="/company-brain" element={<Navigate to="/sales/brain" replace />} />
+      
+      {/* Root redirect for sales reps */}
+      <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
+      <Route path="/*" element={<Navigate to="/sales/dashboard" replace />} />
+    </Routes>
+  );
 };
 
 export default MainLayout;

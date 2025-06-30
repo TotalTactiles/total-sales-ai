@@ -69,10 +69,10 @@ const ManagerNavigation: React.FC = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer hover:bg-gray-100 ${
                     isActive(item.href)
                       ? 'bg-purple-100 text-purple-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
                   <IconComponent className="h-4 w-4 mr-2" />
@@ -123,7 +123,7 @@ const ManagerNavigation: React.FC = () => {
                     key={item.name}
                     to={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                       isActive(item.href)
                         ? 'bg-purple-100 text-purple-700'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
