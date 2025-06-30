@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
-import EnhancedRelevanceAIBubble from '@/components/RelevanceAI/EnhancedRelevanceAIBubble';
+import ContextAwareAIBubble from '@/components/UnifiedAI/ContextAwareAIBubble';
 import { useMockData } from '@/hooks/useMockData';
 
 // Sales Rep Pages  
@@ -41,8 +41,8 @@ const SalesRepOS: React.FC = () => {
         </Routes>
       </main>
       
-      {/* AI Assistant Bubble - Always visible in bottom right */}
-      <EnhancedRelevanceAIBubble
+      {/* Single Context-Aware AI Assistant - Always visible */}
+      <ContextAwareAIBubble
         context={{
           workspace: 'dashboard',
           currentLead: null,
