@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +11,8 @@ import {
   Phone,
   Calendar,
   Award,
-  AlertCircle
+  AlertCircle,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 

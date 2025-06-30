@@ -12,7 +12,7 @@ export const optimizedLogout = async (navigate: (path: string) => void) => {
     
     // Background logging (non-blocking)
     setTimeout(() => {
-      supabase.from('tsam_logs').insert({
+      const logPromise = supabase.from('tsam_logs').insert({
         type: 'auth_logout',
         priority: 'low',
         message: 'User logged out successfully',
@@ -20,7 +20,9 @@ export const optimizedLogout = async (navigate: (path: string) => void) => {
           timestamp: new Date().toISOString(),
           source: 'optimized_logout'
         }
-      }).then(() => {
+      });
+      
+      logPromise.then(() => {
         logger.info('Logout event logged successfully', {}, 'auth');
       }).catch((error: any) => {
         logger.warn('Non-critical: Failed to log logout event:', error, 'auth');

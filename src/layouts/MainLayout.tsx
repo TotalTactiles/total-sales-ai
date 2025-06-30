@@ -25,13 +25,13 @@ const MainLayout: React.FC = () => {
   const getDefaultRoute = () => {
     switch (profile.role) {
       case 'manager':
-        return '/manager/dashboard';
+        return '/dashboard/manager';
       case 'sales_rep':
-        return '/sales/dashboard';
+        return '/dashboard/sales';
       case 'developer':
-        return '/developer/dashboard';
+        return '/dashboard/developer';
       default:
-        return '/sales/dashboard';
+        return '/dashboard/sales';
     }
   };
 
@@ -42,14 +42,14 @@ const MainLayout: React.FC = () => {
         <Route index element={<Navigate to={getDefaultRoute()} replace />} />
         
         {/* Manager Routes */}
-        <Route path="/manager/dashboard" element={<ManagerDashboard />} />
+        <Route path="/manager" element={<ManagerDashboard />} />
         <Route path="/manager/leads" element={<ManagerDashboard />} />
         <Route path="/manager/team" element={<ManagerDashboard />} />
         <Route path="/manager/coaching" element={<ManagerDashboard />} />
         <Route path="/manager/profile" element={<ManagerDashboard />} />
         
         {/* Sales Rep Routes */}
-        <Route path="/sales/dashboard" element={<SalesRepDashboard />} />
+        <Route path="/sales" element={<SalesRepDashboard />} />
         <Route path="/sales/leads" element={<LeadManagement />} />
         <Route path="/sales/leads/:leadId" element={<LeadWorkspace />} />
         <Route path="/sales/activity" element={<SalesRepDashboard />} />
@@ -57,7 +57,7 @@ const MainLayout: React.FC = () => {
         <Route path="/sales/profile" element={<SalesRepDashboard />} />
         
         {/* Developer Routes */}
-        <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+        <Route path="/developer" element={<DeveloperDashboard />} />
         <Route path="/developer/logs" element={<DeveloperDashboard />} />
         <Route path="/developer/performance" element={<DeveloperDashboard />} />
         <Route path="/developer/jarvis" element={<DeveloperDashboard />} />

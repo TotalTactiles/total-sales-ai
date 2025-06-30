@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import AuthPage from '@/pages/auth/AuthPage';
 import MainLayout from '@/layouts/MainLayout';
 import LogoutHandler from '@/components/LogoutHandler';
+import NewLandingPage from '@/pages/NewLandingPage';
 import { useAuth } from '@/contexts/AuthContext';
 
 const AppRoutes: React.FC = () => {
@@ -20,9 +21,11 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <AuthPage />} />
+      <Route path="/" element={<NewLandingPage />} />
+      <Route path="/auth" element={user ? <Navigate to="/dashboard" replace /> : <AuthPage />} />
       <Route path="/logout" element={<LogoutHandler />} />
-      <Route path="/*" element={user ? <MainLayout /> : <Navigate to="/auth" replace />} />
+      <Route path="/dashboard/*" element={user ? <MainLayout /> : <Navigate to="/auth" replace />} />
+      <Route path="/*" element={user ? <MainLayout /> : <Navigate to="/" replace />} />
     </Routes>
   );
 };

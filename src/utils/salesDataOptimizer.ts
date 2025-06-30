@@ -60,7 +60,7 @@ export const preloadSalesOSData = async (userId: string, companyId: string): Pro
 
     // Log performance for monitoring
     setTimeout(() => {
-      supabase.from('tsam_logs').insert({
+      const logPromise = supabase.from('tsam_logs').insert({
         type: 'sales_data_preload',
         priority: 'low',
         message: `Sales data preloaded in ${loadTime}ms`,
@@ -69,7 +69,9 @@ export const preloadSalesOSData = async (userId: string, companyId: string): Pro
           loadTime,
           timestamp: new Date().toISOString()
         }
-      }).then(() => {
+      });
+      
+      logPromise.then(() => {
         logger.info('Sales data preload logged successfully', {}, 'sales');
       }).catch((error: any) => {
         logger.warn('Failed to log sales preload performance:', error, 'sales');
