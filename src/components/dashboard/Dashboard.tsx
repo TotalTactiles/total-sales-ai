@@ -16,7 +16,7 @@ import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import { AIAssistantHub } from './AIAssistantHub';
 import { SuggestedSchedule } from './SuggestedSchedule';
 import { PriorityTasks } from './PriorityTasks';
-import PipelinePulse from '@/components/dashboard/PipelinePulse';
+import { PipelinePulse } from '@/components/Dashboard/PipelinePulse';
 import { useDashboardData } from '../../hooks/useDashboardData';
 
 const Dashboard: React.FC = () => {
@@ -60,9 +60,9 @@ const Dashboard: React.FC = () => {
 
   // Convert pipeline data to proper Lead format
   const convertedLeads = dashboardData.pipelineData.map(item => ({
-    id: item.lead.replace(/\s+/g, '-').toLowerCase(),
-    name: item.lead,
-    email: `${item.lead.toLowerCase().replace(/\s+/g, '.')}@${item.company.toLowerCase().replace(/\s+/g, '')}.com`,
+    id: item.name.replace(/\s+/g, '-').toLowerCase(),
+    name: item.name,
+    email: `${item.name.toLowerCase().replace(/\s+/g, '.')}@${item.company.toLowerCase().replace(/\s+/g, '')}.com`,
     phone: '+1-555-0123',
     company: item.company,
     status: item.status as any,

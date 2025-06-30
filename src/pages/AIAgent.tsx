@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import Navigation from '@/components/Navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import AIAgentDashboard from '@/components/AIAgent/AIAgentDashboard';
 import AIAgentCallQueue from '@/components/AIAgent/AIAgentCallQueue';
 import AIAgentHistory from '@/components/AIAgent/AIAgentHistory';
@@ -8,113 +8,124 @@ import AIAgentVoiceConfig from '@/components/AIAgent/AIAgentVoiceConfig';
 import AIAgentFeedback from '@/components/AIAgent/AIAgentFeedback';
 import AIAgentLearningEngine from '@/components/AIAgent/AIAgentLearningEngine';
 import AIAgentAutomation from '@/components/AIAgent/AIAgentAutomation';
-import AgenticWorkflows from '@/components/RelevanceAI/AgenticWorkflows';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Headphones, ClipboardList, Clock, Settings, LineChart, Brain, Zap } from 'lucide-react';
+import { 
+  BarChart3, 
+  ClipboardList, 
+  Clock, 
+  Settings, 
+  Headphones, 
+  Brain, 
+  Zap,
+  CheckCircle
+} from 'lucide-react';
 
-interface AIAgentProps {
-  hideNavigation?: boolean;
-}
-
-const AIAgent: React.FC<AIAgentProps> = ({
-  hideNavigation = false
-}) => {
+const AIAgent: React.FC = () => {
+  const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-purple-50/10">
-      {!hideNavigation && <Navigation />}
-      
-      <div className="flex-1 px-4 py-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Compact Header */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-3 mx-0 rounded-none">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 shadow-sm rounded-lg">
-                  <Headphones className="h-4 w-4 text-white" />
-                </div>
-                <div>
-                  <h1 className="flat-heading-lg text-3xl font-bold">
-                    AI Calling Agent
-                  </h1>
-                  <p className="text-slate-600 mt-0.5 text-base">Autonomous AI agent for lead outreach, qualification & conversion</p>
-                </div>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex-1 px-6 py-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header Section */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">AI Calling Agent</h1>
+              <p className="text-gray-600 mt-1">Autonomous AI agent for lead outreach, qualification & conversion</p>
             </div>
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              AI Agent Active
+            </Badge>
           </div>
           
-          {/* Compact Tabs */}
+          {/* Tab Navigation */}
           <Tabs defaultValue="dashboard" value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="bg-white/70 backdrop-blur-sm border border-slate-200/60 rounded-lg p-1 mb-4 shadow-sm">
-              <TabsList className="grid grid-cols-8 w-full bg-transparent gap-0.5">
-                <TabsTrigger value="dashboard" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
-                  <LineChart className="h-3 w-3" />
-                  <span className="hidden sm:inline text-xs">Dashboard</span>
+            <div className="bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+              <TabsList className="grid grid-cols-7 w-full bg-transparent gap-1">
+                <TabsTrigger 
+                  value="dashboard" 
+                  className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-gray-100"
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  Dashboard
                 </TabsTrigger>
-                <TabsTrigger value="workflows" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
-                  <Zap className="h-3 w-3" />
-                  <span className="hidden sm:inline text-xs">Workflows</span>
+                <TabsTrigger 
+                  value="automation" 
+                  className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-gray-100"
+                >
+                  <Zap className="h-4 w-4" />
+                  Automation
                 </TabsTrigger>
-                <TabsTrigger value="automation" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
-                  <Brain className="h-3 w-3" />
-                  <span className="hidden sm:inline text-xs">Automation</span>
+                <TabsTrigger 
+                  value="queue" 
+                  className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-gray-100"
+                >
+                  <ClipboardList className="h-4 w-4" />
+                  Queue
                 </TabsTrigger>
-                <TabsTrigger value="call-queue" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
-                  <ClipboardList className="h-3 w-3" />
-                  <span className="hidden sm:inline text-xs">Queue</span>
+                <TabsTrigger 
+                  value="history" 
+                  className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-gray-100"
+                >
+                  <Clock className="h-4 w-4" />
+                  History
                 </TabsTrigger>
-                <TabsTrigger value="call-history" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
-                  <Clock className="h-3 w-3" />
-                  <span className="hidden sm:inline text-xs">History</span>
+                <TabsTrigger 
+                  value="voice" 
+                  className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-gray-100"
+                >
+                  <Headphones className="h-4 w-4" />
+                  Voice
                 </TabsTrigger>
-                <TabsTrigger value="voice-config" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
-                  <Headphones className="h-3 w-3" />
-                  <span className="hidden sm:inline text-xs">Voice</span>
+                <TabsTrigger 
+                  value="learning" 
+                  className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-gray-100"
+                >
+                  <Brain className="h-4 w-4" />
+                  Learning
                 </TabsTrigger>
-                <TabsTrigger value="learning-engine" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
-                  <Brain className="h-3 w-3" />
-                  <span className="hidden sm:inline text-xs">Learning</span>
-                </TabsTrigger>
-                <TabsTrigger value="feedback" className="flex items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-slate-100/80">
-                  <Settings className="h-3 w-3" />
-                  <span className="hidden sm:inline text-xs">Training</span>
+                <TabsTrigger 
+                  value="training" 
+                  className="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-sm hover:bg-gray-100"
+                >
+                  <Settings className="h-4 w-4" />
+                  Training
                 </TabsTrigger>
               </TabsList>
             </div>
 
-            <TabsContent value="dashboard">
-              <AIAgentDashboard />
-            </TabsContent>
-            
-            <TabsContent value="workflows">
-              <AgenticWorkflows />
-            </TabsContent>
-            
-            <TabsContent value="automation">
-              <AIAgentAutomation />
-            </TabsContent>
-            
-            <TabsContent value="call-queue">
-              <AIAgentCallQueue />
-            </TabsContent>
-            
-            <TabsContent value="call-history">
-              <AIAgentHistory />
-            </TabsContent>
-            
-            <TabsContent value="voice-config">
-              <AIAgentVoiceConfig />
-            </TabsContent>
-            
-            <TabsContent value="learning-engine">
-              <AIAgentLearningEngine />
-            </TabsContent>
-            
-            <TabsContent value="feedback">
-              <AIAgentFeedback />
-            </TabsContent>
+            <div className="mt-6">
+              <TabsContent value="dashboard" className="m-0">
+                <AIAgentDashboard />
+              </TabsContent>
+              
+              <TabsContent value="automation" className="m-0">
+                <AIAgentAutomation />
+              </TabsContent>
+              
+              <TabsContent value="queue" className="m-0">
+                <AIAgentCallQueue />
+              </TabsContent>
+              
+              <TabsContent value="history" className="m-0">
+                <AIAgentHistory />
+              </TabsContent>
+              
+              <TabsContent value="voice" className="m-0">
+                <AIAgentVoiceConfig />
+              </TabsContent>
+              
+              <TabsContent value="learning" className="m-0">
+                <AIAgentLearningEngine />
+              </TabsContent>
+              
+              <TabsContent value="training" className="m-0">
+                <AIAgentFeedback />
+              </TabsContent>
+            </div>
           </Tabs>
         </div>
       </div>
