@@ -49,6 +49,18 @@
   .mobile-nav-item:not(.active) {
     @apply text-muted-foreground hover:text-foreground hover:bg-muted/50;
   }
+
+  /* Developer OS Mobile Header */
+  .developer-mobile-header {
+    @apply fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white;
+    @apply border-b border-gray-700 shadow-lg;
+    height: 64px;
+  }
+
+  /* Ensure content doesn't overlap with mobile header */
+  .developer-mobile-content {
+    @apply pt-16;
+  }
 }
 
 /* Responsive containers */
@@ -82,6 +94,10 @@
 .mobile-card {
   @apply rounded-lg border bg-card text-card-foreground shadow-sm;
   @apply p-4 sm:p-6;
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Clean spacing utilities */
@@ -96,6 +112,7 @@
 /* Touch-friendly interactive elements */
 .touch-target {
   @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  touch-action: manipulation;
 }
 
 /* Responsive text sizing */
@@ -119,11 +136,43 @@
   @apply text-xl sm:text-2xl;
 }
 
-/* Optimize touch targets for mobile */
+/* Dashboard layout improvements */
+.dashboard-layout {
+  @apply min-h-screen bg-background;
+}
+
+.dashboard-content {
+  @apply max-w-full mx-auto py-4 sm:py-6 px-4 sm:px-6 space-y-4 sm:space-y-6;
+  overflow-x: hidden;
+}
+
+/* Sidebar responsive behavior */
+.sidebar-transition {
+  transition: width 0.3s ease, margin-left 0.3s ease;
+}
+
+/* Developer OS specific responsive classes */
+.developer-content-wrapper {
+  @apply transition-all duration-300 ease-in-out;
+  @apply w-full overflow-x-hidden;
+}
+
+/* Prevent horizontal scroll on mobile */
 @media (max-width: 768px) {
+  body, html {
+    overflow-x: hidden;
+  }
+  
+  .developer-content-wrapper {
+    width: 100vw !important;
+    margin-left: 0 !important;
+  }
+  
+  /* Optimize touch targets for mobile */
   button, .clickable {
     min-height: 44px;
     min-width: 44px;
+    touch-action: manipulation;
   }
   
   /* Improve text readability on mobile */
@@ -148,6 +197,12 @@
     @apply max-h-[90vh] max-w-[95vw] rounded-t-lg rounded-b-none;
     @apply fixed bottom-0 left-0 right-0 top-auto;
   }
+
+  /* Cards stack properly on mobile */
+  .card-grid > * {
+    width: 100%;
+    max-width: 100%;
+  }
 }
 
 /* Animation optimizations for mobile */
@@ -156,6 +211,10 @@
   .animate-fade-in,
   .animate-float {
     animation: none;
+  }
+  
+  .sidebar-transition {
+    transition: none;
   }
 }
 
@@ -168,6 +227,31 @@
 /* Optimize for iOS and Android */
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Loading states for better UX */
+.loading-skeleton {
+  @apply animate-pulse bg-gray-200 rounded;
+}
+
+.loading-text {
+  @apply h-4 bg-gray-200 rounded animate-pulse;
+}
+
+/* Smooth transitions for sidebar */
+.sidebar-expanded {
+  transform: translateX(0);
+}
+
+.sidebar-collapsed {
+  transform: translateX(-100%);
+}
+
+@media (min-width: 769px) {
+  .sidebar-collapsed {
+    transform: translateX(0);
+    width: 4rem;
+  }
 }
 
 /* Clean gradient utilities */
@@ -185,15 +269,6 @@
 
 .gradient-purple {
   @apply bg-gradient-to-r from-purple-600 to-indigo-600;
-}
-
-/* Layout improvements */
-.dashboard-layout {
-  @apply min-h-screen bg-background;
-}
-
-.dashboard-content {
-  @apply max-w-7xl mx-auto py-6 space-y-6;
 }
 
 /* Consistent button sizing */
@@ -220,4 +295,29 @@
 
 .clean-shadow-lg {
   @apply shadow-lg shadow-black/5;
+}
+
+/* Developer OS specific styles */
+.developer-grid {
+  @apply grid gap-4 sm:gap-6;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+@media (max-width: 640px) {
+  .developer-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Ensure proper spacing for TSAM Brain status */
+.tsam-status-banner {
+  @apply text-center py-6 sm:py-8;
+}
+
+.tsam-status-banner h2 {
+  @apply text-lg sm:text-xl font-semibold text-purple-600;
+}
+
+.tsam-status-banner p {
+  @apply text-sm sm:text-base text-gray-600 mt-2 max-w-2xl mx-auto;
 }

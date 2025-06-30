@@ -2,6 +2,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 // Developer Pages
 import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
@@ -21,29 +22,33 @@ import AIIntegrationMapper from '@/pages/developer/AIIntegrationMapper';
 
 const DeveloperOS: React.FC = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <DeveloperNavigation />
-      <main className="pt-[60px]">
-        <Routes>
-          <Route index element={<Navigate to="/developer/dashboard" replace />} />
-          <Route path="dashboard" element={<DeveloperDashboard />} />
-          <Route path="system-monitor" element={<SystemMonitor />} />
-          <Route path="error-logs" element={<ErrorLogs />} />
-          <Route path="agent-health" element={<AgentHealth />} />
-          <Route path="agents" element={<AgentHealthDashboard />} />
-          <Route path="ai-monitor" element={<RelevanceAIMonitor />} />
-          <Route path="users" element={<UserAccountManager />} />
-          <Route path="system" element={<ProductionReadinessMonitor />} />
-          <Route path="brain-monitor" element={<AIBrainMonitor />} />
-          <Route path="api-logs" element={<APILogs />} />
-          <Route path="tsam-brain" element={<TSAMBrainDashboard />} />
-          <Route path="feature-flags" element={<FeatureFlagManager />} />
-          <Route path="system-updates" element={<SystemUpdatesTracker />} />
-          <Route path="ai-integration" element={<AIIntegrationMapper />} />
-          <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
-        </Routes>
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen bg-background flex w-full">
+        <DeveloperNavigation />
+        <main className="flex-1 transition-all duration-300 ease-in-out">
+          <div className="responsive-container section-spacing">
+            <Routes>
+              <Route index element={<Navigate to="/developer/dashboard" replace />} />
+              <Route path="dashboard" element={<DeveloperDashboard />} />
+              <Route path="system-monitor" element={<SystemMonitor />} />
+              <Route path="error-logs" element={<ErrorLogs />} />
+              <Route path="agent-health" element={<AgentHealth />} />
+              <Route path="agents" element={<AgentHealthDashboard />} />
+              <Route path="ai-monitor" element={<RelevanceAIMonitor />} />
+              <Route path="users" element={<UserAccountManager />} />
+              <Route path="system" element={<ProductionReadinessMonitor />} />
+              <Route path="brain-monitor" element={<AIBrainMonitor />} />
+              <Route path="api-logs" element={<APILogs />} />
+              <Route path="tsam-brain" element={<TSAMBrainDashboard />} />
+              <Route path="feature-flags" element={<FeatureFlagManager />} />
+              <Route path="system-updates" element={<SystemUpdatesTracker />} />
+              <Route path="ai-integration" element={<AIIntegrationMapper />} />
+              <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 };
 
