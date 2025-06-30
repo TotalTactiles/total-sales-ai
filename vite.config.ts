@@ -25,8 +25,7 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: {
           auth: [
-            'src/contexts/auth/AuthProvider',
-            'src/services/authService'
+            'src/contexts/auth/AuthProvider'
           ],
           dashboard: ['src/pages/Dashboard']
         }
