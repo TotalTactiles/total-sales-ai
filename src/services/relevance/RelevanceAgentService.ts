@@ -2,6 +2,7 @@
 import { logger } from '@/utils/logger';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { aiConfig } from '@/config/ai';
 
 export interface RelevanceAgentConfig {
   apiKey: string;
@@ -25,8 +26,8 @@ class RelevanceAgentService {
 
   constructor() {
     this.config = {
-      apiKey: import.meta.env.VITE_RELEVANCE_API_KEY || '',
-      baseUrl: 'https://api-bcbe36.stack.tryrelevance.com/latest',
+      apiKey: aiConfig.relevance.apiKey || '',
+      baseUrl: aiConfig.relevance.baseUrl,
       maxRetries: 3,
       retryDelay: 1000
     };
