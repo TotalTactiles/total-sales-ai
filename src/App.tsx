@@ -14,7 +14,10 @@ const AppRoutes: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF]"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF] mx-auto mb-4"></div>
+          <p className="text-gray-600">Initializing TSAM OS...</p>
+        </div>
       </div>
     );
   }

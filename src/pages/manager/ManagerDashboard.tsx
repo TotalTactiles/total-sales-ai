@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,9 @@ import {
   Calendar,
   Award,
   AlertCircle,
-  Activity
+  Activity,
+  Brain,
+  CheckCircle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -22,7 +25,8 @@ const ManagerDashboard = () => {
 
   useEffect(() => {
     // Simulate data loading
-    setTimeout(() => setLoading(false), 300);
+    const timer = setTimeout(() => setLoading(false), 800);
+    return () => clearTimeout(timer);
   }, []);
 
   const mockStats = [
@@ -67,6 +71,27 @@ const ManagerDashboard = () => {
     { name: "David Kim", role: "Sales Rep", deals: 20, revenue: "$78K", status: "active" },
   ];
 
+  const insights = [
+    {
+      type: "success",
+      title: "Team Exceeding Targets",
+      message: "Your team is 18% above monthly targets",
+      priority: "high"
+    },
+    {
+      type: "opportunity",
+      title: "New Lead Surge",
+      message: "156 new leads this week - consider scaling calls",
+      priority: "medium"
+    },
+    {
+      type: "alert",
+      title: "Follow-up Required",
+      message: "12 high-value leads need immediate attention",
+      priority: "high"
+    }
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -98,8 +123,8 @@ const ManagerDashboard = () => {
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              Performance Up
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Team Performance: Excellent
             </Badge>
           </div>
         </div>
@@ -147,44 +172,35 @@ const ManagerDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Activities */}
+          {/* AI Insights */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5 text-green-600" />
-                Recent Activities
+                <Brain className="h-5 w-5 text-purple-600" />
+                Manager Insights
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">New lead assigned</p>
-                    <p className="text-xs text-gray-600">Sarah Johnson • 2 min ago</p>
+                {insights.map((insight, index) => (
+                  <div key={index} className={`p-4 rounded-lg border ${
+                    insight.priority === 'high' && insight.type === 'alert' ? 'bg-red-50 border-red-200' :
+                    insight.priority === 'high' && insight.type === 'success' ? 'bg-green-50 border-green-200' :
+                    'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-2 h-2 rounded-full mt-2 ${
+                        insight.type === 'alert' ? 'bg-red-500' :
+                        insight.type === 'success' ? 'bg-green-500' :
+                        'bg-blue-500'
+                      }`}></div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{insight.title}</p>
+                        <p className="text-xs text-gray-600 mt-1">{insight.message}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Deal closed</p>
-                    <p className="text-xs text-gray-600">Mike Chen • 15 min ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Training completed</p>
-                    <p className="text-xs text-gray-600">Lisa Rodriguez • 1 hour ago</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                  <div>
-                    <p className="text-sm font-medium">Meeting scheduled</p>
-                    <p className="text-xs text-gray-600">David Kim • 2 hours ago</p>
-                  </div>
-                </div>
+                ))}
               </div>
             </CardContent>
           </Card>
@@ -215,6 +231,12 @@ const ManagerDashboard = () => {
               <p className="text-sm text-gray-600">Handle urgent matters</p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Status Message */}
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold text-blue-600">🎯 Manager OS Active</h2>
+          <p className="text-gray-600 mt-2">Your AI-powered management dashboard is optimizing team performance</p>
         </div>
       </div>
     </div>
