@@ -11,7 +11,12 @@ import {
   LogOut,
   Code,
   Zap,
-  AlertTriangle
+  AlertTriangle,
+  Database,
+  Flag,
+  TrendingUp,
+  Network,
+  Monitor
 } from 'lucide-react';
 import { useOptimizedLogout } from '@/utils/logoutOptimizer';
 
@@ -36,10 +41,14 @@ const DeveloperNavigation: React.FC = () => {
 
   const navItems = [
     { path: '/developer/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/developer/logs', label: 'TSAM Logs', icon: FileText },
-    { path: '/developer/flags', label: 'Feature Flags', icon: Settings },
-    { path: '/developer/system-updates', label: 'System Updates', icon: Activity },
-    { path: '/developer/tsam-brain', label: 'TSAM Brain (JARVIS)', icon: Brain },
+    { path: '/developer/tsam-brain', label: 'TSAM Brain', icon: Brain },
+    { path: '/developer/system-monitor', label: 'System Monitor', icon: Monitor },
+    { path: '/developer/api-logs', label: 'API Logs', icon: FileText },
+    { path: '/developer/feature-flags', label: 'Feature Flags', icon: Flag },
+    { path: '/developer/system-updates', label: 'System Updates', icon: TrendingUp },
+    { path: '/developer/ai-integration', label: 'AI Integration', icon: Network },
+    { path: '/developer/error-logs', label: 'Error Debug', icon: AlertTriangle },
+    { path: '/developer/agent-health', label: 'Agent Health', icon: Activity },
   ];
 
   const handleSignOut = () => {
@@ -54,7 +63,7 @@ const DeveloperNavigation: React.FC = () => {
           <p className="text-sm text-gray-400">TSAM Development</p>
           <div className="flex items-center gap-2 mt-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-green-400">JARVIS Active</span>
+            <span className="text-xs text-green-400">TSAM Brain Active</span>
           </div>
         </div>
         

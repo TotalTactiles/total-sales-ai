@@ -14,6 +14,10 @@ import UserAccountManager from '@/components/Developer/UserAccountManager';
 import ProductionReadinessMonitor from '@/components/SystemHealth/ProductionReadinessMonitor';
 import AIBrainMonitor from '@/pages/developer/AIBrainMonitor';
 import APILogs from '@/pages/developer/APILogs';
+import TSAMBrainDashboard from '@/pages/developer/TSAMBrainDashboard';
+import FeatureFlagManager from '@/pages/developer/FeatureFlagManager';
+import SystemUpdatesTracker from '@/pages/developer/SystemUpdatesTracker';
+import AIIntegrationMapper from '@/pages/developer/AIIntegrationMapper';
 
 const DeveloperOS: React.FC = () => {
   return (
@@ -32,6 +36,10 @@ const DeveloperOS: React.FC = () => {
           <Route path="system" element={<ProductionReadinessMonitor />} />
           <Route path="brain-monitor" element={<AIBrainMonitor />} />
           <Route path="api-logs" element={<APILogs />} />
+          <Route path="tsam-brain" element={<TSAMBrainDashboard />} />
+          <Route path="feature-flags" element={<FeatureFlagManager />} />
+          <Route path="system-updates" element={<SystemUpdatesTracker />} />
+          <Route path="ai-integration" element={<AIIntegrationMapper />} />
           <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
         </Routes>
       </main>

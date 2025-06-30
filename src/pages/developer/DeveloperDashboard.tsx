@@ -14,12 +14,18 @@ import {
   Zap,
   Bug,
   GitBranch,
-  Monitor
+  Monitor,
+  Brain,
+  Network,
+  Flag,
+  TrendingUp
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const DeveloperDashboard = () => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,7 +36,15 @@ const DeveloperDashboard = () => {
 
   const mockStats = [
     {
-      title: "System Uptime",
+      title: "TSAM Brain Status",
+      value: "Active",
+      change: "All AI models operational",
+      changeType: "positive" as const,
+      icon: Brain,
+      iconColor: "text-purple-600"
+    },
+    {
+      title: "System Health",
       value: "99.9%",
       change: "All systems operational",
       changeType: "positive" as const,
@@ -52,29 +66,23 @@ const DeveloperDashboard = () => {
       changeType: "positive" as const,
       icon: Bug,
       iconColor: "text-orange-600"
-    },
-    {
-      title: "Performance Score",
-      value: "95/100",
-      change: "+3 points improvement",
-      changeType: "positive" as const,
-      icon: Zap,
-      iconColor: "text-purple-600"
     }
   ];
 
   const systemHealth = [
-    { service: "Authentication Service", status: "healthy", uptime: "99.9%" },
-    { service: "Database Cluster", status: "healthy", uptime: "99.8%" },
-    { service: "AI Agent Processing", status: "warning", uptime: "97.5%" },
-    { service: "File Storage", status: "healthy", uptime: "100%" },
+    { service: "TSAM Brain AI", status: "healthy", uptime: "99.9%", description: "Claude, GPT, Gemini active" },
+    { service: "Authentication Service", status: "healthy", uptime: "99.9%", description: "User auth & sessions" },
+    { service: "Database Cluster", status: "healthy", uptime: "99.8%", description: "Primary & backup DBs" },
+    { service: "AI Agent Processing", status: "warning", uptime: "97.5%", description: "Relevance AI agents" },
+    { service: "File Storage", status: "healthy", uptime: "100%", description: "Document & media storage" },
   ];
 
   const recentLogs = [
-    { timestamp: "2024-01-15 14:32:15", level: "INFO", message: "User authentication successful", service: "auth" },
-    { timestamp: "2024-01-15 14:31:45", level: "WARN", message: "High memory usage detected", service: "ai-agent" },
-    { timestamp: "2024-01-15 14:30:12", level: "INFO", message: "Database backup completed", service: "database" },
+    { timestamp: "2024-01-15 14:32:15", level: "INFO", message: "TSAM Brain: Claude 4 model switched automatically", service: "ai-brain" },
+    { timestamp: "2024-01-15 14:31:45", level: "WARN", message: "High memory usage detected in AI processing", service: "ai-agent" },
+    { timestamp: "2024-01-15 14:30:12", level: "INFO", message: "Feature flag: ai_suggestions_v2 enabled", service: "feature-flags" },
     { timestamp: "2024-01-15 14:28:33", level: "ERROR", message: "Rate limit exceeded for API key", service: "api" },
+    { timestamp: "2024-01-15 14:27:18", level: "INFO", message: "System update v2.1.0 deployed successfully", service: "deployment" },
   ];
 
   if (loading) {
@@ -97,10 +105,14 @@ const DeveloperDashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Developer Dashboard</h1>
-          <p className="text-gray-600 mt-1">Welcome back, {profile?.full_name || 'Developer'}</p>
+          <h1 className="text-3xl font-bold text-gray-900">Developer OS Dashboard</h1>
+          <p className="text-gray-600 mt-1">Welcome back, {profile?.full_name || 'Developer'} - TSAM Brain is active</p>
         </div>
         <div className="flex items-center gap-3">
+          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+            <Brain className="h-3 w-3 mr-1" />
+            TSAM Brain Online
+          </Badge>
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
             <CheckCircle className="h-3 w-3 mr-1" />
             All Systems Operational
@@ -122,7 +134,7 @@ const DeveloperDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Monitor className="h-5 w-5 text-green-600" />
-              System Health
+              System Health Monitor
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -137,7 +149,8 @@ const DeveloperDashboard = () => {
                     }`}></div>
                     <div>
                       <p className="font-medium text-gray-900">{service.service}</p>
-                      <p className="text-sm text-gray-600">Uptime: {service.uptime}</p>
+                      <p className="text-sm text-gray-600">{service.description}</p>
+                      <p className="text-xs text-gray-500">Uptime: {service.uptime}</p>
                     </div>
                   </div>
                   <Badge variant={
@@ -158,7 +171,7 @@ const DeveloperDashboard = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Code className="h-5 w-5 text-blue-600" />
-              Recent Logs
+              Live System Logs
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -184,45 +197,53 @@ const DeveloperDashboard = () => {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+      {/* TSAM Brain Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/developer/tsam-brain')}>
           <CardContent className="p-6 text-center">
-            <Database className="h-8 w-8 text-blue-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Database Console</h3>
-            <p className="text-sm text-gray-600">Query and monitor</p>
+            <Brain className="h-8 w-8 text-purple-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">TSAM Brain</h3>
+            <p className="text-sm text-gray-600">AI Control Tower</p>
           </CardContent>
         </Card>
         
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/developer/ai-integration')}>
           <CardContent className="p-6 text-center">
-            <GitBranch className="h-8 w-8 text-green-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Deploy Status</h3>
-            <p className="text-sm text-gray-600">View deployments</p>
+            <Network className="h-8 w-8 text-blue-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">AI Integration</h3>
+            <p className="text-sm text-gray-600">Model mapping</p>
           </CardContent>
         </Card>
         
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/developer/feature-flags')}>
           <CardContent className="p-6 text-center">
-            <Bug className="h-8 w-8 text-orange-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Bug Tracker</h3>
-            <p className="text-sm text-gray-600">Manage issues</p>
+            <Flag className="h-8 w-8 text-green-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">Feature Flags</h3>
+            <p className="text-sm text-gray-600">Control rollouts</p>
           </CardContent>
         </Card>
         
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/developer/system-updates')}>
           <CardContent className="p-6 text-center">
-            <Activity className="h-8 w-8 text-purple-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2">Performance</h3>
-            <p className="text-sm text-gray-600">System metrics</p>
+            <TrendingUp className="h-8 w-8 text-orange-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">System Updates</h3>
+            <p className="text-sm text-gray-600">Track deployments</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate('/developer/system-monitor')}>
+          <CardContent className="p-6 text-center">
+            <Activity className="h-8 w-8 text-red-600 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">Live Monitor</h3>
+            <p className="text-sm text-gray-600">Real-time metrics</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Status Message */}
+      {/* TSAM Brain Status Message */}
       <div className="text-center py-8">
-        <h2 className="text-xl font-semibold text-blue-600">🚀 Developer OS Active</h2>
-        <p className="text-gray-600 mt-2">Your development environment is running smoothly with full monitoring</p>
+        <h2 className="text-xl font-semibold text-purple-600">🧠 TSAM Brain Developer OS Active</h2>
+        <p className="text-gray-600 mt-2">Full system visibility with AI-powered insights and autonomous optimization capabilities</p>
       </div>
     </div>
   );
