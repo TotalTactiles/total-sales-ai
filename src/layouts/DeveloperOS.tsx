@@ -26,7 +26,7 @@ const DeveloperOS: React.FC = () => {
     <SidebarProvider defaultOpen={true}>
       <div className="min-h-screen bg-background flex w-full">
         <DeveloperNavigation />
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 overflow-hidden">
           <ResponsiveLayout>
             <Routes>
               <Route index element={<Navigate to="/developer/dashboard" replace />} />

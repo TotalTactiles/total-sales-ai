@@ -61,6 +61,13 @@
   .developer-mobile-content {
     @apply pt-16;
   }
+
+  /* Force full width on mobile */
+  .developer-content-wrapper {
+    width: 100vw !important;
+    margin-left: 0 !important;
+    max-width: 100vw !important;
+  }
 }
 
 /* Responsive containers */
@@ -72,6 +79,7 @@
 /* Card spacing and layout improvements */
 .card-grid {
   @apply grid gap-4 sm:gap-6;
+  width: 100%;
 }
 
 .card-grid-1 {
@@ -98,6 +106,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: 100%;
 }
 
 /* Clean spacing utilities */
@@ -144,6 +153,7 @@
 .dashboard-content {
   @apply max-w-full mx-auto py-4 sm:py-6 px-4 sm:px-6 space-y-4 sm:space-y-6;
   overflow-x: hidden;
+  width: 100%;
 }
 
 /* Sidebar responsive behavior */
@@ -155,20 +165,29 @@
 .developer-content-wrapper {
   @apply transition-all duration-300 ease-in-out;
   @apply w-full overflow-x-hidden;
+  min-height: 100vh;
 }
 
-/* Prevent horizontal scroll on mobile */
+/* Prevent horizontal scroll on mobile and desktop */
+body, html {
+  overflow-x: hidden;
+}
+
+/* Desktop sidebar spacing */
+@media (min-width: 769px) {
+  .developer-sidebar-expanded {
+    margin-left: 256px;
+    width: calc(100vw - 256px);
+  }
+  
+  .developer-sidebar-collapsed {
+    margin-left: 64px;
+    width: calc(100vw - 64px);
+  }
+}
+
+/* Optimize touch targets for mobile */
 @media (max-width: 768px) {
-  body, html {
-    overflow-x: hidden;
-  }
-  
-  .developer-content-wrapper {
-    width: 100vw !important;
-    margin-left: 0 !important;
-  }
-  
-  /* Optimize touch targets for mobile */
   button, .clickable {
     min-height: 44px;
     min-width: 44px;
@@ -202,6 +221,11 @@
   .card-grid > * {
     width: 100%;
     max-width: 100%;
+  }
+  
+  /* Ensure grid items don't overflow */
+  .card-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -320,4 +344,36 @@
 
 .tsam-status-banner p {
   @apply text-sm sm:text-base text-gray-600 mt-2 max-w-2xl mx-auto;
+}
+
+/* Fix content alignment issues */
+.developer-main-content {
+  @apply w-full max-w-full overflow-x-hidden;
+}
+
+/* Ensure cards don't overflow */
+.developer-card {
+  @apply w-full max-w-full;
+  box-sizing: border-box;
+}
+
+/* Navigation active states */
+.nav-active {
+  @apply bg-green-600 text-white;
+}
+
+.nav-inactive {
+  @apply text-gray-300 hover:bg-gray-800;
+}
+
+/* Prevent layout shifts */
+.layout-stable {
+  @apply transition-all duration-300 ease-in-out;
+  will-change: transform, width, margin;
+}
+
+/* Fix for overlapping content */
+.content-safe-area {
+  @apply min-h-screen p-4 sm:p-6;
+  box-sizing: border-box;
 }

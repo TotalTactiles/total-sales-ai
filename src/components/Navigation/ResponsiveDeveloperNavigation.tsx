@@ -39,11 +39,13 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
   const { open, setOpen } = useSidebar();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Persist sidebar state
+  // Persist sidebar state only for desktop
   useEffect(() => {
-    const savedState = localStorage.getItem('developer-sidebar-open');
-    if (savedState !== null && !isMobile) {
-      setOpen(JSON.parse(savedState));
+    if (!isMobile) {
+      const savedState = localStorage.getItem('developer-sidebar-open');
+      if (savedState !== null) {
+        setOpen(JSON.parse(savedState));
+      }
     }
   }, [setOpen, isMobile]);
 
