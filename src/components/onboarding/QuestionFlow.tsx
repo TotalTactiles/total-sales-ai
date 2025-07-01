@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
+import { useOnboardingAgentService } from '@/hooks/useOnboardingAgentService';
 import QuestionCard from './QuestionCard';
 import { Question } from '@/constants/salesRepQuestions';
 
@@ -18,6 +19,7 @@ interface QuestionFlowProps {
 const QuestionFlow: React.FC<QuestionFlowProps> = ({ questions, userRole, title }) => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
+  const { createPersonalizedAgent, isCreatingAgent } = useOnboardingAgentService();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -131,8 +133,31 @@ const QuestionFlow: React.FC<QuestionFlowProps> = ({ questions, userRole, title 
         // Initialize company master AI
         await initializeCompanyMasterAI();
         
-        logger.info('Onboarding completed', { userRole, userId: user?.id, answers });
-        toast.success(`Welcome to your personalized ${userRole === 'sales_rep' ? 'Sales Rep' : 'Manager'} OS!`);
+        // Create personalized AI agent
+        const agentResult = await createPersonalizedAgent({
+          salesRegion: answers.sales_region,
+          teamId: answers.team_id,
+          assignedTeam: answers.assigned_team
+        });
+
+        if (agentResult?.success) {
+          logger.info('Onboarding completed with agent creation', { 
+            userRole, 
+            userId: user?.id, 
+            answers,
+            agentCreated: true 
+          });
+          toast.success(`Welcome to your personalized ${userRole === 'sales_rep' ? 'Sales Rep' : 'Manager'} OS with AI Agent!`);
+        } else {
+          logger.warn('Onboarding completed but agent creation failed', { 
+            userRole, 
+            userId: user?.id, 
+            answers,
+            agentError: agentResult?.error 
+          });
+          toast.success(`Welcome to your ${userRole === 'sales_rep' ? 'Sales Rep' : 'Manager'} OS!`);
+          toast.error('AI Agent creation failed - you can recreate it later in settings');
+        }
         
         // Navigate to appropriate dashboard
         setTimeout(() => {
@@ -141,7 +166,7 @@ const QuestionFlow: React.FC<QuestionFlowProps> = ({ questions, userRole, title 
           } else {
             navigate('/os/rep/dashboard');
           }
-        }, 1000);
+        }, 2000);
         
       } catch (error) {
         console.error('Failed to complete onboarding:', error);
@@ -171,7 +196,7 @@ const QuestionFlow: React.FC<QuestionFlowProps> = ({ questions, userRole, title 
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{title}</h1>
-          <p className="text-gray-600">Let's customize your experience</p>
+          <p className="text-gray-600">Let's customize your experience and create your personalized AI agent</p>
         </div>
 
         {/* Progress Bar */}
@@ -207,10 +232,25 @@ const QuestionFlow: React.FC<QuestionFlowProps> = ({ questions, userRole, title 
               onPrev={handlePrev}
               isFirst={currentStep === 0}
               isLast={currentStep === questions.length - 1}
-              isLoading={isLoading}
+              isLoading={isLoading || isCreatingAgent}
             />
           </motion.div>
         </AnimatePresence>
+
+        {/* Agent Creation Status */}
+        {isCreatingAgent && (
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <div>
+                <div className="font-medium text-blue-800">Creating Your Personalized AI Agent</div>
+                <div className="text-sm text-blue-600">
+                  Setting up your {userRole === 'sales_rep' ? 'Sales Agent' : 'Manager Agent'} with your preferences...
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

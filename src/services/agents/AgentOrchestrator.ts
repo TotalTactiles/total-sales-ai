@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { relevanceAgentService } from '@/services/relevance/RelevanceAgentService';
 import { agentInitializationService } from './AgentInitializationService';
@@ -30,16 +29,35 @@ export interface AgentTaskResult {
   id: string;
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   result?: any;
+  output_payload?: any; // Added for backward compatibility
   error_message?: string;
-  execution_time?: number;
+  execution_time?: number; // Updated to match expected property name
+  execution_time_ms?: number; // Keep for backward compatibility
+  feedback_flagged?: boolean;
+  fallback_triggered?: boolean;
   created_at: string;
   completed_at?: string;
+}
+
+export interface FeedbackInput {
+  taskId: string;
+  rating: 'positive' | 'negative';
+  feedback?: string;
+}
+
+export interface AgentPerformanceMetrics {
+  totalTasks: number;
+  successRate: number;
+  avgExecutionTime: number;
+  lastActive: string;
+  agentType: string;
 }
 
 class AgentOrchestrator {
   private static instance: AgentOrchestrator;
   private taskQueue: AgentTask[] = [];
   private isProcessing = false;
+  private performanceMetrics = new Map<string, AgentPerformanceMetrics>();
 
   static getInstance(): AgentOrchestrator {
     if (!AgentOrchestrator.instance) {
@@ -100,12 +118,19 @@ class AgentOrchestrator {
       // Log completion
       await this.logTaskCompletion(taskId, task, result, executionTime);
 
+      // Update performance metrics
+      this.updatePerformanceMetrics(task.agentType, executionTime, result.success);
+
       return {
         id: taskId,
         status: result.success ? 'completed' : 'failed',
         result: result.output,
+        output_payload: result.output, // Added for backward compatibility
         error_message: result.error,
         execution_time: executionTime,
+        execution_time_ms: executionTime, // Keep for backward compatibility
+        feedback_flagged: false,
+        fallback_triggered: !result.success,
         created_at: new Date().toISOString(),
         completed_at: new Date().toISOString()
       };
@@ -118,15 +143,78 @@ class AgentOrchestrator {
       // Handle failure escalation
       await this.handleTaskFailure(task, error.message);
 
+      // Update performance metrics
+      this.updatePerformanceMetrics(task.agentType, executionTime, false);
+
       return {
         id: taskId,
         status: 'failed',
         error_message: error.message,
         execution_time: executionTime,
+        execution_time_ms: executionTime,
+        feedback_flagged: false,
+        fallback_triggered: true,
         created_at: new Date().toISOString(),
         completed_at: new Date().toISOString()
       };
     }
+  }
+
+  async submitFeedback(userId: string, taskId: string, rating: 'positive' | 'negative', feedback?: string): Promise<void> {
+    try {
+      await supabase
+        .from('agent_feedback')
+        .insert({
+          task_id: taskId,
+          user_id: userId,
+          rating,
+          feedback_text: feedback,
+          created_at: new Date().toISOString()
+        });
+
+      // Log feedback for AI learning
+      await supabase
+        .from('ai_brain_logs')
+        .insert({
+          type: 'agent_feedback',
+          event_summary: `User feedback: ${rating}`,
+          payload: {
+            taskId,
+            rating,
+            feedback,
+            timestamp: new Date().toISOString()
+          },
+          user_id: userId,
+          visibility: 'system_only'
+        });
+
+    } catch (error) {
+      logger.error('Failed to submit feedback:', error);
+      throw error;
+    }
+  }
+
+  async getPerformanceMetrics(): Promise<Map<string, AgentPerformanceMetrics>> {
+    return this.performanceMetrics;
+  }
+
+  private updatePerformanceMetrics(agentType: string, executionTime: number, success: boolean): void {
+    const current = this.performanceMetrics.get(agentType) || {
+      totalTasks: 0,
+      successRate: 0,
+      avgExecutionTime: 0,
+      lastActive: new Date().toISOString(),
+      agentType
+    };
+
+    current.totalTasks += 1;
+    current.avgExecutionTime = (current.avgExecutionTime + executionTime) / 2;
+    current.successRate = success ? 
+      (current.successRate + 1) / current.totalTasks : 
+      current.successRate * (current.totalTasks - 1) / current.totalTasks;
+    current.lastActive = new Date().toISOString();
+
+    this.performanceMetrics.set(agentType, current);
   }
 
   async scheduleTask(task: AgentTask, delay: number = 0): Promise<void> {
