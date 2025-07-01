@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
 import ContextAwareAIBubble from '@/components/UnifiedAI/ContextAwareAIBubble';
 import { useMockData } from '@/hooks/useMockData';
+import AgentTriggerButton from '@/frontend/automations-ui/AgentTriggerButton';
 
 // Sales Rep Pages  
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
@@ -50,6 +50,14 @@ const SalesRepOS: React.FC = () => {
           isCallActive: false,
           callDuration: 0
         }}
+      />
+      
+      {/* AI Agent Trigger Button - Always available */}
+      <AgentTriggerButton 
+        leadId={null}
+        leadData={{}}
+        position="bottom-left"
+        variant="floating"
       />
     </div>
   );
