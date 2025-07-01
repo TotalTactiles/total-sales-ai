@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -132,7 +131,7 @@ const CompanyBrainManager: React.FC = () => {
       icon: Upload,
       status: uploadedFiles.length > 0 ? 'connected' : 'disconnected',
       itemCount: uploadedFiles.length,
-      lastUpdated: uploadedFiles.length > 0 ? uploadedFiles[0].uploadedAt : null,
+      lastUpdated: uploadedFiles.length > 0 ? uploadedFiles[0].uploadDate : null,
       description: 'PDFs, Word Docs, CSVs, Images, Videos, and training materials repository',
       actionButton: {
         text: 'Upload Files',

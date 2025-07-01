@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
@@ -166,25 +165,23 @@ export const useCompanyBrain = () => {
         {
           id: '1',
           title: 'Content Gap Analysis',
-          description: 'Missing technical content about product features',
-          confidence: 0.85,
-          createdAt: new Date(),
-          category: 'content',
           type: 'website',
           summary: 'Content analysis shows gaps in technical documentation',
           suggestion: 'Create more detailed product feature content',
+          confidence: 0.85,
+          createdAt: new Date(),
+          category: 'content',
           data: { gaps: ['technical specs', 'integration guides'] }
         },
         {
           id: '2',
           title: 'Brand Voice Consistency',
-          description: 'Social media tone varies from website messaging',
-          confidence: 0.72,
-          createdAt: new Date(),
-          category: 'branding',
           type: 'social',
           summary: 'Inconsistent brand voice across channels',
           suggestion: 'Align social media tone with website messaging',
+          confidence: 0.72,
+          createdAt: new Date(),
+          category: 'branding',
           data: { channels: ['social', 'website'] }
         }
       ];
