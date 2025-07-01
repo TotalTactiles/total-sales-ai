@@ -42,18 +42,10 @@ const ManagerCompanyBrain = () => {
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
-            </TabsTrigger>
-            <TabsTrigger value="social-media" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Social Media
-            </TabsTrigger>
-            <TabsTrigger value="website-parser" className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              Website Parser
             </TabsTrigger>
             <TabsTrigger value="knowledge" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
@@ -173,62 +165,75 @@ const ManagerCompanyBrain = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="social-media" className="mt-6">
-            <SocialMediaIntegrations />
-          </TabsContent>
-
-          <TabsContent value="website-parser" className="mt-6">
-            <WebsiteParser />
-          </TabsContent>
-
           <TabsContent value="knowledge" className="mt-6">
-            <Card className="rounded-lg shadow-md">
-              <CardHeader>
-                <CardTitle>Knowledge Base Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4">
-                  <div className="flex items-center gap-4">
-                    <Search className="h-5 w-5 text-slate-400" />
-                    <input 
-                      type="text" 
-                      placeholder="Search knowledge base..." 
-                      className="flex-1 p-2 border border-slate-300 rounded-md"
-                    />
-                    <Button>
-                      <FileText className="h-4 w-4 mr-2" />
-                      Add Article
-                    </Button>
-                  </div>
+            <div className="space-y-8">
+              {/* Knowledge Base Management */}
+              <Card className="rounded-lg shadow-md">
+                <CardHeader>
+                  <CardTitle>Knowledge Base Management</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4">
+                    <div className="flex items-center gap-4">
+                      <Search className="h-5 w-5 text-slate-400" />
+                      <input 
+                        type="text" 
+                        placeholder="Search knowledge base..." 
+                        className="flex-1 p-2 border border-slate-300 rounded-md"
+                      />
+                      <Button>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Add Article
+                      </Button>
+                    </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-                    <Card className="rounded-lg shadow-md">
-                      <CardContent className="p-4">
-                        <h4 className="font-medium mb-2">Sales Playbooks</h4>
-                        <p className="text-sm text-slate-600 mb-3">342 articles</p>
-                        <Badge variant="outline">Most Active</Badge>
-                      </CardContent>
-                    </Card>
-                    
-                    <Card className="rounded-lg shadow-md">
-                      <CardContent className="p-4">
-                        <h4 className="font-medium mb-2">Product Information</h4>
-                        <p className="text-sm text-slate-600 mb-3">189 articles</p>
-                        <Badge variant="outline">Updated Recently</Badge>
-                      </CardContent>
-                    </Card>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                      <Card className="rounded-lg shadow-md">
+                        <CardContent className="p-4">
+                          <h4 className="font-medium mb-2">Sales Playbooks</h4>
+                          <p className="text-sm text-slate-600 mb-3">342 articles</p>
+                          <Badge variant="outline">Most Active</Badge>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="rounded-lg shadow-md">
+                        <CardContent className="p-4">
+                          <h4 className="font-medium mb-2">Product Information</h4>
+                          <p className="text-sm text-slate-600 mb-3">189 articles</p>
+                          <Badge variant="outline">Updated Recently</Badge>
+                        </CardContent>
+                      </Card>
 
-                    <Card className="rounded-lg shadow-md">
-                      <CardContent className="p-4">
-                        <h4 className="font-medium mb-2">Competitor Analysis</h4>
-                        <p className="text-sm text-slate-600 mb-3">96 articles</p>
-                        <Badge variant="outline">High Impact</Badge>
-                      </CardContent>
-                    </Card>
+                      <Card className="rounded-lg shadow-md">
+                        <CardContent className="p-4">
+                          <h4 className="font-medium mb-2">Competitor Analysis</h4>
+                          <p className="text-sm text-slate-600 mb-3">96 articles</p>
+                          <Badge variant="outline">High Impact</Badge>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              {/* Website Parser Section */}
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Globe className="h-6 w-6" />
+                  Website Content Parser
+                </h2>
+                <WebsiteParser />
+              </div>
+
+              {/* Social Media Integrations Section */}
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Users className="h-6 w-6" />
+                  Social Media Integrations
+                </h2>
+                <SocialMediaIntegrations />
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="integrations" className="mt-6">
