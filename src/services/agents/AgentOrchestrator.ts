@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 import { relevanceAgentService } from '@/services/relevance/RelevanceAgentService';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +11,8 @@ export interface AgentContext {
   callContext?: any;
   emailContext?: any;
   smsContext?: any;
+  isCallActive?: boolean;
+  query?: string;
 }
 
 export interface AgentTask {
@@ -23,19 +24,29 @@ export interface AgentTask {
 
 export interface AgentTaskResult {
   taskId: string;
+  id?: string;
   agentType: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
   output?: any;
+  output_payload?: any;
   error_message?: string;
   execution_time_ms?: number;
   created_at: string;
   completed_at?: string;
 }
 
+export interface AgentPerformanceMetrics {
+  totalTasks: number;
+  successfulTasks: number;
+  failedTasks: number;
+  avgExecutionTime: number;
+  totalExecutionTime: number;
+}
+
 class AgentOrchestrator {
   private taskQueue: AgentTask[] = [];
   private runningTasks: Map<string, AgentTaskResult> = new Map();
-  private performanceMetrics: Map<string, any> = new Map();
+  private performanceMetrics: Map<string, AgentPerformanceMetrics> = new Map();
 
   async executeTask(task: AgentTask): Promise<AgentTaskResult> {
     const taskId = crypto.randomUUID();
@@ -43,6 +54,7 @@ class AgentOrchestrator {
 
     const result: AgentTaskResult = {
       taskId,
+      id: taskId,
       agentType: task.agentType,
       status: 'running',
       created_at: new Date().toISOString()
@@ -97,6 +109,7 @@ class AgentOrchestrator {
       // Update result
       result.status = agentResult.success ? 'completed' : 'failed';
       result.output = agentResult.output;
+      result.output_payload = { response: agentResult.output };
       result.error_message = agentResult.error;
       result.execution_time_ms = executionTime;
       result.completed_at = new Date().toISOString();
@@ -121,6 +134,32 @@ class AgentOrchestrator {
       return result;
     } finally {
       this.runningTasks.delete(taskId);
+    }
+  }
+
+  async submitFeedback(
+    userId: string,
+    taskId: string,
+    rating: 'positive' | 'negative',
+    feedback?: string
+  ): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('ai_agent_tasks')
+        .update({
+          feedback_rating: rating,
+          feedback_text: feedback,
+          feedback_submitted_at: new Date().toISOString()
+        })
+        .eq('id', taskId)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      logger.info('Agent feedback submitted', { taskId, rating, userId });
+    } catch (error) {
+      logger.error('Failed to submit agent feedback', error);
+      throw error;
     }
   }
 
@@ -160,7 +199,7 @@ class AgentOrchestrator {
     this.performanceMetrics.set(agentType, current);
   }
 
-  getPerformanceMetrics(): Map<string, any> {
+  getPerformanceMetrics(): Map<string, AgentPerformanceMetrics> {
     return new Map(this.performanceMetrics);
   }
 
@@ -186,9 +225,11 @@ class AgentOrchestrator {
 
       return data.map(task => ({
         taskId: task.id,
+        id: task.id,
         agentType: task.agent_type,
         status: task.status,
         output: task.output_payload,
+        output_payload: task.output_payload,
         error_message: task.error_message,
         execution_time_ms: task.execution_time_ms,
         created_at: task.created_at,

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { 
   Database,
   Settings,
-  Sync,
+  RefreshCw,
   CheckCircle,
   AlertCircle,
   ExternalLink,
@@ -168,7 +167,7 @@ const CRMIntegrationsPanel = () => {
                 <p className="text-sm font-medium text-gray-600">Last Sync</p>
                 <p className="text-2xl font-bold text-gray-900">2h ago</p>
               </div>
-              <Sync className="h-8 w-8 text-green-600" />
+              <RefreshCw className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
@@ -247,7 +246,7 @@ const CRMIntegrationsPanel = () => {
                       onClick={() => handleSync(integration.id)}
                       className="flex-1"
                     >
-                      <Sync className="h-4 w-4 mr-2" />
+                      <RefreshCw className="h-4 w-4 mr-2" />
                       Sync Now
                     </Button>
                     <Button variant="outline" size="sm">
@@ -289,7 +288,7 @@ const CRMIntegrationsPanel = () => {
 
             <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
               <div className="flex items-center gap-3">
-                <Sync className="h-5 w-5 text-blue-600" />
+                <RefreshCw className="h-5 w-5 text-blue-600" />
                 <div>
                   <p className="font-medium text-blue-900">Pipedrive Sync In Progress</p>
                   <p className="text-sm text-blue-700">Syncing deals and activities...</p>

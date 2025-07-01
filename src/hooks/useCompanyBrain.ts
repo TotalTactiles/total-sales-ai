@@ -11,6 +11,7 @@ interface WebsiteData {
     title?: string;
     description?: string;
     keywords?: string[];
+    contentSummary?: string;
   };
 }
 
@@ -18,6 +19,30 @@ interface SocialConnection {
   platform: string;
   connected: boolean;
   lastSync?: Date;
+}
+
+interface UploadedFile {
+  id: string;
+  name: string;
+  size: number;
+  uploadedAt: Date;
+  type: string;
+}
+
+interface DataStatus {
+  totalFiles: number;
+  totalSources: number;
+  lastUpdate: Date;
+  processingStatus: 'idle' | 'processing' | 'completed' | 'error';
+}
+
+interface AIInsight {
+  id: string;
+  title: string;
+  description: string;
+  confidence: number;
+  createdAt: Date;
+  category: string;
 }
 
 export const useCompanyBrain = () => {
@@ -29,6 +54,14 @@ export const useCompanyBrain = () => {
     { platform: 'linkedin', connected: false },
     { platform: 'tiktok', connected: false }
   ]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [insights, setInsights] = useState<AIInsight[]>([]);
+  const [dataStatus, setDataStatus] = useState<DataStatus>({
+    totalFiles: 0,
+    totalSources: 0,
+    lastUpdate: new Date(),
+    processingStatus: 'idle'
+  });
 
   const crawlWebsite = useCallback(async (url: string): Promise<WebsiteData | null> => {
     setIsLoading(true);
@@ -43,7 +76,8 @@ export const useCompanyBrain = () => {
         content: {
           title: `Website Analysis for ${new URL(url).hostname}`,
           description: 'Extracted content and metadata for AI training',
-          keywords: ['business', 'services', 'technology', 'solutions']
+          keywords: ['business', 'services', 'technology', 'solutions'],
+          contentSummary: 'Comprehensive analysis of website content, structure, and messaging for AI enhancement.'
         }
       };
 
@@ -101,12 +135,137 @@ export const useCompanyBrain = () => {
     }
   }, []);
 
+  const uploadFiles = useCallback(async (files: File[]): Promise<UploadedFile[]> => {
+    setIsLoading(true);
+    try {
+      const uploadedFiles: UploadedFile[] = files.map(file => ({
+        id: crypto.randomUUID(),
+        name: file.name,
+        size: file.size,
+        uploadedAt: new Date(),
+        type: file.type
+      }));
+
+      setUploadedFiles(prev => [...prev, ...uploadedFiles]);
+      setDataStatus(prev => ({
+        ...prev,
+        totalFiles: prev.totalFiles + files.length,
+        lastUpdate: new Date(),
+        processingStatus: 'processing'
+      }));
+
+      // Simulate processing
+      setTimeout(() => {
+        setDataStatus(prev => ({ ...prev, processingStatus: 'completed' }));
+      }, 2000);
+
+      return uploadedFiles;
+    } catch (error) {
+      logger.error('File upload failed', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const refreshInsights = useCallback(async (): Promise<void> => {
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const mockInsights: AIInsight[] = [
+        {
+          id: '1',
+          title: 'Content Gap Analysis',
+          description: 'Missing technical content about product features',
+          confidence: 0.85,
+          createdAt: new Date(),
+          category: 'content'
+        },
+        {
+          id: '2',
+          title: 'Brand Voice Consistency',
+          description: 'Social media tone varies from website messaging',
+          confidence: 0.72,
+          createdAt: new Date(),
+          category: 'branding'
+        }
+      ];
+
+      setInsights(mockInsights);
+      toast.success('AI insights refreshed');
+    } catch (error) {
+      toast.error('Failed to refresh insights');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const createCampaignBrief = useCallback(async (campaign: string): Promise<string> => {
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const brief = `Campaign Brief for "${campaign}":
+      
+Based on your company's digital footprint and brand analysis, here's a comprehensive campaign strategy...`;
+      
+      toast.success('Campaign brief created');
+      return brief;
+    } catch (error) {
+      toast.error('Failed to create campaign brief');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const sendInsightEmail = useCallback(async (recipient: string): Promise<void> => {
+    setIsLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast.success(`Insights sent to ${recipient}`);
+    } catch (error) {
+      toast.error('Failed to send insights');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const refreshData = useCallback(async (): Promise<void> => {
+    setIsLoading(true);
+    try {
+      await Promise.all([
+        refreshInsights(),
+        // Refresh other data sources
+      ]);
+      
+      setDataStatus(prev => ({
+        ...prev,
+        lastUpdate: new Date(),
+        processingStatus: 'completed'
+      }));
+    } catch (error) {
+      toast.error('Failed to refresh data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [refreshInsights]);
+
   return {
     crawlWebsite,
     connectSocialMedia,
     syncSocialMedia,
+    uploadFiles,
+    refreshInsights,
+    createCampaignBrief,
+    sendInsightEmail,
+    refreshData,
     websiteData,
     socialConnections,
+    uploadedFiles,
+    insights,
+    dataStatus,
     isLoading
   };
 };

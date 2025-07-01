@@ -1,11 +1,13 @@
-
 import { aiConfig } from '@/config/ai';
 import { logger } from '@/utils/logger';
+
+export type WorkspaceContext = 'lead_management' | 'academy' | 'dashboard' | 'analytics' | 'general';
 
 export interface AIResponse {
   response: string;
   source: 'openai' | 'claude' | 'relevance' | 'fallback';
   confidence: number;
+  suggestedActions?: string[];
   usage?: {
     tokens: number;
     cost?: number;
@@ -51,6 +53,11 @@ class UnifiedAIService {
       logger.error('AI response generation failed', error);
       return this.handleError(prompt, category);
     }
+  }
+
+  async generateVoiceResponse(text: string): Promise<string> {
+    // Simplify text for voice synthesis
+    return text.replace(/[*#`]/g, '').substring(0, 200);
   }
 
   async generateStrategyResponse(prompt: string): Promise<string> {
@@ -110,6 +117,7 @@ class UnifiedAIService {
       response: this.generateMockResponse(prompt, 'openai'),
       source: 'openai',
       confidence: 0.85,
+      suggestedActions: this.generateSuggestedActions(prompt),
       usage: { tokens: 150 }
     };
   }
@@ -130,8 +138,27 @@ class UnifiedAIService {
       response: this.generateMockResponse(prompt, 'claude'),
       source: 'claude',
       confidence: 0.90,
+      suggestedActions: this.generateSuggestedActions(prompt),
       usage: { tokens: 200 }
     };
+  }
+
+  private generateSuggestedActions(prompt: string): string[] {
+    const actions = [];
+    
+    if (prompt.toLowerCase().includes('lead')) {
+      actions.push('Analyze lead score', 'Schedule follow-up', 'Send personalized email');
+    }
+    
+    if (prompt.toLowerCase().includes('call')) {
+      actions.push('Prepare talking points', 'Set reminder', 'Review call history');
+    }
+    
+    if (prompt.toLowerCase().includes('team')) {
+      actions.push('Review performance', 'Schedule meeting', 'Create action plan');
+    }
+    
+    return actions.slice(0, 3);
   }
 
   private generateMockResponse(prompt: string, source: 'openai' | 'claude'): string {
@@ -167,7 +194,8 @@ class UnifiedAIService {
     return {
       response,
       source: 'fallback',
-      confidence: 0.5
+      confidence: 0.5,
+      suggestedActions: ['Try again', 'Contact support', 'Check connection']
     };
   }
 
@@ -178,7 +206,8 @@ class UnifiedAIService {
       return {
         response: "I'm experiencing technical difficulties. Please try again in a moment, or contact support if the issue persists.",
         source: 'fallback',
-        confidence: 0.3
+        confidence: 0.3,
+        suggestedActions: ['Retry', 'Contact support']
       };
     }
 
