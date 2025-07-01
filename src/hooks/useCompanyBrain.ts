@@ -2,66 +2,18 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
-
-interface WebsiteData {
-  url: string;
-  pages: number;
-  lastCrawled: Date;
-  content?: {
-    title: string;
-    description: string;
-    keywords: string[];
-    contentSummary: string;
-  };
-}
-
-interface SocialConnection {
-  platform: string;
-  connected: boolean;
-  lastSync?: Date;
-}
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: number;
-  uploadedAt: Date;
-  uploadDate: Date;
-  type: string;
-  category: string;
-  tags: string[];
-  url: string;
-}
-
-interface DataStatus {
-  totalFiles: number;
-  totalSources: number;
-  lastUpdate: Date;
-  processingStatus: 'idle' | 'processing' | 'completed' | 'error';
-  errors: string[];
-  social: {
-    connected: number;
-    totalPlatforms: number;
-  };
-}
-
-interface AIInsight {
-  id: string;
-  title: string;
-  description: string;
-  confidence: number;
-  createdAt: Date;
-  category: string;
-  type: string;
-  summary: string;
-  suggestion: string;
-  data: any;
-}
+import {
+  WebsiteData,
+  SocialMediaConnection,
+  UploadedFile,
+  DataIngestionStatus,
+  AIInsight
+} from '@/services/companyBrain/types';
 
 export const useCompanyBrain = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [websiteData, setWebsiteData] = useState<WebsiteData | null>(null);
-  const [socialConnections, setSocialConnections] = useState<SocialConnection[]>([
+  const [socialConnections, setSocialConnections] = useState<SocialMediaConnection[]>([
     { platform: 'instagram', connected: false },
     { platform: 'facebook', connected: false },
     { platform: 'linkedin', connected: false },
@@ -69,16 +21,22 @@ export const useCompanyBrain = () => {
   ]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [insights, setInsights] = useState<AIInsight[]>([]);
-  const [dataStatus, setDataStatus] = useState<DataStatus>({
+  const [dataStatus, setDataStatus] = useState<
+    DataIngestionStatus & {
+      totalFiles: number;
+      totalSources: number;
+      lastUpdate: Date;
+      processingStatus: 'idle' | 'processing' | 'completed' | 'error';
+    }
+  >({
+    social: { connected: 0, total: 4 },
+    website: { status: 'disconnected' },
+    documents: { count: 0 },
+    errors: [],
     totalFiles: 0,
     totalSources: 0,
     lastUpdate: new Date(),
-    processingStatus: 'idle',
-    errors: [],
-    social: {
-      connected: 0,
-      totalPlatforms: 4
-    }
+    processingStatus: 'idle'
   });
 
   const crawlWebsite = useCallback(async (url: string): Promise<WebsiteData | null> => {
@@ -212,7 +170,7 @@ export const useCompanyBrain = () => {
           confidence: 0.85,
           createdAt: new Date(),
           category: 'content',
-          type: 'analysis',
+          type: 'website',
           summary: 'Content analysis shows gaps in technical documentation',
           suggestion: 'Create more detailed product feature content',
           data: { gaps: ['technical specs', 'integration guides'] }
@@ -224,7 +182,7 @@ export const useCompanyBrain = () => {
           confidence: 0.72,
           createdAt: new Date(),
           category: 'branding',
-          type: 'consistency',
+          type: 'social',
           summary: 'Inconsistent brand voice across channels',
           suggestion: 'Align social media tone with website messaging',
           data: { channels: ['social', 'website'] }

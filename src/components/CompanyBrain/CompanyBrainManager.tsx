@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { useCompanyBrain } from '@/hooks/useCompanyBrain';
 import { DataSourceCard } from './types';
 import { DataSourceCardComponent } from './components/DataSourceCardComponent';
+import { AIInsight } from '@/services/companyBrain/types';
 import { EnhancedDataLibrary } from './components/EnhancedDataLibrary';
 import { SummaryHeader } from './components/SummaryHeader';
 import SocialMediaIntegrations from '@/components/Manager/SocialMediaIntegrations';
@@ -76,6 +77,14 @@ const CompanyBrainManager: React.FC = () => {
 
   const setCardTab = (cardId: string, tab: string) => {
     setActiveCardTab(prev => ({ ...prev, [cardId]: tab }));
+  };
+
+  const handleSendInsightEmail = (insight: AIInsight) => {
+    sendInsightEmail(insight).catch(console.error);
+  };
+
+  const handleCreateCampaignBrief = (insight: AIInsight) => {
+    createCampaignBrief(insight).catch(console.error);
   };
 
   const handleDismissError = (error: string) => {
@@ -297,8 +306,8 @@ const CompanyBrainManager: React.FC = () => {
                   uploadedFiles={uploadedFiles}
                   websiteData={websiteData}
                   insights={insights}
-                  sendInsightEmail={sendInsightEmail}
-                  createCampaignBrief={createCampaignBrief}
+                  sendInsightEmail={handleSendInsightEmail}
+                  createCampaignBrief={handleCreateCampaignBrief}
                 />
               ))}
             </div>
