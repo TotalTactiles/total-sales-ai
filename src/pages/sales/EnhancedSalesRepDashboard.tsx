@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, Cart, CheckCircle, CreditCard, LineChart, Mail, MessageSquare, Shield, User, Zap, Bot } from 'lucide-react';
+import { CalendarDays, CheckCircle, CreditCard, LineChart, Mail, MessageSquare, Shield, User, Zap, Bot } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
@@ -108,7 +109,7 @@ const EnhancedSalesRepDashboard: React.FC = () => {
             </div>
             <div className="flex items-center gap-3">
               <div className="rounded-full p-2 bg-yellow-100">
-                <Cart className="h-5 w-5 text-yellow-600" />
+                <Zap className="h-5 w-5 text-yellow-600" />
               </div>
               <div>
                 <div className="text-2xl font-bold">{performanceMetrics.conversionRate}%</div>
@@ -196,7 +197,7 @@ const EnhancedSalesRepDashboard: React.FC = () => {
                 <div key={index} className="flex items-center gap-3">
                   <div className="rounded-full p-1.5 bg-gray-100">
                     {activity.type === 'email' && <Mail className="h-4 w-4 text-blue-500" />}
-                    {activity.type === 'call' && <Phone className="h-4 w-4 text-green-500" />}
+                    {activity.type === 'call' && <MessageSquare className="h-4 w-4 text-green-500" />}
                     {activity.type === 'meeting' && <CalendarDays className="h-4 w-4 text-purple-500" />}
                   </div>
                   <div>
