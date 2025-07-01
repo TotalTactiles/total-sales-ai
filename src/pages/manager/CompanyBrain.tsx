@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,10 +13,14 @@ import {
   Settings,
   Search,
   BarChart3,
-  MessageSquare
+  MessageSquare,
+  Globe,
+  Upload
 } from 'lucide-react';
 import CRMIntegrationsPanel from '@/components/CRM/CRMIntegrationsPanel';
 import WorkflowBuilder from '@/components/Automation/WorkflowBuilder';
+import SocialMediaIntegrations from '@/components/Manager/SocialMediaIntegrations';
+import WebsiteParser from '@/components/Manager/WebsiteParser';
 
 const ManagerCompanyBrain = () => {
   const [selectedTab, setSelectedTab] = useState('overview');
@@ -39,10 +42,18 @@ const ManagerCompanyBrain = () => {
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
+            </TabsTrigger>
+            <TabsTrigger value="social-media" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Social Media
+            </TabsTrigger>
+            <TabsTrigger value="website-parser" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Website Parser
             </TabsTrigger>
             <TabsTrigger value="knowledge" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
@@ -160,6 +171,14 @@ const ManagerCompanyBrain = () => {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="social-media" className="mt-6">
+            <SocialMediaIntegrations />
+          </TabsContent>
+
+          <TabsContent value="website-parser" className="mt-6">
+            <WebsiteParser />
           </TabsContent>
 
           <TabsContent value="knowledge" className="mt-6">
