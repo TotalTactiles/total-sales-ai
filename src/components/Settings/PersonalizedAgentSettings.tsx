@@ -19,11 +19,12 @@ const PersonalizedAgentSettings: React.FC = () => {
   };
 
   const getAgentStatus = () => {
-    if (profile?.personalized_agent_id) {
+    const extendedProfile = profile as any;
+    if (extendedProfile?.personalized_agent_id) {
       return {
         status: 'active',
-        name: profile.personalized_agent_name || 'Personalized AI Agent',
-        created: profile.agent_created_at,
+        name: extendedProfile.personalized_agent_name || 'Personalized AI Agent',
+        created: extendedProfile.agent_created_at,
         icon: CheckCircle,
         color: 'text-green-600',
         bgColor: 'bg-green-50',

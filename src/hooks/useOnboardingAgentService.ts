@@ -26,9 +26,9 @@ export const useOnboardingAgentService = () => {
         lastName: profile.full_name?.split(' ')[1] || '',
         email: profile.email || user.email || '',
         companyId: profile.company_id,
-        salesRegion: profile.sales_region,
-        teamId: profile.team_id,
-        assignedTeam: profile.assigned_team,
+        salesRegion: (profile as any).sales_region,
+        teamId: (profile as any).team_id,
+        assignedTeam: (profile as any).assigned_team,
         ...additionalData
       };
 

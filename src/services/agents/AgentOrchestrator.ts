@@ -29,10 +29,10 @@ export interface AgentTaskResult {
   id: string;
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   result?: any;
-  output_payload?: any; // Added for backward compatibility
+  output_payload?: any;
   error_message?: string;
-  execution_time?: number; // Updated to match expected property name
-  execution_time_ms?: number; // Keep for backward compatibility
+  execution_time?: number;
+  execution_time_ms?: number;
   feedback_flagged?: boolean;
   fallback_triggered?: boolean;
   created_at: string;
@@ -125,10 +125,10 @@ class AgentOrchestrator {
         id: taskId,
         status: result.success ? 'completed' : 'failed',
         result: result.output,
-        output_payload: result.output, // Added for backward compatibility
+        output_payload: result.output,
         error_message: result.error,
         execution_time: executionTime,
-        execution_time_ms: executionTime, // Keep for backward compatibility
+        execution_time_ms: executionTime,
         feedback_flagged: false,
         fallback_triggered: !result.success,
         created_at: new Date().toISOString(),
@@ -194,7 +194,7 @@ class AgentOrchestrator {
     }
   }
 
-  async getPerformanceMetrics(): Promise<Map<string, AgentPerformanceMetrics>> {
+  getPerformanceMetrics(): Map<string, AgentPerformanceMetrics> {
     return this.performanceMetrics;
   }
 
