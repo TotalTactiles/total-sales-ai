@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Brain, 
   Upload, 
@@ -24,6 +25,8 @@ import { DataSourceCard } from './types';
 import { DataSourceCardComponent } from './components/DataSourceCardComponent';
 import { EnhancedDataLibrary } from './components/EnhancedDataLibrary';
 import { SummaryHeader } from './components/SummaryHeader';
+import SocialMediaIntegrations from '@/components/Manager/SocialMediaIntegrations';
+import WebsiteParser from '@/components/Manager/WebsiteParser';
 
 const CompanyBrainManager: React.FC = () => {
   const [websiteUrl, setWebsiteUrl] = useState('');
@@ -211,75 +214,108 @@ const CompanyBrainManager: React.FC = () => {
           onRefresh={handleRefreshAll}
         />
 
-        {/* Global Search */}
-        <div className="mb-8 flex gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-            <Input
-              placeholder="Search all data sources, files, and insights..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 text-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-          <Button variant="outline" size="lg" className="gap-2 border-slate-300 hover:bg-slate-50">
-            <Filter className="h-5 w-5" />
-            Advanced Filters
-          </Button>
-        </div>
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 bg-white/50 backdrop-blur-sm border border-slate-200">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <Brain className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="social-media" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Social Media
+            </TabsTrigger>
+            <TabsTrigger value="website-parser" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Website Parser
+            </TabsTrigger>
+            <TabsTrigger value="data-library" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Data Library
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Error Alerts */}
-        {visibleErrors.length > 0 && (
-          <div className="mb-8 space-y-3">
-            {visibleErrors.map((error, index) => (
-              <div key={index} className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
-                  <span className="text-red-800 font-medium flex-1">{error}</span>
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50">
-                      Resolve
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleDismissError(error)}
-                      className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+          <TabsContent value="overview" className="space-y-8">
+            {/* Global Search */}
+            <div className="flex gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
+                <Input
+                  placeholder="Search all data sources, files, and insights..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-12 text-lg border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                />
               </div>
-            ))}
-          </div>
-        )}
+              <Button variant="outline" size="lg" className="gap-2 border-slate-300 hover:bg-slate-50">
+                <Filter className="h-5 w-5" />
+                Advanced Filters
+              </Button>
+            </div>
 
-        {/* Data Source Cards Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-12">
-          {dataSourceCards.map((card) => (
-            <DataSourceCardComponent
-              key={card.id}
-              card={card}
-              isLoading={isLoading}
-              activeCardTab={activeCardTab}
-              setCardTab={setCardTab}
-              websiteUrl={websiteUrl}
-              setWebsiteUrl={setWebsiteUrl}
-              handleWebsiteIngest={handleWebsiteIngest}
-              handleBulkUpload={handleBulkUpload}
-              connectSocialMedia={connectSocialMedia}
-              uploadedFiles={uploadedFiles}
-              websiteData={websiteData}
-              insights={insights}
-              sendInsightEmail={sendInsightEmail}
-              createCampaignBrief={createCampaignBrief}
-            />
-          ))}
-        </div>
+            {/* Error Alerts */}
+            {visibleErrors.length > 0 && (
+              <div className="space-y-3">
+                {visibleErrors.map((error, index) => (
+                  <div key={index} className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-3">
+                      <AlertCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                      <span className="text-red-800 font-medium flex-1">{error}</span>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-50">
+                          Resolve
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDismissError(error)}
+                          className="h-8 w-8 p-0 text-red-600 hover:bg-red-100"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-        {/* Enhanced Data Library */}
-        <EnhancedDataLibrary />
+            {/* Data Source Cards Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+              {dataSourceCards.map((card) => (
+                <DataSourceCardComponent
+                  key={card.id}
+                  card={card}
+                  isLoading={isLoading}
+                  activeCardTab={activeCardTab}
+                  setCardTab={setCardTab}
+                  websiteUrl={websiteUrl}
+                  setWebsiteUrl={setWebsiteUrl}
+                  handleWebsiteIngest={handleWebsiteIngest}
+                  handleBulkUpload={handleBulkUpload}
+                  connectSocialMedia={connectSocialMedia}
+                  uploadedFiles={uploadedFiles}
+                  websiteData={websiteData}
+                  insights={insights}
+                  sendInsightEmail={sendInsightEmail}
+                  createCampaignBrief={createCampaignBrief}
+                />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="social-media">
+            <SocialMediaIntegrations />
+          </TabsContent>
+
+          <TabsContent value="website-parser">
+            <WebsiteParser />
+          </TabsContent>
+
+          <TabsContent value="data-library">
+            <EnhancedDataLibrary />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Hidden bulk upload input */}
