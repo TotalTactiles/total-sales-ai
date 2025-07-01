@@ -296,7 +296,7 @@ export class SalesAgentConfig {
   }
 
   static async getUserPreferences(userId) {
-    const { supabase } = await import('@/integrations/supabase/client.js');
+    const { supabase } = await import('@/integrations/supabase/client');
     
     const { data } = await supabase
       .from('user_preferences')
@@ -308,7 +308,7 @@ export class SalesAgentConfig {
   }
 
   static async getCompanyContext(companyId) {
-    const { supabase } = await import('@/integrations/supabase/client.js');
+    const { supabase } = await import('@/integrations/supabase/client');
     
     const { data } = await supabase
       .from('companies')
@@ -320,7 +320,7 @@ export class SalesAgentConfig {
   }
 
   static async getPerformanceMetrics(userId, companyId) {
-    const { supabase } = await import('@/integrations/supabase/client.js');
+    const { supabase } = await import('@/integrations/supabase/client');
     
     const { data } = await supabase
       .from('user_performance_metrics')
@@ -334,7 +334,7 @@ export class SalesAgentConfig {
   }
 
   static async getLearningPatterns(userId, companyId) {
-    const { supabase } = await import('@/integrations/supabase/client.js');
+    const { supabase } = await import('@/integrations/supabase/client');
     
     const { data } = await supabase
       .from('ai_learning_patterns')
