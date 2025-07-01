@@ -13,6 +13,19 @@ export interface AgentContext {
   smsContext?: any;
   isCallActive?: boolean;
   query?: string;
+  leadId?: string;
+  includeHistory?: boolean;
+  includeInsights?: boolean;
+  objectionType?: string;
+  conversationContext?: string;
+  templateId?: string;
+  leadContext?: any;
+  leadStatus?: string;
+  prioritizationCriteria?: any;
+  dealOutcome?: string;
+  rehearsalTopic?: string;
+  pitchText?: string;
+  userResponse?: string;
 }
 
 export interface AgentTask {
@@ -41,6 +54,8 @@ export interface AgentPerformanceMetrics {
   failedTasks: number;
   avgExecutionTime: number;
   totalExecutionTime: number;
+  successRate: number;
+  lastActive: string;
 }
 
 class AgentOrchestrator {
@@ -180,16 +195,22 @@ class AgentOrchestrator {
       successfulTasks: 0,
       failedTasks: 0,
       avgExecutionTime: 0,
-      totalExecutionTime: 0
+      totalExecutionTime: 0,
+      successRate: 0,
+      lastActive: new Date().toISOString()
     };
 
     current.totalTasks++;
+    current.lastActive = new Date().toISOString();
     
     if (result.status === 'completed') {
       current.successfulTasks++;
     } else {
       current.failedTasks++;
     }
+
+    // Calculate success rate
+    current.successRate = current.totalTasks > 0 ? current.successfulTasks / current.totalTasks : 0;
 
     if (result.execution_time_ms) {
       current.totalExecutionTime += result.execution_time_ms;

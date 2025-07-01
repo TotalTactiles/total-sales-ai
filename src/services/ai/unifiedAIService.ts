@@ -82,6 +82,18 @@ class UnifiedAIService {
     return response.response;
   }
 
+  async performQuickAnalysis(data: any): Promise<string> {
+    const prompt = `Perform a quick analysis of the following data: ${JSON.stringify(data)}`;
+    const response = await this.generateResponse(
+      prompt,
+      'You are a data analyst. Provide quick, actionable insights.',
+      undefined,
+      'openai',
+      'analysis'
+    );
+    return response.response;
+  }
+
   private selectProvider(prompt: string, category?: string): 'openai' | 'claude' {
     // Route based on category and prompt characteristics
     if (category === 'strategy' || category === 'analysis') {

@@ -63,7 +63,7 @@ const CompanyBrainManager: React.FC = () => {
   const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
     const fileArray = Array.from(files);
-    await uploadFiles(fileArray, 'general');
+    await uploadFiles(fileArray);
   };
 
   const handleBulkUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,7 +123,7 @@ const CompanyBrainManager: React.FC = () => {
       icon: Upload,
       status: uploadedFiles.length > 0 ? 'connected' : 'disconnected',
       itemCount: uploadedFiles.length,
-      lastUpdated: uploadedFiles.length > 0 ? uploadedFiles[0].uploadDate : null,
+      lastUpdated: uploadedFiles.length > 0 ? uploadedFiles[0].uploadedAt : null,
       description: 'PDFs, Word Docs, CSVs, Images, Videos, and training materials repository',
       actionButton: {
         text: 'Upload Files',

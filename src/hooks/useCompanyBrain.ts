@@ -8,10 +8,10 @@ interface WebsiteData {
   pages: number;
   lastCrawled: Date;
   content?: {
-    title?: string;
-    description?: string;
-    keywords?: string[];
-    contentSummary?: string;
+    title: string;
+    description: string;
+    keywords: string[];
+    contentSummary: string;
   };
 }
 
@@ -26,7 +26,11 @@ interface UploadedFile {
   name: string;
   size: number;
   uploadedAt: Date;
+  uploadDate: Date;
   type: string;
+  category: string;
+  tags: string[];
+  url: string;
 }
 
 interface DataStatus {
@@ -34,6 +38,11 @@ interface DataStatus {
   totalSources: number;
   lastUpdate: Date;
   processingStatus: 'idle' | 'processing' | 'completed' | 'error';
+  errors: string[];
+  social: {
+    connected: number;
+    totalPlatforms: number;
+  };
 }
 
 interface AIInsight {
@@ -43,6 +52,10 @@ interface AIInsight {
   confidence: number;
   createdAt: Date;
   category: string;
+  type: string;
+  summary: string;
+  suggestion: string;
+  data: any;
 }
 
 export const useCompanyBrain = () => {
@@ -60,7 +73,12 @@ export const useCompanyBrain = () => {
     totalFiles: 0,
     totalSources: 0,
     lastUpdate: new Date(),
-    processingStatus: 'idle'
+    processingStatus: 'idle',
+    errors: [],
+    social: {
+      connected: 0,
+      totalPlatforms: 4
+    }
   });
 
   const crawlWebsite = useCallback(async (url: string): Promise<WebsiteData | null> => {
@@ -106,6 +124,15 @@ export const useCompanyBrain = () => {
         )
       );
       
+      // Update social status
+      setDataStatus(prev => ({
+        ...prev,
+        social: {
+          ...prev.social,
+          connected: prev.social.connected + 1
+        }
+      }));
+      
       logger.info('Social media connected', { platform: platformId });
       return true;
     } catch (error) {
@@ -143,7 +170,11 @@ export const useCompanyBrain = () => {
         name: file.name,
         size: file.size,
         uploadedAt: new Date(),
-        type: file.type
+        uploadDate: new Date(),
+        type: file.type,
+        category: 'general',
+        tags: [],
+        url: URL.createObjectURL(file)
       }));
 
       setUploadedFiles(prev => [...prev, ...uploadedFiles]);
@@ -180,7 +211,11 @@ export const useCompanyBrain = () => {
           description: 'Missing technical content about product features',
           confidence: 0.85,
           createdAt: new Date(),
-          category: 'content'
+          category: 'content',
+          type: 'analysis',
+          summary: 'Content analysis shows gaps in technical documentation',
+          suggestion: 'Create more detailed product feature content',
+          data: { gaps: ['technical specs', 'integration guides'] }
         },
         {
           id: '2',
@@ -188,7 +223,11 @@ export const useCompanyBrain = () => {
           description: 'Social media tone varies from website messaging',
           confidence: 0.72,
           createdAt: new Date(),
-          category: 'branding'
+          category: 'branding',
+          type: 'consistency',
+          summary: 'Inconsistent brand voice across channels',
+          suggestion: 'Align social media tone with website messaging',
+          data: { channels: ['social', 'website'] }
         }
       ];
 
@@ -201,32 +240,25 @@ export const useCompanyBrain = () => {
     }
   }, []);
 
-  const createCampaignBrief = useCallback(async (campaign: string): Promise<string> => {
+  const createCampaignBrief = useCallback(async (insight: AIInsight): Promise<void> => {
     setIsLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const brief = `Campaign Brief for "${campaign}":
-      
-Based on your company's digital footprint and brand analysis, here's a comprehensive campaign strategy...`;
-      
       toast.success('Campaign brief created');
-      return brief;
     } catch (error) {
       toast.error('Failed to create campaign brief');
-      throw error;
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const sendInsightEmail = useCallback(async (recipient: string): Promise<void> => {
+  const sendInsightEmail = useCallback(async (insight: AIInsight): Promise<void> => {
     setIsLoading(true);
     try {
       await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success(`Insights sent to ${recipient}`);
+      toast.success(`Insight sent successfully`);
     } catch (error) {
-      toast.error('Failed to send insights');
+      toast.error('Failed to send insight');
     } finally {
       setIsLoading(false);
     }
