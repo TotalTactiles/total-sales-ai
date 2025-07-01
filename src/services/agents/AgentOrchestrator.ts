@@ -26,6 +26,8 @@ export interface AgentContext {
   rehearsalTopic?: string;
   pitchText?: string;
   userResponse?: string;
+  scenario?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface AgentTask {
