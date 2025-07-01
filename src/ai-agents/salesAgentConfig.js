@@ -1,4 +1,3 @@
-
 import { relevanceAgentService } from '@/services/relevance/RelevanceAgentService';
 import { TriggerHandlers } from '@/automations/native/triggerHandlers';
 import { logger } from '@/utils/logger';
