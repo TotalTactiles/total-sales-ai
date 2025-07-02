@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './pages/auth';
-import SafeDash from './pages/safe-dashboard';
+import SalesDash from './pages/sales-dashboard';
 
 export default function App() {
   useEffect(() => {
@@ -20,8 +20,8 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/auth" element={<Auth />} />
-        <Route path="/safe-dashboard" element={<SafeDash />} />
-        <Route path="/*" element={<Navigate to="/safe-dashboard" replace />} />
+        <Route path="/sales-dashboard" element={<SalesDash />} />
+        <Route path="/*" element={<Navigate to="/sales-dashboard" replace />} />
       </Routes>
     </Router>
   );
