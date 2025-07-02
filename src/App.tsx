@@ -11,37 +11,31 @@ import LoadingScreen from '@/components/LoadingScreen';
 import { logger } from '@/utils/logger';
 
 const AppRoutes: React.FC = () => {
-  const { user, profile, loading } = useAuth();
+  const { session, loading } = useAuth();
 
-  // Show loading spinner while determining auth state
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  if (loading) return <LoadingScreen />;
 
-  // If user is authenticated, determine role-based routing
-  if (user && profile) {
-    logger.info('✅ User authenticated, routing based on role:', { role: profile.role }, 'auth');
-    
+  if (!session) {
     return (
       <Routes>
+        <Route path="/" element={<NewLandingPage />} />
+        <Route path="/auth" element={<AuthPage />} />
         <Route path="/logout" element={<LogoutHandler />} />
-        <Route path="/*" element={<MainLayout />} />
+        <Route path="/*" element={<Navigate to="/auth" replace />} />
       </Routes>
     );
   }
 
-  // If user exists but no profile, show loading or redirect to complete setup
-  if (user && !profile) {
-    return <LoadingScreen message="Setting up your profile..." subMessage="This will only take a moment" />;
+  if (session?.user?.role === 'manager') {
+    return <Navigate to="/manager/dashboard" replace />;
+  } else if (session?.user?.role === 'sales' || session?.user?.role === 'sales_rep') {
+    return <Navigate to="/sales/dashboard" replace />;
   }
 
-  // If not authenticated, show auth/landing pages
   return (
     <Routes>
-      <Route path="/" element={<NewLandingPage />} />
-      <Route path="/auth" element={<AuthPage />} />
       <Route path="/logout" element={<LogoutHandler />} />
-      <Route path="/*" element={<Navigate to="/auth" replace />} />
+      <Route path="/*" element={<MainLayout />} />
     </Routes>
   );
 };
