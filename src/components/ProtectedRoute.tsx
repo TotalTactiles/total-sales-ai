@@ -10,10 +10,13 @@ interface Props {
 const ProtectedRoute: React.FC<Props> = ({ children }) => {
   const { session, loading } = useAuth();
 
-  if (loading) return <LoadingScreen message="Validating session..." />;
-  if (!session) return <Navigate to="/auth" replace />;
+  if (loading) return <LoadingScreen message="Checking session..." />;
+  if (!session) {
+    console.warn('🧯 No session found. Redirecting to /auth');
+    return <Navigate to="/auth" replace />;
+  }
 
-  return <>{children}</>;
+  return children;
 };
 
 export default ProtectedRoute;

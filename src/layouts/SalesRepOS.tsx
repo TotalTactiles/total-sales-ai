@@ -7,7 +7,7 @@ import { useMockData } from '@/hooks/useMockData';
 import AgentTriggerButton from '@/frontend/automations-ui/AgentTriggerButton';
 
 // Sales Rep Pages  
-import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
+import SalesDashboard from '@/pages/sales/Dashboard';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import FallbackError from '@/components/FallbackError';
@@ -36,11 +36,11 @@ const SalesRepOS: React.FC = () => {
             path="dashboard"
             element={
               <ProtectedRoute>
-                <Suspense fallback={<LoadingScreen message="Preparing your sales OS..." />}>
-                  <ErrorBoundary fallback={<FallbackError />}>
-                    <SalesRepDashboard />
-                  </ErrorBoundary>
-                </Suspense>
+                <ErrorBoundary fallback={<div className="p-8 text-center text-red-600">❌ Dashboard crashed</div>}>
+                  <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
+                    <SalesDashboard />
+                  </Suspense>
+                </ErrorBoundary>
               </ProtectedRoute>
             }
           />
