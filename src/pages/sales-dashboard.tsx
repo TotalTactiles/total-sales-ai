@@ -1,11 +1,12 @@
 
-import dynamic from "next/dynamic";
+import React, { Suspense } from 'react';
 
-const FullDashboard = dynamic(() => import("@/components/Sales/SalesDashboard"), {
-  ssr: false,
-  loading: () => <p>Loading full dashboard logic...</p>,
-});
+const SalesDashboard = React.lazy(() => import("@/pages/sales/Dashboard"));
 
 export default function SalesDashboardWrapper() {
-  return <FullDashboard />;
+  return (
+    <Suspense fallback={<p>Loading full dashboard logic...</p>}>
+      <SalesDashboard />
+    </Suspense>
+  );
 }
