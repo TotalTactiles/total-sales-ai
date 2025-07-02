@@ -1,5 +1,6 @@
 
 import { logger } from '@/utils/logger';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const optimizedLogout = async (
   signOut: () => Promise<any>
@@ -22,7 +23,7 @@ export const optimizedLogout = async (
 
 // Hook for consistent logout behavior
 export const useOptimizedLogout = () => {
-  const { signOut } = require('@/contexts/AuthContext').useAuth();
+  const { signOut } = useAuth();
 
   return {
     logout: () => optimizedLogout(signOut)
