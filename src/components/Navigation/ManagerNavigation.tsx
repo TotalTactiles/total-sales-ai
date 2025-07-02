@@ -1,18 +1,9 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Grid3X3,
-  BarChart3,
-  Users,
-  Target,
-  Brain,
-  Puzzle,
-  Shield,
-  FileText,
-  Settings,
-  Bell,
   Menu,
   X
 } from 'lucide-react';
@@ -27,15 +18,15 @@ const ManagerNavigation: React.FC = () => {
   const { profile } = useAuth();
 
   const navItems = [
-    { name: 'Dashboard', href: '/manager/dashboard', icon: Grid3X3 },
-    { name: 'Business Ops', href: '/manager/business-ops', icon: BarChart3 },
-    { name: 'Team', href: '/manager/team', icon: Users },
-    { name: 'Leads', href: '/manager/leads', icon: Target },
-    { name: 'AI Assistant', href: '/manager/ai', icon: Brain },
-    { name: 'Company Brain', href: '/manager/company-brain', icon: Puzzle },
-    { name: 'Security', href: '/manager/security', icon: Shield },
-    { name: 'Reports', href: '/manager/reports', icon: FileText },
-    { name: 'Settings', href: '/manager/settings', icon: Settings }
+    { name: 'Dashboard', href: '/manager/dashboard' },
+    { name: 'Business Ops', href: '/manager/business-ops' },
+    { name: 'Team', href: '/manager/team' },
+    { name: 'Leads', href: '/manager/leads' },
+    { name: 'AI Assistant', href: '/manager/ai' },
+    { name: 'Company Brain', href: '/manager/company-brain' },
+    { name: 'Security', href: '/manager/security' },
+    { name: 'Reports', href: '/manager/reports' },
+    { name: 'Settings', href: '/manager/settings' }
   ];
 
   const isActive = (href: string) => {
@@ -62,18 +53,16 @@ const ManagerNavigation: React.FC = () => {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
             {navItems.map((item) => {
-              const IconComponent = item.icon;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer hover:bg-gray-100 ${
+                  className={`flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer hover:bg-gray-100 ${
                     isActive(item.href)
                       ? 'bg-purple-100 text-purple-700'
                       : 'text-gray-600 hover:text-gray-900'
                   }`}
                 >
-                  <IconComponent className="h-4 w-4 mr-2" />
                   {item.name}
                 </Link>
               );
@@ -115,19 +104,17 @@ const ManagerNavigation: React.FC = () => {
           <div className="lg:hidden border-t border-gray-200 py-3">
             <div className="space-y-1">
               {navItems.map((item) => {
-                const IconComponent = item.icon;
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                    className={`flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                       isActive(item.href)
                         ? 'bg-purple-100 text-purple-700'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
-                    <IconComponent className="h-4 w-4 mr-3" />
                     {item.name}
                   </Link>
                 );

@@ -10,8 +10,9 @@ import NewLandingPage from '@/pages/NewLandingPage';
 import { useAuth } from '@/contexts/AuthContext';
 
 const AppRoutes: React.FC = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, loading } = useAuth();
 
+  // Show loading spinner while determining auth state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
@@ -24,7 +25,7 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // If user is authenticated, redirect to dashboard
+  // If user is authenticated, show main app
   if (user) {
     return (
       <Routes>
@@ -34,13 +35,13 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // If not authenticated, show auth or landing page
+  // If not authenticated, show auth page or landing page
   return (
     <Routes>
       <Route path="/" element={<NewLandingPage />} />
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/logout" element={<LogoutHandler />} />
-      <Route path="/*" element={<Navigate to="/" replace />} />
+      <Route path="/*" element={<Navigate to="/auth" replace />} />
     </Routes>
   );
 };

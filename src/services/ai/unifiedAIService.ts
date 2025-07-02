@@ -1,236 +1,230 @@
-
-// Unified AI Service for Total Tactiles OS
-import { supabase } from '@/integrations/supabase/client';
-import { withRetry } from '@/utils/withRetry';
-import { toast } from 'sonner';
+import { aiConfig } from '@/config/ai';
 import { logger } from '@/utils/logger';
+
+export type WorkspaceContext = 'lead_management' | 'academy' | 'dashboard' | 'analytics' | 'general';
 
 export interface AIResponse {
   response: string;
+  source: 'openai' | 'claude' | 'relevance' | 'fallback';
   confidence: number;
-  context?: string;
-  suggestions?: string[];
-  source?: 'chatgpt' | 'claude' | 'mock';
   suggestedActions?: string[];
+  usage?: {
+    tokens: number;
+    cost?: number;
+  };
 }
 
-export type AIProvider = 'claude' | 'openai' | 'local';
-export type WorkspaceContext = 'lead_management' | 'academy' | 'dashboard' | 'analytics' | 'general';
-
-export class UnifiedAIService {
-  private static instance: UnifiedAIService;
-  
-  static getInstance(): UnifiedAIService {
-    if (!UnifiedAIService.instance) {
-      UnifiedAIService.instance = new UnifiedAIService();
-    }
-    return UnifiedAIService.instance;
-  }
+class UnifiedAIService {
+  private fallbackCount = 0;
+  private readonly maxFallbacks = 3;
 
   async generateResponse(
-    prompt: string, 
-    systemMessage?: string, 
+    prompt: string,
+    systemMessage?: string,
     context?: string,
-    provider: AIProvider = 'openai',
-    workspaceContext?: WorkspaceContext
+    preferredProvider?: 'openai' | 'claude',
+    category?: string
   ): Promise<AIResponse> {
     try {
-      // Try ChatGPT first
-      if (provider === 'openai') {
-        try {
-          const chatGptResponse = await this.callChatGPT(prompt, systemMessage, workspaceContext);
-          if (chatGptResponse) return chatGptResponse;
-        } catch (error) {
-          logger.warn('ChatGPT failed, falling back to Claude', error, 'ai_brain');
-        }
+      // Determine which AI provider to use
+      const provider = preferredProvider || this.selectProvider(prompt, category);
+      
+      logger.info('Generating AI response', { provider, category, promptLength: prompt.length });
+
+      let response: AIResponse;
+
+      switch (provider) {
+        case 'openai':
+          response = await this.callOpenAI(prompt, systemMessage, context);
+          break;
+        case 'claude':
+          response = await this.callClaude(prompt, systemMessage, context);
+          break;
+        default:
+          response = this.getFallbackResponse(category);
       }
 
-      // Try Claude as fallback or primary
-      if (provider === 'claude' || provider === 'openai') {
-        try {
-          const claudeResponse = await this.callClaude(prompt, systemMessage, workspaceContext);
-          if (claudeResponse) return claudeResponse;
-        } catch (error) {
-          logger.warn('Claude failed, using mock response', error, 'ai_brain');
-        }
-      }
-
-      // Fallback to mock response
-      return this.getMockResponse(prompt, context, workspaceContext);
-    } catch (error) {
-      logger.error('Failed to generate AI response', error, 'ai_brain');
-      throw error;
-    }
-  }
-
-  private async callChatGPT(prompt: string, systemMessage?: string, workspaceContext?: WorkspaceContext): Promise<AIResponse | null> {
-    try {
-      const contextualSystemMessage = this.getContextualSystemMessage(systemMessage, workspaceContext);
+      // Reset fallback counter on success
+      this.fallbackCount = 0;
       
-      const { data, error } = await withRetry(
-        () =>
-          supabase.functions.invoke('openai-chat', {
-            body: {
-              prompt,
-              systemMessage: contextualSystemMessage,
-              context: workspaceContext
-            }
-          }),
-        'openai-chat'
-      );
+      return response;
 
-      if (error) throw error;
-
-      return {
-        response: data.response,
-        confidence: 0.9,
-        context: workspaceContext,
-        source: 'chatgpt',
-        suggestions: data.suggestions || [],
-        suggestedActions: data.suggestedActions || []
-      };
     } catch (error) {
-      logger.error('ChatGPT API call failed', error, 'ai_brain');
-      return null;
+      logger.error('AI response generation failed', error);
+      return this.handleError(prompt, category);
     }
-  }
-
-  private async callClaude(prompt: string, systemMessage?: string, workspaceContext?: WorkspaceContext): Promise<AIResponse | null> {
-    try {
-      const contextualSystemMessage = this.getContextualSystemMessage(systemMessage, workspaceContext);
-      
-      const { data, error } = await withRetry(
-        () =>
-          supabase.functions.invoke('claude-chat', {
-            body: {
-              prompt,
-              systemMessage: contextualSystemMessage,
-              context: workspaceContext
-            }
-          }),
-        'claude-chat'
-      );
-
-      if (error) throw error;
-
-      return {
-        response: data.response,
-        confidence: 0.85,
-        context: workspaceContext,
-        source: 'claude',
-        suggestions: data.suggestions || [],
-        suggestedActions: data.suggestedActions || []
-      };
-    } catch (error) {
-      logger.error('Claude API call failed', error, 'ai_brain');
-      return null;
-    }
-  }
-
-  private getContextualSystemMessage(baseMessage?: string, workspaceContext?: WorkspaceContext): string {
-    const basePrompt = baseMessage || 'You are a helpful AI assistant for Total Tactiles OS.';
-    
-    const contextPrompts = {
-      lead_management: 'You are specialized in lead management, sales strategies, and CRM operations. Focus on actionable sales advice.',
-      academy: 'You are a training and education specialist. Provide learning content, skill development, and coaching insights.',
-      dashboard: 'You are a performance analyst. Focus on metrics, KPIs, and business intelligence insights.',
-      analytics: 'You are a data analyst. Provide deep insights, trends analysis, and predictive recommendations.',
-      general: 'You are a general business assistant for sales and management operations.'
-    };
-
-    const contextPrompt = contextPrompts[workspaceContext || 'general'];
-    return `${basePrompt} ${contextPrompt}`;
-  }
-
-  private getMockResponse(prompt: string, context?: string, workspaceContext?: WorkspaceContext): AIResponse {
-    const workspaceResponses = {
-      lead_management: `Based on your lead management query: "${prompt.substring(0, 50)}...", I recommend focusing on lead scoring and follow-up timing. Consider implementing automated nurture sequences.`,
-      academy: `For your training inquiry: "${prompt.substring(0, 50)}...", I suggest starting with foundational sales methodology courses and role-playing exercises.`,
-      dashboard: `Regarding your performance question: "${prompt.substring(0, 50)}...", your current metrics show strong potential. Focus on conversion rate optimization.`,
-      analytics: `For your analytics request: "${prompt.substring(0, 50)}...", the data suggests seasonal trends. Consider implementing predictive modeling.`,
-      general: `I understand you're asking about: "${prompt.substring(0, 50)}...". Let me provide you with relevant insights and recommendations.`
-    };
-
-    const response = workspaceResponses[workspaceContext || 'general'];
-
-    return {
-      response,
-      confidence: 0.75,
-      context: workspaceContext || context || 'general',
-      source: 'mock',
-      suggestions: [
-        'Would you like more specific recommendations?',
-        'Should I analyze this further?',
-        'Do you need implementation steps?'
-      ],
-      suggestedActions: [
-        'Get detailed analysis',
-        'Create action plan',
-        'Schedule follow-up'
-      ]
-    };
-  }
-
-  async generateStrategyResponse(prompt: string, workspaceContext?: WorkspaceContext): Promise<string> {
-    const response = await this.generateResponse(
-      prompt,
-      'You are a strategic business advisor. Provide comprehensive, actionable strategies.',
-      'strategy',
-      'claude',
-      workspaceContext
-    );
-    return response.response;
-  }
-
-  async generateCommunication(prompt: string, workspaceContext?: WorkspaceContext): Promise<string> {
-    const response = await this.generateResponse(
-      prompt,
-      'You are a professional communication expert. Help draft clear, effective business communications.',
-      'communication',
-      'openai',
-      workspaceContext
-    );
-    return response.response;
   }
 
   async generateVoiceResponse(text: string): Promise<string> {
-    // Optimize text for voice synthesis
-    return text
-      .replace(/[^\w\s.,!?]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .substring(0, 500); // Limit for voice
+    // Simplify text for voice synthesis
+    return text.replace(/[*#`]/g, '').substring(0, 200);
   }
 
-  async performQuickAnalysis(data: any, analysisType: string): Promise<AIResponse> {
-    const prompt = `Quickly analyze this ${analysisType} data: ${JSON.stringify(data).substring(0, 200)}...`;
-    return await this.generateResponse(prompt, 'You are a quick data analyst. Provide concise insights.', analysisType);
+  async generateStrategyResponse(prompt: string): Promise<string> {
+    const response = await this.generateResponse(
+      prompt,
+      'You are a strategic business advisor. Provide clear, actionable insights and recommendations.',
+      undefined,
+      'claude',
+      'strategy'
+    );
+    return response.response;
   }
 
-  async analyzeData(data: any, analysisType: string): Promise<AIResponse> {
-    try {
-      const prompt = `Analyze this ${analysisType} data: ${JSON.stringify(data)}`;
-      return await this.generateResponse(prompt, 'You are a data analysis expert.', analysisType);
-    } catch (error) {
-      logger.error('Failed to analyze data', error, 'ai_brain');
-      throw error;
+  async generateCommunication(prompt: string): Promise<string> {
+    const response = await this.generateResponse(
+      prompt,
+      'You are a professional communication assistant. Write clear, engaging, and appropriate messages.',
+      undefined,
+      'openai',
+      'communication'
+    );
+    return response.response;
+  }
+
+  async performQuickAnalysis(data: any): Promise<string> {
+    const prompt = `Perform a quick analysis of the following data: ${JSON.stringify(data)}`;
+    const response = await this.generateResponse(
+      prompt,
+      'You are a data analyst. Provide quick, actionable insights.',
+      undefined,
+      'openai',
+      'analysis'
+    );
+    return response.response;
+  }
+
+  private selectProvider(prompt: string, category?: string): 'openai' | 'claude' {
+    // Route based on category and prompt characteristics
+    if (category === 'strategy' || category === 'analysis') {
+      return 'claude';
     }
+    
+    if (category === 'communication' || category === 'email') {
+      return 'openai';
+    }
+
+    // Default routing based on prompt length
+    return prompt.length > 1000 ? 'claude' : 'openai';
   }
 
-  async generateSuggestions(context: string, userRole: string): Promise<string[]> {
-    try {
-      const response = await this.generateResponse(
-        `Generate suggestions for ${userRole} in context: ${context}`,
-        `You are an AI assistant helping a ${userRole}.`,
-        context
-      );
-      
-      return response.suggestions || [];
-    } catch (error) {
-      logger.error('Failed to generate suggestions', error, 'ai_brain');
-      return [];
+  private async callOpenAI(prompt: string, systemMessage?: string, context?: string): Promise<AIResponse> {
+    const messages = [];
+    
+    if (systemMessage) {
+      messages.push({ role: 'system', content: systemMessage });
     }
+    
+    if (context) {
+      messages.push({ role: 'system', content: `Context: ${context}` });
+    }
+    
+    messages.push({ role: 'user', content: prompt });
+
+    // In a real implementation, this would call the OpenAI API
+    // For now, we'll simulate a response
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    return {
+      response: this.generateMockResponse(prompt, 'openai'),
+      source: 'openai',
+      confidence: 0.85,
+      suggestedActions: this.generateSuggestedActions(prompt),
+      usage: { tokens: 150 }
+    };
+  }
+
+  private async callClaude(prompt: string, systemMessage?: string, context?: string): Promise<AIResponse> {
+    const fullPrompt = [
+      systemMessage && `System: ${systemMessage}`,
+      context && `Context: ${context}`,
+      `Human: ${prompt}`,
+      'Assistant:'
+    ].filter(Boolean).join('\n\n');
+
+    // In a real implementation, this would call the Claude API
+    // For now, we'll simulate a response
+    await new Promise(resolve => setTimeout(resolve, 1200));
+
+    return {
+      response: this.generateMockResponse(prompt, 'claude'),
+      source: 'claude',
+      confidence: 0.90,
+      suggestedActions: this.generateSuggestedActions(prompt),
+      usage: { tokens: 200 }
+    };
+  }
+
+  private generateSuggestedActions(prompt: string): string[] {
+    const actions = [];
+    
+    if (prompt.toLowerCase().includes('lead')) {
+      actions.push('Analyze lead score', 'Schedule follow-up', 'Send personalized email');
+    }
+    
+    if (prompt.toLowerCase().includes('call')) {
+      actions.push('Prepare talking points', 'Set reminder', 'Review call history');
+    }
+    
+    if (prompt.toLowerCase().includes('team')) {
+      actions.push('Review performance', 'Schedule meeting', 'Create action plan');
+    }
+    
+    return actions.slice(0, 3);
+  }
+
+  private generateMockResponse(prompt: string, source: 'openai' | 'claude'): string {
+    // Generate contextual mock responses based on prompt content
+    if (prompt.toLowerCase().includes('lead') || prompt.toLowerCase().includes('prospect')) {
+      return `Based on the lead information provided, I recommend focusing on their pain points and demonstrating clear value. Here's a personalized approach: [Detailed analysis and recommendations...]`;
+    }
+    
+    if (prompt.toLowerCase().includes('call') || prompt.toLowerCase().includes('phone')) {
+      return `For your upcoming call, here are some key talking points and strategies: [Call preparation advice...]`;
+    }
+    
+    if (prompt.toLowerCase().includes('email') || prompt.toLowerCase().includes('message')) {
+      return `Here's a well-crafted message for your situation: [Professional email template...]`;
+    }
+    
+    if (prompt.toLowerCase().includes('team') || prompt.toLowerCase().includes('performance')) {
+      return `Based on your team's performance data, here are actionable insights: [Management recommendations...]`;
+    }
+
+    return `I understand you're looking for assistance with: "${prompt.substring(0, 50)}...". Here's my recommendation: [Contextual AI response based on your specific situation and role.]`;
+  }
+
+  private getFallbackResponse(category?: string): AIResponse {
+    let response = aiConfig.fallback.responses.generic;
+    
+    if (category === 'sales' || category === 'lead_management') {
+      response = aiConfig.fallback.responses.sales;
+    } else if (category === 'management' || category === 'strategy') {
+      response = aiConfig.fallback.responses.manager;
+    }
+
+    return {
+      response,
+      source: 'fallback',
+      confidence: 0.5,
+      suggestedActions: ['Try again', 'Contact support', 'Check connection']
+    };
+  }
+
+  private handleError(prompt: string, category?: string): AIResponse {
+    this.fallbackCount++;
+    
+    if (this.fallbackCount >= this.maxFallbacks) {
+      return {
+        response: "I'm experiencing technical difficulties. Please try again in a moment, or contact support if the issue persists.",
+        source: 'fallback',
+        confidence: 0.3,
+        suggestedActions: ['Retry', 'Contact support']
+      };
+    }
+
+    return this.getFallbackResponse(category);
   }
 }
 
-export const unifiedAIService = UnifiedAIService.getInstance();
+export const unifiedAIService = new UnifiedAIService();

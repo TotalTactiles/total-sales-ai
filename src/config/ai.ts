@@ -1,48 +1,48 @@
 
 export const aiConfig = {
-  claude: {
-    apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
-    model: import.meta.env.VITE_CLAUDE_MODEL || 'claude-3-sonnet-20240229',
-    baseUrl: 'https://api.anthropic.com'
-  },
   openai: {
-    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-    model: import.meta.env.VITE_OPENAI_MODEL || 'gpt-4o',
-    baseUrl: 'https://api.openai.com'
+    apiKey: process.env.OPENAI_API_KEY || '',
+    baseUrl: 'https://api.openai.com/v1',
+    defaultModel: 'gpt-4o-mini',
+    fallbackModel: 'gpt-3.5-turbo'
+  },
+  claude: {
+    apiKey: process.env.ANTHROPIC_API_KEY || '',
+    baseUrl: 'https://api.anthropic.com/v1',
+    defaultModel: 'claude-3-haiku-20240307'
   },
   relevance: {
-    apiKey: import.meta.env.VITE_RELEVANCE_API_KEY,
-    baseUrl: import.meta.env.VITE_RELEVANCE_BASE_URL || 'https://api-bcbe36.stack.tryrelevance.com/latest'
+    apiKey: process.env.RELEVANCE_API_KEY || '',
+    baseUrl: 'https://api.relevanceai.com/v1'
+  },
+  agents: {
+    salesAgent: {
+      name: 'Sales Assistant',
+      description: 'Personal AI assistant for sales representatives',
+      capabilities: ['lead_analysis', 'call_assistance', 'email_drafting', 'objection_handling']
+    },
+    managerAgent: {
+      name: 'Management Assistant',
+      description: 'AI assistant for sales managers and team leads',
+      capabilities: ['team_analysis', 'performance_insights', 'strategy_recommendations', 'coaching_suggestions']
+    },
+    automationAgent: {
+      name: 'Automation Assistant',
+      description: 'AI assistant for workflow automation and optimization',
+      capabilities: ['workflow_creation', 'process_optimization', 'trigger_management', 'performance_monitoring']
+    },
+    developerAgent: {
+      name: 'System Assistant',
+      description: 'AI assistant for system health and error resolution',
+      capabilities: ['error_diagnosis', 'system_monitoring', 'performance_optimization', 'health_reporting']
+    }
+  },
+  fallback: {
+    enabled: true,
+    responses: {
+      generic: "I'm here to help! Could you please provide more details about what you need assistance with?",
+      sales: "I'm your sales assistant! I can help with lead analysis, call preparation, email drafting, and objection handling. What would you like to work on?",
+      manager: "I'm your management assistant! I can provide team insights, performance analysis, and strategic recommendations. How can I help you today?"
+    }
   }
-} as const;
-
-export type AIProvider = keyof typeof aiConfig;
-
-// Chat model routing logic
-export const getOptimalModel = (taskType: string): 'openai' | 'claude' => {
-  const shortFormTasks = ['summary', 'email', 'template', 'follow_up', 'quick_response'];
-  const longFormTasks = ['analysis', 'digest', 'strategy', 'coaching', 'review'];
-  
-  if (shortFormTasks.includes(taskType)) {
-    return 'openai'; // ChatGPT for quick responses
-  } else if (longFormTasks.includes(taskType)) {
-    return 'claude'; // Claude for deep thinking
-  }
-  
-  // Default to ChatGPT for unknown tasks
-  return 'openai';
-};
-
-// Validate API keys are available
-export const validateAIConfig = (): { isValid: boolean; missingKeys: string[] } => {
-  const missingKeys: string[] = [];
-  
-  if (!aiConfig.openai.apiKey) missingKeys.push('VITE_OPENAI_API_KEY');
-  if (!aiConfig.claude.apiKey) missingKeys.push('VITE_ANTHROPIC_API_KEY');
-  if (!aiConfig.relevance.apiKey) missingKeys.push('VITE_RELEVANCE_API_KEY');
-  
-  return {
-    isValid: missingKeys.length === 0,
-    missingKeys
-  };
 };
