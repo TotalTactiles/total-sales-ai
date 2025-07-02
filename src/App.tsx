@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
@@ -13,7 +13,11 @@ import { logger } from '@/utils/logger';
 const AppRoutes: React.FC = () => {
   const { session, loading } = useAuth();
 
-  if (loading) return <LoadingScreen />;
+  useEffect(() => {
+    console.log('\uD83D\uDD0D Auth Debug \u2014 session:', session, '| loading:', loading);
+  }, [session, loading]);
+
+  if (loading) return <LoadingScreen message="Preparing your workspace..." />;
 
   if (!session) {
     return (
