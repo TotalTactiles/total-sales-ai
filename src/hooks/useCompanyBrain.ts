@@ -170,7 +170,6 @@ export const useCompanyBrain = () => {
           suggestion: 'Create more detailed product feature content',
           confidence: 0.85,
           createdAt: new Date(),
-          category: 'content',
           data: { gaps: ['technical specs', 'integration guides'] }
         },
         {
@@ -181,7 +180,6 @@ export const useCompanyBrain = () => {
           suggestion: 'Align social media tone with website messaging',
           confidence: 0.72,
           createdAt: new Date(),
-          category: 'branding',
           data: { channels: ['social', 'website'] }
         }
       ];
