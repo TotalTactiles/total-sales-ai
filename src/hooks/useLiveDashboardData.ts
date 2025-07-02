@@ -19,7 +19,7 @@ interface DashboardData {
 }
 
 export const useLiveDashboardData = (): DashboardData => {
-  const { user } = useAuth();
+  const { user, session } = useAuth();
   const [data, setData] = useState<DashboardData>({
     deals: [],
     stats: {
@@ -34,8 +34,15 @@ export const useLiveDashboardData = (): DashboardData => {
   });
 
   useEffect(() => {
-    if (!user?.id) {
-      console.log('🔍 No user ID available for dashboard data');
+    console.log('📊 useLiveDashboardData effect - Session check:', {
+      hasUser: !!user,
+      hasSession: !!session,
+      userId: user?.id
+    });
+
+    if (!user?.id || !session) {
+      console.log('🔍 No user ID or session available for dashboard data');
+      setData(prev => ({ ...prev, loading: false }));
       return;
     }
 
@@ -55,6 +62,8 @@ export const useLiveDashboardData = (): DashboardData => {
           setData(prev => ({ ...prev, loading: false }));
           return;
         }
+
+        console.log('🏢 Found company_id:', profile.company_id);
 
         // Fetch leads (deals)
         const { data: leads, error: leadsError } = await supabase
@@ -131,7 +140,7 @@ export const useLiveDashboardData = (): DashboardData => {
     };
 
     fetchDashboardData();
-  }, [user?.id]);
+  }, [user?.id, session]);
 
   return data;
 };

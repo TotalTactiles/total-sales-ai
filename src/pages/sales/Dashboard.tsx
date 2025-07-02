@@ -33,13 +33,21 @@ export default function SalesDashboard() {
     dataLoading,
     dataError,
     dealsCount: deals.length,
-    stats
+    stats,
+    sessionUserId: session?.user?.id,
+    userEmail: user?.email
   });
 
   useEffect(() => {
     console.log("🚀 SALES DASHBOARD MOUNTED");
+    console.log("Session Check:", {
+      session: !!session,
+      user: !!user,
+      userId: user?.id,
+      email: user?.email
+    });
     console.log("✅ Sales Dashboard loaded without crashing");
-  }, []);
+  }, [session, user]);
 
   // Early return guards with defensive checks
   if (authError) {
@@ -60,6 +68,8 @@ export default function SalesDashboard() {
       <div style={{ padding: "2rem", minHeight: "200px" }}>
         <p>Loading user session...</p>
         <p>🔍 Debug: user={user ? "yes" : "no"}, session={session ? "yes" : "no"}</p>
+        <p>Session user ID: {session?.user?.id || "none"}</p>
+        <p>User object: {user?.email || "none"}</p>
       </div>
     );
   }
@@ -116,6 +126,7 @@ export default function SalesDashboard() {
     <div style={{ padding: "2rem", border: "2px solid green", minHeight: "200px" }}>
       <h2>📊 Live Sales Dashboard</h2>
       <p>👤 User: {user?.email}</p>
+      <p>🆔 Session ID: {session?.user?.id}</p>
       
       {/* Live Stats */}
       <div style={{ 

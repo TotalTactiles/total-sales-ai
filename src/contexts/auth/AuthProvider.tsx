@@ -55,27 +55,70 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         console.log('🔁 Initializing auth state...');
         
-        // Get current session
+        // First set up the auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('🔄 Auth state changed:', event, 'Session:', !!session);
+            
+            if (mounted) {
+              setSession(session);
+              setUser(session?.user ?? null);
+              
+              if (session?.user) {
+                const profileData = await fetchUserProfile(session.user.id);
+                if (mounted) {
+                  setProfile(profileData);
+                }
+              } else {
+                setProfile(null);
+              }
+              
+              setLoading(false);
+              
+              // Handle successful sign in - redirect to appropriate dashboard
+              if (event === 'SIGNED_IN' && session?.user) {
+                console.log('✅ User signed in, redirecting to dashboard...');
+                // Redirect to sales dashboard instead of safe-dashboard
+                window.location.href = '/sales/dashboard';
+              }
+            }
+          }
+        );
+
+        // Then get current session
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('❌ Session fetch error:', error);
         }
 
-        if (mounted) {
+        console.log('📍 Current session check:', {
+          hasSession: !!currentSession,
+          hasUser: !!currentSession?.user,
+          userId: currentSession?.user?.id
+        });
+
+        if (mounted && currentSession) {
           setSession(currentSession);
-          setUser(currentSession?.user ?? null);
+          setUser(currentSession.user);
           
-          if (currentSession?.user) {
+          if (currentSession.user) {
             const profileData = await fetchUserProfile(currentSession.user.id);
             if (mounted) {
               setProfile(profileData);
             }
           }
-          
+        }
+        
+        if (mounted) {
           console.log('✅ Auth initialization complete');
           setLoading(false);
         }
+
+        // Cleanup subscription
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
         console.error('❌ Auth initialization error:', error);
         if (mounted) {
@@ -84,42 +127,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     };
 
-    initializeAuth();
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('🔄 Auth state changed:', event);
-        
-        if (mounted) {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            const profileData = await fetchUserProfile(session.user.id);
-            if (mounted) {
-              setProfile(profileData);
-            }
-          } else {
-            setProfile(null);
-          }
-          
-          setLoading(false);
-          
-          // Handle successful sign in - redirect to appropriate dashboard
-          if (event === 'SIGNED_IN' && session?.user) {
-            console.log('✅ User signed in, redirecting to dashboard...');
-            // Redirect to sales dashboard instead of safe-dashboard
-            window.location.href = '/sales/dashboard';
-          }
-        }
-      }
-    );
-
-    // Cleanup
+    const cleanup = initializeAuth();
+    
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      cleanup?.then(cleanupFn => cleanupFn?.());
     };
   }, []);
 
@@ -130,7 +142,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         console.warn('⚠️ Auth loading timeout - forcing completion');
         setLoading(false);
       }
-    }, 3000);
+    }, 5000); // Increased timeout to 5 seconds
 
     return () => clearTimeout(timeout);
   }, [loading]);
