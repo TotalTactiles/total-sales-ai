@@ -1,6 +1,6 @@
 
 export const aiConfig = {
-  // All AI integrations disabled for stability
+  // All AI integrations disabled for demo stability
   enabled: false,
   openai: {
     apiKey: '',
@@ -12,6 +12,11 @@ export const aiConfig = {
     apiKey: '',
     baseUrl: 'https://api.anthropic.com',
     defaultModel: 'claude-3-haiku-20240307'
+  },
+  elevenlabs: {
+    apiKey: '',
+    baseUrl: 'https://api.elevenlabs.io',
+    defaultVoice: 'Sarah'
   },
   relevance: {
     apiKey: '',
@@ -51,17 +56,25 @@ export const aiConfig = {
         'Task automation'
       ]
     },
-    developerAgent: {
-      name: 'System Integration Assistant',
-      description: 'Technical optimization and system management',
+    voiceAgent: {
+      name: 'Voice AI Assistant',
+      description: 'Real-time voice interaction and briefings',
       capabilities: [
-        'System health monitoring',
-        'Integration management',
-        'Performance optimization',
-        'Error handling',
-        'Technical support'
+        'Daily voice briefings',
+        'Call coaching',
+        'Real-time transcription',
+        'Voice commands',
+        'Audio insights'
       ]
     }
+  },
+  features: {
+    contextualBubble: true,
+    voiceBriefing: true,
+    realTimeCoaching: true,
+    smartAutomations: true,
+    predictiveAnalytics: true,
+    conversationalAI: true
   },
   fallback: {
     enabled: true,
@@ -69,7 +82,8 @@ export const aiConfig = {
       generic: "AI analysis complete. All systems performing optimally.",
       sales: "AI recommendations generated based on current pipeline data.",
       manager: "Strategic insights compiled from team performance metrics.",
-      automation: "Workflow optimization suggestions are ready for review."
+      automation: "Workflow optimization suggestions are ready for review.",
+      voice: "Voice briefing ready. Click play to hear your daily summary."
     }
   }
 };
@@ -84,7 +98,9 @@ export const generateMockAIResponse = (type: string = 'generic', context?: any) 
     "Based on recent activity patterns",
     "Analyzing current market conditions", 
     "Reviewing performance metrics",
-    "Processing lead engagement data"
+    "Processing lead engagement data",
+    "Evaluating conversation trends",
+    "Assessing pipeline velocity"
   ];
   
   const randomElement = contextualElements[Math.floor(Math.random() * contextualElements.length)];
@@ -98,5 +114,7 @@ export const getMockAIMetrics = () => ({
   proposalsGenerated: Math.floor(Math.random() * 8) + 2,
   performanceImprovement: Math.floor(Math.random() * 25) + 15,
   automationsActive: Math.floor(Math.random() * 12) + 8,
-  leadsAnalyzed: Math.floor(Math.random() * 50) + 25
+  leadsAnalyzed: Math.floor(Math.random() * 50) + 25,
+  voiceBriefingsPlayed: Math.floor(Math.random() * 7) + 1,
+  realTimeInsights: Math.floor(Math.random() * 20) + 10
 });

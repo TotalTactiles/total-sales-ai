@@ -92,6 +92,57 @@ export class DisabledAIService {
     return scripts[callType as keyof typeof scripts] || scripts.cold;
   }
 
+  async generateVoiceBriefing(userData: any): Promise<{
+    text: string;
+    audioUrl?: string;
+    duration: number;
+  }> {
+    logger.info('AI Voice Briefing (Disabled): Mock briefing generated', { userId: userData.id });
+    
+    await new Promise(resolve => setTimeout(resolve, 1200 + Math.random() * 800));
+    
+    const briefingText = `Good morning ${userData.name}! Here's your AI-powered daily briefing. You have 5 high-priority leads that require immediate attention today. Your conversion rate has improved by 23% this week - excellent work! You have 3 product demos scheduled, and your pipeline value has increased by $45,000. The AI recommends focusing on the TechCorp deal first, as they've shown strong buying signals. Have a productive day!`;
+    
+    return {
+      text: briefingText,
+      audioUrl: undefined, // In real implementation, this would be generated audio
+      duration: 180 // 3 minutes
+    };
+  }
+
+  async executeWorkflow(workflowType: string, data: any): Promise<any> {
+    logger.info('AI Workflow (Disabled): Mock workflow executed', { workflowType });
+    
+    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1500));
+    
+    const workflowResults = {
+      lead_routing: {
+        success: true,
+        message: "Lead automatically routed to best available rep",
+        assignedTo: "John Smith",
+        priority: "high"
+      },
+      follow_up_scheduling: {
+        success: true,
+        message: "Follow-up automatically scheduled based on lead behavior",
+        scheduledFor: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        method: "email"
+      },
+      pipeline_analysis: {
+        success: true,
+        message: "Pipeline health analysis complete",
+        score: Math.floor(Math.random() * 30) + 70,
+        recommendations: ["Focus on warm leads", "Increase follow-up frequency"]
+      }
+    };
+    
+    return workflowResults[workflowType as keyof typeof workflowResults] || {
+      success: true,
+      message: "Workflow executed successfully",
+      data: data
+    };
+  }
+
   getMetrics() {
     return getMockAIMetrics();
   }
@@ -102,6 +153,24 @@ export class DisabledAIService {
 
   getConfig() {
     return aiConfig;
+  }
+
+  // Voice AI methods
+  async processVoiceCommand(command: string): Promise<string> {
+    logger.info('Voice AI (Disabled): Mock command processed', { command });
+    
+    await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 500));
+    
+    return generateMockAIResponse('voice', { command });
+  }
+
+  async generateSpeech(text: string, voice?: string): Promise<string | null> {
+    logger.info('Speech Generation (Disabled): Mock audio generated', { textLength: text.length });
+    
+    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700));
+    
+    // In real implementation, this would return audio data
+    return null;
   }
 }
 

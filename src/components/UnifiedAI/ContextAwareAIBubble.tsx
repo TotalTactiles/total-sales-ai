@@ -14,10 +14,15 @@ import {
   Target,
   Phone,
   Mail,
-  User
+  User,
+  Mic,
+  MicOff,
+  Volume2,
+  Settings,
+  Zap
 } from 'lucide-react';
-import { useUnifiedAI } from '@/contexts/UnifiedAIContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { aiConfig, generateMockAIResponse } from '@/config/ai';
 import { toast } from 'sonner';
 
 interface AIContext {
@@ -51,9 +56,10 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
     source?: string;
   }>>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   
   const { profile } = useAuth();
-  const { executeAgentTask, isAIActive } = useUnifiedAI();
 
   const getContextualGreeting = () => {
     const role = profile?.role || 'user';
@@ -131,65 +137,62 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
       timestamp: new Date()
     }]);
 
-    try {
-      const agentType = profile?.role === 'manager' ? 'managerAgent_v1' : 'salesAgent_v1';
+    // Simulate AI processing with realistic delay
+    setTimeout(() => {
+      const mockResponse = generateMockAIResponse('sales', context);
       
-      const result = await executeAgentTask(agentType, 'contextual_assistance', {
-        message: userMessage,
-        workspace: context.workspace,
-        leadContext: context.currentLead,
-        callContext: context.isCallActive ? { duration: context.callDuration } : null,
-        emailContext: context.emailContext,
-        smsContext: context.smsContext
-      });
-
-      if (result && result.status === 'completed') {
-        const aiResponse = result.output?.response || "I'm here to help! Could you be more specific about what you need?";
-        
-        setConversation(prev => [...prev, {
-          role: 'assistant',
-          content: aiResponse,
-          timestamp: new Date(),
-          source: result.agentType
-        }]);
-      } else {
-        throw new Error('Agent response failed');
-      }
-    } catch (error) {
-      // Fallback response
       setConversation(prev => [...prev, {
         role: 'assistant',
-        content: "I'm having trouble connecting right now, but I'm still here to help! Can you try rephrasing your question?",
+        content: mockResponse,
         timestamp: new Date(),
-        source: 'fallback'
+        source: 'demo_ai'
       }]);
-    } finally {
+      
       setIsLoading(false);
-    }
+      toast.success('AI Demo Response Generated');
+    }, 1500 + Math.random() * 1000);
   };
 
   const handleQuickAction = (query: string) => {
     setMessage(query);
-    handleSendMessage();
+    setTimeout(() => handleSendMessage(), 100);
   };
 
-  if (!isAIActive) return null;
+  const handleVoiceToggle = () => {
+    setIsListening(!isListening);
+    if (!isListening) {
+      toast.info('Voice input activated (Demo Mode)');
+      // Simulate voice input
+      setTimeout(() => {
+        setMessage("What are my top priorities for today?");
+        setIsListening(false);
+        toast.success('Voice input captured');
+      }, 2000);
+    } else {
+      toast.info('Voice input stopped');
+    }
+  };
 
   if (!isExpanded) {
     return (
       <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
-        <div className="relative">
+        <div className="relative group">
           <Button
             onClick={() => setIsExpanded(true)}
-            className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg border-2 border-white/20"
+            className="h-14 w-14 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg border-2 border-white/20 transition-all duration-300 hover:scale-105"
           >
-            <Bot className="h-5 w-5 text-white" />
+            <Bot className="h-6 w-6 text-white" />
           </Button>
           
           {/* Context indicator */}
           {(context.isCallActive || context.currentLead) && (
-            <div className="absolute -top-2 -right-2 h-4 w-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+            <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
           )}
+          
+          {/* Hover tooltip */}
+          <div className="absolute bottom-full right-0 mb-2 px-3 py-1 bg-black/80 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            AI Assistant Ready
+          </div>
         </div>
       </div>
     );
@@ -197,8 +200,8 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
 
   return (
     <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
-      <Card className="w-80 h-96 shadow-xl border-0 bg-white/95 backdrop-blur-sm">
-        <CardHeader className="pb-3 border-b border-gray-100">
+      <Card className="w-80 h-[500px] shadow-2xl border-0 bg-white/95 backdrop-blur-sm">
+        <CardHeader className="pb-3 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-purple-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
@@ -211,38 +214,55 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
                 )}
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(false)}
-              className="h-6 w-6 p-0"
-            >
-              <X className="h-3 w-3" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSettings(!showSettings)}
+                className="h-6 w-6 p-0 hover:bg-gray-100"
+              >
+                <Settings className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsExpanded(false)}
+                className="h-6 w-6 p-0 hover:bg-gray-100"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
+          
+          {!aiConfig.enabled && (
+            <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 w-fit">
+              <Zap className="h-3 w-3 mr-1" />
+              Demo Mode
+            </Badge>
+          )}
         </CardHeader>
 
-        <CardContent className="flex flex-col h-80 p-3">
+        <CardContent className="flex flex-col h-[420px] p-3">
           {/* Conversation */}
-          <div className="flex-1 overflow-y-auto space-y-2 mb-3">
+          <div className="flex-1 overflow-y-auto space-y-3 mb-3 pr-2">
             {conversation.map((msg, index) => (
               <div
                 key={index}
                 className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[85%] p-2 rounded-lg text-xs ${
+                  className={`max-w-[85%] p-3 rounded-lg text-sm ${
                     msg.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-800'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                      : 'bg-gray-100 text-gray-800 border'
                   }`}
                 >
-                  <p>{msg.content}</p>
-                  <div className="flex items-center justify-between mt-1 text-xs opacity-70">
+                  <p className="leading-relaxed">{msg.content}</p>
+                  <div className="flex items-center justify-between mt-2 text-xs opacity-70">
                     <span>{msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                     {msg.source && msg.source !== 'system' && (
                       <Badge variant="outline" className="text-xs py-0 px-1 h-4">
-                        {msg.source.replace('Agent_v1', '')}
+                        {msg.source === 'demo_ai' ? 'Demo AI' : msg.source}
                       </Badge>
                     )}
                   </div>
@@ -252,11 +272,14 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
             
             {isLoading && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 p-2 rounded-lg">
-                  <div className="flex items-center gap-1">
-                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse"></div>
-                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                    <div className="w-1 h-1 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                <div className="bg-gray-100 p-3 rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                    <span className="text-xs text-gray-500">AI thinking...</span>
                   </div>
                 </div>
               </div>
@@ -270,7 +293,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
                 key={index}
                 variant="outline"
                 size="sm"
-                className="text-xs h-7 p-1 border-gray-200 hover:bg-gray-50"
+                className="text-xs h-8 p-2 border-gray-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 hover:border-blue-300 transition-all duration-200"
                 onClick={() => handleQuickAction(action.query)}
                 disabled={isLoading}
               >
@@ -286,7 +309,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Ask me anything..."
-              className="flex-1 min-h-[32px] max-h-[60px] resize-none text-xs border-gray-200"
+              className="flex-1 min-h-[36px] max-h-[72px] resize-none text-sm border-gray-200 focus:border-blue-300 focus:ring-blue-200"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -295,14 +318,24 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
               }}
               disabled={isLoading}
             />
-            <Button
-              onClick={handleSendMessage}
-              disabled={!message.trim() || isLoading}
-              size="sm"
-              className="h-8 w-8 p-0"
-            >
-              <Send className="h-3 w-3" />
-            </Button>
+            <div className="flex flex-col gap-1">
+              <Button
+                onClick={handleSendMessage}
+                disabled={!message.trim() || isLoading}
+                size="sm"
+                className="h-9 w-9 p-0 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={handleVoiceToggle}
+                variant={isListening ? "destructive" : "outline"}
+                size="sm"
+                className="h-9 w-9 p-0"
+              >
+                {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
