@@ -1,7 +1,6 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { logger } from '@/utils/logger';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/utils/logger';
 
 export const optimizedLogout = async (
   signOut: () => Promise<any>

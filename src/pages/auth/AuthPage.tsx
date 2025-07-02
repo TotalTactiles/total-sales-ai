@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DeveloperSecretLogin from '@/components/Developer/DeveloperSecretLogin';
 import DemoLoginCards from '@/components/auth/DemoLoginCards';
 import AuthSignupForm from './components/AuthSignupForm';
-import LoginLoadingState from '@/components/auth/LoginLoadingState';
 import { useDeveloperSecretTrigger } from '@/hooks/useDeveloperSecretTrigger';
 import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 import { ensureDemoUsersExist } from '@/utils/demoSetup';
@@ -52,6 +51,8 @@ const AuthPage: React.FC = () => {
         console.error('🎭 Failed to setup demo users:', error);
         setDemoUsersReady(true); // Continue anyway
       });
+    } else {
+      setDemoUsersReady(true);
     }
   }, []);
 
@@ -66,7 +67,7 @@ const AuthPage: React.FC = () => {
     }
   }, [selectedRole, activeTab]);
 
-  // Handle authenticated user redirect
+  // Redirect authenticated users
   useEffect(() => {
     if (!loading && user && profile) {
       console.log('🔍 User authenticated, redirecting based on role:', profile.role);
@@ -81,7 +82,7 @@ const AuthPage: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting) return;
+    if (isSubmitting || !email || !password) return;
     
     setIsSubmitting(true);
     setAuthError('');
@@ -117,29 +118,12 @@ const AuthPage: React.FC = () => {
       const result = await signIn(demoEmail, demoPassword);
       if (result?.error) {
         console.error('❌ Demo login error:', result.error);
-        
-        // If login fails, try to create the user first
-        if (result.error.message.includes('Invalid login credentials')) {
-          console.log('🎭 User may not exist, ensuring demo users are created...');
-          await ensureDemoUsersExist();
-          
-          // Try login again
-          const retryResult = await signIn(demoEmail, demoPassword);
-          if (retryResult?.error) {
-            console.error('❌ Demo login failed after user creation:', retryResult.error);
-            setAuthError('Demo login failed. Please try again.');
-            setIsSubmitting(false);
-            return;
-          }
-        } else {
-          setAuthError(result.error.message || 'Demo login failed. Please try again.');
-          setIsSubmitting(false);
-          return;
-        }
+        setAuthError(result.error.message || 'Demo login failed. Please try again.');
+        setIsSubmitting(false);
+        return;
       }
       
       console.log('✅ Demo login successful');
-      // Don't set isSubmitting to false - let the redirect handle cleanup
     } catch (error) {
       console.error('❌ Demo login exception:', error);
       setAuthError('An unexpected error occurred during demo login.');
@@ -147,7 +131,7 @@ const AuthPage: React.FC = () => {
     }
   };
 
-  // Show loading state during authentication
+  // Show loading state while auth is initializing
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
@@ -194,7 +178,7 @@ const AuthPage: React.FC = () => {
               </div>
             )}
 
-            {isDemoMode ? (
+            {isDemoMode && demoUsersReady ? (
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="demo">Demo Access</TabsTrigger>
@@ -202,14 +186,7 @@ const AuthPage: React.FC = () => {
                 </TabsList>
                 
                 <TabsContent value="demo" className="space-y-4">
-                  {demoUsersReady ? (
-                    <DemoLoginCards onDemoLogin={handleDemoLogin} />
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B61FF] mx-auto mb-4"></div>
-                      <p className="text-sm text-gray-600">Setting up demo accounts...</p>
-                    </div>
-                  )}
+                  <DemoLoginCards onDemoLogin={handleDemoLogin} />
                 </TabsContent>
                 
                 <TabsContent value="login" className="space-y-4">
@@ -284,13 +261,11 @@ const AuthPage: React.FC = () => {
                     </Button>
                   </form>
 
-                  {isDemoMode && (
-                    <div className="text-center">
-                      <p className="text-xs text-gray-400">
-                        Credentials auto-filled for demo user
-                      </p>
-                    </div>
-                  )}
+                  <div className="text-center">
+                    <p className="text-xs text-gray-400">
+                      Credentials auto-filled for demo user
+                    </p>
+                  </div>
                 </TabsContent>
               </Tabs>
             ) : (

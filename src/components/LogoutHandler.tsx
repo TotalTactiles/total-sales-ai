@@ -1,15 +1,18 @@
 
 import { useEffect } from 'react';
-import { useOptimizedLogout } from '@/utils/logoutOptimizer';
+import { useAuth } from '@/contexts/AuthContext';
 
 const LogoutHandler = () => {
-  const { logout } = useOptimizedLogout();
+  const { signOut } = useAuth();
 
   useEffect(() => {
     const performLogout = async () => {
       try {
         console.log('🔐 LogoutHandler: Performing logout');
-        await logout();
+        await signOut();
+        
+        // Force immediate redirect to auth page
+        window.location.replace('/auth');
       } catch (error) {
         console.error('🔐 LogoutHandler: Logout error:', error);
         // Force redirect even if logout fails
@@ -18,7 +21,7 @@ const LogoutHandler = () => {
     };
 
     performLogout();
-  }, [logout]);
+  }, [signOut]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">

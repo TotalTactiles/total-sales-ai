@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 const AppRoutes: React.FC = () => {
   const { user, loading } = useAuth();
 
+  // Show loading spinner while determining auth state
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
@@ -34,7 +35,7 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // If not authenticated, show auth or landing page
+  // If not authenticated, show auth page or landing page
   return (
     <Routes>
       <Route path="/" element={<NewLandingPage />} />
