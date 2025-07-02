@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -55,44 +54,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         console.log('🔁 Initializing auth state...');
         
-        // First set up the auth state change listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            console.log('🔄 Auth state changed:', event, 'Session:', !!session);
-            
-            if (mounted) {
-              setSession(session);
-              setUser(session?.user ?? null);
-              
-              if (session?.user) {
-                const profileData = await fetchUserProfile(session.user.id);
-                if (mounted) {
-                  setProfile(profileData);
-                }
-              } else {
-                setProfile(null);
-              }
-              
-              setLoading(false);
-              
-              // Handle successful sign in - redirect to appropriate dashboard
-              if (event === 'SIGNED_IN' && session?.user) {
-                console.log('✅ User signed in, redirecting to dashboard...');
-                // Redirect to sales dashboard instead of safe-dashboard
-                window.location.href = '/sales/dashboard';
-              }
-            }
-          }
-        );
-
-        // Then get current session
+        // First get current session
         const { data: { session: currentSession }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('❌ Session fetch error:', error);
         }
 
-        console.log('📍 Current session check:', {
+        console.log('📍 Initial session check:', {
           hasSession: !!currentSession,
           hasUser: !!currentSession?.user,
           userId: currentSession?.user?.id
@@ -111,9 +80,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         
         if (mounted) {
-          console.log('✅ Auth initialization complete');
+          console.log('✅ Initial auth state loaded');
           setLoading(false);
         }
+
+        // Then set up the auth state change listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            console.log('🔄 Auth state changed:', event, 'Session:', !!session);
+            
+            if (mounted) {
+              setSession(session);
+              setUser(session?.user ?? null);
+              
+              if (session?.user) {
+                const profileData = await fetchUserProfile(session.user.id);
+                if (mounted) {
+                  setProfile(profileData);
+                }
+              } else {
+                setProfile(null);
+              }
+              
+              // Handle successful sign in - redirect to appropriate dashboard
+              if (event === 'SIGNED_IN' && session?.user) {
+                console.log('✅ User signed in, redirecting to dashboard...');
+                window.location.href = '/sales/dashboard';
+              }
+            }
+          }
+        );
 
         // Cleanup subscription
         return () => {

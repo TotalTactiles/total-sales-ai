@@ -4,32 +4,14 @@ import { useAuth } from "@/contexts/auth/AuthProvider";
 import { useLiveDashboardData } from "@/hooks/useLiveDashboardData";
 
 export default function SalesDashboard() {
-  const [error, setError] = useState<string | null>(null);
-
-  // Safe auth hook access with defensive guards
-  let user = null;
-  let session = null;
-  let authData = null;
-  let authError = null;
-  
-  try {
-    authData = useAuth();
-    user = authData?.user || null;
-    session = authData?.session || null;
-  } catch (err) {
-    console.error("⚠️ Auth context error:", err);
-    authError = err;
-  }
-
-  // Use live dashboard data hook
+  const { user, session, loading: authLoading } = useAuth();
   const { deals, stats, activities, loading: dataLoading, error: dataError } = useLiveDashboardData();
 
   // Log before any render to debug
   console.log("🟩 Rendering dashboard with:", {
     user: !!user,
     session: !!session,
-    authData: !!authData,
-    authError: !!authError,
+    authLoading,
     dataLoading,
     dataError,
     dealsCount: deals.length,
@@ -44,36 +26,39 @@ export default function SalesDashboard() {
       session: !!session,
       user: !!user,
       userId: user?.id,
-      email: user?.email
+      email: user?.email,
+      authLoading
     });
     console.log("✅ Sales Dashboard loaded without crashing");
-  }, [session, user]);
+  }, [session, user, authLoading]);
 
-  // Early return guards with defensive checks
-  if (authError) {
-    console.log("🔴 Auth context missing, showing fallback");
-    return (
-      <div style={{ padding: "2rem", border: "2px solid orange", minHeight: "200px" }}>
-        <h2>⚠️ Auth Context Missing</h2>
-        <p>Dashboard running in fallback mode</p>
-        <p>Error: {authError?.message || "Unknown auth error"}</p>
-        <button onClick={() => window.location.href = '/auth'}>Go to Auth</button>
-      </div>
-    );
-  }
-
-  if (!user || !session) {
-    console.log("🔵 User/session not ready...");
+  // Wait for auth to load first
+  if (authLoading) {
+    console.log("🔵 Auth loading...");
     return (
       <div style={{ padding: "2rem", minHeight: "200px" }}>
-        <p>Loading user session...</p>
-        <p>🔍 Debug: user={user ? "yes" : "no"}, session={session ? "yes" : "no"}</p>
-        <p>Session user ID: {session?.user?.id || "none"}</p>
-        <p>User object: {user?.email || "none"}</p>
+        <p>Loading authentication...</p>
+        <p>🔍 Debug: Waiting for session to rehydrate...</p>
       </div>
     );
   }
 
+  // Check for authenticated user
+  if (!user || !session) {
+    console.log("🔴 No authenticated user, redirecting to auth");
+    // Redirect to auth if no session
+    if (typeof window !== 'undefined') {
+      window.location.href = '/auth';
+    }
+    return (
+      <div style={{ padding: "2rem", minHeight: "200px" }}>
+        <p>Redirecting to authentication...</p>
+        <p>🔍 Debug: user={user ? "yes" : "no"}, session={session ? "yes" : "no"}</p>
+      </div>
+    );
+  }
+
+  // Wait for dashboard data to load
   if (dataLoading) {
     console.log("🔵 Dashboard data loading...");
     return (
@@ -84,13 +69,13 @@ export default function SalesDashboard() {
     );
   }
   
-  if (dataError || error) {
-    const errorMsg = dataError || error;
-    console.log("🔴 Dashboard error:", errorMsg);
+  // Handle data errors
+  if (dataError) {
+    console.log("🔴 Dashboard error:", dataError);
     return (
       <div style={{ padding: "2rem", border: "2px solid red", minHeight: "200px" }}>
         <h2>⚠️ Error loading dashboard</h2>
-        <p>{errorMsg}</p>
+        <p>{dataError}</p>
         <button onClick={() => window.location.reload()}>Reload Dashboard</button>
         <button onClick={() => window.location.href = '/auth'}>Back to Auth</button>
       </div>
