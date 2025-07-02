@@ -8,9 +8,10 @@ const LogoutHandler = () => {
   useEffect(() => {
     const performLogout = async () => {
       try {
+        console.log('🔐 LogoutHandler: Performing logout');
         await logout();
       } catch (error) {
-        console.error('Logout error:', error);
+        console.error('🔐 LogoutHandler: Logout error:', error);
         // Force redirect even if logout fails
         window.location.replace('/auth');
       }

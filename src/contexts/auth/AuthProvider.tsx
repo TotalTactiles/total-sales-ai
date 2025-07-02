@@ -6,7 +6,6 @@ import { AuthContextType, Profile } from './types';
 import { logger } from '@/utils/logger';
 import { useProfileManager } from './useProfileManager';
 import { signIn, signUp, signUpWithOAuth, signOut } from './authService';
-import { fetchUserProfileOptimized } from '@/utils/authOptimizer';
 import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,107 +31,95 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { 
     profile, 
     setProfile, 
-    fetchOrCreateProfile, 
-    clearProfile, 
-    fetchProfile 
+    fetchProfile,
+    clearProfile
   } = useProfileManager();
 
-  // Initialize auth state with fast loading
+  // Simplified profile fetching
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.warn('Profile not found, user may be new:', error);
+        return null;
+      }
+
+      return data as Profile;
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      return null;
+    }
+  };
+
+  // Initialize auth state
   useEffect(() => {
     let mounted = true;
 
     const initializeAuth = async () => {
       try {
-        const startTime = performance.now();
         logger.info('🔐 Initializing auth state...', {}, 'auth');
         
-        // Set up auth state change listener FIRST
+        // Set up auth state change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
+            if (!mounted) return;
+            
             logger.info('🔐 Auth state changed:', { 
               event, 
               userId: session?.user?.id,
-              hasSession: !!session,
-              hasUser: !!session?.user,
-              userEmail: session?.user?.email
+              hasSession: !!session
             }, 'auth');
             
+            setSession(session);
+            setUser(session?.user ?? null);
+            
+            if (session?.user) {
+              // Fetch profile for authenticated user
+              const profileData = await fetchUserProfile(session.user.id);
+              if (profileData && mounted) {
+                setProfile(profileData);
+              }
+            } else {
+              // Clear profile for unauthenticated user
+              clearProfile();
+            }
+            
+            // Mark as not loading after auth state is processed
             if (mounted) {
-              setSession(session);
-              setUser(session?.user ?? null);
-              
-              if (session?.user) {
-                console.log('🔐 Auth state change: User found, fetching profile optimized');
-                // Use optimized profile fetching with timeout to prevent blocking
-                setTimeout(async () => {
-                  if (mounted) {
-                    try {
-                      const optimizedProfile = await fetchUserProfileOptimized(session.user.id);
-                      if (optimizedProfile && mounted) {
-                        setProfile(optimizedProfile);
-                      }
-                    } catch (error) {
-                      console.error('Profile fetch error:', error);
-                      // Continue with basic auth even if profile fails
-                    }
-                  }
-                }, 0);
-              } else {
-                console.log('🔐 Auth state change: No user, clearing profile');
-                clearProfile();
-              }
-              
-              // Fast loading completion
-              if (initialized) {
-                setLoading(false);
-              }
+              setLoading(false);
             }
           }
         );
 
-        // THEN get initial session
+        // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           logger.error('❌ Error getting initial session:', error, 'auth');
-        } else if (session) {
+        } else if (session && mounted) {
           logger.info('🔐 Initial session found:', { 
-            userId: session.user.id, 
-            userEmail: session.user.email 
+            userId: session.user.id 
           }, 'auth');
-          if (mounted) {
-            setSession(session);
-            setUser(session.user);
-            // Use optimized profile fetching for initial load with timeout
-            setTimeout(async () => {
-              if (mounted) {
-                try {
-                  const optimizedProfile = await fetchUserProfileOptimized(session.user.id);
-                  if (optimizedProfile && mounted) {
-                    setProfile(optimizedProfile);
-                  }
-                } catch (error) {
-                  console.error('Initial profile fetch error:', error);
-                }
-              }
-            }, 0);
+          
+          setSession(session);
+          setUser(session.user);
+          
+          // Fetch profile for initial session
+          const profileData = await fetchUserProfile(session.user.id);
+          if (profileData && mounted) {
+            setProfile(profileData);
           }
-        } else {
-          logger.info('🔐 No initial session found', {}, 'auth');
         }
         
         if (mounted) {
           setInitialized(true);
-          // Set a maximum loading time of 800ms
-          setTimeout(() => {
-            if (mounted) {
-              setLoading(false);
-            }
-          }, 100); // Very fast loading
+          setLoading(false);
         }
-
-        const endTime = performance.now();
-        console.log(`Auth initialization completed in ${endTime - startTime}ms`);
 
         return () => {
           subscription.unsubscribe();
@@ -151,52 +138,64 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       mounted = false;
     };
-  }, [setProfile, clearProfile, initialized]);
+  }, [setProfile, clearProfile]);
 
   const handleSignIn = async (email: string, password: string) => {
-    console.log('🔐 AuthProvider: handleSignIn called for:', email);
+    logger.info('🔐 AuthProvider: handleSignIn called for:', { email }, 'auth');
     setLoading(true);
     
-    const result = await signIn(email, password);
-    
-    if (result.error) {
-      console.error('🔐 AuthProvider: Sign in failed:', result.error);
-      setLoading(false);
-    } else {
-      console.log('🔐 AuthProvider: Sign in successful, auth state will update via onAuthStateChange');
-      // Fast loading completion for successful login
-      setTimeout(() => {
+    try {
+      const result = await signIn(email, password);
+      
+      if (result.error) {
+        logger.error('🔐 AuthProvider: Sign in failed:', result.error, 'auth');
         setLoading(false);
-      }, 200);
+        return result;
+      }
+
+      logger.info('🔐 AuthProvider: Sign in successful', {}, 'auth');
+      // Don't set loading to false here - let the auth state change handle it
+      return result;
+    } catch (error) {
+      logger.error('🔐 AuthProvider: Sign in exception:', error, 'auth');
+      setLoading(false);
+      return { error };
     }
-    
-    return result;
   };
 
   const handleSignUp = async (email: string, password: string, options?: any) => {
-    console.log('🔐 AuthProvider: handleSignUp called for:', email);
+    logger.info('🔐 AuthProvider: handleSignUp called for:', { email }, 'auth');
     setLoading(true);
     
-    const result = await signUp(email, password, options);
-    
-    if (result.error) {
-      console.error('🔐 AuthProvider: Sign up failed:', result.error);
+    try {
+      const result = await signUp(email, password, options);
+      
+      if (result.error) {
+        logger.error('🔐 AuthProvider: Sign up failed:', result.error, 'auth');
+        setLoading(false);
+        return result;
+      }
+
+      logger.info('🔐 AuthProvider: Sign up successful', {}, 'auth');
       setLoading(false);
-    } else {
-      console.log('🔐 AuthProvider: Sign up successful');
-      // For signup, we might not get immediate session due to email confirmation
+      return result;
+    } catch (error) {
+      logger.error('🔐 AuthProvider: Sign up exception:', error, 'auth');
       setLoading(false);
+      return { error };
     }
-    
-    return result;
   };
 
   const handleSignOut = async () => {
     try {
-      // Optimized logout - immediate state clearing
+      logger.info('🔐 AuthProvider: Starting sign out process', {}, 'auth');
+      
+      // Immediate state clearing for responsive UI
       setUser(null);
       setSession(null);
       clearProfile();
+      
+      // Clear local storage
       if (typeof window !== 'undefined') {
         localStorage.clear();
         sessionStorage.clear();
@@ -207,24 +206,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (error) {
         logger.error('❌ Sign out error:', error, 'auth');
-        // Even if signout fails, force local state clearing
-        return { error: null };
+      } else {
+        logger.info('✅ Sign out successful', {}, 'auth');
       }
       
-      logger.info('✅ Sign out successful', {}, 'auth');
-      return { error: null };
+      return { error: null }; // Always return success for UI responsiveness
       
     } catch (error) {
       logger.error('❌ Sign out exception:', error, 'auth');
-      // Force local state clearing even on exception
-      setUser(null);
-      setSession(null);
-      clearProfile();
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-      return { error: null };
+      return { error: null }; // Always return success for UI responsiveness
     }
   };
 

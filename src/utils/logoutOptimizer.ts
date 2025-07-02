@@ -4,63 +4,29 @@ import { logger } from '@/utils/logger';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const optimizedLogout = async (
-  signOut: () => Promise<any>,
-  navigate: (path: string) => void
+  signOut: () => Promise<any>
 ) => {
   try {
-    // Immediate UI feedback - clear local state first
-    const startTime = performance.now();
-
-    // Trigger auth context sign out for immediate state clearing
-    const logoutPromise = signOut();
+    logger.info('🔐 Starting optimized logout', {}, 'auth');
     
-    // Immediate navigation - don't wait for logout to complete
-    setTimeout(() => {
-      navigate('/auth');
-    }, 100); // Small delay to show loading state
+    // Trigger sign out
+    await signOut();
     
-    // Complete logout in background
-    await logoutPromise;
-    
-    const endTime = performance.now();
-    console.log(`Logout completed in ${endTime - startTime}ms`);
-    
-    // Background logging (non-blocking)
-    setTimeout(async () => {
-      try {
-        await supabase.from('tsam_logs').insert({
-          type: 'auth_logout',
-          priority: 'low',
-          message: 'User logged out successfully',
-          metadata: {
-            timestamp: new Date().toISOString(),
-            source: 'optimized_logout',
-            duration: `${endTime - startTime}ms`
-          }
-        });
-        
-        logger.info('Logout event logged successfully', {}, 'auth');
-      } catch (error: any) {
-        logger.warn('Non-critical: Failed to log logout event:', error, 'auth');
-      }
-    }, 0);
+    // Force immediate redirect to auth page
+    window.location.replace('/auth');
     
   } catch (error) {
-    logger.error('Logout error:', error, 'auth');
+    logger.error('❌ Logout error:', error, 'auth');
     // Force redirect even on error
-    navigate('/auth');
+    window.location.replace('/auth');
   }
 };
 
 // Hook for consistent logout behavior
 export const useOptimizedLogout = () => {
   const { signOut } = useAuth();
-  const navigate = (path: string) => {
-    // Use replace for instant navigation
-    window.location.replace(path);
-  };
 
   return {
-    logout: () => optimizedLogout(signOut, navigate)
+    logout: () => optimizedLogout(signOut)
   };
 };
