@@ -3,13 +3,10 @@ import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
 import ContextAwareAIBubble from '@/components/UnifiedAI/ContextAwareAIBubble';
-import { useMockData } from '@/hooks/useMockData';
 import AgentTriggerButton from '@/frontend/automations-ui/AgentTriggerButton';
 
 // Sales Rep Pages  
-import SalesDashboardWrapper from '@/pages/sales/SalesDashboardWrapper';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import LoadingScreen from '@/components/LoadingScreen';
+import SalesDashboardDebugger from '@/pages/sales/Dashboard';
 import LeadManagement from '@/pages/LeadManagement';
 import LeadWorkspace from '@/pages/LeadWorkspace';
 import Dialer from '@/pages/Dialer';
@@ -19,7 +16,6 @@ import SalesAcademy from '@/pages/sales/Academy';
 import SalesSettings from '@/pages/sales/Settings';
 
 const SalesRepOS: React.FC = () => {
-  const { leads } = useMockData();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -33,11 +29,9 @@ const SalesRepOS: React.FC = () => {
           <Route
             path="dashboard"
             element={
-              <ProtectedRoute>
-                <Suspense fallback={<LoadingScreen message="Loading dashboard..." />}>
-                  <SalesDashboardWrapper />
-                </Suspense>
-              </ProtectedRoute>
+              <Suspense fallback={<div style={{ padding: 32 }}>🌀 Loading SALES dashboard...</div>}>
+                <SalesDashboardDebugger />
+              </Suspense>
             }
           />
           <Route path="leads" element={<LeadManagement />} />
