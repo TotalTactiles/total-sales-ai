@@ -6,7 +6,7 @@ import ContextAwareAIBubble from '@/components/UnifiedAI/ContextAwareAIBubble';
 import AgentTriggerButton from '@/frontend/automations-ui/AgentTriggerButton';
 
 // Sales Rep Pages  
-import SalesDashboardDebugger from '@/pages/sales/Dashboard';
+import SalesDashboard from '@/pages/sales/Dashboard';
 import LeadManagement from '@/pages/LeadManagement';
 import LeadWorkspace from '@/pages/LeadWorkspace';
 import Dialer from '@/pages/Dialer';
@@ -30,7 +30,7 @@ const SalesRepOS: React.FC = () => {
             path="dashboard"
             element={
               <Suspense fallback={<div style={{ padding: 32 }}>🌀 Loading SALES dashboard...</div>}>
-                <SalesDashboardDebugger />
+                <SalesDashboard />
               </Suspense>
             }
           />
