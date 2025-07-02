@@ -16,7 +16,7 @@ import {
   Mail,
   User
 } from 'lucide-react';
-import { useUnifiedAI } from '@/contexts/UnifiedAIContext';
+// import { useUnifiedAI } from '@/contexts/UnifiedAIContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -53,7 +53,8 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
   const [isLoading, setIsLoading] = useState(false);
   
   const { profile } = useAuth();
-  const { executeAgentTask, isAIActive } = useUnifiedAI();
+  // const { executeAgentTask, isAIActive } = useUnifiedAI();
+  const isAIActive = false;
 
   const getContextualGreeting = () => {
     const role = profile?.role || 'user';
@@ -132,29 +133,36 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({ context, cl
     }]);
 
     try {
-      const agentType = profile?.role === 'manager' ? 'managerAgent_v1' : 'salesAgent_v1';
-      
-      const result = await executeAgentTask(agentType, 'contextual_assistance', {
-        message: userMessage,
-        workspace: context.workspace,
-        leadContext: context.currentLead,
-        callContext: context.isCallActive ? { duration: context.callDuration } : null,
-        emailContext: context.emailContext,
-        smsContext: context.smsContext
-      });
+      // const agentType = profile?.role === 'manager' ? 'managerAgent_v1' : 'salesAgent_v1';
 
-      if (result && result.status === 'completed') {
-        const aiResponse = result.output?.response || "I'm here to help! Could you be more specific about what you need?";
-        
-        setConversation(prev => [...prev, {
-          role: 'assistant',
-          content: aiResponse,
-          timestamp: new Date(),
-          source: result.agentType
-        }]);
-      } else {
-        throw new Error('Agent response failed');
-      }
+      // const result = await executeAgentTask(agentType, 'contextual_assistance', {
+      //   message: userMessage,
+      //   workspace: context.workspace,
+      //   leadContext: context.currentLead,
+      //   callContext: context.isCallActive ? { duration: context.callDuration } : null,
+      //   emailContext: context.emailContext,
+      //   smsContext: context.smsContext
+      // });
+
+      // if (result && result.status === 'completed') {
+      //   const aiResponse = result.output?.response || "I'm here to help! Could you be more specific about what you need?";
+
+      //   setConversation(prev => [...prev, {
+      //     role: 'assistant',
+      //     content: aiResponse,
+      //     timestamp: new Date(),
+      //     source: result.agentType
+      //   }]);
+      // } else {
+      //   throw new Error('Agent response failed');
+      // }
+
+      setConversation(prev => [...prev, {
+        role: 'assistant',
+        content: "AI assistance disabled in safe mode.",
+        timestamp: new Date(),
+        source: 'disabled'
+      }]);
     } catch (error) {
       // Fallback response
       setConversation(prev => [...prev, {
