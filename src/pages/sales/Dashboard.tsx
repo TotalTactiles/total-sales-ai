@@ -11,6 +11,10 @@ export default function SalesDashboardPage() {
     console.log('SESSION:', session);
   }, [session]);
 
+  useEffect(() => {
+    console.log('✅ Dashboard mounted');
+  }, []);
+
   if (loading) return <LoadingScreen />;
   if (!session) return <Navigate to="/auth" replace />;
 
