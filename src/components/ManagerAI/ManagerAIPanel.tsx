@@ -18,7 +18,7 @@ import {
   Settings,
   Lightbulb
 } from 'lucide-react';
-import { useUnifiedAI } from '@/contexts/UnifiedAIContext';
+// import { useUnifiedAI } from '@/contexts/UnifiedAIContext';
 import { toast } from 'sonner';
 
 interface ManagerAIPanelProps {
@@ -39,7 +39,7 @@ const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
   const [question, setQuestion] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [responses, setResponses] = useState<Array<{id: string, question: string, answer: string, timestamp: Date}>>([]);
-  const { logAIInteraction } = useUnifiedAI();
+  // const { logAIInteraction } = useUnifiedAI();
 
   const handleAskJarvis = async () => {
     if (!question.trim() || isProcessing) return;
@@ -61,12 +61,11 @@ const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
         
         setResponses(prev => [newResponse, ...prev]);
         
-        // Log the interaction
-        await logAIInteraction('jarvis_interaction', {
-          question: currentQuestion,
-          response_length: response.length,
-          success: true
-        });
+        // await logAIInteraction('jarvis_interaction', {
+        //   question: currentQuestion,
+        //   response_length: response.length,
+        //   success: true
+        // });
         
         toast.success('Jarvis response generated');
       }
@@ -94,10 +93,10 @@ const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
         
         setResponses(prev => [reportResponse, ...prev]);
         
-        await logAIInteraction('executive_report', {
-          report_length: report.length,
-          success: true
-        });
+        // await logAIInteraction('executive_report', {
+        //   report_length: report.length,
+        //   success: true
+        // });
         
         toast.success('Executive report generated');
       }

@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { MessageCircle, ChevronUp, ChevronDown, Zap, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUnifiedAI } from "@/contexts/UnifiedAIContext";
+// import { useUnifiedAI } from "@/contexts/UnifiedAIContext";
 import { toast } from "sonner";
 
 // Import our components
@@ -75,7 +75,7 @@ const AIAssistant = () => {
   ]);
   
   const { user } = useAuth();
-  const { generateAIResponse, generateStrategyResponse, generateCommunication } = useUnifiedAI();
+  // const { generateAIResponse, generateStrategyResponse, generateCommunication } = useUnifiedAI();
   const [isLoading, setIsLoading] = useState(false);
   
   // Handle sending a message using the Unified AI Service
@@ -113,14 +113,15 @@ const AIAssistant = () => {
         const inputLower = currentInput.toLowerCase();
         
         if (inputLower.includes('strategy') || inputLower.includes('analyze') || inputLower.includes('plan')) {
-          response = await generateStrategyResponse(currentInput);
-          toast.success('Strategic analysis generated with Claude');
+          // response = await generateStrategyResponse(currentInput);
+          response = 'Strategy service disabled in safe mode.';
         } else if (inputLower.includes('email') || inputLower.includes('draft') || inputLower.includes('write')) {
-          response = await generateCommunication(currentInput);
-          toast.success('Communication drafted with Claude');
+          // response = await generateCommunication(currentInput);
+          response = 'Communication service disabled in safe mode.';
         } else {
-          response = await generateAIResponse(currentInput);
-          toast.success('Response generated with AI');
+          // response = await generateAIResponse(currentInput);
+          response = 'AI response disabled in safe mode.';
+          
         }
         
         // Add AI response to messages
@@ -187,11 +188,14 @@ const AIAssistant = () => {
       
       // Route to appropriate AI service based on action type
       if (action.toLowerCase().includes('strategy') || action.toLowerCase().includes('analyze')) {
-        response = await generateStrategyResponse(`Execute action: ${action}`);
+        // response = await generateStrategyResponse(`Execute action: ${action}`);
+        response = 'Strategy service disabled in safe mode.';
       } else if (action.toLowerCase().includes('email') || action.toLowerCase().includes('draft')) {
-        response = await generateCommunication(`Execute action: ${action}`);
+        // response = await generateCommunication(`Execute action: ${action}`);
+        response = 'Communication service disabled in safe mode.';
       } else {
-        response = await generateAIResponse(`Execute action: ${action}`);
+        // response = await generateAIResponse(`Execute action: ${action}`);
+        response = 'AI response disabled in safe mode.';
       }
       
       // Add AI response
