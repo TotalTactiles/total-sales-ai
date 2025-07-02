@@ -15,6 +15,10 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMockData } from '@/hooks/useMockData';
+import AIGreeting from '@/components/AI/AIGreeting';
+import AISummaryCard from '@/components/AI/AISummaryCard';
+import AIRecommendations from '@/components/AI/AIRecommendations';
+import AICoachingPanel from '@/components/AI/AICoachingPanel';
 
 const SalesRepDashboard: React.FC = () => {
   const { profile } = useAuth();
@@ -54,16 +58,11 @@ const SalesRepDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
-          <h1 className="text-2xl font-bold mb-2">
-            Good morning, {profile?.full_name || 'Sales Rep'}! 👋
-          </h1>
-          <p className="text-blue-100">
-            You have {recentLeads.length} leads requiring attention today. 
-            Your conversion rate improved by {dashboardStats.conversionRate}% this week!
-          </p>
-        </div>
+        {/* AI Daily Summary Header */}
+        <AIGreeting 
+          userName={profile?.full_name || 'Sales Rep'}
+          streak={dashboardStats.winStreak}
+        />
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -170,6 +169,9 @@ const SalesRepDashboard: React.FC = () => {
 
           {/* Right Sidebar */}
           <div className="space-y-6">
+            {/* AI Assistant Summary */}
+            <AISummaryCard />
+
             {/* Recent Wins */}
             <Card>
               <CardHeader>
@@ -203,12 +205,12 @@ const SalesRepDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Time Blocks */}
+            {/* AI-Optimized Time Blocks */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Today's Schedule
+                  AI-Optimized Schedule
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -217,34 +219,40 @@ const SalesRepDashboard: React.FC = () => {
                     <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                     <div className="flex-1">
                       <div className="text-sm font-medium">09:00 - Priority Lead Calls</div>
-                      <div className="text-xs text-gray-500">2 hours</div>
+                      <div className="text-xs text-gray-500">2 hours • AI optimized</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
                     <div className="flex-1">
                       <div className="text-sm font-medium">11:30 - Follow-up Emails</div>
-                      <div className="text-xs text-gray-500">30 minutes</div>
+                      <div className="text-xs text-gray-500">30 minutes • AI drafted</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
                     <div className="flex-1">
                       <div className="text-sm font-medium">14:00 - Warm Lead Outreach</div>
-                      <div className="text-xs text-gray-500">1.5 hours</div>
+                      <div className="text-xs text-gray-500">1.5 hours • AI scored</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 bg-red-500 rounded-full"></div>
                     <div className="flex-1">
                       <div className="text-sm font-medium">16:00 - Deal Review & Notes</div>
-                      <div className="text-xs text-gray-500">45 minutes</div>
+                      <div className="text-xs text-gray-500">45 minutes • AI insights</div>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
+        </div>
+
+        {/* AI Recommendations and Coaching - Bottom Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <AIRecommendations />
+          <AICoachingPanel />
         </div>
       </div>
     </div>
