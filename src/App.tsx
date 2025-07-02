@@ -3,40 +3,49 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
+import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import AuthPage from '@/pages/auth/AuthPage';
 import MainLayout from '@/layouts/MainLayout';
+import SafeModePage from '@/pages/SafeModePage';
 import LogoutHandler from '@/components/LogoutHandler';
 import NewLandingPage from '@/pages/NewLandingPage';
 import LoadingScreen from '@/components/LoadingScreen';
-import { logger } from '@/utils/logger';
 
 const AppRoutes: React.FC = () => {
   const { session } = useAuth();
+  const navigate = useNavigate();
+  const [hydrated, setHydrated] = React.useState(false);
 
   useEffect(() => {
-    console.log('\uD83D\uDD0D Auth Debug \u2014 session:', session);
-  }, [session]);
+    setHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && hydrated && session?.user) {
+      if (session.user.role === 'manager') {
+        navigate('/manager/dashboard', { replace: true });
+      } else if (session.user.role === 'sales' || session.user.role === 'sales_rep') {
+        navigate('/sales/dashboard', { replace: true });
+      }
+    }
+  }, [hydrated, session, navigate]);
 
   if (!session) {
     return (
       <Routes>
         <Route path="/" element={<NewLandingPage />} />
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/safe" element={<SafeModePage />} />
         <Route path="/logout" element={<LogoutHandler />} />
         <Route path="/*" element={<Navigate to="/auth" replace />} />
       </Routes>
     );
   }
 
-  if (session?.user?.role === 'manager') {
-    return <Navigate to="/manager/dashboard" replace />;
-  } else if (session?.user?.role === 'sales' || session?.user?.role === 'sales_rep') {
-    return <Navigate to="/sales/dashboard" replace />;
-  }
-
   return (
     <Routes>
       <Route path="/logout" element={<LogoutHandler />} />
+      <Route path="/safe" element={<SafeModePage />} />
       <Route path="/*" element={<MainLayout />} />
     </Routes>
   );
@@ -52,7 +61,9 @@ const App: React.FC = () => {
     <Router>
       <AuthProvider>
         <DemoDataProvider>
-          <AuthGate />
+          <UnifiedAIProvider>
+            <AuthGate />
+          </UnifiedAIProvider>
         </DemoDataProvider>
       </AuthProvider>
     </Router>
