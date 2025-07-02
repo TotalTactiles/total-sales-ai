@@ -1,12 +1,13 @@
 
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
 import ContextAwareAIBubble from '@/components/UnifiedAI/ContextAwareAIBubble';
+import { useMockData } from '@/hooks/useMockData';
 import AgentTriggerButton from '@/frontend/automations-ui/AgentTriggerButton';
 
 // Sales Rep Pages  
-import SalesDashboard from '@/pages/sales/Dashboard';
+import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import LeadManagement from '@/pages/LeadManagement';
 import LeadWorkspace from '@/pages/LeadWorkspace';
 import Dialer from '@/pages/Dialer';
@@ -16,6 +17,7 @@ import SalesAcademy from '@/pages/sales/Academy';
 import SalesSettings from '@/pages/sales/Settings';
 
 const SalesRepOS: React.FC = () => {
+  const { leads } = useMockData();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -26,14 +28,7 @@ const SalesRepOS: React.FC = () => {
       <main className="pt-16 lg:pt-20">
         <Routes>
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route
-            path="dashboard"
-            element={
-              <Suspense fallback={<div style={{ padding: 32 }}>🌀 Loading SALES dashboard...</div>}>
-                <SalesDashboard />
-              </Suspense>
-            }
-          />
+          <Route path="dashboard" element={<SalesRepDashboard />} />
           <Route path="leads" element={<LeadManagement />} />
           <Route path="leads/:leadId" element={<LeadWorkspace />} />
           <Route path="my-leads" element={<LeadManagement />} />

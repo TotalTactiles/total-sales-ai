@@ -5,7 +5,7 @@ import { Grid, Users, BarChart3, GraduationCap, Wrench } from 'lucide-react';
 import Logo from '@/components/Logo';
 import UserProfile from '@/components/UserProfile';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { useAuth } from '@/contexts/auth/AuthProvider';
+import { useAuth } from '@/contexts/AuthContext';
 import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
 const DashboardNavigation = () => {

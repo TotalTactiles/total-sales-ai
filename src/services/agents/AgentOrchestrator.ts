@@ -1,118 +1,110 @@
-import { logger } from '@/utils/logger';
-import { relevanceAgentService } from '@/services/relevance/RelevanceAgentService';
 import { supabase } from '@/integrations/supabase/client';
+import { relevanceAgentService } from '@/services/relevance/RelevanceAgentService';
+import { agentInitializationService } from './AgentInitializationService';
+import { logger } from '@/utils/logger';
+
+export interface AgentTask {
+  id?: string;
+  agentType: 'salesAgent_v1' | 'managerAgent_v1' | 'automationAgent_v1' | 'developerAgent_v1';
+  taskType: string;
+  context: AgentContext;
+  priority: 'low' | 'medium' | 'high';
+  scheduledFor?: Date;
+}
 
 export interface AgentContext {
   workspace: string;
   userRole: string;
   companyId: string;
   userId: string;
-  currentLead?: any;
-  callContext?: any;
-  emailContext?: any;
-  smsContext?: any;
-  isCallActive?: boolean;
-  query?: string;
+  repName?: string;
   leadId?: string;
-  includeHistory?: boolean;
-  includeInsights?: boolean;
-  objectionType?: string;
-  conversationContext?: string;
-  templateId?: string;
-  leadContext?: any;
-  leadStatus?: string;
-  prioritizationCriteria?: any;
-  dealOutcome?: string;
-  rehearsalTopic?: string;
-  pitchText?: string;
-  userResponse?: string;
-  scenario?: string;
-  metadata?: Record<string, any>;
-}
-
-export interface AgentTask {
-  agentType: 'salesAgent_v1' | 'managerAgent_v1' | 'automationAgent_v1' | 'developerAgent_v1';
-  taskType: string;
-  context: AgentContext;
-  priority: 'low' | 'medium' | 'high';
+  currentLead?: any;
+  isCallActive?: boolean;
+  callDuration?: number;
+  [key: string]: any;
 }
 
 export interface AgentTaskResult {
-  taskId: string;
-  id?: string;
-  agentType: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  output?: any;
+  id: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  result?: any;
   output_payload?: any;
   error_message?: string;
+  execution_time?: number;
   execution_time_ms?: number;
+  feedback_flagged?: boolean;
+  fallback_triggered?: boolean;
   created_at: string;
   completed_at?: string;
 }
 
+export interface FeedbackInput {
+  taskId: string;
+  rating: 'positive' | 'negative';
+  feedback?: string;
+}
+
 export interface AgentPerformanceMetrics {
   totalTasks: number;
-  successfulTasks: number;
-  failedTasks: number;
-  avgExecutionTime: number;
-  totalExecutionTime: number;
   successRate: number;
+  avgExecutionTime: number;
   lastActive: string;
+  agentType: string;
 }
 
 class AgentOrchestrator {
+  private static instance: AgentOrchestrator;
   private taskQueue: AgentTask[] = [];
-  private runningTasks: Map<string, AgentTaskResult> = new Map();
-  private performanceMetrics: Map<string, AgentPerformanceMetrics> = new Map();
+  private isProcessing = false;
+  private performanceMetrics = new Map<string, AgentPerformanceMetrics>();
+
+  static getInstance(): AgentOrchestrator {
+    if (!AgentOrchestrator.instance) {
+      AgentOrchestrator.instance = new AgentOrchestrator();
+    }
+    return AgentOrchestrator.instance;
+  }
 
   async executeTask(task: AgentTask): Promise<AgentTaskResult> {
     const taskId = crypto.randomUUID();
     const startTime = Date.now();
 
-    const result: AgentTaskResult = {
-      taskId,
-      id: taskId,
-      agentType: task.agentType,
-      status: 'running',
-      created_at: new Date().toISOString()
-    };
-
-    this.runningTasks.set(taskId, result);
-
     try {
-      logger.info('Executing agent task', { taskId, agentType: task.agentType, taskType: task.taskType });
+      // Log task start
+      await this.logTaskStart(taskId, task);
 
-      // Route to appropriate agent service
-      let agentResult;
+      // Execute task based on agent type
+      let result;
       switch (task.agentType) {
         case 'salesAgent_v1':
-          agentResult = await relevanceAgentService.executeSalesAgent(
+          result = await relevanceAgentService.executeSalesAgent(
             task.taskType,
-            this.buildAgentPayload(task),
-            task.context.userId,
-            task.context.companyId
-          );
-          break;
-        case 'managerAgent_v1':
-          agentResult = await relevanceAgentService.executeManagerAgent(
-            task.taskType,
-            this.buildAgentPayload(task),
+            task.context,
             task.context.userId,
             task.context.companyId
           );
           break;
         case 'automationAgent_v1':
-          agentResult = await relevanceAgentService.executeAutomationAgent(
+          result = await relevanceAgentService.executeAutomationAgent(
             task.taskType,
-            this.buildAgentPayload(task),
+            task.context,
+            task.context.userId,
+            task.context.companyId
+          );
+          break;
+        case 'managerAgent_v1':
+          result = await relevanceAgentService.executeManagerAgent(
+            task.taskType,
+            task.context,
             task.context.userId,
             task.context.companyId
           );
           break;
         case 'developerAgent_v1':
-          agentResult = await relevanceAgentService.executeDeveloperAgent(
+          result = await relevanceAgentService.executeDeveloperAgent(
             task.taskType,
-            this.buildAgentPayload(task),
+            task.context,
             task.context.userId,
             task.context.companyId
           );
@@ -122,148 +114,282 @@ class AgentOrchestrator {
       }
 
       const executionTime = Date.now() - startTime;
-
-      // Update result
-      result.status = agentResult.success ? 'completed' : 'failed';
-      result.output = agentResult.output;
-      result.output_payload = { response: agentResult.output };
-      result.error_message = agentResult.error;
-      result.execution_time_ms = executionTime;
-      result.completed_at = new Date().toISOString();
+      
+      // Log completion
+      await this.logTaskCompletion(taskId, task, result, executionTime);
 
       // Update performance metrics
-      this.updatePerformanceMetrics(task.agentType, result);
+      this.updatePerformanceMetrics(task.agentType, executionTime, result.success);
 
-      logger.info('Agent task completed', { taskId, status: result.status, executionTime });
-
-      return result;
+      return {
+        id: taskId,
+        status: result.success ? 'completed' : 'failed',
+        result: result.output,
+        output_payload: result.output,
+        error_message: result.error,
+        execution_time: executionTime,
+        execution_time_ms: executionTime,
+        feedback_flagged: false,
+        fallback_triggered: !result.success,
+        created_at: new Date().toISOString(),
+        completed_at: new Date().toISOString()
+      };
 
     } catch (error) {
       const executionTime = Date.now() - startTime;
       
-      result.status = 'failed';
-      result.error_message = error instanceof Error ? error.message : 'Unknown error';
-      result.execution_time_ms = executionTime;
-      result.completed_at = new Date().toISOString();
+      await this.logTaskFailure(taskId, task, error.message, executionTime);
+      
+      // Handle failure escalation
+      await this.handleTaskFailure(task, error.message);
 
-      logger.error('Agent task failed', error, 'agent_orchestrator');
+      // Update performance metrics
+      this.updatePerformanceMetrics(task.agentType, executionTime, false);
 
-      return result;
-    } finally {
-      this.runningTasks.delete(taskId);
+      return {
+        id: taskId,
+        status: 'failed',
+        error_message: error.message,
+        execution_time: executionTime,
+        execution_time_ms: executionTime,
+        feedback_flagged: false,
+        fallback_triggered: true,
+        created_at: new Date().toISOString(),
+        completed_at: new Date().toISOString()
+      };
     }
   }
 
-  async submitFeedback(
-    userId: string,
-    taskId: string,
-    rating: 'positive' | 'negative',
-    feedback?: string
-  ): Promise<void> {
+  async submitFeedback(userId: string, taskId: string, rating: 'positive' | 'negative', feedback?: string): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('ai_agent_tasks')
-        .update({
-          feedback_rating: rating,
+      await supabase
+        .from('agent_feedback')
+        .insert({
+          task_id: taskId,
+          user_id: userId,
+          rating,
           feedback_text: feedback,
-          feedback_submitted_at: new Date().toISOString()
-        })
-        .eq('id', taskId)
-        .eq('user_id', userId);
+          created_at: new Date().toISOString()
+        });
 
-      if (error) throw error;
+      // Log feedback for AI learning
+      await supabase
+        .from('ai_brain_logs')
+        .insert({
+          type: 'agent_feedback',
+          event_summary: `User feedback: ${rating}`,
+          payload: {
+            taskId,
+            rating,
+            feedback,
+            timestamp: new Date().toISOString()
+          },
+          user_id: userId,
+          visibility: 'system_only'
+        });
 
-      logger.info('Agent feedback submitted', { taskId, rating, userId });
     } catch (error) {
-      logger.error('Failed to submit agent feedback', error);
+      logger.error('Failed to submit feedback:', error);
       throw error;
     }
   }
 
-  private buildAgentPayload(task: AgentTask): any {
-    return {
-      taskType: task.taskType,
-      context: task.context,
-      priority: task.priority,
-      timestamp: new Date().toISOString(),
-      workspace: task.context.workspace,
-      userRole: task.context.userRole
-    };
+  getPerformanceMetrics(): Map<string, AgentPerformanceMetrics> {
+    return this.performanceMetrics;
   }
 
-  private updatePerformanceMetrics(agentType: string, result: AgentTaskResult): void {
+  private updatePerformanceMetrics(agentType: string, executionTime: number, success: boolean): void {
     const current = this.performanceMetrics.get(agentType) || {
       totalTasks: 0,
-      successfulTasks: 0,
-      failedTasks: 0,
-      avgExecutionTime: 0,
-      totalExecutionTime: 0,
       successRate: 0,
-      lastActive: new Date().toISOString()
+      avgExecutionTime: 0,
+      lastActive: new Date().toISOString(),
+      agentType
     };
 
-    current.totalTasks++;
+    current.totalTasks += 1;
+    current.avgExecutionTime = (current.avgExecutionTime + executionTime) / 2;
+    current.successRate = success ? 
+      (current.successRate + 1) / current.totalTasks : 
+      current.successRate * (current.totalTasks - 1) / current.totalTasks;
     current.lastActive = new Date().toISOString();
-    
-    if (result.status === 'completed') {
-      current.successfulTasks++;
-    } else {
-      current.failedTasks++;
-    }
-
-    // Calculate success rate
-    current.successRate = current.totalTasks > 0 ? current.successfulTasks / current.totalTasks : 0;
-
-    if (result.execution_time_ms) {
-      current.totalExecutionTime += result.execution_time_ms;
-      current.avgExecutionTime = current.totalExecutionTime / current.totalTasks;
-    }
 
     this.performanceMetrics.set(agentType, current);
   }
 
-  getPerformanceMetrics(): Map<string, AgentPerformanceMetrics> {
-    return new Map(this.performanceMetrics);
+  async scheduleTask(task: AgentTask, delay: number = 0): Promise<void> {
+    const scheduledTask = {
+      ...task,
+      id: crypto.randomUUID(),
+      scheduledFor: new Date(Date.now() + delay)
+    };
+
+    this.taskQueue.push(scheduledTask);
+    
+    if (delay === 0) {
+      this.processQueue();
+    } else {
+      setTimeout(() => this.processQueue(), delay);
+    }
   }
 
-  getRunningTasks(): AgentTaskResult[] {
-    return Array.from(this.runningTasks.values());
-  }
+  private async processQueue(): Promise<void> {
+    if (this.isProcessing || this.taskQueue.length === 0) {
+      return;
+    }
 
-  async getTaskHistory(agentType?: string): Promise<AgentTaskResult[]> {
+    this.isProcessing = true;
+
     try {
-      let query = supabase
-        .from('ai_agent_tasks')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(100);
+      const now = new Date();
+      const readyTasks = this.taskQueue.filter(task => 
+        !task.scheduledFor || task.scheduledFor <= now
+      );
 
-      if (agentType) {
-        query = query.eq('agent_type', agentType);
+      for (const task of readyTasks) {
+        await this.executeTask(task);
+        this.taskQueue = this.taskQueue.filter(t => t.id !== task.id);
+      }
+    } catch (error) {
+      logger.error('Queue processing error:', error);
+    } finally {
+      this.isProcessing = false;
+    }
+  }
+
+  async monitorSystemHealth(): Promise<void> {
+    try {
+      const healthCheck = await relevanceAgentService.healthCheck();
+      
+      if (!healthCheck) {
+        await this.escalateSystemIssue('AI Agent Service Health Check Failed');
       }
 
-      const { data, error } = await query;
+      // Check for failed tasks in the last hour
+      const { data: failedTasks } = await supabase
+        .from('ai_agent_tasks')
+        .select('*')
+        .eq('status', 'failed')
+        .gte('created_at', new Date(Date.now() - 60 * 60 * 1000).toISOString());
 
-      if (error) throw error;
-
-      return data.map(task => ({
-        taskId: task.id,
-        id: task.id,
-        agentType: task.agent_type,
-        status: task.status,
-        output: task.output_payload,
-        output_payload: task.output_payload,
-        error_message: task.error_message,
-        execution_time_ms: task.execution_time_ms,
-        created_at: task.created_at,
-        completed_at: task.completed_at
-      }));
+      if (failedTasks && failedTasks.length > 5) {
+        await this.escalateSystemIssue(`High failure rate: ${failedTasks.length} failed tasks in the last hour`);
+      }
 
     } catch (error) {
-      logger.error('Failed to get task history', error);
-      return [];
+      logger.error('System health monitoring error:', error);
+      await this.escalateSystemIssue(`Health monitoring failed: ${error.message}`);
+    }
+  }
+
+  private async logTaskStart(taskId: string, task: AgentTask): Promise<void> {
+    try {
+      await supabase
+        .from('ai_agent_tasks')
+        .insert({
+          id: taskId,
+          agent_type: task.agentType,
+          task_type: task.taskType,
+          status: 'pending',
+          input_payload: task.context,
+          user_id: task.context.userId,
+          company_id: task.context.companyId,
+          started_at: new Date().toISOString()
+        });
+    } catch (error) {
+      logger.error('Failed to log task start:', error);
+    }
+  }
+
+  private async logTaskCompletion(taskId: string, task: AgentTask, result: any, executionTime: number): Promise<void> {
+    try {
+      await supabase
+        .from('ai_agent_tasks')
+        .update({
+          status: result.success ? 'completed' : 'failed',
+          output_payload: result.output,
+          error_message: result.error,
+          execution_time_ms: executionTime,
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', taskId);
+    } catch (error) {
+      logger.error('Failed to log task completion:', error);
+    }
+  }
+
+  private async logTaskFailure(taskId: string, task: AgentTask, errorMessage: string, executionTime: number): Promise<void> {
+    try {
+      await supabase
+        .from('ai_agent_tasks')
+        .update({
+          status: 'failed',
+          error_message: errorMessage,
+          execution_time_ms: executionTime,
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', taskId);
+    } catch (error) {
+      logger.error('Failed to log task failure:', error);
+    }
+  }
+
+  private async handleTaskFailure(task: AgentTask, errorMessage: string): Promise<void> {
+    // Check if this is a critical failure that needs immediate attention
+    const criticalErrors = ['timeout', 'service_unavailable', 'authentication_failed'];
+    const isCritical = criticalErrors.some(error => errorMessage.toLowerCase().includes(error));
+
+    if (isCritical) {
+      await this.escalateSystemIssue(`Critical task failure: ${errorMessage}`);
+    }
+
+    // Log for developer agent review
+    await supabase
+      .from('ai_brain_logs')
+      .insert({
+        type: 'task_failure',
+        event_summary: `Task failed: ${task.taskType}`,
+        payload: {
+          agentType: task.agentType,
+          taskType: task.taskType,
+          errorMessage,
+          context: task.context,
+          timestamp: new Date().toISOString()
+        },
+        company_id: task.context.companyId,
+        visibility: 'admin_only'
+      });
+  }
+
+  private async escalateSystemIssue(issue: string): Promise<void> {
+    try {
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: null, // System notification
+          company_id: null,
+          type: 'system_alert',
+          title: 'System Orchestrator Alert',
+          message: issue,
+          metadata: {
+            escalationType: 'system_health',
+            requiresDevAttention: true,
+            timestamp: new Date().toISOString()
+          }
+        });
+
+      // Also send to developer agent for automated handling
+      await relevanceAgentService.executeDeveloperAgent(
+        'handle_system_escalation',
+        { issue, timestamp: new Date().toISOString() },
+        'system',
+        'system'
+      );
+
+    } catch (error) {
+      logger.error('Failed to escalate system issue:', error);
     }
   }
 }
 
-export const agentOrchestrator = new AgentOrchestrator();
+export const agentOrchestrator = AgentOrchestrator.getInstance();

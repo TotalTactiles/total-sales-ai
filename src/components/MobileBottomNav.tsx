@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Grid, Users, Phone, Bot, BarChart3, Settings } from 'lucide-react';
-import { useAuth } from '@/contexts/auth/AuthProvider';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MobileBottomNav = () => {
   const location = useLocation();

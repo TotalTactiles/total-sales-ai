@@ -1,256 +1,197 @@
-import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
-import {
-  WebsiteData,
-  SocialMediaConnection,
-  UploadedFile,
-  DataIngestionStatus,
-  AIInsight
+
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { socialMediaService } from '@/services/companyBrain/socialMediaService';
+import { documentService } from '@/services/companyBrain/documentService';
+import { websiteService } from '@/services/companyBrain/websiteService';
+import { aiInsightsService } from '@/services/companyBrain/aiInsightsService';
+import { 
+  SocialMediaConnection, 
+  UploadedFile, 
+  WebsiteData, 
+  AIInsight,
+  DataIngestionStatus 
 } from '@/services/companyBrain/types';
 
 export const useCompanyBrain = () => {
+  const { user, profile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [websiteData, setWebsiteData] = useState<WebsiteData | null>(null);
-  const [socialConnections, setSocialConnections] = useState<SocialMediaConnection[]>([
-    { platform: 'instagram', connected: false },
-    { platform: 'facebook', connected: false },
-    { platform: 'linkedin', connected: false },
-    { platform: 'tiktok', connected: false }
-  ]);
+  const [socialConnections, setSocialConnections] = useState<SocialMediaConnection[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [websiteData, setWebsiteData] = useState<WebsiteData | null>(null);
   const [insights, setInsights] = useState<AIInsight[]>([]);
-  const [dataStatus, setDataStatus] = useState<
-    DataIngestionStatus & {
-      totalFiles: number;
-      totalSources: number;
-      lastUpdate: Date;
-      processingStatus: 'idle' | 'processing' | 'completed' | 'error';
-    }
-  >({
+  const [dataStatus, setDataStatus] = useState<DataIngestionStatus>({
     social: { connected: 0, total: 4 },
     website: { status: 'disconnected' },
     documents: { count: 0 },
-    errors: [],
-    totalFiles: 0,
-    totalSources: 0,
-    lastUpdate: new Date(),
-    processingStatus: 'idle'
+    errors: []
   });
 
-  const crawlWebsite = useCallback(async (url: string): Promise<WebsiteData | null> => {
+  const companyId = profile?.company_id;
+
+  // Load initial data
+  const loadData = useCallback(async () => {
+    if (!companyId) return;
+
     setIsLoading(true);
     try {
-      // Simulate website crawling - in production this would call your API
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      const mockData: WebsiteData = {
-        url,
-        pages: Math.floor(Math.random() * 50) + 10,
-        lastCrawled: new Date(),
-        content: {
-          title: `Website Analysis for ${new URL(url).hostname}`,
-          description: 'Extracted content and metadata for AI training',
-          keywords: ['business', 'services', 'technology', 'solutions'],
-          contentSummary: 'Comprehensive analysis of website content, structure, and messaging for AI enhancement.'
-        }
-      };
+      const [connections, files, website, aiInsights, status] = await Promise.all([
+        socialMediaService.getSocialConnections(companyId),
+        documentService.getUploadedFiles(companyId),
+        websiteService.getWebsiteData(companyId),
+        aiInsightsService.generateInsights(companyId),
+        aiInsightsService.getDataIngestionStatus(companyId)
+      ]);
 
-      setWebsiteData(mockData);
-      
-      logger.info('Website crawled successfully', { url, pages: mockData.pages });
-      return mockData;
+      setSocialConnections(connections);
+      setUploadedFiles(files);
+      setWebsiteData(website);
+      setInsights(aiInsights);
+      setDataStatus(status);
     } catch (error) {
-      logger.error('Website crawling failed', error);
-      throw error;
+      logger.error('Error loading company brain data:', error);
+      toast.error('Failed to load company brain data');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [companyId]);
 
-  const connectSocialMedia = useCallback(async (platformId: string): Promise<boolean> => {
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Social media functions
+  const connectSocialMedia = useCallback(async (platform: string) => {
+    if (!companyId) return false;
+
     try {
-      // Simulate OAuth connection - in production this would redirect to OAuth
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      setSocialConnections(prev => 
-        prev.map(conn => 
-          conn.platform === platformId 
-            ? { ...conn, connected: true, lastSync: new Date() }
-            : conn
-        )
-      );
-      
-      // Update social status
-      setDataStatus(prev => ({
-        ...prev,
-        social: {
-          ...prev.social,
-          connected: prev.social.connected + 1
-        }
-      }));
-      
-      logger.info('Social media connected', { platform: platformId });
-      return true;
+      const success = await socialMediaService.connectPlatform(platform, companyId);
+      if (success) {
+        await loadData(); // Refresh data
+      }
+      return success;
     } catch (error) {
-      logger.error('Social media connection failed', error);
+      logger.error('Error connecting social media:', error);
+      toast.error(`Failed to connect ${platform}`);
       return false;
     }
-  }, []);
+  }, [companyId, loadData]);
 
-  const syncSocialMedia = useCallback(async (platformId: string): Promise<void> => {
+  const syncSocialMedia = useCallback(async (platform: string) => {
+    if (!companyId) return;
+
     try {
-      setIsLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setSocialConnections(prev => 
-        prev.map(conn => 
-          conn.platform === platformId 
-            ? { ...conn, lastSync: new Date() }
-            : conn
-        )
-      );
-      
-      toast.success(`${platformId} data synced successfully`);
+      await socialMediaService.syncPlatformData(platform, companyId);
+      await loadData(); // Refresh data
+      toast.success(`${platform} data synced successfully`);
     } catch (error) {
-      toast.error(`Failed to sync ${platformId} data`);
+      logger.error('Error syncing social media:', error);
+      toast.error(`Failed to sync ${platform} data`);
+    }
+  }, [companyId, loadData]);
+
+  // Document functions
+  const uploadFiles = useCallback(async (files: File[], category: string = 'general') => {
+    if (!companyId) return [];
+
+    try {
+      const uploaded = await documentService.uploadFiles(files, companyId, category);
+      await loadData(); // Refresh data
+      return uploaded;
+    } catch (error) {
+      logger.error('Error uploading files:', error);
+      toast.error('Failed to upload files');
+      return [];
+    }
+  }, [companyId, loadData]);
+
+  // Website functions
+  const crawlWebsite = useCallback(async (url: string) => {
+    if (!companyId) return null;
+
+    setIsLoading(true);
+    try {
+      const data = await websiteService.crawlWebsite(url, companyId);
+      await loadData(); // Refresh data
+      toast.success('Website crawled successfully');
+      return data;
+    } catch (error) {
+      logger.error('Error crawling website:', error);
+      toast.error('Failed to crawl website');
+      return null;
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [companyId, loadData]);
 
-  const uploadFiles = useCallback(async (files: File[]): Promise<UploadedFile[]> => {
-    setIsLoading(true);
+  // AI Insights functions
+  const refreshInsights = useCallback(async () => {
+    if (!companyId) return;
+
     try {
-      const uploadedFiles: UploadedFile[] = files.map(file => ({
-        id: crypto.randomUUID(),
-        name: file.name,
-        size: file.size,
-        uploadedAt: new Date(),
-        uploadDate: new Date(),
-        type: file.type,
-        category: 'general',
-        tags: [],
-        url: URL.createObjectURL(file)
-      }));
-
-      setUploadedFiles(prev => [...prev, ...uploadedFiles]);
-      setDataStatus(prev => ({
-        ...prev,
-        totalFiles: prev.totalFiles + files.length,
-        lastUpdate: new Date(),
-        processingStatus: 'processing'
-      }));
-
-      // Simulate processing
-      setTimeout(() => {
-        setDataStatus(prev => ({ ...prev, processingStatus: 'completed' }));
-      }, 2000);
-
-      return uploadedFiles;
+      const newInsights = await aiInsightsService.generateInsights(companyId);
+      setInsights(newInsights);
+      toast.success('Insights refreshed');
     } catch (error) {
-      logger.error('File upload failed', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const refreshInsights = useCallback(async (): Promise<void> => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      const mockInsights: AIInsight[] = [
-        {
-          id: '1',
-          title: 'Content Gap Analysis',
-          type: 'website',
-          summary: 'Content analysis shows gaps in technical documentation',
-          suggestion: 'Create more detailed product feature content',
-          confidence: 0.85,
-          createdAt: new Date(),
-          data: { gaps: ['technical specs', 'integration guides'] }
-        },
-        {
-          id: '2',
-          title: 'Brand Voice Consistency',
-          type: 'social',
-          summary: 'Inconsistent brand voice across channels',
-          suggestion: 'Align social media tone with website messaging',
-          confidence: 0.72,
-          createdAt: new Date(),
-          data: { channels: ['social', 'website'] }
-        }
-      ];
-
-      setInsights(mockInsights);
-      toast.success('AI insights refreshed');
-    } catch (error) {
+      logger.error('Error refreshing insights:', error);
       toast.error('Failed to refresh insights');
-    } finally {
-      setIsLoading(false);
     }
-  }, []);
+  }, [companyId]);
 
-  const createCampaignBrief = useCallback(async (insight: AIInsight): Promise<void> => {
-    setIsLoading(true);
+  const createCampaignBrief = useCallback(async (insight: AIInsight) => {
+    if (!companyId) return '';
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const brief = await aiInsightsService.createCampaignBrief(insight, companyId);
       toast.success('Campaign brief created');
+      return brief;
     } catch (error) {
+      logger.error('Error creating campaign brief:', error);
       toast.error('Failed to create campaign brief');
-    } finally {
-      setIsLoading(false);
+      return '';
+    }
+  }, [companyId]);
+
+  const sendInsightEmail = useCallback(async (insight: AIInsight) => {
+    try {
+      // Create email draft with insight data
+      const emailBody = `
+Subject: AI Insight: ${insight.title}
+
+${insight.summary}
+
+Recommendation: ${insight.suggestion}
+
+Confidence: ${Math.round(insight.confidence * 100)}%
+
+Generated: ${insight.createdAt.toLocaleDateString()}
+      `.trim();
+
+      // In a real implementation, this would open the user's email client
+      navigator.clipboard.writeText(emailBody);
+      toast.success('Email content copied to clipboard');
+    } catch (error) {
+      logger.error('Error preparing email:', error);
+      toast.error('Failed to prepare email');
     }
   }, []);
-
-  const sendInsightEmail = useCallback(async (insight: AIInsight): Promise<void> => {
-    setIsLoading(true);
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      toast.success(`Insight sent successfully`);
-    } catch (error) {
-      toast.error('Failed to send insight');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const refreshData = useCallback(async (): Promise<void> => {
-    setIsLoading(true);
-    try {
-      await Promise.all([
-        refreshInsights(),
-        // Refresh other data sources
-      ]);
-      
-      setDataStatus(prev => ({
-        ...prev,
-        lastUpdate: new Date(),
-        processingStatus: 'completed'
-      }));
-    } catch (error) {
-      toast.error('Failed to refresh data');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [refreshInsights]);
 
   return {
-    crawlWebsite,
+    isLoading,
+    socialConnections,
+    uploadedFiles,
+    websiteData,
+    insights,
+    dataStatus,
     connectSocialMedia,
     syncSocialMedia,
     uploadFiles,
+    crawlWebsite,
     refreshInsights,
     createCampaignBrief,
     sendInsightEmail,
-    refreshData,
-    websiteData,
-    socialConnections,
-    uploadedFiles,
-    insights,
-    dataStatus,
-    isLoading
+    refreshData: loadData
   };
 };

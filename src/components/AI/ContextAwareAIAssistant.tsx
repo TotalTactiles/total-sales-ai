@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -21,9 +20,7 @@ import {
   Target
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { unifiedAIService } from '@/services/ai/unifiedAIService';
-
-export type WorkspaceContext = 'lead_management' | 'academy' | 'dashboard' | 'analytics' | 'general';
+import { unifiedAIService, WorkspaceContext } from '@/services/ai/unifiedAIService';
 
 interface ContextAwareAIAssistantProps {
   workspaceContext: WorkspaceContext;

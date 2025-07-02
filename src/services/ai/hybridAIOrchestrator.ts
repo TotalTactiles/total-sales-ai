@@ -77,11 +77,12 @@ export class HybridAIOrchestrator {
             result = summaryResponse.response;
             source = summaryResponse.source;
           } else {
-            const quickResult = await unifiedAIService.performQuickAnalysis(
-              `Summarize: ${task.input}`
+            const quickResponse = await unifiedAIService.performQuickAnalysis(
+              `Summarize: ${task.input}`,
+              task.context
             );
-            result = quickResult;
-            source = 'openai';
+            result = quickResponse.response;
+            source = quickResponse.source;
           }
           break;
 

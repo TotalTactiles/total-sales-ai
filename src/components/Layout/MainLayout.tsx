@@ -2,7 +2,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import EnhancedRelevanceAIBubble from '@/components/RelevanceAI/EnhancedRelevanceAIBubble';
-import { useAuth } from '@/contexts/auth/AuthProvider';
+import { useAuth } from '@/contexts/AuthContext';
 import { useAIContext } from '@/contexts/AIContext';
 import { useRelevanceAITriggers } from '@/hooks/useRelevanceAITriggers';
 

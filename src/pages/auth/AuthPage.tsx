@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,10 +10,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DeveloperSecretLogin from '@/components/Developer/DeveloperSecretLogin';
 import DemoLoginCards from '@/components/auth/DemoLoginCards';
 import AuthSignupForm from './components/AuthSignupForm';
+import LoginLoadingState from '@/components/auth/LoginLoadingState';
 import { useDeveloperSecretTrigger } from '@/hooks/useDeveloperSecretTrigger';
 import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 import { ensureDemoUsersExist } from '@/utils/demoSetup';
-import { logger } from '@/utils/logger';
+import { fetchUserProfileOptimized, logAuthPerformance, updateUserMetadataDeferred } from '@/utils/authOptimizer';
+import { preloadSalesOSData, setCachedSession } from '@/utils/salesDataOptimizer';
 
 const roles = [
   { 
@@ -36,8 +38,10 @@ const AuthPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState(isDemoMode ? 'demo' : 'login');
+  const [isLogin, setIsLogin] = useState(true);
   const [demoUsersReady, setDemoUsersReady] = useState(false);
-  const [authError, setAuthError] = useState<string>('');
+  const [loginStage, setLoginStage] = useState<'authenticating' | 'loading_profile' | 'preparing_dashboard'>('authenticating');
+  const [currentLoginRole, setCurrentLoginRole] = useState<string>('');
   
   // Developer secret trigger
   const { showDeveloperLogin, setShowDeveloperLogin } = useDeveloperSecretTrigger();
@@ -47,13 +51,8 @@ const AuthPage: React.FC = () => {
     if (isDemoMode) {
       ensureDemoUsersExist().then(() => {
         setDemoUsersReady(true);
-        logger.info('Demo users setup complete', {}, 'auth');
-      }).catch(error => {
-        logger.error('Failed to setup demo users:', error, 'auth');
-        setDemoUsersReady(true); // Continue anyway
+        console.log('🎭 Demo users setup complete');
       });
-    } else {
-      setDemoUsersReady(true);
     }
   }, []);
 
@@ -68,82 +67,227 @@ const AuthPage: React.FC = () => {
     }
   }, [selectedRole, activeTab]);
 
-  // Redirect authenticated users based on role
   useEffect(() => {
-    if (!loading && user && profile) {
-      logger.info('User authenticated, redirecting based on role:', { role: profile.role }, 'auth');
-      
-      const targetRoute = profile.role === 'manager' ? '/manager/dashboard'
-        : profile.role === 'developer' ? '/developer/dashboard'
-        : '/sales/dashboard';
-      
-      navigate(targetRoute, { replace: true });
-    }
-  }, [user, profile, loading, navigate]);
+    const checkUserStatus = async () => {
+      if (!user || loading) {
+        console.log('🔍 AuthPage: Waiting for user/loading state', { user: !!user, loading });
+        return;
+      }
+
+      console.log('🔍 AuthPage: Checking user status', { 
+        userId: user.id, 
+        userEmail: user.email,
+        profile: !!profile
+      });
+
+      try {
+        const performanceStart = performance.now();
+        
+        // Check if this is a demo user first
+        const isDemoUser = isDemoMode && demoUsers.some(du => du.email === user.email);
+        console.log('🎭 Is demo user?', isDemoUser);
+
+        if (isDemoUser) {
+          const demoUserData = demoUsers.find(du => du.email === user.email);
+          console.log('🎭 Demo user found:', demoUserData);
+          
+          // Set cached session for faster subsequent loads
+          if (demoUserData) {
+            setCachedSession(user.id, user.id, demoUserData.role);
+          }
+          
+          // Prefetch route and data based on role
+          const targetRoute = demoUserData?.role === 'manager' ? '/manager/dashboard' 
+            : demoUserData?.role === 'developer' ? '/developer/dashboard' 
+            : '/sales/dashboard';
+          
+          // Prefetch the route
+          navigate(targetRoute, { replace: true });
+          
+          // Preload data in background for sales role
+          if (demoUserData?.role === 'sales_rep') {
+            setTimeout(() => {
+              preloadSalesOSData(user.id, user.id).catch(console.error);
+            }, 0);
+          }
+          
+          // Deferred metadata update
+          setTimeout(() => {
+            updateUserMetadataDeferred(user.id);
+          }, 100);
+          
+          return;
+        }
+
+        // For non-demo users, fetch profile optimized
+        const profileData = await fetchUserProfileOptimized(user.id);
+        const performanceEnd = performance.now();
+        
+        console.log('🔍 User profile check:', profileData);
+
+        if (!profileData) {
+          console.log('➡️ No profile found, creating profile and redirecting to dashboard');
+          // For users without profiles, redirect to dashboard based on auth metadata
+          const userRole = user.user_metadata?.role || 'sales_rep';
+          const targetRoute = userRole === 'manager' ? '/manager/dashboard'
+            : userRole === 'developer' ? '/developer/dashboard'
+            : '/sales/dashboard';
+          navigate(targetRoute, { replace: true });
+          return;
+        }
+
+        // Set cached session for faster loads
+        setCachedSession(user.id, profileData.company_id || user.id, profileData.role);
+
+        // Always redirect to dashboard - skip onboarding for demo
+        console.log('➡️ Redirecting to dashboard for role:', profileData.role);
+        const targetRoute = profileData.role === 'manager' ? '/manager/dashboard'
+          : profileData.role === 'developer' ? '/developer/dashboard'
+          : '/sales/dashboard';
+        
+        // Preload data for sales users
+        if (profileData.role === 'sales_rep') {
+          setTimeout(() => {
+            preloadSalesOSData(user.id, profileData.company_id || user.id).catch(console.error);
+          }, 0);
+        }
+        
+        navigate(targetRoute, { replace: true });
+        
+        // Log performance metrics
+        await logAuthPerformance({
+          loginStart: performanceStart,
+          sessionRetrieved: performanceStart,
+          profileFetched: performanceEnd,
+          routingComplete: performance.now()
+        }, profileData.role);
+        
+        // Deferred metadata update
+        setTimeout(() => {
+          updateUserMetadataDeferred(user.id);
+        }, 100);
+        
+      } catch (error) {
+        console.error('❌ Error checking user status:', error);
+        // Fallback to sales dashboard
+        navigate('/sales/dashboard', { replace: true });
+      }
+    };
+
+    checkUserStatus();
+  }, [user, loading, navigate, profile]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSubmitting || !email || !password) return;
-    
     setIsSubmitting(true);
-    setAuthError('');
+    
+    const performanceStart = performance.now();
+    setLoginStage('authenticating');
 
     try {
-      logger.info('Login attempt for:', { email }, 'auth');
+      console.log('🔐 Login attempt for:', email);
+      
+      // Prefetch the likely destination route
+      const demoUser = demoUsers.find(u => u.email === email);
+      const expectedRole = demoUser?.role || selectedRole;
+      const expectedRoute = expectedRole === 'manager' ? '/manager/dashboard'
+        : expectedRole === 'developer' ? '/developer/dashboard'
+        : '/sales/dashboard';
+      
+      // Prefetch route while authenticating
+      setTimeout(() => {
+        const router = document.createElement('link');
+        router.rel = 'prefetch';
+        router.href = expectedRoute;
+        document.head.appendChild(router);
+      }, 0);
       
       const result = await signIn(email, password);
       
       if (result?.error) {
-        logger.error('Login error:', result.error, 'auth');
-        setAuthError(result.error.message || 'Login failed. Please try again.');
+        console.error('❌ Login error:', result.error);
         setIsSubmitting(false);
         return;
       }
 
-      logger.info('Login successful', {}, 'auth');
-      // Don't set isSubmitting to false - let the redirect handle cleanup
+      const sessionTime = performance.now();
+      setLoginStage('loading_profile');
+      
+      console.log('✅ Login successful');
+      // Success - the useEffect above will handle the redirect
     } catch (error) {
-      logger.error('Login exception:', error, 'auth');
-      setAuthError('An unexpected error occurred. Please try again.');
+      console.error('❌ Login exception:', error);
       setIsSubmitting(false);
     }
   };
 
   const handleDemoLogin = async (demoEmail: string, demoPassword: string) => {
     setIsSubmitting(true);
-    setAuthError('');
+    setLoginStage('authenticating');
+    
+    // Set current role for loading state
+    const demoUser = demoUsers.find(u => u.email === demoEmail);
+    if (demoUser) {
+      setCurrentLoginRole(demoUser.role);
+      
+      // Prefetch the destination route immediately
+      const targetRoute = demoUser.role === 'manager' ? '/manager/dashboard'
+        : demoUser.role === 'developer' ? '/developer/dashboard'
+        : '/sales/dashboard';
+      
+      const prefetchLink = document.createElement('link');
+      prefetchLink.rel = 'prefetch';
+      prefetchLink.href = targetRoute;
+      document.head.appendChild(prefetchLink);
+    }
     
     try {
-      logger.info('Demo login attempt for:', { email: demoEmail }, 'auth');
+      console.log('🎭 Demo login attempt for:', demoEmail);
       
       const result = await signIn(demoEmail, demoPassword);
       if (result?.error) {
-        logger.error('Demo login error:', result.error, 'auth');
-        setAuthError(result.error.message || 'Demo login failed. Please try again.');
-        setIsSubmitting(false);
-        return;
+        console.error('❌ Demo login error:', result.error);
+        // If login fails, try to create the user first
+        if (result.error.message.includes('Invalid login credentials')) {
+          console.log('🎭 User may not exist, ensuring demo users are created...');
+          await ensureDemoUsersExist();
+          // Try login again
+          const retryResult = await signIn(demoEmail, demoPassword);
+          if (retryResult?.error) {
+            console.error('❌ Demo login failed after user creation:', retryResult.error);
+            setIsSubmitting(false);
+          }
+        } else {
+          setIsSubmitting(false);
+        }
+      } else {
+        console.log('✅ Demo login successful');
+        setLoginStage('loading_profile');
       }
-      
-      logger.info('Demo login successful', {}, 'auth');
     } catch (error) {
-      logger.error('Demo login exception:', error, 'auth');
-      setAuthError('An unexpected error occurred during demo login.');
+      console.error('❌ Demo login exception:', error);
       setIsSubmitting(false);
     }
   };
 
-  // Don't show loading for auth page - show the form immediately
-  // The auth state is handled by redirects in useEffect
+  // Show loading state during authentication
+  if ((loading || isSubmitting) && currentLoginRole) {
+    return <LoginLoadingState role={currentLoginRole} stage={loginStage} />;
+  }
 
-  // Show loading state during form submission
-  if (isSubmitting) {
+  if (loading || isSubmitting) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent mx-auto mb-4"></div>
-          <p className="text-foreground text-lg font-medium">Signing you in...</p>
-          <p className="text-muted-foreground text-sm mt-2">Please wait</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF]"></div>
+      </div>
+    );
+  }
+
+  if (user) {
+    console.log('🔍 User exists, showing loading while checking status...');
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF]"></div>
       </div>
     );
   }
@@ -162,14 +306,7 @@ const AuthPage: React.FC = () => {
           </CardHeader>
           
           <CardContent className="space-y-6">
-            {/* Error Display */}
-            {authError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
-                {authError}
-              </div>
-            )}
-
-            {isDemoMode && demoUsersReady ? (
+            {isDemoMode ? (
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="demo">Demo Access</TabsTrigger>
@@ -177,7 +314,14 @@ const AuthPage: React.FC = () => {
                 </TabsList>
                 
                 <TabsContent value="demo" className="space-y-4">
-                  <DemoLoginCards onDemoLogin={handleDemoLogin} />
+                  {demoUsersReady ? (
+                    <DemoLoginCards onDemoLogin={handleDemoLogin} />
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7B61FF] mx-auto mb-4"></div>
+                      <p className="text-sm text-gray-600">Setting up demo accounts...</p>
+                    </div>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="login" className="space-y-4">
@@ -224,7 +368,6 @@ const AuthPage: React.FC = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
                         required
-                        disabled={isSubmitting}
                       />
                     </div>
                     
@@ -239,7 +382,6 @@ const AuthPage: React.FC = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
                         required
-                        disabled={isSubmitting}
                       />
                     </div>
                     
@@ -248,19 +390,28 @@ const AuthPage: React.FC = () => {
                       disabled={isSubmitting}
                       className="w-full h-12 bg-[#7B61FF] hover:bg-[#674edc] text-white font-semibold transition-colors"
                     >
-                      → Login
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Logging in...
+                        </div>
+                      ) : (
+                        '→ Login'
+                      )}
                     </Button>
                   </form>
 
-                  <div className="text-center">
-                    <p className="text-xs text-gray-400">
-                      Credentials auto-filled for demo user
-                    </p>
-                  </div>
+                  {isDemoMode && (
+                    <div className="text-center">
+                      <p className="text-xs text-gray-400">
+                        Credentials auto-filled for demo user
+                      </p>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             ) : (
-              <Tabs value="login" className="w-full">
+              <Tabs value={isLogin ? 'login' : 'signup'} onValueChange={(value) => setIsLogin(value === 'login')} className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="login">Login</TabsTrigger>
                   <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -310,7 +461,6 @@ const AuthPage: React.FC = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
                         required
-                        disabled={isSubmitting}
                       />
                     </div>
                     
@@ -325,7 +475,6 @@ const AuthPage: React.FC = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="mt-1 w-full border-gray-300 rounded-lg focus:ring-[#7B61FF] focus:border-[#7B61FF]"
                         required
-                        disabled={isSubmitting}
                       />
                     </div>
                     
@@ -334,13 +483,20 @@ const AuthPage: React.FC = () => {
                       disabled={isSubmitting}
                       className="w-full h-12 bg-[#7B61FF] hover:bg-[#674edc] text-white font-semibold transition-colors"
                     >
-                      → Login
+                      {isSubmitting ? (
+                        <div className="flex items-center gap-2">
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Logging in...
+                        </div>
+                      ) : (
+                        '→ Login'
+                      )}
                     </Button>
                   </form>
                 </TabsContent>
                 
                 <TabsContent value="signup" className="space-y-4">
-                  <AuthSignupForm setIsLogin={() => {}} />
+                  <AuthSignupForm setIsLogin={setIsLogin} />
                 </TabsContent>
               </Tabs>
             )}

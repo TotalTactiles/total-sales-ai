@@ -44,7 +44,7 @@ describe('Landing page auth buttons', () => {
         <Wrapper />
       </MemoryRouter>
     );
-    const btn = screen.getAllByRole('button', { name: /try for free/i })[0];
+    const btn = screen.getAllByRole('button', { name: /get started/i })[0];
     fireEvent.click(btn);
     await waitFor(() => {
       expect(screen.getByTestId('location').textContent).toBe('/auth');
