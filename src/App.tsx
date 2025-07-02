@@ -1,6 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/auth/AuthProvider';
 import Auth from './pages/auth';
 import SalesDash from './pages/sales-dashboard';
 
@@ -18,13 +19,15 @@ export default function App() {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/sales/dashboard" element={<SalesDash />} />
-        <Route path="/sales-dashboard" element={<SalesDash />} />
-        <Route path="/*" element={<Navigate to="/sales/dashboard" replace />} />
-      </Routes>
-    </Router>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/sales/dashboard" element={<SalesDash />} />
+          <Route path="/sales-dashboard" element={<SalesDash />} />
+          <Route path="/*" element={<Navigate to="/sales/dashboard" replace />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
