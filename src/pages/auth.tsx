@@ -11,7 +11,7 @@ export default function Auth() {
       <button
         onClick={() => {
           localStorage.setItem('demo-auth', 'true');
-          window.location.href = '/safe-dashboard';
+          window.location.href = '/sales-dashboard';
         }}
       >
         Simulate Login
