@@ -49,11 +49,11 @@ const MainLayout: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#7B61FF] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Loading TSAM OS...</p>
-          <p className="text-gray-400 text-sm mt-2">Preparing your workspace</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent mx-auto mb-4"></div>
+          <p className="text-foreground text-lg font-medium">Loading TSAM OS...</p>
+          <p className="text-muted-foreground text-sm mt-2">Preparing your workspace</p>
         </div>
       </div>
     );

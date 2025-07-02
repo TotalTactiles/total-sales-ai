@@ -25,11 +25,11 @@ const LogoutHandler = () => {
   }, [signOut]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-4 border-red-500 border-t-transparent mx-auto mb-4"></div>
-        <p className="text-gray-600 text-lg font-medium">Logging out...</p>
-        <p className="text-gray-400 text-sm mt-2">Redirecting to login</p>
+        <div className="animate-spin rounded-full h-16 w-16 border-4 border-destructive border-t-transparent mx-auto mb-4"></div>
+        <p className="text-foreground text-lg font-medium">Logging out...</p>
+        <p className="text-muted-foreground text-sm mt-2">Redirecting to login</p>
       </div>
     </div>
   );

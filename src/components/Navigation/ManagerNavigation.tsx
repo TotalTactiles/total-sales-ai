@@ -7,7 +7,7 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 import UserDropdown from './UserDropdown';
 import UnifiedNotificationCenter from './UnifiedNotificationCenter';
 

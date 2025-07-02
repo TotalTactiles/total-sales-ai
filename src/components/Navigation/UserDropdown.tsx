@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { LogOut, User, Settings } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 import { useOptimizedLogout } from '@/utils/logoutOptimizer';
 import { toast } from 'sonner';
 

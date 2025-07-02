@@ -183,15 +183,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const handleSignOut = async () => {
     try {
-      logger.info('Starting sign out', {}, 'auth');
+      logger.info('🚪 Starting sign out', {}, 'auth');
       
-      // Call Supabase signout first
-      const { error } = await supabase.auth.signOut();
-      
-      // Clear state regardless of error
+      // Clear state immediately
       setUser(null);
       setSession(null);
       setProfile(null);
+      
+      // Call Supabase signout
+      const { error } = await supabase.auth.signOut();
       
       // Clear storage
       if (typeof window !== 'undefined') {
@@ -200,17 +200,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       
       if (error) {
-        logger.error('Sign out error:', error, 'auth');
+        logger.error('❌ Sign out error:', error, 'auth');
       } else {
-        logger.info('Sign out successful', {}, 'auth');
+        logger.info('✅ Sign out successful', {}, 'auth');
       }
       
       return { error: null };
       
     } catch (error) {
-      logger.error('Sign out exception:', error, 'auth');
+      logger.error('❌ Sign out exception:', error, 'auth');
       
-      // Clear state even on exception
+      // Ensure state is cleared even on exception
       setUser(null);
       setSession(null);
       setProfile(null);
@@ -219,10 +219,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const fetchProfile = async () => {
-    if (!user?.id) return null;
+  const fetchProfile = async (userId: string) => {
+    if (!userId) return null;
     
-    const profileData = await fetchUserProfile(user.id);
+    const profileData = await fetchUserProfile(userId);
     setProfile(profileData);
     return profileData;
   };

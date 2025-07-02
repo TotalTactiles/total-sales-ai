@@ -1,13 +1,13 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { DemoDataProvider } from '@/contexts/DemoDataContext';
 import AuthPage from '@/pages/auth/AuthPage';
 import MainLayout from '@/layouts/MainLayout';
 import LogoutHandler from '@/components/LogoutHandler';
 import NewLandingPage from '@/pages/NewLandingPage';
-import { useAuth } from '@/contexts/AuthContext';
+import LoadingScreen from '@/components/LoadingScreen';
 import { logger } from '@/utils/logger';
 
 const AppRoutes: React.FC = () => {
@@ -15,15 +15,7 @@ const AppRoutes: React.FC = () => {
 
   // Show loading spinner while determining auth state
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#7B61FF] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Loading TSAM OS...</p>
-          <p className="text-gray-400 text-sm mt-2">Preparing your workspace</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // If user is authenticated, determine role-based routing
@@ -40,15 +32,7 @@ const AppRoutes: React.FC = () => {
 
   // If user exists but no profile, show loading or redirect to complete setup
   if (user && !profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#7B61FF] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Setting up your profile...</p>
-          <p className="text-gray-400 text-sm mt-2">This will only take a moment</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen message="Setting up your profile..." subMessage="This will only take a moment" />;
   }
 
   // If not authenticated, show auth/landing pages

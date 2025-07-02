@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth/AuthProvider';
 import { getRoutesForRole } from '@/config/routes';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
