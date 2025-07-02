@@ -53,11 +53,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     const initializeAuth = async () => {
       try {
+        logger.info('🚀 Initializing auth state', {}, 'auth');
+        
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          logger.error('Error getting session:', error, 'auth');
+          logger.error('❌ Error getting session:', error, 'auth');
         }
 
         if (mounted) {
@@ -66,42 +68,69 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           // Fetch profile if user exists
           if (session?.user) {
+            logger.info('👤 Found user session, fetching profile', { userId: session.user.id }, 'auth');
             const profileData = await fetchUserProfile(session.user.id);
             if (mounted) {
               setProfile(profileData);
+              logger.info('✅ Profile fetched successfully', { 
+                userId: session.user.id, 
+                role: profileData?.role 
+              }, 'auth');
             }
           } else {
+            logger.info('👋 No user session found', {}, 'auth');
             setProfile(null);
           }
           
           setLoading(false);
+          logger.info('✅ Auth initialization complete', { 
+            hasUser: !!session?.user, 
+            hasProfile: !!session?.user 
+          }, 'auth');
         }
       } catch (error) {
-        logger.error('Auth initialization error:', error, 'auth');
+        logger.error('❌ Auth initialization error:', error, 'auth');
         if (mounted) {
           setLoading(false);
         }
       }
     };
 
-    // Set up auth state listener
+    // Set up auth state listener (non-async to prevent deadlocks)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
         
-        logger.info('Auth state changed:', { event, hasSession: !!session }, 'auth');
+        logger.info('🔄 Auth state changed:', { event, hasSession: !!session }, 'auth');
         
+        // Update session and user immediately
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Handle profile fetch asynchronously but separately
         if (session?.user) {
-          // Fetch profile for authenticated user
-          const profileData = await fetchUserProfile(session.user.id);
-          if (mounted) {
-            setProfile(profileData);
-          }
+          setTimeout(async () => {
+            if (!mounted) return;
+            try {
+              logger.info('👤 Fetching profile after auth change', { userId: session.user.id }, 'auth');
+              const profileData = await fetchUserProfile(session.user.id);
+              if (mounted) {
+                setProfile(profileData);
+                logger.info('✅ Profile updated after auth change', { 
+                  userId: session.user.id, 
+                  role: profileData?.role 
+                }, 'auth');
+              }
+            } catch (error) {
+              logger.error('❌ Error fetching profile after auth change:', error, 'auth');
+              if (mounted) {
+                setProfile(null);
+              }
+            }
+          }, 0);
         } else {
           setProfile(null);
+          logger.info('🚪 User signed out, cleared profile', {}, 'auth');
         }
       }
     );
