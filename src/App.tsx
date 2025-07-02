@@ -11,13 +11,11 @@ import LoadingScreen from '@/components/LoadingScreen';
 import { logger } from '@/utils/logger';
 
 const AppRoutes: React.FC = () => {
-  const { session, loading } = useAuth();
+  const { session } = useAuth();
 
   useEffect(() => {
-    console.log('\uD83D\uDD0D Auth Debug \u2014 session:', session, '| loading:', loading);
-  }, [session, loading]);
-
-  if (loading) return <LoadingScreen message="Preparing your workspace..." />;
+    console.log('\uD83D\uDD0D Auth Debug \u2014 session:', session);
+  }, [session]);
 
   if (!session) {
     return (
@@ -44,12 +42,17 @@ const AppRoutes: React.FC = () => {
   );
 };
 
+const AuthGate: React.FC = () => {
+  const { loading } = useAuth();
+  return loading ? <LoadingScreen message="Resolving auth..." /> : <AppRoutes />;
+};
+
 const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
         <DemoDataProvider>
-          <AppRoutes />
+          <AuthGate />
         </DemoDataProvider>
       </AuthProvider>
     </Router>

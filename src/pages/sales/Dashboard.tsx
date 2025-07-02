@@ -12,7 +12,7 @@ export default function SalesDashboardPage() {
   }, [session]);
 
   useEffect(() => {
-    console.log('✅ Dashboard mounted');
+    console.log('🧩 SalesDashboard mounted successfully');
   }, []);
 
   if (loading) return <LoadingScreen />;
