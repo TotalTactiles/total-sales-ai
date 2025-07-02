@@ -20,7 +20,7 @@ const AppRoutes: React.FC = () => {
 
   // If user is authenticated, determine role-based routing
   if (user && profile) {
-    logger.info('User authenticated, routing to dashboard:', { role: profile.role }, 'auth');
+    logger.info('✅ User authenticated, routing based on role:', { role: profile.role }, 'auth');
     
     return (
       <Routes>
