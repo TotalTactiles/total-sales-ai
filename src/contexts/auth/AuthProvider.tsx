@@ -50,20 +50,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // Initialize auth state
   useEffect(() => {
     const fetchSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Session fetch error:', error);
-      } else {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Session fetch error:', error);
+        }
+
         setSession(data?.session ?? null);
         setUser(data?.session?.user ?? null);
+
         if (data?.session?.user) {
           const profileData = await fetchUserProfile(data.session.user.id);
           setProfile(profileData);
         } else {
           setProfile(null);
         }
+      } catch (err) {
+        console.error('Unexpected session error:', err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchSession();
@@ -77,10 +83,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } else {
         setProfile(null);
       }
+      setLoading(false); // ensure loading false on auth changes
     });
 
     return () => listener?.subscription?.unsubscribe();
   }, []);
+
+  // Fallback: prevent infinite loading state
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.error('❌ Auth loading exceeded 5s — forcing fallback.');
+        setLoading(false);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
 
   const handleSignIn = async (email: string, password: string) => {
     logger.info('Sign in attempt:', { email }, 'auth');
