@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Initialize auth state - simplified approach
+  // Initialize auth state
   useEffect(() => {
     let mounted = true;
 
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile for authenticated user (non-blocking)
+          // Fetch profile for authenticated user
           fetchUserProfile(session.user.id).then(profileData => {
             if (mounted) {
               setProfile(profileData);
@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // No dependencies to prevent re-initialization
+  }, []);
 
   const handleSignIn = async (email: string, password: string) => {
     logger.info('Sign in attempt:', { email }, 'auth');
@@ -177,11 +177,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logger.info('Sign out successful', {}, 'auth');
       }
       
-      return { error: null }; // Always return success for UI
+      return { error: null };
       
     } catch (error) {
       logger.error('Sign out exception:', error, 'auth');
-      return { error: null }; // Always return success for UI
+      return { error: null };
     }
   };
 

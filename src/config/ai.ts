@@ -1,48 +1,50 @@
 
 export const aiConfig = {
+  // All AI integrations disabled
+  enabled: false,
   openai: {
-    apiKey: process.env.OPENAI_API_KEY || '',
-    baseUrl: 'https://api.openai.com/v1',
-    defaultModel: 'gpt-4o-mini',
-    fallbackModel: 'gpt-3.5-turbo'
+    apiKey: '',
+    baseUrl: '',
+    defaultModel: '',
+    fallbackModel: ''
   },
   claude: {
-    apiKey: process.env.ANTHROPIC_API_KEY || '',
-    baseUrl: 'https://api.anthropic.com/v1',
-    defaultModel: 'claude-3-haiku-20240307'
+    apiKey: '',
+    baseUrl: '',
+    defaultModel: ''
   },
   relevance: {
-    apiKey: process.env.RELEVANCE_API_KEY || '',
-    baseUrl: 'https://api.relevanceai.com/v1'
+    apiKey: '',
+    baseUrl: ''
   },
   agents: {
     salesAgent: {
       name: 'Sales Assistant',
-      description: 'Personal AI assistant for sales representatives',
-      capabilities: ['lead_analysis', 'call_assistance', 'email_drafting', 'objection_handling']
+      description: 'Disabled',
+      capabilities: []
     },
     managerAgent: {
       name: 'Management Assistant',
-      description: 'AI assistant for sales managers and team leads',
-      capabilities: ['team_analysis', 'performance_insights', 'strategy_recommendations', 'coaching_suggestions']
+      description: 'Disabled',
+      capabilities: []
     },
     automationAgent: {
       name: 'Automation Assistant',
-      description: 'AI assistant for workflow automation and optimization',
-      capabilities: ['workflow_creation', 'process_optimization', 'trigger_management', 'performance_monitoring']
+      description: 'Disabled',
+      capabilities: []
     },
     developerAgent: {
       name: 'System Assistant',
-      description: 'AI assistant for system health and error resolution',
-      capabilities: ['error_diagnosis', 'system_monitoring', 'performance_optimization', 'health_reporting']
+      description: 'Disabled',
+      capabilities: []
     }
   },
   fallback: {
-    enabled: true,
+    enabled: false,
     responses: {
-      generic: "I'm here to help! Could you please provide more details about what you need assistance with?",
-      sales: "I'm your sales assistant! I can help with lead analysis, call preparation, email drafting, and objection handling. What would you like to work on?",
-      manager: "I'm your management assistant! I can provide team insights, performance analysis, and strategic recommendations. How can I help you today?"
+      generic: "AI features are currently disabled for system stability.",
+      sales: "AI features are currently disabled for system stability.",
+      manager: "AI features are currently disabled for system stability."
     }
   }
 };

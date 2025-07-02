@@ -66,14 +66,8 @@ const SalesRepNavigation: React.FC = () => {
             })}
           </div>
 
-          {/* Right Side - Notifications, AI Status, User Menu */}
+          {/* Right Side - Notifications and User Menu */}
           <div className="flex items-center gap-3">
-            {/* AI Assistant Status */}
-            <Badge variant="outline" className="hidden sm:flex bg-green-50 text-green-700 border-green-200">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-              AI Assistant Active
-            </Badge>
-
             {/* Notifications */}
             <UnifiedNotificationCenter />
 
