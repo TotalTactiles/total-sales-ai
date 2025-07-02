@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/auth/AuthProvider";
 
 export default function SalesDashboard() {
   const [data, setData] = useState<any>(null);
@@ -6,18 +7,20 @@ export default function SalesDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [authState, setAuthState] = useState<string>("checking");
 
-  // Safe auth hook with fallback
+  // Safe auth hook with proper error handling
   let user = null;
   let session = null;
+  let authError = null;
   
   try {
-    const { useAuth } = require("@/contexts/auth/AuthProvider");
     const authData = useAuth();
     user = authData?.user;
     session = authData?.session;
     console.log("✅ Auth context available:", { user: !!user, session: !!session });
-  } catch (authError) {
-    console.error("⚠️ Auth context not available:", authError);
+    setAuthState("available");
+  } catch (err) {
+    console.error("⚠️ Auth context not available:", err);
+    authError = err;
     setAuthState("no-auth-context");
   }
 
@@ -97,11 +100,13 @@ export default function SalesDashboard() {
     );
   }
 
+  console.log("✅ Sales Dashboard loaded without crashing");
+  
   return (
     <div style={{ padding: "2rem", border: "2px solid green" }}>
       <h2>📊 Full Sales Dashboard</h2>
       <p>🧪 Rendered safely with stub data.</p>
-      <p>👤 User: {user?.email || 'demo-user'}</p>
+      <p>👤 User: {user?.email || "demo-user"}</p>
       <pre>{JSON.stringify(data, null, 2)}</pre>
     </div>
   );
