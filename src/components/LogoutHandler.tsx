@@ -12,7 +12,7 @@ const LogoutHandler = () => {
         logger.info('LogoutHandler: Performing logout', {}, 'auth');
         await signOut();
         
-        // Force immediate redirect to auth page
+        // Force immediate redirect to auth page (not safe-dashboard)
         window.location.replace('/auth');
       } catch (error) {
         logger.error('LogoutHandler: Logout error:', error, 'auth');

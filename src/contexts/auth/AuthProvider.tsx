@@ -47,59 +47,90 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // Initialize auth state
+  // Initialize auth state with proper session handling
   useEffect(() => {
-    const fetchSession = async () => {
+    let mounted = true;
+
+    const initializeAuth = async () => {
       try {
-        console.log('🔁 Fetching Supabase session...');
-        const {
-          data: { session },
-          error
-        } = await supabase.auth.getSession();
+        console.log('🔁 Initializing auth state...');
+        
+        // Get current session
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        
         if (error) {
-          console.error('❌ Supabase session error:', error);
+          console.error('❌ Session fetch error:', error);
         }
-        setSession(session ?? null);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          const profileData = await fetchUserProfile(session.user.id);
-          setProfile(profileData);
-        } else {
-          setProfile(null);
+
+        if (mounted) {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          
+          if (currentSession?.user) {
+            const profileData = await fetchUserProfile(currentSession.user.id);
+            if (mounted) {
+              setProfile(profileData);
+            }
+          }
+          
+          console.log('✅ Auth initialization complete');
+          setLoading(false);
         }
-      } catch (e) {
-        console.error('❌ Exception fetching session:', e);
-      } finally {
-        console.log('✅ Auth loading finished');
-        setLoading(false);
+      } catch (error) {
+        console.error('❌ Auth initialization error:', error);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchSession();
+    initializeAuth();
 
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔄 Auth state changed:', event);
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserProfile(session.user.id).then(setProfile);
-      } else {
-        setProfile(null);
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔄 Auth state changed:', event);
+        
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          if (session?.user) {
+            const profileData = await fetchUserProfile(session.user.id);
+            if (mounted) {
+              setProfile(profileData);
+            }
+          } else {
+            setProfile(null);
+          }
+          
+          setLoading(false);
+          
+          // Handle successful sign in - redirect to appropriate dashboard
+          if (event === 'SIGNED_IN' && session?.user) {
+            console.log('✅ User signed in, redirecting to dashboard...');
+            // Redirect to sales dashboard instead of safe-dashboard
+            window.location.href = '/sales/dashboard';
+          }
+        }
       }
-      setLoading(false);
-    });
+    );
 
-    return () => listener.subscription.unsubscribe();
+    // Cleanup
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  // Fallback: prevent infinite loading state
+  // Fallback timeout to prevent infinite loading
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (loading) {
-        console.error('❌ Auth loading exceeded 5s — forcing fallback.');
+        console.warn('⚠️ Auth loading timeout - forcing completion');
         setLoading(false);
       }
-    }, 5000);
+    }, 3000);
 
     return () => clearTimeout(timeout);
   }, [loading]);
@@ -166,6 +197,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logger.info('✅ Sign out successful', {}, 'auth');
       }
       
+      // Redirect to auth page instead of safe-dashboard
+      window.location.href = '/auth';
+      
       return { error: null };
       
     } catch (error) {
@@ -175,6 +209,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setSession(null);
       setProfile(null);
+      
+      // Still redirect to auth page
+      window.location.href = '/auth';
       
       return { error: null };
     }

@@ -1,3 +1,4 @@
+
 import dynamic from "next/dynamic";
 
 const FullDashboard = dynamic(() => import("@/components/Sales/SalesDashboard"), {
