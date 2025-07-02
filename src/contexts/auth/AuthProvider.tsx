@@ -49,12 +49,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Initialize auth state
   useEffect(() => {
-    const fetchSession = async () => {
+    const getSession = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error('Session fetch error:', error);
-        }
+        const { data } = await supabase.auth.getSession();
+        console.log('🔐 Fetched session:', data?.session);
 
         setSession(data?.session ?? null);
         setUser(data?.session?.user ?? null);
@@ -65,28 +63,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           setProfile(null);
         }
-      } catch (err) {
-        console.error('Unexpected session error:', err);
+      } catch (e) {
+        console.error('❌ Session fetch failed:', e);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSession();
+    getSession();
 
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔄 Auth state change:', event, session);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        const profileData = await fetchUserProfile(session.user.id);
-        setProfile(profileData);
+        fetchUserProfile(session.user.id).then(setProfile);
       } else {
         setProfile(null);
       }
-      setLoading(false); // ensure loading false on auth changes
+      setLoading(false);
     });
 
-    return () => listener?.subscription?.unsubscribe();
+    return () => listener.subscription.unsubscribe();
   }, []);
 
   // Fallback: prevent infinite loading state

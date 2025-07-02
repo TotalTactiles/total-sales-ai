@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
 import ContextAwareAIBubble from '@/components/UnifiedAI/ContextAwareAIBubble';
@@ -8,6 +8,10 @@ import AgentTriggerButton from '@/frontend/automations-ui/AgentTriggerButton';
 
 // Sales Rep Pages  
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import FallbackError from '@/components/FallbackError';
+import LoadingScreen from '@/components/LoadingScreen';
 import LeadManagement from '@/pages/LeadManagement';
 import LeadWorkspace from '@/pages/LeadWorkspace';
 import Dialer from '@/pages/Dialer';
@@ -28,7 +32,18 @@ const SalesRepOS: React.FC = () => {
       <main className="pt-16 lg:pt-20">
         <Routes>
           <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<SalesRepDashboard />} />
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute>
+                <Suspense fallback={<LoadingScreen message="Preparing your sales OS..." />}>
+                  <ErrorBoundary fallback={<FallbackError />}>
+                    <SalesRepDashboard />
+                  </ErrorBoundary>
+                </Suspense>
+              </ProtectedRoute>
+            }
+          />
           <Route path="leads" element={<LeadManagement />} />
           <Route path="leads/:leadId" element={<LeadWorkspace />} />
           <Route path="my-leads" element={<LeadManagement />} />
