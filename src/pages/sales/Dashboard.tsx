@@ -1,11 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/auth/AuthProvider";
+import { useLiveDashboardData } from "@/hooks/useLiveDashboardData";
 
 export default function SalesDashboard() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [authState, setAuthState] = useState<string>("checking");
 
   // Safe auth hook access with defensive guards
   let user = null;
@@ -22,80 +21,25 @@ export default function SalesDashboard() {
     authError = err;
   }
 
-  // Log before any render to debug Error #301
+  // Use live dashboard data hook
+  const { deals, stats, activities, loading: dataLoading, error: dataError } = useLiveDashboardData();
+
+  // Log before any render to debug
   console.log("🟩 Rendering dashboard with:", {
     user: !!user,
     session: !!session,
     authData: !!authData,
     authError: !!authError,
-    loading,
-    error,
-    authState
+    dataLoading,
+    dataError,
+    dealsCount: deals.length,
+    stats
   });
 
   useEffect(() => {
     console.log("🚀 SALES DASHBOARD MOUNTED");
-    
-    // Update auth state safely in useEffect
-    if (authError) {
-      setAuthState("no-auth-context");
-      return;
-    }
-    
-    if (authData) {
-      setAuthState("available");
-      console.log("✅ Auth context available:", { user: !!user, session: !!session });
-    }
-    
-    const initDashboard = async () => {
-      try {
-        // Check for demo auth fallback
-        const demoAuth = localStorage.getItem('demo-auth');
-        if (!user && !demoAuth) {
-          throw new Error("No authenticated user found and no demo auth");
-        }
-
-        console.log("🧠 Starting dashboard init...");
-        
-        // Simulate loading data with timeout protection
-        const dataPromise = new Promise(resolve => {
-          setTimeout(() => {
-            resolve({ 
-              deals: [], 
-              stats: {}, 
-              userId: user?.id || 'demo-user',
-              email: user?.email || 'demo@example.com'
-            });
-          }, 500);
-        });
-
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("Dashboard init timeout")), 3000);
-        });
-
-        const result = await Promise.race([dataPromise, timeoutPromise]);
-        
-        console.log("✅ Data loaded successfully");
-        setData(result);
-        setError(null);
-        setAuthState("success");
-      } catch (err) {
-        console.error("💥 Dashboard error caught:", err);
-        setError(err instanceof Error ? err.message : "Unknown error occurred");
-        setAuthState("error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Only init if we have some form of auth
-    if (authData || localStorage.getItem('demo-auth')) {
-      initDashboard();
-    } else {
-      setLoading(false);
-      setError("No authentication found");
-    }
-  }, [user, session, authData, authError]);
+    console.log("✅ Sales Dashboard loaded without crashing");
+  }, []);
 
   // Early return guards with defensive checks
   if (authError) {
@@ -110,50 +54,170 @@ export default function SalesDashboard() {
     );
   }
 
-  if (loading) {
-    console.log("🔵 Dashboard loading...");
+  if (!user || !session) {
+    console.log("🔵 User/session not ready...");
     return (
       <div style={{ padding: "2rem", minHeight: "200px" }}>
-        <p>Loading data...</p>
-        <p>🔍 Debug: user={user ? "yes" : "no"}, session={session ? "yes" : "no"}, state={authState}</p>
+        <p>Loading user session...</p>
+        <p>🔍 Debug: user={user ? "yes" : "no"}, session={session ? "yes" : "no"}</p>
+      </div>
+    );
+  }
+
+  if (dataLoading) {
+    console.log("🔵 Dashboard data loading...");
+    return (
+      <div style={{ padding: "2rem", minHeight: "200px" }}>
+        <p>Loading dashboard data...</p>
+        <p>🔍 Debug: user={user.email}, loading data from Supabase...</p>
       </div>
     );
   }
   
-  if (error) {
-    console.log("🔴 Dashboard error:", error);
+  if (dataError || error) {
+    const errorMsg = dataError || error;
+    console.log("🔴 Dashboard error:", errorMsg);
     return (
       <div style={{ padding: "2rem", border: "2px solid red", minHeight: "200px" }}>
         <h2>⚠️ Error loading dashboard</h2>
-        <p>{error}</p>
+        <p>{errorMsg}</p>
         <button onClick={() => window.location.reload()}>Reload Dashboard</button>
         <button onClick={() => window.location.href = '/auth'}>Back to Auth</button>
       </div>
     );
   }
 
-  // Final safety check before render
-  if (!data) {
-    console.log("🟡 No data yet, showing placeholder");
+  // Check if we have no data (empty state)
+  if (deals.length === 0 && stats.activeLeads === 0) {
+    console.log("🟡 Empty dashboard state");
     return (
-      <div style={{ padding: "2rem", border: "2px solid yellow", minHeight: "200px" }}>
+      <div style={{ padding: "2rem", border: "2px solid blue", minHeight: "200px" }}>
         <h2>📊 Sales Dashboard</h2>
-        <p>Waiting for data...</p>
+        <p>👤 Welcome, {user?.email}</p>
+        <div style={{ marginTop: "2rem", textAlign: "center" }}>
+          <h3>🚀 Ready to get started?</h3>
+          <p>No leads or activities yet. Start by importing leads or making calls!</p>
+          <div style={{ marginTop: "1rem" }}>
+            <button style={{ margin: "0 0.5rem", padding: "0.5rem 1rem" }}>
+              Import Leads
+            </button>
+            <button style={{ margin: "0 0.5rem", padding: "0.5rem 1rem" }}>
+              Make First Call
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
-  console.log("🟩 Sales Dashboard rendering successfully");
+  console.log("🟩 Sales Dashboard rendering successfully with live data");
   
   return (
     <div style={{ padding: "2rem", border: "2px solid green", minHeight: "200px" }}>
-      <h2>📊 Full Sales Dashboard</h2>
-      <p>🧪 Rendered safely with stub data.</p>
-      <p>👤 User: {user?.email || data?.email || "demo-user"}</p>
-      <p>🔍 Auth State: {authState}</p>
-      <pre style={{ background: "#f5f5f5", padding: "1rem", borderRadius: "4px" }}>
-        {JSON.stringify(data, null, 2)}
-      </pre>
+      <h2>📊 Live Sales Dashboard</h2>
+      <p>👤 User: {user?.email}</p>
+      
+      {/* Live Stats */}
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", 
+        gap: "1rem", 
+        margin: "1rem 0" 
+      }}>
+        <div style={{ padding: "1rem", border: "1px solid #ccc", borderRadius: "4px" }}>
+          <h4>🎯 Active Leads</h4>
+          <p style={{ fontSize: "2rem", margin: "0.5rem 0" }}>{stats.activeLeads}</p>
+        </div>
+        <div style={{ padding: "1rem", border: "1px solid #ccc", borderRadius: "4px" }}>
+          <h4>📞 Calls Today</h4>
+          <p style={{ fontSize: "2rem", margin: "0.5rem 0" }}>{stats.callsToday}</p>
+        </div>
+        <div style={{ padding: "1rem", border: "1px solid #ccc", borderRadius: "4px" }}>
+          <h4>💰 Pipeline</h4>
+          <p style={{ fontSize: "2rem", margin: "0.5rem 0" }}>{stats.revenuePipeline}</p>
+        </div>
+        <div style={{ padding: "1rem", border: "1px solid #ccc", borderRadius: "4px" }}>
+          <h4>📈 Conversion</h4>
+          <p style={{ fontSize: "2rem", margin: "0.5rem 0" }}>{stats.conversionRate}</p>
+        </div>
+      </div>
+
+      {/* Recent Deals */}
+      <div style={{ marginTop: "2rem" }}>
+        <h3>🔥 Recent Leads ({deals.length})</h3>
+        {deals.slice(0, 5).map((deal, index) => (
+          <div key={deal.id || index} style={{ 
+            padding: "1rem", 
+            margin: "0.5rem 0", 
+            border: "1px solid #ddd", 
+            borderRadius: "4px",
+            backgroundColor: deal.status === 'qualified' ? '#e8f5e8' : '#f9f9f9'
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <strong>{deal.name || 'Unknown Lead'}</strong>
+                <p style={{ margin: "0.25rem 0", color: "#666" }}>
+                  {deal.company && `${deal.company} • `}
+                  {deal.email}
+                </p>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <span style={{ 
+                  padding: "0.25rem 0.5rem", 
+                  borderRadius: "12px", 
+                  fontSize: "0.8rem",
+                  backgroundColor: deal.status === 'qualified' ? '#4caf50' : 
+                                 deal.status === 'contacted' ? '#ff9800' : '#2196f3',
+                  color: 'white'
+                }}>
+                  {deal.status || 'new'}
+                </span>
+                <p style={{ margin: "0.25rem 0", fontSize: "0.8rem", color: "#666" }}>
+                  {deal.priority && `Priority: ${deal.priority}`}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+        
+        {deals.length > 5 && (
+          <p style={{ textAlign: "center", margin: "1rem 0", color: "#666" }}>
+            ... and {deals.length - 5} more leads
+          </p>
+        )}
+      </div>
+
+      {/* Recent Activities */}
+      {activities.length > 0 && (
+        <div style={{ marginTop: "2rem" }}>
+          <h3>📋 Recent Activities ({activities.length})</h3>
+          {activities.slice(0, 3).map((activity, index) => (
+            <div key={activity.id || index} style={{ 
+              padding: "0.75rem", 
+              margin: "0.5rem 0", 
+              border: "1px solid #eee", 
+              borderRadius: "4px" 
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>📞 {activity.call_type || 'Call'}</span>
+                <span style={{ fontSize: "0.8rem", color: "#666" }}>
+                  {new Date(activity.created_at).toLocaleDateString()}
+                </span>
+              </div>
+              {activity.notes && (
+                <p style={{ margin: "0.5rem 0", fontSize: "0.9rem", color: "#666" }}>
+                  {activity.notes}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{ marginTop: "2rem", textAlign: "center", padding: "1rem", backgroundColor: "#f0f8ff" }}>
+        <h3 style={{ color: "#1976d2" }}>🎯 Live Dashboard Active</h3>
+        <p style={{ color: "#666" }}>Connected to Supabase • Real-time data • {deals.length} leads loaded</p>
+      </div>
     </div>
   );
 }
