@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Simplified profile fetching
+  // Fetch user profile
   const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
     try {
       const { data, error } = await supabase
@@ -36,22 +36,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (error) {
-        console.warn('Profile not found:', error.message);
+        logger.warn('Profile not found:', error.message, 'auth');
         return null;
       }
 
       return data as Profile;
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile:', error, 'auth');
       return null;
     }
   };
 
-  // Initialize auth state - simplified approach
+  // Initialize auth state
   useEffect(() => {
     let mounted = true;
 
-    const initAuth = async () => {
+    const initializeAuth = async () => {
       try {
         // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
@@ -70,6 +70,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (mounted) {
               setProfile(profileData);
             }
+          } else {
+            setProfile(null);
           }
           
           setLoading(false);
@@ -93,27 +95,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile for authenticated user (non-blocking)
-          fetchUserProfile(session.user.id).then(profileData => {
-            if (mounted) {
-              setProfile(profileData);
-            }
-          });
+          // Fetch profile for authenticated user
+          const profileData = await fetchUserProfile(session.user.id);
+          if (mounted) {
+            setProfile(profileData);
+          }
         } else {
           setProfile(null);
         }
-        
-        setLoading(false);
       }
     );
 
-    initAuth();
+    initializeAuth();
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []); // No dependencies to prevent re-initialization
+  }, []);
 
   const handleSignIn = async (email: string, password: string) => {
     logger.info('Sign in attempt:', { email }, 'auth');
@@ -157,7 +156,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       logger.info('Starting sign out', {}, 'auth');
       
-      // Clear state immediately for responsive UI
+      // Call Supabase signout first
+      const { error } = await supabase.auth.signOut();
+      
+      // Clear state regardless of error
       setUser(null);
       setSession(null);
       setProfile(null);
@@ -167,9 +169,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.clear();
         sessionStorage.clear();
       }
-
-      // Call Supabase signout
-      const { error } = await supabase.auth.signOut();
       
       if (error) {
         logger.error('Sign out error:', error, 'auth');
@@ -177,11 +176,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logger.info('Sign out successful', {}, 'auth');
       }
       
-      return { error: null }; // Always return success for UI
+      return { error: null };
       
     } catch (error) {
       logger.error('Sign out exception:', error, 'auth');
-      return { error: null }; // Always return success for UI
+      
+      // Clear state even on exception
+      setUser(null);
+      setSession(null);
+      setProfile(null);
+      
+      return { error: null };
     }
   };
 

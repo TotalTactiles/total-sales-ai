@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,6 +13,7 @@ import AuthSignupForm from './components/AuthSignupForm';
 import { useDeveloperSecretTrigger } from '@/hooks/useDeveloperSecretTrigger';
 import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 import { ensureDemoUsersExist } from '@/utils/demoSetup';
+import { logger } from '@/utils/logger';
 
 const roles = [
   { 
@@ -34,7 +36,6 @@ const AuthPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState(isDemoMode ? 'demo' : 'login');
-  const [isLogin, setIsLogin] = useState(true);
   const [demoUsersReady, setDemoUsersReady] = useState(false);
   const [authError, setAuthError] = useState<string>('');
   
@@ -46,9 +47,9 @@ const AuthPage: React.FC = () => {
     if (isDemoMode) {
       ensureDemoUsersExist().then(() => {
         setDemoUsersReady(true);
-        console.log('🎭 Demo users setup complete');
+        logger.info('Demo users setup complete', {}, 'auth');
       }).catch(error => {
-        console.error('🎭 Failed to setup demo users:', error);
+        logger.error('Failed to setup demo users:', error, 'auth');
         setDemoUsersReady(true); // Continue anyway
       });
     } else {
@@ -67,10 +68,10 @@ const AuthPage: React.FC = () => {
     }
   }, [selectedRole, activeTab]);
 
-  // Redirect authenticated users
+  // Redirect authenticated users based on role
   useEffect(() => {
     if (!loading && user && profile) {
-      console.log('🔍 User authenticated, redirecting based on role:', profile.role);
+      logger.info('User authenticated, redirecting based on role:', { role: profile.role }, 'auth');
       
       const targetRoute = profile.role === 'manager' ? '/manager/dashboard'
         : profile.role === 'developer' ? '/developer/dashboard'
@@ -88,21 +89,21 @@ const AuthPage: React.FC = () => {
     setAuthError('');
 
     try {
-      console.log('🔐 Login attempt for:', email);
+      logger.info('Login attempt for:', { email }, 'auth');
       
       const result = await signIn(email, password);
       
       if (result?.error) {
-        console.error('❌ Login error:', result.error);
+        logger.error('Login error:', result.error, 'auth');
         setAuthError(result.error.message || 'Login failed. Please try again.');
         setIsSubmitting(false);
         return;
       }
 
-      console.log('✅ Login successful');
+      logger.info('Login successful', {}, 'auth');
       // Don't set isSubmitting to false - let the redirect handle cleanup
     } catch (error) {
-      console.error('❌ Login exception:', error);
+      logger.error('Login exception:', error, 'auth');
       setAuthError('An unexpected error occurred. Please try again.');
       setIsSubmitting(false);
     }
@@ -113,36 +114,26 @@ const AuthPage: React.FC = () => {
     setAuthError('');
     
     try {
-      console.log('🎭 Demo login attempt for:', demoEmail);
+      logger.info('Demo login attempt for:', { email: demoEmail }, 'auth');
       
       const result = await signIn(demoEmail, demoPassword);
       if (result?.error) {
-        console.error('❌ Demo login error:', result.error);
+        logger.error('Demo login error:', result.error, 'auth');
         setAuthError(result.error.message || 'Demo login failed. Please try again.');
         setIsSubmitting(false);
         return;
       }
       
-      console.log('✅ Demo login successful');
+      logger.info('Demo login successful', {}, 'auth');
     } catch (error) {
-      console.error('❌ Demo login exception:', error);
+      logger.error('Demo login exception:', error, 'auth');
       setAuthError('An unexpected error occurred during demo login.');
       setIsSubmitting(false);
     }
   };
 
-  // Show loading state while auth is initializing
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#7B61FF] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Loading TSAM OS...</p>
-          <p className="text-gray-400 text-sm mt-2">Preparing your workspace</p>
-        </div>
-      </div>
-    );
-  }
+  // Don't show loading for auth page - show the form immediately
+  // The auth state is handled by redirects in useEffect
 
   // Show loading state during form submission
   if (isSubmitting) {
@@ -269,7 +260,7 @@ const AuthPage: React.FC = () => {
                 </TabsContent>
               </Tabs>
             ) : (
-              <Tabs value={isLogin ? 'login' : 'signup'} onValueChange={(value) => setIsLogin(value === 'login')} className="w-full">
+              <Tabs value="login" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="login">Login</TabsTrigger>
                   <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -349,7 +340,7 @@ const AuthPage: React.FC = () => {
                 </TabsContent>
                 
                 <TabsContent value="signup" className="space-y-4">
-                  <AuthSignupForm setIsLogin={setIsLogin} />
+                  <AuthSignupForm setIsLogin={() => {}} />
                 </TabsContent>
               </Tabs>
             )}

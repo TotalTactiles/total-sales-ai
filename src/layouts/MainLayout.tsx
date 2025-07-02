@@ -12,7 +12,6 @@ import DeveloperOS from '@/layouts/DeveloperOS';
 
 // Legacy imports for backward compatibility
 import Dashboard from '@/components/dashboard/Dashboard';
-import ManagerDashboard from '@/pages/ManagerDashboard';
 
 const MainLayout: React.FC = () => {
   const { user, profile, loading } = useAuth();
@@ -39,14 +38,14 @@ const MainLayout: React.FC = () => {
 
   const userRole = getUserRole();
 
-  logger.info('🔄 MainLayout routing:', {
+  logger.info('MainLayout routing:', {
     userRole,
     isDemo: isDemoMode,
     demoUserRole: demoUser?.role,
     profileRole: profile?.role,
     userId: user?.id,
     currentPath: location.pathname
-  });
+  }, 'routing');
 
   if (loading) {
     return (
@@ -61,7 +60,7 @@ const MainLayout: React.FC = () => {
   }
 
   if (!user) {
-    logger.warn('🚨 User not authenticated in MainLayout');
+    logger.warn('User not authenticated in MainLayout', {}, 'auth');
     return <Navigate to="/auth" replace />;
   }
 
@@ -69,14 +68,9 @@ const MainLayout: React.FC = () => {
   if (userRole === 'manager') {
     return (
       <Routes>
-        {/* Manager OS routes */}
         <Route path="/manager/*" element={<ManagerOS />} />
-        
-        {/* Legacy manager routes - redirect to new structure */}
         <Route path="/dashboard/manager" element={<Navigate to="/manager/dashboard" replace />} />
         <Route path="/manager-dashboard" element={<Navigate to="/manager/dashboard" replace />} />
-        
-        {/* Root redirect for managers */}
         <Route path="/" element={<Navigate to="/manager/dashboard" replace />} />
         <Route path="/*" element={<Navigate to="/manager/dashboard" replace />} />
       </Routes>
@@ -98,15 +92,11 @@ const MainLayout: React.FC = () => {
   return (
     <Routes>
       <Route path="/sales/*" element={<SalesRepOS />} />
-      
-      {/* Legacy sales routes */}
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/leads" element={<Navigate to="/sales/leads" replace />} />
       <Route path="/dialer" element={<Navigate to="/sales/dialer" replace />} />
       <Route path="/analytics" element={<Navigate to="/sales/analytics" replace />} />
       <Route path="/company-brain" element={<Navigate to="/sales/brain" replace />} />
-      
-      {/* Root redirect for sales reps */}
       <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
       <Route path="/*" element={<Navigate to="/sales/dashboard" replace />} />
     </Routes>

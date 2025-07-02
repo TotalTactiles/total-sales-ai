@@ -1,6 +1,7 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { logger } from '@/utils/logger';
 
 const LogoutHandler = () => {
   const { signOut } = useAuth();
@@ -8,13 +9,13 @@ const LogoutHandler = () => {
   useEffect(() => {
     const performLogout = async () => {
       try {
-        console.log('🔐 LogoutHandler: Performing logout');
+        logger.info('LogoutHandler: Performing logout', {}, 'auth');
         await signOut();
         
         // Force immediate redirect to auth page
         window.location.replace('/auth');
       } catch (error) {
-        console.error('🔐 LogoutHandler: Logout error:', error);
+        logger.error('LogoutHandler: Logout error:', error, 'auth');
         // Force redirect even if logout fails
         window.location.replace('/auth');
       }
