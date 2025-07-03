@@ -13,7 +13,9 @@ import {
   Mic,
   Headphones,
   Clock,
-  Calendar
+  Calendar,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { aiConfig, generateMockAIResponse } from '@/config/ai';
 import { toast } from 'sonner';
@@ -27,8 +29,9 @@ const VoiceBriefing: React.FC<VoiceBriefingProps> = ({ userName, className = '' 
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [duration] = useState(180); // 3 minutes
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement>();
   const intervalRef = useRef<NodeJS.Timeout>();
 
   const briefingData = {
@@ -45,7 +48,30 @@ const VoiceBriefing: React.FC<VoiceBriefingProps> = ({ userName, className = '' 
       "3 scheduled demos for today",
       "Pipeline value increased by $45K"
     ],
-    voiceText: `Good morning ${userName}! Here's your AI-powered daily briefing. You have 5 high-priority leads that require immediate attention today. Your conversion rate has improved by 23% this week - excellent work! You have 3 product demos scheduled, and your pipeline value has increased by $45,000. The AI recommends focusing on the TechCorp deal first, as they've shown strong buying signals. Have a productive day!`
+    fullSummary: `Good morning ${userName}! Here's your comprehensive AI-powered daily briefing for maximum sales performance.
+
+🎯 PRIORITY ALERTS:
+• 5 high-priority leads require immediate attention today
+• TechCorp deal shows 85% close probability - follow up by 2 PM
+• MegaInc requested pricing - proposal deadline is tomorrow
+
+📈 PERFORMANCE INSIGHTS:
+• Your conversion rate improved by 23% this week - excellent work!
+• You have 3 product demos scheduled for today
+• Pipeline value increased by $45,000 since last week
+• Response time average is 2.4 hours (18% faster than team average)
+
+🔥 RECOMMENDED ACTIONS:
+1. Contact Sarah Chen at TechCorp - she's been researching competitors
+2. Follow up on the MegaInc proposal with pricing options
+3. Prepare demo materials for this afternoon's presentations
+4. Review objection handling notes for price-sensitive prospects
+
+💡 AI COACHING TIP:
+Focus on value-based selling today. Your recent deals show 40% higher close rates when you lead with ROI rather than features.
+
+🎯 TODAY'S GOAL:
+Convert at least 2 of your high-priority leads and maintain your 5-day winning streak. You've got this!`
   };
 
   const handlePlayPause = () => {
@@ -187,12 +213,40 @@ const VoiceBriefing: React.FC<VoiceBriefingProps> = ({ userName, className = '' 
           </div>
         </div>
 
-        {/* Transcript Preview */}
+        {/* AI Daily Summary - Updated from Transcript Preview */}
         <div className="bg-blue-50 rounded-lg p-3">
-          <h5 className="text-sm font-medium text-blue-900 mb-2">Transcript Preview</h5>
-          <p className="text-sm text-blue-800 line-clamp-3">
-            {briefingData.voiceText}
-          </p>
+          <div className="flex items-center justify-between mb-2">
+            <h5 className="text-sm font-medium text-blue-900">AI Daily Summary</h5>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="h-6 w-6 p-0 text-blue-600 hover:bg-blue-100"
+            >
+              {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </Button>
+          </div>
+          <div className={`text-sm text-blue-800 ${isExpanded ? '' : 'line-clamp-3'}`}>
+            {isExpanded ? (
+              <div className="whitespace-pre-line max-h-60 overflow-y-auto">
+                {briefingData.fullSummary}
+              </div>
+            ) : (
+              <p className="line-clamp-3">
+                {briefingData.fullSummary.split('\n')[0]}
+              </p>
+            )}
+          </div>
+          {!isExpanded && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(true)}
+              className="mt-2 h-6 text-xs text-blue-600 hover:bg-blue-100 p-0"
+            >
+              Show full summary
+            </Button>
+          )}
         </div>
       </CardContent>
       

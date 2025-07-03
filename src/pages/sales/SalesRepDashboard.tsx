@@ -14,32 +14,21 @@ import {
   DollarSign,
   Zap,
   Brain,
-  Headphones
+  Headphones,
+  Settings
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMockData } from '@/hooks/useMockData';
-import AIGreeting from '@/components/AI/AIGreeting';
 import AISummaryCard from '@/components/AI/AISummaryCard';
 import AIRecommendations from '@/components/AI/AIRecommendations';
 import AICoachingPanel from '@/components/AI/AICoachingPanel';
 import VoiceBriefing from '@/components/AI/VoiceBriefing';
 import UnifiedAIBubble from '@/components/UnifiedAI/UnifiedAIBubble';
+import PerformanceCardsGrid from '@/components/Dashboard/PerformanceCardsGrid';
 
 const SalesRepDashboard: React.FC = () => {
   const { profile } = useAuth();
   const { leads } = useMockData();
-
-  // Mock data for dashboard
-  const dashboardStats = {
-    callsMade: 12,
-    dealsWon: 3,
-    winStreak: 5,
-    totalRevenue: 45000,
-    conversionRate: 23.5,
-    leadsContacted: 8,
-    emailsSent: 15,
-    meetingsScheduled: 4
-  };
 
   const recentLeads = leads.slice(0, 5);
 
@@ -64,7 +53,6 @@ const SalesRepDashboard: React.FC = () => {
   };
 
   const handleActionClick = (actionType: string, leadId?: string) => {
-    // Demo functionality with visual feedback
     const actionMessages = {
       call: 'Initiating call with AI-suggested talking points...',
       email: 'Drafting AI-optimized email...',
@@ -73,89 +61,22 @@ const SalesRepDashboard: React.FC = () => {
     };
     
     console.log(`Demo: ${actionType} action triggered${leadId ? ` for lead ${leadId}` : ''}`);
-    // In a real implementation, this would trigger actual functionality
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* AI Daily Summary Header with Voice Briefing */}
+        {/* Top Section with Performance Cards and Voice Briefing */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Performance Cards Grid - Now in top-left */}
           <div className="lg:col-span-2">
-            <AIGreeting 
-              userName={profile?.full_name || 'Sales Rep'}
-              streak={dashboardStats.winStreak}
-            />
+            <PerformanceCardsGrid />
           </div>
+          
+          {/* Voice Briefing - Right side */}
           <div>
             <VoiceBriefing userName={profile?.full_name || 'Sales Rep'} />
           </div>
-        </div>
-
-        {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Calls Made</CardTitle>
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Phone className="h-4 w-4 text-blue-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{dashboardStats.callsMade}</div>
-              <div className="flex items-center mt-1">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-xs text-green-600 font-medium">+8% from last week</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Deals Won</CardTitle>
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Target className="h-4 w-4 text-green-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{dashboardStats.dealsWon}</div>
-              <div className="flex items-center mt-1">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-xs text-green-600 font-medium">+15% from last week</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Win Streak</CardTitle>
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Zap className="h-4 w-4 text-purple-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{dashboardStats.winStreak}</div>
-              <div className="flex items-center mt-1">
-                <Badge className="bg-green-100 text-green-800 text-xs">Active streak</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Revenue</CardTitle>
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <DollarSign className="h-4 w-4 text-yellow-600" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">${dashboardStats.totalRevenue.toLocaleString()}</div>
-              <div className="flex items-center mt-1">
-                <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
-                <span className="text-xs text-green-600 font-medium">+12% this month</span>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
         {/* Main Content Grid */}
