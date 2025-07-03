@@ -56,7 +56,7 @@ export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
     doNotCall: mockLead.doNotCall || false,
     // Add required new properties with fallbacks
     lastActivity: mockLead.lastActivity || 'Recent activity',
-    aiPriority: (mockLead.aiPriority as Lead['aiPriority']) || 'medium',
+    aiPriority: (mockLead.aiPriority as Lead['aiPriority']) || 'Medium',
     nextAction: mockLead.nextAction || 'Follow up',
     lastAIInsight: mockLead.lastAIInsight || 'AI analysis pending'
   };

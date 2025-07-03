@@ -1,5 +1,5 @@
 
-import { describe, test, expect, jest } from '@jest/globals';
+import { describe, test, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -7,7 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import Dialer from '@/pages/Dialer';
 
 // Mock the hooks
-jest.mock('@/hooks/useLeads', () => ({
+vi.mock('@/hooks/useLeads', () => ({
   useLeads: () => ({
     leads: [],
     isLoading: false,
@@ -15,7 +15,7 @@ jest.mock('@/hooks/useLeads', () => ({
   })
 }));
 
-jest.mock('@/hooks/useMockData', () => ({
+vi.mock('@/hooks/useMockData', () => ({
   useMockData: () => ({
     leads: [
       {
@@ -38,7 +38,7 @@ jest.mock('@/hooks/useMockData', () => ({
         isSensitive: false,
         value: 64589,
         lastActivity: 'Called 2 days ago',
-        aiPriority: 'high',
+        aiPriority: 'High',
         nextAction: 'Follow up with email by Friday',
         lastAIInsight: 'Proposal opened twice, but no reply – follow up recommended'
       }
@@ -47,11 +47,11 @@ jest.mock('@/hooks/useMockData', () => ({
 }));
 
 // Mock Supabase
-jest.mock('@/integrations/supabase/client', () => ({
+vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     auth: {
-      getSession: jest.fn().mockResolvedValue({ data: { session: null } }),
-      onAuthStateChange: jest.fn().mockReturnValue({ data: { subscription: { unsubscribe: jest.fn() } } })
+      getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
+      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } })
     }
   }
 }));

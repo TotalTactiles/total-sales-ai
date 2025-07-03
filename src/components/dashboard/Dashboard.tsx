@@ -94,29 +94,33 @@ const Dashboard: React.FC = () => {
 
         <PriorityTasks tasks={dashboardData.priorityTasks} />
 
-        {/* Main Dashboard Grid with Pipeline Pulse, AI Recommendations, and Rewards */}
+        {/* Main Dashboard Grid with Pipeline Pulse and AI Recommendations */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Pipeline Pulse - Left Side (spans 2 columns) */}
           <div className="lg:col-span-2">
-            <PipelinePulse leads={leads.slice(0, 5)} onLeadClick={handleLeadClick} />
+            <PipelinePulse leads={leads} onLeadClick={handleLeadClick} />
           </div>
 
-          {/* Right Column - AI Recommendations and Rewards */}
-          <div className="space-y-6">
-            {/* AI Recommendations */}
+          {/* Right Column - AI Recommendations */}
+          <div>
             <AIRecommendations />
-            
-            {/* Rewards Progress */}
+          </div>
+        </div>
+
+        {/* Rewards Progress and AI Coaching Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Rewards Progress - Left Side */}
+          <div>
             <RewardsProgress />
           </div>
+
+          {/* AI Sales Coaching - Right Side (spans 2 columns) */}
+          <div className="lg:col-span-2">
+            <AICoachingPanel />
+          </div>
         </div>
 
-        {/* AI Sales Coaching - Full Width Below */}
-        <div className="w-full">
-          <AICoachingPanel />
-        </div>
-
-        {/* AI Assistant Hub - Below Coaching */}
+        {/* AI Assistant Hub - Full Width */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="lg:col-span-2">
             <AIAssistantHub stats={dashboardData.aiAssistant} />

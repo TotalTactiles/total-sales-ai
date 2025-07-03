@@ -25,7 +25,7 @@ export const convertDatabaseLeadToLead = (dbLead: DatabaseLead): Lead => {
     value: dbLead.value || 0,
     // Add required new properties with fallbacks
     lastActivity: new Date().toISOString(),
-    aiPriority: 'medium',
+    aiPriority: 'Medium',
     nextAction: 'Review proposal',
     lastAIInsight: 'No insights available'
   };

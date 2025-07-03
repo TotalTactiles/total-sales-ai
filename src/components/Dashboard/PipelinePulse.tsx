@@ -7,12 +7,11 @@ import {
   Phone, 
   Mail, 
   Calendar, 
-  MessageSquare, 
-  Eye,
   Brain,
   Clock,
   TrendingUp,
-  ExternalLink
+  ExternalLink,
+  DollarSign
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Lead } from '@/types/lead';
@@ -42,7 +41,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
     
     switch (actionType) {
       case 'call':
-        navigate(`/sales/dialer?leadId=${lead.id}`);
+        navigate(`/lead-workspace/${lead.id}?tab=call`);
         break;
       case 'email':
         navigate(`/lead-workspace/${lead.id}?tab=email`);
@@ -82,11 +81,26 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
   };
 
   const getAIPriorityColor = (priority: string) => {
-    switch (priority) {
+    switch (priority.toLowerCase()) {
       case 'high': return 'bg-red-100 text-red-800 border-red-200';
       case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'low': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const formatLastActivity = (lastActivity: string) => {
+    try {
+      if (lastActivity.includes('T')) {
+        const date = new Date(lastActivity);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return `${diffDays} days ago`;
+      }
+      return lastActivity;
+    } catch {
+      return lastActivity;
     }
   };
 
@@ -105,18 +119,18 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        {/* Desktop View - Table Layout */}
+        {/* Desktop View - Original Column Layout */}
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="text-left p-4 font-medium text-gray-600 text-sm">Lead</th>
+                <th className="text-left p-4 font-medium text-gray-600 text-sm">Contact</th>
+                <th className="text-left p-4 font-medium text-gray-600 text-sm">Deal Size</th>
                 <th className="text-left p-4 font-medium text-gray-600 text-sm">Status</th>
-                <th className="text-left p-4 font-medium text-gray-600 text-sm">Value</th>
+                <th className="text-left p-4 font-medium text-gray-600 text-sm">AI Summary</th>
+                <th className="text-left p-4 font-medium text-gray-600 text-sm">Conversion %</th>
                 <th className="text-left p-4 font-medium text-gray-600 text-sm">Last Activity</th>
-                <th className="text-left p-4 font-medium text-gray-600 text-sm">AI Priority</th>
-                <th className="text-left p-4 font-medium text-gray-600 text-sm">Next Action</th>
-                <th className="text-left p-4 font-medium text-gray-600 text-sm">AI Insight</th>
+                <th className="text-left p-4 font-medium text-gray-600 text-sm">Next Step</th>
                 <th className="text-center p-4 font-medium text-gray-600 text-sm">Actions</th>
               </tr>
             </thead>
@@ -141,6 +155,14 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
                     </div>
                   </td>
                   <td className="p-4">
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      <span className="font-bold text-lg text-gray-900">
+                        {lead.value?.toLocaleString() || '0'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="p-4">
                     <div className="flex items-center gap-2">
                       <span className="text-lg">{getPriorityIcon(lead.priority)}</span>
                       <Badge className={getStatusColor(lead.status)}>
@@ -148,28 +170,37 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
                       </Badge>
                     </div>
                   </td>
+                  <td className="p-4 max-w-xs">
+                    <div className="text-sm text-gray-700 italic truncate">
+                      "{lead.lastAIInsight}"
+                    </div>
+                    <Badge className={getAIPriorityColor(lead.aiPriority)} size="sm">
+                      {lead.aiPriority} Priority
+                    </Badge>
+                  </td>
                   <td className="p-4">
-                    <span className="font-medium text-gray-900">${lead.value?.toLocaleString() || '0'}</span>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-green-600">
+                        {lead.conversionLikelihood}%
+                      </div>
+                      <div className="text-xs text-gray-500">Success Rate</div>
+                    </div>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3 text-gray-400" />
-                      <span className="text-sm text-gray-600">{lead.lastActivity}</span>
+                      <span className="text-sm text-gray-600">
+                        {formatLastActivity(lead.lastActivity)}
+                      </span>
                     </div>
-                  </td>
-                  <td className="p-4">
-                    <Badge className={getAIPriorityColor(lead.aiPriority)}>
-                      {lead.aiPriority}
-                    </Badge>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-1">
                       <Brain className="h-3 w-3 text-purple-500" />
-                      <span className="text-sm font-medium text-gray-700">{lead.nextAction}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        {lead.nextAction}
+                      </span>
                     </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-sm text-gray-600 italic">{lead.lastAIInsight}</span>
                   </td>
                   <td className="p-4">
                     <div className="flex gap-1">
@@ -178,6 +209,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
                         variant="outline"
                         className="h-8 w-8 p-0 hover:bg-blue-100 hover:border-blue-300 transition-colors"
                         onClick={(e) => handleActionClick(e, 'call', lead)}
+                        title="Call Lead"
                       >
                         <Phone className="h-3 w-3" />
                       </Button>
@@ -186,6 +218,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
                         variant="outline"
                         className="h-8 w-8 p-0 hover:bg-green-100 hover:border-green-300 transition-colors"
                         onClick={(e) => handleActionClick(e, 'email', lead)}
+                        title="Email Lead"
                       >
                         <Mail className="h-3 w-3" />
                       </Button>
@@ -194,6 +227,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
                         variant="outline"
                         className="h-8 w-8 p-0 hover:bg-purple-100 hover:border-purple-300 transition-colors"
                         onClick={(e) => handleActionClick(e, 'calendar', lead)}
+                        title="Schedule Meeting"
                       >
                         <Calendar className="h-3 w-3" />
                       </Button>
@@ -205,7 +239,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
           </table>
         </div>
 
-        {/* Mobile View - Card Layout */}
+        {/* Mobile View - Simplified Card Layout */}
         <div className="lg:hidden space-y-3 p-4">
           {displayLeads.map((lead, index) => (
             <div
@@ -225,29 +259,24 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
                     <div className="text-sm text-gray-500">{lead.company}</div>
                   </div>
                 </div>
-                <span className="font-medium text-gray-900">${lead.value?.toLocaleString() || '0'}</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-500">Status:</span>
-                  <Badge className={getStatusColor(lead.status)}>{lead.status}</Badge>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-500">AI Priority:</span>
-                  <Badge className={getAIPriorityColor(lead.aiPriority)}>{lead.aiPriority}</Badge>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3 text-gray-400" />
-                  <span className="text-gray-600">{lead.lastActivity}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Brain className="h-3 w-3 text-purple-500" />
-                  <span className="text-gray-700">{lead.nextAction}</span>
+                <div className="text-right">
+                  <div className="font-bold text-lg text-gray-900">
+                    ${lead.value?.toLocaleString() || '0'}
+                  </div>
+                  <div className="text-sm font-semibold text-green-600">
+                    {lead.conversionLikelihood}%
+                  </div>
                 </div>
               </div>
               
-              <div className="text-sm text-gray-600 italic mb-3">{lead.lastAIInsight}</div>
+              <div className="text-sm text-gray-600 italic mb-3">
+                "{lead.lastAIInsight}"
+              </div>
+              
+              <div className="flex gap-2 mb-3">
+                <Badge className={getStatusColor(lead.status)}>{lead.status}</Badge>
+                <Badge className={getAIPriorityColor(lead.aiPriority)}>{lead.aiPriority}</Badge>
+              </div>
               
               <div className="flex gap-2">
                 <Button
@@ -288,10 +317,10 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
             variant="ghost"
             size="sm"
             onClick={handleViewAllLeads}
-            className="w-full flex items-center gap-2 text-gray-600 hover:text-gray-800"
+            className="w-full flex items-center gap-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100"
           >
             <ExternalLink className="h-4 w-4" />
-            View All Leads
+            Go to Lead Management
           </Button>
         </div>
       </CardContent>

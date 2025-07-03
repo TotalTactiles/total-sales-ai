@@ -26,7 +26,7 @@ export const mockLeadProfile: Lead = {
   doNotCall: false,
   // Required new properties
   lastActivity: 'Opened proposal twice',
-  aiPriority: 'high',
+  aiPriority: 'High',
   nextAction: 'Follow up with email by Friday',
   lastAIInsight: 'Proposal opened twice, but no reply – follow up recommended'
 };
