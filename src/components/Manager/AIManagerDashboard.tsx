@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +13,7 @@ import TeamPerformanceFilter from '@/components/Manager/TeamPerformanceFilter';
 import AIRecommendations from '@/components/AI/AIRecommendations';
 import RewardsProgress from '@/components/Dashboard/RewardsProgress';
 import AICoachingPanel from '@/components/AI/AICoachingPanel';
+import TeamRewardsSnapshot from '@/components/Manager/TeamRewardsSnapshot';
 
 // Mock data for demo manager account
 const mockTeamMembers = [{
@@ -227,6 +227,20 @@ const AIManagerDashboard = () => {
               </div>
             </div>
 
+            {/* Main Content Layout - Updated */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              {/* Pipeline Pulse - Left Column */}
+              <div className="lg:col-span-2">
+                <BusinessOpsSnapshot />
+              </div>
+              
+              {/* Right Column - Team Rewards and AI Recommendations */}
+              <div className="space-y-6">
+                <TeamRewardsSnapshot />
+                <AIRecommendations />
+              </div>
+            </div>
+
             {/* Team Performance Grid with Filter */}
             <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg mb-8">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
@@ -281,20 +295,7 @@ const AIManagerDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Business Operations Snapshot */}
-            <BusinessOpsSnapshot />
-
-            {/* Horizontal Layout: Rewards Progress + AI Recommendations */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              <div className="lg:col-span-2">
-                <RewardsProgress />
-              </div>
-              <div>
-                <AIRecommendations />
-              </div>
-            </div>
-
-            {/* AI Coaching Panel - Full Width */}
+            {/* AI Coaching Panel - Full Width Under Team Grid */}
             <div className="mb-8">
               <AICoachingPanel />
             </div>
@@ -328,10 +329,8 @@ const AIManagerDashboard = () => {
         </div>
       </main>
 
-      {/* Metric Modals */}
+      {/* Modals */}
       {activeMetricModal && <MetricModal isOpen={true} onClose={() => setActiveMetricModal(null)} type={activeMetricModal as any} {...getMetricModalConfig(activeMetricModal)!} />}
-
-      {/* Team Member Modal */}
       {selectedTeamMember && <TeamMemberModal isOpen={true} onClose={() => setSelectedTeamMember(null)} member={selectedTeamMember} />}
     </div>
   );
