@@ -1,337 +1,439 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Users, Brain, DollarSign, AlertTriangle, TrendingUp, Calendar, MessageCircle, CheckCircle, Target } from 'lucide-react';
-import { toast } from 'sonner';
+import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Users, 
+  DollarSign,
+  Target,
+  Calendar,
+  Phone,
+  Mail,
+  AlertTriangle,
+  Trophy,
+  Gift,
+  Filter
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-import MetricModal from '@/components/Manager/MetricModal';
-import TeamMemberModal from '@/components/Manager/TeamMemberModal';
-import BusinessOpsSnapshot from '@/components/Manager/BusinessOpsSnapshot';
-import TeamPerformanceFilter from '@/components/Manager/TeamPerformanceFilter';
-import AIRecommendations from '@/components/AI/AIRecommendations';
-import RewardsProgress from '@/components/Dashboard/RewardsProgress';
-import AICoachingPanel from '@/components/AI/AICoachingPanel';
-import TeamRewardsSnapshot from '@/components/Manager/TeamRewardsSnapshot';
+import BusinessOpsSnapshot from './BusinessOpsSnapshot';
+import MetricModal from './MetricModal';
+import TeamMemberModal from './TeamMemberModal';
+import TeamPerformanceFilter from './TeamPerformanceFilter';
 
-// Mock data for demo manager account
-const mockTeamMembers = [{
-  id: 'demo-tm-1',
-  full_name: 'Sarah Johnson',
-  last_login: new Date().toISOString(),
-  role: 'sales_rep',
-  stats: {
-    call_count: 172,
-    win_count: 45,
-    current_streak: 5,
-    burnout_risk: 10,
-    last_active: new Date().toISOString(),
-    mood_score: 85
-  }
-}, {
-  id: 'demo-tm-2',
-  full_name: 'Michael Chen',
-  last_login: new Date(Date.now() - 3600000).toISOString(),
-  role: 'sales_rep',
-  stats: {
-    call_count: 143,
-    win_count: 32,
-    current_streak: 0,
-    burnout_risk: 75,
-    last_active: new Date(Date.now() - 3600000).toISOString(),
-    mood_score: 45
-  }
-}, {
-  id: 'demo-tm-3',
-  full_name: 'Jasmine Lee',
-  last_login: new Date(Date.now() - 86400000).toISOString(),
-  role: 'sales_rep',
-  stats: {
-    call_count: 198,
-    win_count: 57,
-    current_streak: 7,
-    burnout_risk: 20,
-    last_active: new Date(Date.now() - 43200000).toISOString(),
-    mood_score: 90
-  }
-}];
+interface TeamMember {
+  id: string;
+  name: string;
+  initials: string;
+  revenue: number;
+  target: number;
+  conversion: number;
+  calls: number;
+  emails: number;
+  meetings: number;
+  trend: 'up' | 'down' | 'stable';
+  status: 'on-track' | 'behind' | 'ahead';
+  lastActivity: string;
+  riskLevel: 'low' | 'medium' | 'high';
+}
 
-const AIManagerDashboard = () => {
-  const [activeMetricModal, setActiveMetricModal] = useState<string | null>(null);
-  const [selectedTeamMember, setSelectedTeamMember] = useState<any>(null);
-  const [teamFilter, setTeamFilter] = useState('all');
-  const [loading, setLoading] = useState(false);
+interface TeamReward {
+  id: string;
+  title: string;
+  type: 'bonus' | 'time-off' | 'recognition';
+  targetType: 'revenue' | 'calls' | 'demos';
+  participants: Array<{
+    id: string;
+    name: string;
+    initials: string;
+    progress: number;
+    currentValue: number;
+    targetValue: number;
+  }>;
+  deadline: string;
+  status: 'active' | 'completed' | 'expired';
+}
 
-  // Filter team members based on selected filter
+const AIManagerDashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
+  const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [teamFilterType, setTeamFilterType] = useState<string>('all');
+  const [rewardFilter, setRewardFilter] = useState<string>('all');
+
+  // Mock team data
+  const teamMembers: TeamMember[] = [
+    {
+      id: '1',
+      name: 'Sarah Johnson',
+      initials: 'SJ',
+      revenue: 145000,
+      target: 150000,
+      conversion: 34.2,
+      calls: 198,
+      emails: 147,
+      meetings: 23,
+      trend: 'up',
+      status: 'on-track',
+      lastActivity: '2 hours ago',
+      riskLevel: 'low'
+    },
+    {
+      id: '2',
+      name: 'Michael Chen',
+      initials: 'MC',
+      revenue: 89000,
+      target: 120000,
+      conversion: 28.1,
+      calls: 143,
+      emails: 98,
+      meetings: 15,
+      trend: 'down',
+      status: 'behind',
+      lastActivity: '1 day ago',
+      riskLevel: 'high'
+    },
+    {
+      id: '3',
+      name: 'Emily Rodriguez',
+      initials: 'ER',
+      revenue: 112000,
+      target: 130000,
+      conversion: 31.8,
+      calls: 172,
+      emails: 124,
+      meetings: 19,
+      trend: 'up',
+      status: 'on-track',
+      lastActivity: '4 hours ago',
+      riskLevel: 'low'
+    }
+  ];
+
+  // Mock team rewards data
+  const teamRewards: TeamReward[] = [
+    {
+      id: '1',
+      title: '$1K Bonus',
+      type: 'bonus',
+      targetType: 'revenue',
+      participants: [
+        { id: '1', name: 'Sarah Johnson', initials: 'SJ', progress: 80, currentValue: 40000, targetValue: 50000 },
+        { id: '3', name: 'Emily Rodriguez', initials: 'ER', progress: 60, currentValue: 30000, targetValue: 50000 }
+      ],
+      deadline: '2024-02-29',
+      status: 'active'
+    },
+    {
+      id: '2',
+      title: 'Friday Off',
+      type: 'time-off',
+      targetType: 'calls',
+      participants: [
+        { id: '2', name: 'Michael Chen', initials: 'MC', progress: 92, currentValue: 92, targetValue: 100 }
+      ],
+      deadline: '2024-02-15',
+      status: 'active'
+    },
+    {
+      id: '3',
+      title: 'Team Recognition',
+      type: 'recognition',
+      targetType: 'demos',
+      participants: [
+        { id: '1', name: 'Sarah Johnson', initials: 'SJ', progress: 75, currentValue: 12, targetValue: 16 },
+        { id: '3', name: 'Emily Rodriguez', initials: 'ER', progress: 68, currentValue: 11, targetValue: 16 }
+      ],
+      deadline: '2024-02-20',
+      status: 'active'
+    }
+  ];
+
+  const handleTeamRewardsClick = () => {
+    navigate('/manager/team');
+  };
+
   const getFilteredTeamMembers = () => {
-    switch (teamFilter) {
+    switch (teamFilterType) {
       case 'top-converters':
-        return [...mockTeamMembers].sort((a, b) => b.stats.win_count - a.stats.win_count);
+        return [...teamMembers].sort((a, b) => b.conversion - a.conversion).slice(0, 3);
       case 'top-output':
-        return [...mockTeamMembers].sort((a, b) => b.stats.call_count - a.stats.call_count);
+        return [...teamMembers].sort((a, b) => (b.calls + b.emails) - (a.calls + a.emails)).slice(0, 3);
       case 'lowest-performers':
-        return [...mockTeamMembers].sort((a, b) => a.stats.win_count - b.stats.win_count);
+        return [...teamMembers].sort((a, b) => a.conversion - b.conversion).slice(0, 3);
       case 'flagged-reps':
-        return mockTeamMembers.filter(member => member.stats.burnout_risk >= 70);
-      case 'most-improved':
-        return [...mockTeamMembers].sort((a, b) => b.stats.current_streak - a.stats.current_streak);
-      case 'low-activity':
-        return [...mockTeamMembers].sort((a, b) => a.stats.call_count - b.stats.call_count);
+        return teamMembers.filter(member => member.riskLevel === 'high').slice(0, 3);
       default:
-        return mockTeamMembers;
+        return teamMembers.slice(0, 3);
     }
   };
 
-  // Metric modal configurations with mock data
-  const getMetricModalConfig = (metricType: string) => {
-    switch (metricType) {
-      case 'revenue':
-        return {
-          title: 'Forecasted Revenue',
-          metric: '$340,320',
-          change: '+15% projected growth',
-          insights: ['Q4 trending 23% above target based on current pipeline velocity', 'Enterprise segment driving 67% of growth', 'SMB conversion rates improving by 12% month-over-month'],
-          recommendations: ['Focus enterprise team on closing Q4 deals', 'Increase SMB marketing spend while conversion is high', 'Schedule revenue forecast review with leadership'],
-          deepDiveLink: '/manager/reports',
-          deepDiveLinkText: 'View Revenue Analytics'
-        };
-      case 'risk':
-        return {
-          title: 'Risk Flagged Reps',
-          metric: '1 Rep',
-          change: 'Needs immediate attention',
-          insights: ['Michael Chen showing 75% burnout risk indicators', 'Performance declining 18% over past 2 weeks', 'Mood score dropped from 78% to 45%'],
-          recommendations: ['Schedule immediate 1-on-1 with Michael', 'Review workload distribution', 'Consider temporary support assignment'],
-          deepDiveLink: '/manager/team',
-          deepDiveLinkText: 'View Team Health'
-        };
-      case 'pipeline':
-        return {
-          title: 'Pipeline Movement',
-          metric: '+$137,700',
-          change: 'Net positive this week',
-          insights: ['Strong activity in enterprise segment', '12 deals advanced to negotiation stage', 'Average deal size increased by 23%'],
-          recommendations: ['Accelerate negotiation training for team', 'Focus on enterprise deal coaching', 'Review pricing strategies for optimal close rates'],
-          deepDiveLink: '/manager/leads',
-          deepDiveLinkText: 'View Pipeline Details'
-        };
-      case 'alerts':
-        return {
-          title: 'AI Alerts',
-          metric: '3 Active',
-          change: '2 require action',
-          insights: ['Hot leads going cold in pipeline', 'Rep burnout indicators detected', 'Follow-up delays impacting conversion'],
-          recommendations: ['Assign hot leads to available reps', 'Implement automated follow-up sequences', 'Review team capacity and workload'],
-          deepDiveLink: '/manager/ai',
-          deepDiveLinkText: 'View AI Alert Center'
-        };
+  const getFilteredRewards = () => {
+    switch (rewardFilter) {
+      case 'by-reward':
+        return teamRewards;
+      case 'top-3-progress':
+        return teamRewards.map(reward => ({
+          ...reward,
+          participants: reward.participants.sort((a, b) => b.progress - a.progress).slice(0, 3)
+        }));
       default:
-        return null;
+        return teamRewards;
     }
   };
 
-  const filteredTeamMembers = getFilteredTeamMembers().slice(0, 3);
+  const getTrendIcon = (trend: string) => {
+    return trend === 'up' ? <TrendingUp className="h-4 w-4 text-green-600" /> : 
+           trend === 'down' ? <TrendingDown className="h-4 w-4 text-red-600" /> : 
+           <div className="h-4 w-4" />;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'ahead': return 'bg-green-100 text-green-800';
+      case 'on-track': return 'bg-blue-100 text-blue-800';
+      case 'behind': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const displayedMembers = getFilteredTeamMembers();
+  const displayedRewards = getFilteredRewards();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <ManagerNavigation />
       
-      <main className="pt-[60px] py-0">
-        <div className="flex-1 px-6 py-0">
-          <div className="max-w-7xl mx-auto">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-8 py-0 my-[28px]">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
-                <p className="text-gray-600 mt-1">Welcome back, Demo Manager</p>
-              </div>
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                AI Analytics Active
-              </Badge>
+      <div className="pt-[60px] px-6 py-6">
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
+              <p className="text-gray-600">Overview and team management</p>
             </div>
+            <Badge className="bg-blue-100 text-blue-800">
+              Manager View
+            </Badge>
+          </div>
 
-            {/* Interactive Top Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              {/* Forecasted Revenue Card */}
-              <div onClick={() => setActiveMetricModal('revenue')} className="cursor-pointer transform hover:scale-105 transition-all duration-200">
-                <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 border-2 hover:shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-green-600 text-sm font-medium">Forecasted Revenue</p>
-                        <p className="text-3xl font-bold text-green-700">$340,320</p>
-                        <p className="text-green-600 text-sm mt-1">+15% projected growth</p>
-                      </div>
-                      <div className="bg-green-100 p-3 rounded-full">
-                        <DollarSign className="h-8 w-8 text-green-600" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Risk Flagged Reps Card */}
-              <div onClick={() => setActiveMetricModal('risk')} className="cursor-pointer transform hover:scale-105 transition-all duration-200">
-                <Card className="bg-gradient-to-br from-red-50 to-rose-50 border-red-200 border-2 hover:shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-red-600 text-sm font-medium">Risk Flagged Reps</p>
-                        <p className="text-3xl font-bold text-red-700">1</p>
-                        <p className="text-red-600 text-sm mt-1">Need immediate attention</p>
-                      </div>
-                      <div className="bg-red-100 p-3 rounded-full">
-                        <AlertTriangle className="h-8 w-8 text-red-600" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Pipeline Movement Card */}
-              <div onClick={() => setActiveMetricModal('pipeline')} className="cursor-pointer transform hover:scale-105 transition-all duration-200">
-                <Card className="bg-gradient-to-br from-blue-50 to-sky-50 border-blue-200 border-2 hover:shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-blue-600 text-sm font-medium">Pipeline Movement</p>
-                        <p className="text-3xl font-bold text-blue-700">+$137,700</p>
-                        <p className="text-blue-600 text-sm mt-1">Net positive this week</p>
-                      </div>
-                      <div className="bg-blue-100 p-3 rounded-full">
-                        <TrendingUp className="h-8 w-8 text-blue-600" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* AI Alerts Card */}
-              <div onClick={() => setActiveMetricModal('alerts')} className="cursor-pointer transform hover:scale-105 transition-all duration-200">
-                <Card className="bg-gradient-to-br from-purple-50 to-violet-50 border-purple-200 border-2 hover:shadow-lg">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-purple-600 text-sm font-medium">AI Alerts</p>
-                        <p className="text-3xl font-bold text-purple-700">3</p>
-                        <p className="text-purple-600 text-sm mt-1">2 require action</p>
-                      </div>
-                      <div className="bg-purple-100 p-3 rounded-full">
-                        <Brain className="h-8 w-8 text-purple-600" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Main Content Layout - Updated */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              {/* Pipeline Pulse - Left Column */}
-              <div className="lg:col-span-2">
-                <BusinessOpsSnapshot />
-              </div>
-              
-              {/* Right Column - Team Rewards and AI Recommendations */}
-              <div className="space-y-6">
-                <TeamRewardsSnapshot />
-                <AIRecommendations />
-              </div>
-            </div>
-
-            {/* Team Performance Grid with Filter */}
-            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg mb-8">
-              <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Team Performance Grid
-                </CardTitle>
+          {/* Top Metrics Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card 
+              className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+              onClick={() => setSelectedMetric('team_revenue')}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Team Revenue</CardTitle>
+                <DollarSign className="h-4 w-4 text-green-600" />
               </CardHeader>
-              <CardContent className="p-6">
-                <TeamPerformanceFilter 
-                  selectedFilter={teamFilter}
-                  onFilterChange={setTeamFilter}
-                />
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredTeamMembers.map(member => (
-                    <div key={member.id} onClick={() => setSelectedTeamMember(member)} className="bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105">
-                      <div className="flex items-center gap-3 mb-3">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
-                            {member.full_name?.charAt(0) || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{member.full_name}</h3>
-                          <p className="text-sm text-gray-600">{member.stats.last_active ? 'Active' : 'Offline'}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Revenue:</span>
-                          <span className="font-semibold text-green-600">${(Math.random() * 100000).toFixed(0)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Calls:</span>
-                          <span className="font-semibold">{member.stats.call_count}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Conversion:</span>
-                          <span className="font-semibold text-blue-600">{Math.floor(Math.random() * 40 + 20)}%</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Risk Level:</span>
-                          <span className={`font-semibold ${member.stats.burnout_risk >= 70 ? 'text-red-600' : member.stats.burnout_risk >= 40 ? 'text-yellow-600' : 'text-green-600'}`}>
-                            {member.stats.burnout_risk >= 70 ? 'High' : member.stats.burnout_risk >= 40 ? 'Medium' : 'Low'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">$340,320</div>
+                <p className="text-xs text-green-600 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  +12% from last month
+                </p>
               </CardContent>
             </Card>
 
-            {/* AI Coaching Panel - Full Width Under Team Grid */}
-            <div className="mb-8">
-              <AICoachingPanel />
-            </div>
-
-            {/* Quick Actions Panel */}
-            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-blue-600" />
-                  Quick Actions
-                </CardTitle>
+            <Card 
+              className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+              onClick={() => setSelectedMetric('at_risk')}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">At Risk</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Button className="h-16 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white">
-                    <Calendar className="h-5 w-5 mr-2" />
-                    Schedule Team Meeting
-                  </Button>
-                  <Button className="h-16 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white">
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Send Team Message
-                  </Button>
-                  <Button className="h-16 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white">
-                    <Brain className="h-5 w-5 mr-2" />
-                    Generate Report
-                  </Button>
-                </div>
+                <div className="text-2xl font-bold text-gray-900">1</div>
+                <p className="text-xs text-red-600">Rep needs attention</p>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+              onClick={() => setSelectedMetric('pipeline')}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Pipeline</CardTitle>
+                <Target className="h-4 w-4 text-blue-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">+$137,700</div>
+                <p className="text-xs text-blue-600 flex items-center">
+                  <TrendingUp className="h-3 w-3 mr-1" />
+                  Expected this quarter
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card 
+              className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+              onClick={() => setSelectedMetric('active_rewards')}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Active Rewards</CardTitle>
+                <Trophy className="h-4 w-4 text-yellow-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">3</div>
+                <p className="text-xs text-purple-600">Team incentives running</p>
               </CardContent>
             </Card>
           </div>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Business Operations */}
+            <div className="lg:col-span-2">
+              <BusinessOpsSnapshot />
+            </div>
+
+            {/* Right Column - Team Performance Grid */}
+            <div className="space-y-6">
+              <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-blue-600" />
+                      Team Performance
+                    </CardTitle>
+                    <TeamPerformanceFilter 
+                      value={teamFilterType}
+                      onChange={setTeamFilterType}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {displayedMembers.map((member) => (
+                    <div
+                      key={member.id}
+                      className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                      onClick={() => setSelectedMember(member)}
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
+                              {member.initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">{member.name}</h4>
+                            <Badge className={getStatusColor(member.status)}>
+                              {member.status}
+                            </Badge>
+                          </div>
+                        </div>
+                        {getTrendIcon(member.trend)}
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <div className="text-gray-600">Revenue</div>
+                          <div className="font-semibold">${member.revenue.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-600">Conversion</div>
+                          <div className="font-semibold">{member.conversion}%</div>
+                        </div>
+                      </div>
+                      
+                      <Progress 
+                        value={(member.revenue / member.target) * 100} 
+                        className="mt-2" 
+                      />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Team Rewards Snapshot */}
+              <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Gift className="h-5 w-5 text-orange-600" />
+                      Team Rewards Snapshot
+                    </CardTitle>
+                    <Select value={rewardFilter} onValueChange={setRewardFilter}>
+                      <SelectTrigger className="w-32 h-8">
+                        <Filter className="h-3 w-3 mr-1" />
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Rewards</SelectItem>
+                        <SelectItem value="by-reward">By Reward</SelectItem>
+                        <SelectItem value="top-3-progress">Top 3 Progress</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {displayedRewards.map((reward) => (
+                    <div key={reward.id} className="p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-medium text-gray-900">{reward.title}</h4>
+                        <Badge className="text-xs bg-orange-100 text-orange-800">
+                          {reward.participants.length} reps
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {reward.participants.map((participant) => (
+                          <div key={participant.id} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs">
+                                  {participant.initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-sm text-gray-700">{participant.name}</span>
+                            </div>
+                            <span className="text-sm font-semibold text-orange-600">
+                              {participant.progress}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <Button 
+                    onClick={handleTeamRewardsClick}
+                    className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white"
+                  >
+                    View All Team Rewards
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
-      </main>
+      </div>
 
       {/* Modals */}
-      {activeMetricModal && <MetricModal isOpen={true} onClose={() => setActiveMetricModal(null)} type={activeMetricModal as any} {...getMetricModalConfig(activeMetricModal)!} />}
-      {selectedTeamMember && <TeamMemberModal isOpen={true} onClose={() => setSelectedTeamMember(null)} member={selectedTeamMember} />}
+      {selectedMetric && (
+        <MetricModal
+          isOpen={!!selectedMetric}
+          onClose={() => setSelectedMetric(null)}
+          metricType={selectedMetric}
+        />
+      )}
+
+      {selectedMember && (
+        <TeamMemberModal
+          isOpen={!!selectedMember}
+          onClose={() => setSelectedMember(null)}
+          member={selectedMember}
+        />
+      )}
     </div>
   );
 };

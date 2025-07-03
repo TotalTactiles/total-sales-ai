@@ -68,13 +68,13 @@ const EnhancedTeamManagement: React.FC = () => {
     },
     {
       id: '3',
-      name: 'Jasmine Lee',
-      initials: 'JL',
+      name: 'Emily Rodriguez',
+      initials: 'ER',
       status: '🟡Moderate',
       statusReason: 'Consistent performance, slight uptick in activity',
       coachingAlerts: 1,
       focusZone: 'moderate',
-      milestones: ['Marcus hit 10 demos this week', 'Improved follow-up response time'],
+      milestones: ['Hit 10 demos this week', 'Improved follow-up response time'],
       kpis: { calls: 172, demos: 41, revenue: 112000, trend: 'up' }
     }
   ];
