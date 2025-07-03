@@ -20,8 +20,10 @@ import PipelinePulse from '@/components/Dashboard/PipelinePulse';
 import AIRecommendations from '@/components/AI/AIRecommendations';
 import AICoachingPanel from '@/components/AI/AICoachingPanel';
 import RewardsProgress from '@/components/Dashboard/RewardsProgress';
+import AIOptimizedSchedule from '@/components/Dashboard/AIOptimizedSchedule';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { useMockData } from '@/hooks/useMockData';
+import ContextAwareAIBubble from '@/components/UnifiedAI/ContextAwareAIBubble';
 
 const Dashboard: React.FC = () => {
   const { profile } = useAuth();
@@ -101,30 +103,28 @@ const Dashboard: React.FC = () => {
             <PipelinePulse leads={leads} onLeadClick={handleLeadClick} />
           </div>
 
-          {/* Right Column - AI Recommendations */}
+          {/* Right Column - AI Optimized Schedule */}
+          <div>
+            <AIOptimizedSchedule />
+          </div>
+        </div>
+
+        {/* AI Recommendations and Rewards Progress Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* AI Recommendations - Left Side */}
           <div>
             <AIRecommendations />
           </div>
-        </div>
 
-        {/* Rewards Progress and AI Coaching Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Rewards Progress - Left Side */}
+          {/* Rewards Progress - Right Side */}
           <div>
             <RewardsProgress />
           </div>
-
-          {/* AI Sales Coaching - Right Side (spans 2 columns) */}
-          <div className="lg:col-span-2">
-            <AICoachingPanel />
-          </div>
         </div>
 
-        {/* AI Assistant Hub - Full Width */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="lg:col-span-2">
-            <AIAssistantHub stats={dashboardData.aiAssistant} />
-          </div>
+        {/* AI Sales Coaching - Full Width */}
+        <div className="w-full">
+          <AICoachingPanel />
         </div>
 
         <div className="text-center py-8">
@@ -132,6 +132,15 @@ const Dashboard: React.FC = () => {
           <p className="text-gray-600 mt-2">Your AI-powered sales dashboard is ready to accelerate your performance</p>
         </div>
       </div>
+
+      {/* Context-Aware AI Assistant Bubble */}
+      <ContextAwareAIBubble 
+        context={{
+          workspace: 'dashboard',
+          currentLead: undefined,
+          isCallActive: false
+        }}
+      />
     </div>
   );
 };

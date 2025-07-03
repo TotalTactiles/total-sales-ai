@@ -174,7 +174,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
                     <div className="text-sm text-gray-700 italic truncate">
                       "{lead.lastAIInsight}"
                     </div>
-                    <Badge className={getAIPriorityColor(lead.aiPriority)} size="sm">
+                    <Badge className={getAIPriorityColor(lead.aiPriority)}>
                       {lead.aiPriority} Priority
                     </Badge>
                   </td>

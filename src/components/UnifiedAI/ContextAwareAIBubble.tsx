@@ -102,11 +102,11 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
       <div className={`fixed bottom-6 right-6 z-50 ${className}`}>
         <Button
           onClick={() => setIsOpen(true)}
-          className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse"
+          className="h-14 w-14 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
         >
           <Brain className="h-6 w-6 text-white" />
         </Button>
-        <Badge className="absolute -top-2 -left-2 bg-green-500 text-white text-xs animate-bounce">
+        <Badge className="absolute -top-2 -left-2 bg-green-500 text-white text-xs">
           AI
         </Badge>
       </div>
@@ -122,7 +122,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
           <div className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
             <span className="font-semibold">AI Assistant</span>
-            <Badge className="bg-white/20 text-white text-xs animate-pulse">
+            <Badge className="bg-white/20 text-white text-xs">
               Live
             </Badge>
           </div>
@@ -175,7 +175,7 @@ const ContextAwareAIBubble: React.FC<ContextAwareAIBubbleProps> = ({
             {/* AI Status */}
             <div className="bg-green-50 rounded-lg p-3 border border-green-200">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span className="text-sm font-medium text-green-800">
                   AI is monitoring this workspace
                 </span>
