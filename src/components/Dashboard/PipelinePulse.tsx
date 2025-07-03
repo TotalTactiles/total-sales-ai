@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -108,7 +109,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
 
   return (
     <Card className={`border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
-      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg pb-4">
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
           Pipeline Pulse
@@ -118,7 +119,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        {/* Desktop View - Compact Table Layout */}
+        {/* Desktop View - Compact Table Layout for exactly 5 leads */}
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
@@ -238,7 +239,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({
           </table>
         </div>
 
-        {/* Mobile View - Simplified Card Layout */}
+        {/* Mobile View - Simplified Card Layout for exactly 5 leads */}
         <div className="lg:hidden space-y-2 p-3">
           {displayLeads.map((lead, index) => (
             <div

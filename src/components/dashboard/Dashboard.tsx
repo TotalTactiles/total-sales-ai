@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -108,7 +109,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* AI Recommendations - Under Pipeline Pulse */}
+        {/* AI Recommendations - Under Pipeline Pulse, above Rewards Progress */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <AIRecommendations />
