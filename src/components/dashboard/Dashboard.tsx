@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -96,7 +95,7 @@ const Dashboard: React.FC = () => {
 
         <PriorityTasks tasks={dashboardData.priorityTasks} />
 
-        {/* Main Dashboard Grid with Pipeline Pulse and AI Recommendations */}
+        {/* Main Dashboard Grid with Pipeline Pulse and AI Optimized Schedule */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Pipeline Pulse - Left Side (spans 2 columns) */}
           <div className="lg:col-span-2">
@@ -109,17 +108,16 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* AI Recommendations and Rewards Progress Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* AI Recommendations - Left Side */}
-          <div>
+        {/* AI Recommendations - Under Pipeline Pulse */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
             <AIRecommendations />
           </div>
+        </div>
 
-          {/* Rewards Progress - Right Side */}
-          <div>
-            <RewardsProgress />
-          </div>
+        {/* Rewards Progress Section */}
+        <div className="w-full">
+          <RewardsProgress />
         </div>
 
         {/* AI Sales Coaching - Full Width */}
