@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -55,6 +54,57 @@ const Dashboard: React.FC = () => {
       changeType: 'positive' as const,
       icon: TrendingUp,
       iconColor: 'text-orange-600'
+    }
+  ];
+
+  const mockLeads: Lead[] = [
+    {
+      id: '1',
+      name: 'Sarah Chen',
+      email: 'sarah.chen@techcorp.com',
+      phone: '+1-555-0123',
+      company: 'TechCorp Solutions',
+      status: 'proposal',
+      priority: 'high',
+      source: 'LinkedIn',
+      score: 94,
+      conversionLikelihood: 86,
+      lastContact: '2024-01-15T10:00:00Z',
+      speedToLead: 2,
+      tags: ['enterprise', 'hot lead'],
+      createdAt: '2024-01-10T09:00:00Z',
+      updatedAt: '2024-01-15T10:00:00Z',
+      companyId: 'demo-company',
+      isSensitive: false,
+      value: 95000,
+      lastActivity: 'No reply in 4 days',
+      aiPriority: 'High',
+      nextAction: 'Reschedule call',
+      lastAIInsight: 'No reply in 4 days – reschedule now'
+    },
+    {
+      id: '2',
+      name: 'Mike Rodriguez',
+      email: 'mike.rodriguez@startupx.com',
+      phone: '+1-555-0124',
+      company: 'StartupX',
+      status: 'negotiation',
+      priority: 'high',
+      source: 'Referral',
+      score: 87,
+      conversionLikelihood: 82,
+      lastContact: '2024-01-14T15:30:00Z',
+      speedToLead: 1,
+      tags: ['decision maker', 'budget approved'],
+      createdAt: '2024-01-08T14:00:00Z',
+      updatedAt: '2024-01-14T15:30:00Z',
+      companyId: 'demo-company',
+      isSensitive: false,
+      value: 78000,
+      lastActivity: 'Opened proposal twice',
+      aiPriority: 'High',
+      nextAction: 'Follow up on proposal',
+      lastAIInsight: 'Opened proposal twice, no reply'
     }
   ];
 

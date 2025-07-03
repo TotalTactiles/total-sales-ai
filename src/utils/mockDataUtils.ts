@@ -13,13 +13,12 @@ interface MockLead {
   score: number;
   conversionLikelihood: number;
   lastContact: string;
-  speedToLead?: number; // Made optional to match mock data
+  speedToLead?: number;
   tags: string[];
   createdAt: string;
   updatedAt: string;
   companyId: string;
-  isSensitive?: boolean; // Made optional to match mock data
-  // Optional properties that might be missing
+  isSensitive?: boolean;
   notes?: string;
   value?: number;
   sentiment?: string;
@@ -40,16 +39,21 @@ export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
     score: mockLead.score,
     conversionLikelihood: mockLead.conversionLikelihood,
     lastContact: mockLead.lastContact,
-    speedToLead: mockLead.speedToLead || 0, // Provide default value if missing
+    speedToLead: mockLead.speedToLead || 0,
     tags: mockLead.tags,
     createdAt: mockLead.createdAt,
     updatedAt: mockLead.updatedAt,
     companyId: mockLead.companyId,
-    isSensitive: mockLead.isSensitive || false, // Provide default value if missing
+    isSensitive: mockLead.isSensitive || false,
     notes: mockLead.notes || '',
     value: mockLead.value || 0,
     sentiment: mockLead.sentiment || 'neutral',
     objection: mockLead.objection || '',
-    doNotCall: mockLead.doNotCall || false
+    doNotCall: mockLead.doNotCall || false,
+    // Add required new properties
+    lastActivity: 'Recent activity',
+    aiPriority: 'Medium',
+    nextAction: 'Follow up',
+    lastAIInsight: 'AI analysis pending'
   };
 };

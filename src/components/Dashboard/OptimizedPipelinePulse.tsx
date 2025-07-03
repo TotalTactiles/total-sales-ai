@@ -8,10 +8,9 @@ import {
   Phone, 
   Mail, 
   Calendar, 
-  ChevronDown,
-  ChevronUp,
   TrendingUp,
-  Brain
+  Brain,
+  ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Lead } from '@/types/lead';
@@ -27,7 +26,6 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
   className = '' 
 }) => {
   const navigate = useNavigate();
-  const [showAll, setShowAll] = useState(false);
   const [callDialogOpen, setCallDialogOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
@@ -155,19 +153,31 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
     }
   ];
 
-  const displayLeads = leads.length > 0 ? leads.slice(0, showAll ? 10 : 5) : mockHighPriorityLeads.slice(0, showAll ? 10 : 5);
+  // Show top 5 AI-prioritized leads
+  const displayLeads = (leads.length > 0 ? leads : mockHighPriorityLeads).slice(0, 5);
 
-  const handleCallClick = (lead: Lead) => {
+  const handleCallClick = (e: React.MouseEvent, lead: Lead) => {
+    e.stopPropagation();
     setSelectedLead(lead);
     setCallDialogOpen(true);
   };
 
-  const handleEmailClick = (lead: Lead) => {
+  const handleEmailClick = (e: React.MouseEvent, lead: Lead) => {
+    e.stopPropagation();
     navigate(`/sales/leads/${lead.id}?tab=email`);
   };
 
-  const handleCalendarClick = (lead: Lead) => {
+  const handleCalendarClick = (e: React.MouseEvent, lead: Lead) => {
+    e.stopPropagation();
     navigate(`/sales/leads/${lead.id}?tab=meetings`);
+  };
+
+  const handleLeadClick = (lead: Lead) => {
+    navigate(`/sales/leads/${lead.id}`);
+  };
+
+  const handleViewAllLeads = () => {
+    navigate('/sales/leads');
   };
 
   const handleUseMyPhone = () => {
@@ -182,15 +192,6 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
     if (selectedLead) {
       navigate(`/sales/dialer?leadId=${selectedLead.id}`);
       setCallDialogOpen(false);
-    }
-  };
-
-  const getAIPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -212,9 +213,10 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
             {displayLeads.map((lead, index) => (
               <div
                 key={lead.id}
-                className={`flex items-center justify-between p-4 border-b hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 ${
+                className={`flex items-center justify-between p-4 border-b hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer ${
                   index === 0 ? 'bg-blue-50/50' : ''
                 }`}
+                onClick={() => handleLeadClick(lead)}
               >
                 {/* Lead Value */}
                 <div className="flex items-center gap-3 min-w-[120px]">
@@ -231,11 +233,6 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
 
                 {/* AI Insight Summary */}
                 <div className="flex-1 mx-4">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge className={getAIPriorityColor(lead.aiPriority)}>
-                      {lead.aiPriority}
-                    </Badge>
-                  </div>
                   <div className="text-sm text-gray-700 italic">
                     "{lead.lastAIInsight}"
                   </div>
@@ -247,7 +244,7 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
                     size="sm"
                     variant="outline"
                     className="h-8 w-8 p-0 hover:bg-blue-100 hover:border-blue-300 transition-colors"
-                    onClick={() => handleCallClick(lead)}
+                    onClick={(e) => handleCallClick(e, lead)}
                   >
                     <Phone className="h-3 w-3" />
                   </Button>
@@ -255,7 +252,7 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
                     size="sm"
                     variant="outline"
                     className="h-8 w-8 p-0 hover:bg-green-100 hover:border-green-300 transition-colors"
-                    onClick={() => handleEmailClick(lead)}
+                    onClick={(e) => handleEmailClick(e, lead)}
                   >
                     <Mail className="h-3 w-3" />
                   </Button>
@@ -263,7 +260,7 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
                     size="sm"
                     variant="outline"
                     className="h-8 w-8 p-0 hover:bg-purple-100 hover:border-purple-300 transition-colors"
-                    onClick={() => handleCalendarClick(lead)}
+                    onClick={(e) => handleCalendarClick(e, lead)}
                   >
                     <Calendar className="h-3 w-3" />
                   </Button>
@@ -272,25 +269,16 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
             ))}
           </div>
 
-          {/* Expand/Collapse Button */}
+          {/* View All Leads Button */}
           <div className="p-4 border-t bg-gray-50">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowAll(!showAll)}
+              onClick={handleViewAllLeads}
               className="w-full flex items-center gap-2 text-gray-600 hover:text-gray-800"
             >
-              {showAll ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  Show Top 5 Only
-                </>
-              ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  Show All High Priority ({Math.min(displayLeads.length + 5, 10)} total)
-                </>
-              )}
+              <ExternalLink className="h-4 w-4" />
+              View All Leads
             </Button>
           </div>
         </CardContent>
