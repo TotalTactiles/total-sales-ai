@@ -22,6 +22,12 @@ export interface Lead {
   doNotCall?: boolean;
   notes?: string;
   value?: number;
+  
+  // New required properties for Pipeline Pulse
+  lastActivity: string;
+  aiPriority: 'Low' | 'Medium' | 'High';
+  nextAction: string;
+  lastAIInsight: string;
 }
 
 export interface LeadFilters {
