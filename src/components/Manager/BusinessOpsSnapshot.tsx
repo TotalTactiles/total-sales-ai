@@ -11,8 +11,7 @@ import {
   Target,
   DollarSign,
   Phone,
-  Mail,
-  Calendar
+  Activity
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -36,8 +35,7 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
       deepDive: 'Reports > Revenue Analytics',
       insights: [
         'Q4 trending 23% above target',
-        'Enterprise deals driving growth',
-        'SMB segment needs attention'
+        'Enterprise deals driving growth'
       ]
     },
     {
@@ -54,8 +52,7 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
       deepDive: 'Team > Coaching Logs',
       insights: [
         'Price objections up 12% this week',
-        'Need better value proposition training',
-        'Consider ROI calculator tool'
+        'Need better value proposition training'
       ]
     },
     {
@@ -72,8 +69,7 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
       deepDive: 'Team Analytics > Response Times',
       insights: [
         'Goal: Under 24 hours',
-        '3 reps consistently delayed',
-        'Automation could help'
+        '3 reps consistently delayed'
       ]
     },
     {
@@ -90,8 +86,7 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
       deepDive: 'AI Assistant > Alert Center',
       insights: [
         'Hot leads going cold',
-        'Rep burnout indicators',
-        'Pipeline bottlenecks detected'
+        'Rep burnout indicators'
       ]
     },
     {
@@ -108,8 +103,7 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
       deepDive: 'Business Ops > Goal Tracking',
       insights: [
         'On track for Q4 goals',
-        'Team performance strong',
-        'Pipeline healthy'
+        'Team performance strong'
       ]
     },
     {
@@ -126,8 +120,7 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
       deepDive: 'Team > Activity Reports',
       insights: [
         'Activity up 18% vs last week',
-        'Quality metrics maintained',
-        'Team hitting targets'
+        'Quality metrics maintained'
       ]
     }
   ];
@@ -168,10 +161,10 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
               <div
                 key={metric.id}
                 onClick={() => handleMetricClick(metric.id, metric.deepDive)}
-                className={`${metric.bgColor} ${metric.borderColor} border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 group`}
+                className={`${metric.bgColor} ${metric.borderColor} border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 group h-32`}
               >
-                <div className="flex items-center justify-between mb-3">
-                  <IconComponent className={`h-5 w-5 ${metric.textColor}`} />
+                <div className="flex items-center justify-between mb-2">
+                  <IconComponent className={`h-4 w-4 ${metric.textColor}`} />
                   <div className={`flex items-center gap-1 ${metric.textColor}`}>
                     {getTrendIcon(metric.trend)}
                   </div>
@@ -189,20 +182,15 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
                   </p>
                 </div>
 
-                {/* Hover Insights */}
-                <div className="mt-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                {/* Always visible insights */}
+                <div className="mt-2">
                   <div className="text-xs text-gray-700 space-y-1">
-                    {metric.insights.slice(0, 2).map((insight, index) => (
+                    {metric.insights.slice(0, 1).map((insight, index) => (
                       <div key={index} className="flex items-center gap-1">
                         <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                        <span>{insight}</span>
+                        <span className="truncate">{insight}</span>
                       </div>
                     ))}
-                  </div>
-                  <div className="mt-2 pt-2 border-t border-gray-200">
-                    <span className="text-xs font-medium text-gray-600">
-                      → {metric.deepDive}
-                    </span>
                   </div>
                 </div>
               </div>

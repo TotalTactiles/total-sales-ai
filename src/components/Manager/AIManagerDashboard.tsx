@@ -1,14 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Users, Brain, DollarSign, AlertTriangle, TrendingUp, Calendar, MessageCircle, Video, CheckCircle, Clock, Phone, Target } from 'lucide-react';
+import { Users, Brain, DollarSign, AlertTriangle, TrendingUp, Calendar, MessageCircle, CheckCircle, Target } from 'lucide-react';
 import { toast } from 'sonner';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import MetricModal from '@/components/Manager/MetricModal';
 import TeamMemberModal from '@/components/Manager/TeamMemberModal';
 import BusinessOpsSnapshot from '@/components/Manager/BusinessOpsSnapshot';
+import TeamPerformanceFilter from '@/components/Manager/TeamPerformanceFilter';
+import AIRecommendations from '@/components/AI/AIRecommendations';
+import RewardsProgress from '@/components/Dashboard/RewardsProgress';
+import AICoachingPanel from '@/components/AI/AICoachingPanel';
 
 // Mock data for demo manager account
 const mockTeamMembers = [{
@@ -51,10 +56,32 @@ const mockTeamMembers = [{
     mood_score: 90
   }
 }];
+
 const AIManagerDashboard = () => {
   const [activeMetricModal, setActiveMetricModal] = useState<string | null>(null);
   const [selectedTeamMember, setSelectedTeamMember] = useState<any>(null);
+  const [teamFilter, setTeamFilter] = useState('all');
   const [loading, setLoading] = useState(false);
+
+  // Filter team members based on selected filter
+  const getFilteredTeamMembers = () => {
+    switch (teamFilter) {
+      case 'top-converters':
+        return [...mockTeamMembers].sort((a, b) => b.stats.win_count - a.stats.win_count);
+      case 'top-output':
+        return [...mockTeamMembers].sort((a, b) => b.stats.call_count - a.stats.call_count);
+      case 'lowest-performers':
+        return [...mockTeamMembers].sort((a, b) => a.stats.win_count - b.stats.win_count);
+      case 'flagged-reps':
+        return mockTeamMembers.filter(member => member.stats.burnout_risk >= 70);
+      case 'most-improved':
+        return [...mockTeamMembers].sort((a, b) => b.stats.current_streak - a.stats.current_streak);
+      case 'low-activity':
+        return [...mockTeamMembers].sort((a, b) => a.stats.call_count - b.stats.call_count);
+      default:
+        return mockTeamMembers;
+    }
+  };
 
   // Metric modal configurations with mock data
   const getMetricModalConfig = (metricType: string) => {
@@ -103,11 +130,15 @@ const AIManagerDashboard = () => {
         return null;
     }
   };
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+
+  const filteredTeamMembers = getFilteredTeamMembers().slice(0, 3);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <ManagerNavigation />
       
       <main className="pt-[60px] py-0">
-        <div className="flex-1 px-4 md:px-6 py-0">
+        <div className="flex-1 px-6 py-0">
           <div className="max-w-7xl mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8 py-0 my-[28px]">
@@ -196,7 +227,7 @@ const AIManagerDashboard = () => {
               </div>
             </div>
 
-            {/* Team Performance Grid */}
+            {/* Team Performance Grid with Filter */}
             <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg mb-8">
               <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg">
                 <CardTitle className="flex items-center gap-2">
@@ -204,9 +235,14 @@ const AIManagerDashboard = () => {
                   Team Performance Grid
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                  {mockTeamMembers.map(member => <div key={member.id} onClick={() => setSelectedTeamMember(member)} className="bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105">
+              <CardContent className="p-6">
+                <TeamPerformanceFilter 
+                  selectedFilter={teamFilter}
+                  onFilterChange={setTeamFilter}
+                />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredTeamMembers.map(member => (
+                    <div key={member.id} onClick={() => setSelectedTeamMember(member)} className="bg-white border border-gray-200 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105">
                       <div className="flex items-center gap-3 mb-3">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
@@ -239,13 +275,29 @@ const AIManagerDashboard = () => {
                           </span>
                         </div>
                       </div>
-                    </div>)}
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
 
             {/* Business Operations Snapshot */}
             <BusinessOpsSnapshot />
+
+            {/* Horizontal Layout: Rewards Progress + AI Recommendations */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+              <div className="lg:col-span-2">
+                <RewardsProgress />
+              </div>
+              <div>
+                <AIRecommendations />
+              </div>
+            </div>
+
+            {/* AI Coaching Panel - Full Width */}
+            <div className="mb-8">
+              <AICoachingPanel />
+            </div>
 
             {/* Quick Actions Panel */}
             <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
@@ -281,6 +333,8 @@ const AIManagerDashboard = () => {
 
       {/* Team Member Modal */}
       {selectedTeamMember && <TeamMemberModal isOpen={true} onClose={() => setSelectedTeamMember(null)} member={selectedTeamMember} />}
-    </div>;
+    </div>
+  );
 };
+
 export default AIManagerDashboard;
