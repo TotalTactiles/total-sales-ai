@@ -2,7 +2,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { X, TrendingUp, AlertTriangle, DollarSign, Brain } from 'lucide-react';
 
 interface MetricModalProps {
@@ -50,9 +49,15 @@ const MetricModal: React.FC<MetricModalProps> = ({
     }
   };
 
+  const handleDeepDive = () => {
+    console.log(`Navigate to: ${deepDiveLink}`);
+    // Mock navigation for demo
+    alert(`Would navigate to: ${deepDiveLinkText}`);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className={`w-full max-w-lg bg-gradient-to-br ${getColor()} border-2 shadow-2xl animate-scale-in`}>
+      <Card className={`w-full max-w-lg bg-gradient-to-br ${getColor()} border-2 shadow-2xl animate-in slide-in-from-bottom-4 duration-300`}>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -111,10 +116,7 @@ const MetricModal: React.FC<MetricModalProps> = ({
           <div className="pt-4 border-t border-gray-200">
             <Button 
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-              onClick={() => {
-                console.log(`Navigate to: ${deepDiveLink}`);
-                // In a real app, this would navigate to the appropriate section
-              }}
+              onClick={handleDeepDive}
             >
               {deepDiveLinkText}
             </Button>

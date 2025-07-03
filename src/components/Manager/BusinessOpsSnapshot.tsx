@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   TrendingUp, 
@@ -15,14 +14,13 @@ import {
   Mail,
   Calendar
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface BusinessOpsSnapshotProps {
   className?: string;
 }
 
 const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '' }) => {
-  const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
-
   const opsMetrics = [
     {
       id: 'revenue-trend',
@@ -134,9 +132,9 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
     }
   ];
 
-  const handleMetricClick = (metricId: string) => {
+  const handleMetricClick = (metricId: string, deepDive: string) => {
     console.log(`Navigate to metric: ${metricId}`);
-    // In a real app, this would navigate to the appropriate section
+    toast.success(`Would navigate to: ${deepDive}`);
   };
 
   const getTrendIcon = (trend: string) => {
@@ -148,7 +146,7 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
   };
 
   return (
-    <Card className={`border-0 bg-white/80 backdrop-blur-sm shadow-lg ${className}`}>
+    <Card className={`border-0 bg-white/80 backdrop-blur-sm shadow-lg mb-8 ${className}`}>
       <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg pb-4">
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5" />
@@ -169,7 +167,7 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
             return (
               <div
                 key={metric.id}
-                onClick={() => handleMetricClick(metric.id)}
+                onClick={() => handleMetricClick(metric.id, metric.deepDive)}
                 className={`${metric.bgColor} ${metric.borderColor} border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 group`}
               >
                 <div className="flex items-center justify-between mb-3">

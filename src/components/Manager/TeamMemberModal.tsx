@@ -15,6 +15,7 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface TeamMemberModalProps {
   isOpen: boolean;
@@ -49,24 +50,22 @@ const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
 
   const handleSchedule1on1 = async () => {
     setIsScheduling(true);
-    // Simulate AI scheduling
+    // Mock AI scheduling with delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsScheduling(false);
     setShowScheduler(false);
-    // Mock success notification
-    console.log(`1-on-1 scheduled with ${member.full_name}`);
+    toast.success(`1-on-1 scheduled with ${member.full_name} for tomorrow at 2:00 PM`);
   };
 
   const handleSendMessage = async () => {
     if (!message.trim()) return;
     setIsSending(true);
-    // Simulate message sending
+    // Mock message sending with delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     setIsSending(false);
     setMessage('');
     setShowMessaging(false);
-    // Mock success notification
-    console.log(`Message sent to ${member.full_name}: ${message}`);
+    toast.success(`Message sent to ${member.full_name}`);
   };
 
   const getRiskColor = (risk: number) => {
@@ -84,7 +83,7 @@ const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white shadow-2xl animate-scale-in">
+      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
         <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
