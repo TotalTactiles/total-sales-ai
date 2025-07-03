@@ -23,10 +23,10 @@ export const convertDatabaseLeadToLead = (dbLead: DatabaseLead): Lead => {
     isSensitive: dbLead.is_sensitive || false,
     notes: dbLead.notes || '',
     value: dbLead.value || 0,
-    // Add required new properties with defaults
-    lastActivity: 'Recent activity',
-    aiPriority: 'Medium',
-    nextAction: 'Follow up',
-    lastAIInsight: 'AI analysis pending'
+    // Add required new properties with fallbacks
+    lastActivity: new Date().toISOString(),
+    aiPriority: 'medium',
+    nextAction: 'Review proposal',
+    lastAIInsight: 'No insights available'
   };
 };

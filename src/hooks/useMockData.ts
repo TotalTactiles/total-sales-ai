@@ -23,7 +23,7 @@ export const useMockData = () => {
       isSensitive: false,
       value: 94760,
       lastActivity: 'No reply in 4 days',
-      aiPriority: 'High',
+      aiPriority: 'high',
       nextAction: 'Reschedule call',
       lastAIInsight: 'No reply in 4 days – reschedule now'
     },
@@ -47,7 +47,7 @@ export const useMockData = () => {
       isSensitive: false,
       value: 78500,
       lastActivity: 'Opened proposal twice',
-      aiPriority: 'High',
+      aiPriority: 'high',
       nextAction: 'Follow up on proposal',
       lastAIInsight: 'Opened proposal twice, no reply'
     },
@@ -71,7 +71,7 @@ export const useMockData = () => {
       isSensitive: false,
       value: 65200,
       lastActivity: 'Last call 6 days ago',
-      aiPriority: 'Medium',
+      aiPriority: 'medium',
       nextAction: 'Schedule demo',
       lastAIInsight: 'Last call 6 days ago – follow-up recommended'
     },
@@ -95,7 +95,7 @@ export const useMockData = () => {
       isSensitive: false,
       value: 52300,
       lastActivity: 'Clicked demo link',
-      aiPriority: 'Medium',
+      aiPriority: 'medium',
       nextAction: 'Book demo call',
       lastAIInsight: 'Clicked demo link, but didn\'t book'
     },
@@ -119,7 +119,7 @@ export const useMockData = () => {
       isSensitive: false,
       value: 41800,
       lastActivity: 'Initial contact made',
-      aiPriority: 'Low',
+      aiPriority: 'low',
       nextAction: 'Qualification call',
       lastAIInsight: 'New lead, strong initial interest'
     }

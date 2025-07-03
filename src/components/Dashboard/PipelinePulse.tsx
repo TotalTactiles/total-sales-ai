@@ -11,95 +11,53 @@ import {
   Eye,
   Brain,
   Clock,
-  TrendingUp
+  TrendingUp,
+  ExternalLink
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-interface Lead {
-  id: string;
-  name: string;
-  company: string;
-  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'closed';
-  priority: 'high' | 'medium' | 'low';
-  value: number;
-  lastActivity: string;
-  aiPriority: 'Low' | 'Medium' | 'High';
-  nextAction: string;
-  lastAIInsight: string;
-}
+import { Lead } from '@/types/lead';
 
 interface PipelinePulseProps {
   leads: Lead[];
   className?: string;
+  onLeadClick?: (leadId: string) => void;
 }
 
-const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, className = '' }) => {
+const PipelinePulse: React.FC<PipelinePulseProps> = ({ 
+  leads, 
+  className = '',
+  onLeadClick 
+}) => {
   const navigate = useNavigate();
 
-  const mockLeads: Lead[] = [
-    {
-      id: '1',
-      name: 'Contact 1',
-      company: 'TechCorp',
-      status: 'new',
-      priority: 'high',
-      value: 51515,
-      lastActivity: 'Called 2d ago',
-      aiPriority: 'High',
-      nextAction: 'Follow-up call',
-      lastAIInsight: 'Strong buying signals detected'
-    },
-    {
-      id: '2',
-      name: 'Contact 2',
-      company: 'InnovateCo',
-      status: 'negotiation',
-      priority: 'high',
-      value: 101911,
-      lastActivity: 'Email sent 5h ago',
-      aiPriority: 'High',
-      nextAction: 'Send pricing proposal',
-      lastAIInsight: 'Budget concerns mentioned'
-    },
-    {
-      id: '3',
-      name: 'Contact 3',
-      company: 'GlobalSoft',
-      status: 'new',
-      priority: 'medium',
-      value: 59527,
-      lastActivity: 'No contact yet',
-      aiPriority: 'Medium',
-      nextAction: 'Initial outreach',
-      lastAIInsight: 'Company expanding team'
-    },
-    {
-      id: '4',
-      name: 'Contact 4',
-      company: 'DataDriven',
-      status: 'proposal',
-      priority: 'high',
-      value: 81900,
-      lastActivity: 'Demo completed 1d ago',
-      aiPriority: 'High',
-      nextAction: 'Follow-up on demo',
-      lastAIInsight: 'Decision maker engaged'
-    },
-    {
-      id: '5',
-      name: 'Contact 5',
-      company: 'CloudFirst',
-      status: 'proposal',
-      priority: 'medium',
-      value: 39917,
-      lastActivity: 'Called 3h ago',
-      aiPriority: 'Medium',
-      nextAction: 'Send contract',
-      lastAIInsight: 'Ready to move forward'
+  const handleLeadClick = (leadId: string) => {
+    if (onLeadClick) {
+      onLeadClick(leadId);
     }
-  ];
+    navigate(`/lead-workspace/${leadId}`);
+  };
 
-  const displayLeads = leads.length > 0 ? leads : mockLeads;
+  const handleActionClick = (e: React.MouseEvent, actionType: string, lead: Lead) => {
+    e.stopPropagation();
+    
+    switch (actionType) {
+      case 'call':
+        navigate(`/sales/dialer?leadId=${lead.id}`);
+        break;
+      case 'email':
+        navigate(`/lead-workspace/${lead.id}?tab=email`);
+        break;
+      case 'calendar':
+        navigate(`/lead-workspace/${lead.id}?tab=meetings`);
+        break;
+      default:
+        console.log(`${actionType} action for lead ${lead.id}`);
+    }
+  };
+
+  const handleViewAllLeads = () => {
+    navigate('/lead-management');
+  };
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
@@ -117,27 +75,23 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, className = '' }) 
       case 'qualified': return 'bg-green-100 text-green-800 border-green-200';
       case 'proposal': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'negotiation': return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'closed_won': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'closed_lost': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
   const getAIPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High': return 'bg-red-100 text-red-800 border-red-200';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'Low': return 'bg-green-100 text-green-800 border-green-200';
+      case 'high': return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const handleLeadClick = (leadId: string) => {
-    navigate(`/sales/leads/${leadId}`);
-  };
-
-  const handleActionClick = (e: React.MouseEvent, actionType: string, leadId: string) => {
-    e.stopPropagation();
-    console.log(`${actionType} action for lead ${leadId}`);
-  };
+  // Show only top 5 leads
+  const displayLeads = leads.slice(0, 5);
 
   return (
     <Card className={`border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
@@ -195,7 +149,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, className = '' }) 
                     </div>
                   </td>
                   <td className="p-4">
-                    <span className="font-medium text-gray-900">${lead.value.toLocaleString()}</span>
+                    <span className="font-medium text-gray-900">${lead.value?.toLocaleString() || '0'}</span>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center gap-1">
@@ -223,7 +177,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, className = '' }) 
                         size="sm"
                         variant="outline"
                         className="h-8 w-8 p-0 hover:bg-blue-100 hover:border-blue-300 transition-colors"
-                        onClick={(e) => handleActionClick(e, 'call', lead.id)}
+                        onClick={(e) => handleActionClick(e, 'call', lead)}
                       >
                         <Phone className="h-3 w-3" />
                       </Button>
@@ -231,7 +185,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, className = '' }) 
                         size="sm"
                         variant="outline"
                         className="h-8 w-8 p-0 hover:bg-green-100 hover:border-green-300 transition-colors"
-                        onClick={(e) => handleActionClick(e, 'email', lead.id)}
+                        onClick={(e) => handleActionClick(e, 'email', lead)}
                       >
                         <Mail className="h-3 w-3" />
                       </Button>
@@ -239,17 +193,9 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, className = '' }) 
                         size="sm"
                         variant="outline"
                         className="h-8 w-8 p-0 hover:bg-purple-100 hover:border-purple-300 transition-colors"
-                        onClick={(e) => handleActionClick(e, 'message', lead.id)}
+                        onClick={(e) => handleActionClick(e, 'calendar', lead)}
                       >
-                        <MessageSquare className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0 hover:bg-indigo-100 hover:border-indigo-300 transition-colors"
-                        onClick={(e) => handleActionClick(e, 'view', lead.id)}
-                      >
-                        <Eye className="h-3 w-3" />
+                        <Calendar className="h-3 w-3" />
                       </Button>
                     </div>
                   </td>
@@ -279,7 +225,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, className = '' }) 
                     <div className="text-sm text-gray-500">{lead.company}</div>
                   </div>
                 </div>
-                <span className="font-medium text-gray-900">${lead.value.toLocaleString()}</span>
+                <span className="font-medium text-gray-900">${lead.value?.toLocaleString() || '0'}</span>
               </div>
               
               <div className="grid grid-cols-2 gap-2 mb-3 text-sm">
@@ -308,7 +254,7 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, className = '' }) 
                   size="sm"
                   variant="outline"
                   className="flex-1 hover:bg-blue-100 hover:border-blue-300 transition-colors"
-                  onClick={(e) => handleActionClick(e, 'call', lead.id)}
+                  onClick={(e) => handleActionClick(e, 'call', lead)}
                 >
                   <Phone className="h-3 w-3 mr-1" />
                   Call
@@ -317,14 +263,36 @@ const PipelinePulse: React.FC<PipelinePulseProps> = ({ leads, className = '' }) 
                   size="sm"
                   variant="outline"
                   className="flex-1 hover:bg-green-100 hover:border-green-300 transition-colors"
-                  onClick={(e) => handleActionClick(e, 'email', lead.id)}
+                  onClick={(e) => handleActionClick(e, 'email', lead)}
                 >
                   <Mail className="h-3 w-3 mr-1" />
                   Email
                 </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex-1 hover:bg-purple-100 hover:border-purple-300 transition-colors"
+                  onClick={(e) => handleActionClick(e, 'calendar', lead)}
+                >
+                  <Calendar className="h-3 w-3 mr-1" />
+                  Book
+                </Button>
               </div>
             </div>
           ))}
+        </div>
+
+        {/* View All Leads Button */}
+        <div className="p-4 border-t bg-gray-50">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleViewAllLeads}
+            className="w-full flex items-center gap-2 text-gray-600 hover:text-gray-800"
+          >
+            <ExternalLink className="h-4 w-4" />
+            View All Leads
+          </Button>
         </div>
       </CardContent>
     </Card>

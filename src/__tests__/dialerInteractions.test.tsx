@@ -1,4 +1,5 @@
 
+import { describe, test, expect, jest } from '@jest/globals';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -36,9 +37,8 @@ jest.mock('@/hooks/useMockData', () => ({
         companyId: 'demo-company',
         isSensitive: false,
         value: 64589,
-        // Add the missing required properties
         lastActivity: 'Called 2 days ago',
-        aiPriority: 'High',
+        aiPriority: 'high',
         nextAction: 'Follow up with email by Friday',
         lastAIInsight: 'Proposal opened twice, but no reply – follow up recommended'
       }

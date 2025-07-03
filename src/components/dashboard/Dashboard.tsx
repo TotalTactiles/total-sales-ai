@@ -21,11 +21,12 @@ import AIRecommendations from '@/components/AI/AIRecommendations';
 import AICoachingPanel from '@/components/AI/AICoachingPanel';
 import RewardsProgress from '@/components/Dashboard/RewardsProgress';
 import { useDashboardData } from '../../hooks/useDashboardData';
-import { Lead } from '@/types/lead';
+import { useMockData } from '@/hooks/useMockData';
 
 const Dashboard: React.FC = () => {
   const { profile } = useAuth();
   const { data: dashboardData } = useDashboardData();
+  const { leads } = useMockData();
 
   const mockStats = [
     {
@@ -62,32 +63,9 @@ const Dashboard: React.FC = () => {
     }
   ];
 
-  // Convert pipeline data to proper Lead format
-  const convertedLeads: Lead[] = dashboardData.pipelineData.map((item, index) => ({
-    id: item.id || `lead-${index}`,
-    name: item.company || 'Unknown Lead',
-    email: `contact@${(item.company || 'unknown').toLowerCase().replace(/\s+/g, '')}.com`,
-    phone: '+1-555-0123',
-    company: item.company || 'Unknown Company',
-    status: (item.status as Lead['status']) || 'new',
-    priority: (item.priority as Lead['priority']) || 'medium',
-    source: 'Website',
-    score: 85,
-    conversionLikelihood: 78,
-    lastContact: new Date().toISOString(),
-    speedToLead: 0,
-    tags: ['Demo Lead'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    companyId: 'demo-company',
-    isSensitive: false,
-    value: parseInt(item.value?.replace(/[$,]/g, '') || '0'),
-    // Add the required new properties
-    lastActivity: 'Recent activity',
-    aiPriority: 'Medium',
-    nextAction: 'Follow up',
-    lastAIInsight: 'AI analysis pending'
-  }));
+  const handleLeadClick = (leadId: string) => {
+    console.log('Lead clicked:', leadId);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -118,38 +96,30 @@ const Dashboard: React.FC = () => {
 
         {/* Main Dashboard Grid with Pipeline Pulse, AI Recommendations, and Rewards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Pipeline Pulse - Left Side */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <span className="mr-2">🔄</span>Pipeline Pulse
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <PipelinePulse leads={convertedLeads.slice(0, 5)} onLeadClick={() => {}} />
-              </CardContent>
-            </Card>
+          {/* Pipeline Pulse - Left Side (spans 2 columns) */}
+          <div className="lg:col-span-2">
+            <PipelinePulse leads={leads.slice(0, 5)} onLeadClick={handleLeadClick} />
           </div>
 
-          {/* AI Recommendations - Center */}
-          <div className="lg:col-span-1">
+          {/* Right Column - AI Recommendations and Rewards */}
+          <div className="space-y-6">
+            {/* AI Recommendations */}
             <AIRecommendations />
-          </div>
-
-          {/* Rewards Progress - Right Side */}
-          <div className="lg:col-span-1">
+            
+            {/* Rewards Progress */}
             <RewardsProgress />
           </div>
         </div>
 
-        {/* AI Sales Coaching - Below Rewards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* AI Sales Coaching - Full Width Below */}
+        <div className="w-full">
+          <AICoachingPanel />
+        </div>
+
+        {/* AI Assistant Hub - Below Coaching */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="lg:col-span-2">
             <AIAssistantHub stats={dashboardData.aiAssistant} />
-          </div>
-          <div>
-            <AICoachingPanel />
           </div>
         </div>
 

@@ -24,6 +24,10 @@ interface MockLead {
   sentiment?: string;
   objection?: string;
   doNotCall?: boolean;
+  lastActivity?: string;
+  aiPriority?: string;
+  nextAction?: string;
+  lastAIInsight?: string;
 }
 
 export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
@@ -50,10 +54,10 @@ export const convertMockLeadToLead = (mockLead: MockLead): Lead => {
     sentiment: mockLead.sentiment || 'neutral',
     objection: mockLead.objection || '',
     doNotCall: mockLead.doNotCall || false,
-    // Add required new properties
-    lastActivity: 'Recent activity',
-    aiPriority: 'Medium',
-    nextAction: 'Follow up',
-    lastAIInsight: 'AI analysis pending'
+    // Add required new properties with fallbacks
+    lastActivity: mockLead.lastActivity || 'Recent activity',
+    aiPriority: (mockLead.aiPriority as Lead['aiPriority']) || 'medium',
+    nextAction: mockLead.nextAction || 'Follow up',
+    lastAIInsight: mockLead.lastAIInsight || 'AI analysis pending'
   };
 };
