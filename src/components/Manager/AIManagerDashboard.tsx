@@ -116,7 +116,6 @@ const AIManagerDashboard: React.FC = () => {
     }
   ];
 
-  // Mock team rewards data
   const teamRewards: TeamReward[] = [
     {
       id: '1',
@@ -200,6 +199,86 @@ const AIManagerDashboard: React.FC = () => {
       case 'on-track': return 'bg-blue-100 text-blue-800';
       case 'behind': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  // Metric modal configurations
+  const getMetricModalConfig = (metricType: string) => {
+    switch (metricType) {
+      case 'team_revenue':
+        return {
+          title: 'Team Revenue',
+          metric: '$340,320',
+          change: '+12% from last month',
+          insights: [
+            'Strong performance across all team members',
+            'Sarah leading with $145K revenue',
+            'Michael needs support to reach target'
+          ],
+          recommendations: [
+            'Focus on supporting Michael with deal closures',
+            'Leverage Sarah\'s success strategies team-wide',
+            'Schedule team performance review'
+          ],
+          deepDiveLink: '/manager/reports',
+          deepDiveLinkText: 'View Revenue Analytics'
+        };
+      case 'at_risk':
+        return {
+          title: 'At Risk Reps',
+          metric: '1 Rep',
+          change: 'Needs immediate attention',
+          insights: [
+            'Michael Chen showing performance decline',
+            '25% below target with high risk level',
+            'Recent activity drop detected'
+          ],
+          recommendations: [
+            'Schedule 1-on-1 with Michael immediately',
+            'Review workload and provide support',
+            'Consider temporary assistance'
+          ],
+          deepDiveLink: '/manager/team',
+          deepDiveLinkText: 'View Team Details'
+        };
+      case 'pipeline':
+        return {
+          title: 'Pipeline Value',
+          metric: '+$137,700',
+          change: 'Expected this quarter',
+          insights: [
+            'Strong pipeline growth across team',
+            'Multiple high-value deals in progress',
+            'Conversion rates improving'
+          ],
+          recommendations: [
+            'Focus on deal acceleration',
+            'Review pricing strategies',
+            'Prepare for quota achievement'
+          ],
+          deepDiveLink: '/manager/pipeline',
+          deepDiveLinkText: 'View Pipeline Details'
+        };
+      case 'active_rewards':
+        return {
+          title: 'Active Rewards',
+          metric: '3 Rewards',
+          change: 'Team incentives running',
+          insights: [
+            'Multiple team members engaged in rewards',
+            'High participation across all programs',
+            'Strong motivation indicators'
+          ],
+          recommendations: [
+            'Monitor reward progress closely',
+            'Consider additional incentives',
+            'Celebrate upcoming achievements'
+          ],
+          deepDiveLink: '/manager/team',
+          deepDiveLinkText: 'View Team Rewards'
+        };
+      default:
+        return null;
     }
   };
 
@@ -295,8 +374,9 @@ const AIManagerDashboard: React.FC = () => {
               <BusinessOpsSnapshot />
             </div>
 
-            {/* Right Column - Team Performance Grid */}
+            {/* Right Column - Team Performance and Rewards */}
             <div className="space-y-6">
+              {/* Team Performance Grid */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -424,6 +504,7 @@ const AIManagerDashboard: React.FC = () => {
           isOpen={!!selectedMetric}
           onClose={() => setSelectedMetric(null)}
           type={selectedMetric as any}
+          {...getMetricModalConfig(selectedMetric)!}
         />
       )}
 
