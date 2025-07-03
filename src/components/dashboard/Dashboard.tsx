@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,7 +17,11 @@ import { AIAssistantHub } from './AIAssistantHub';
 import { SuggestedSchedule } from './SuggestedSchedule';
 import { PriorityTasks } from './PriorityTasks';
 import PipelinePulse from '@/components/Dashboard/PipelinePulse';
+import AIRecommendations from '@/components/AI/AIRecommendations';
+import AICoachingPanel from '@/components/AI/AICoachingPanel';
+import RewardsProgress from '@/components/Dashboard/RewardsProgress';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { Lead } from '@/types/lead';
 
 const Dashboard: React.FC = () => {
   const { profile } = useAuth();
@@ -57,66 +62,15 @@ const Dashboard: React.FC = () => {
     }
   ];
 
-  const mockLeads: Lead[] = [
-    {
-      id: '1',
-      name: 'Sarah Chen',
-      email: 'sarah.chen@techcorp.com',
-      phone: '+1-555-0123',
-      company: 'TechCorp Solutions',
-      status: 'proposal',
-      priority: 'high',
-      source: 'LinkedIn',
-      score: 94,
-      conversionLikelihood: 86,
-      lastContact: '2024-01-15T10:00:00Z',
-      speedToLead: 2,
-      tags: ['enterprise', 'hot lead'],
-      createdAt: '2024-01-10T09:00:00Z',
-      updatedAt: '2024-01-15T10:00:00Z',
-      companyId: 'demo-company',
-      isSensitive: false,
-      value: 95000,
-      lastActivity: 'No reply in 4 days',
-      aiPriority: 'High',
-      nextAction: 'Reschedule call',
-      lastAIInsight: 'No reply in 4 days – reschedule now'
-    },
-    {
-      id: '2',
-      name: 'Mike Rodriguez',
-      email: 'mike.rodriguez@startupx.com',
-      phone: '+1-555-0124',
-      company: 'StartupX',
-      status: 'negotiation',
-      priority: 'high',
-      source: 'Referral',
-      score: 87,
-      conversionLikelihood: 82,
-      lastContact: '2024-01-14T15:30:00Z',
-      speedToLead: 1,
-      tags: ['decision maker', 'budget approved'],
-      createdAt: '2024-01-08T14:00:00Z',
-      updatedAt: '2024-01-14T15:30:00Z',
-      companyId: 'demo-company',
-      isSensitive: false,
-      value: 78000,
-      lastActivity: 'Opened proposal twice',
-      aiPriority: 'High',
-      nextAction: 'Follow up on proposal',
-      lastAIInsight: 'Opened proposal twice, no reply'
-    }
-  ];
-
-  // Convert pipeline data to proper format
-  const convertedLeads = dashboardData.pipelineData.map(item => ({
-    id: item.id || `lead-${Math.random()}`,
+  // Convert pipeline data to proper Lead format
+  const convertedLeads: Lead[] = dashboardData.pipelineData.map((item, index) => ({
+    id: item.id || `lead-${index}`,
     name: item.company || 'Unknown Lead',
     email: `contact@${(item.company || 'unknown').toLowerCase().replace(/\s+/g, '')}.com`,
     phone: '+1-555-0123',
-    company: item.company,
-    status: item.status as any,
-    priority: item.priority as any,
+    company: item.company || 'Unknown Company',
+    status: (item.status as Lead['status']) || 'new',
+    priority: (item.priority as Lead['priority']) || 'medium',
     source: 'Website',
     score: 85,
     conversionLikelihood: 78,
@@ -127,7 +81,12 @@ const Dashboard: React.FC = () => {
     updatedAt: new Date().toISOString(),
     companyId: 'demo-company',
     isSensitive: false,
-    value: item.value ? item.value.replace(/[$,]/g, '') : '0'
+    value: parseInt(item.value?.replace(/[$,]/g, '') || '0'),
+    // Add the required new properties
+    lastActivity: 'Recent activity',
+    aiPriority: 'Medium',
+    nextAction: 'Follow up',
+    lastAIInsight: 'AI analysis pending'
   }));
 
   return (
@@ -157,18 +116,41 @@ const Dashboard: React.FC = () => {
 
         <PriorityTasks tasks={dashboardData.priorityTasks} />
 
+        {/* Main Dashboard Grid with Pipeline Pulse, AI Recommendations, and Rewards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <span className="mr-2">🔄</span>Pipeline Pulse
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <PipelinePulse leads={convertedLeads} onLeadClick={() => {}} />
-            </CardContent>
-          </Card>
-          <AIAssistantHub stats={dashboardData.aiAssistant} />
+          {/* Pipeline Pulse - Left Side */}
+          <div className="lg:col-span-1">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="mr-2">🔄</span>Pipeline Pulse
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PipelinePulse leads={convertedLeads.slice(0, 5)} onLeadClick={() => {}} />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* AI Recommendations - Center */}
+          <div className="lg:col-span-1">
+            <AIRecommendations />
+          </div>
+
+          {/* Rewards Progress - Right Side */}
+          <div className="lg:col-span-1">
+            <RewardsProgress />
+          </div>
+        </div>
+
+        {/* AI Sales Coaching - Below Rewards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <AIAssistantHub stats={dashboardData.aiAssistant} />
+          </div>
+          <div>
+            <AICoachingPanel />
+          </div>
         </div>
 
         <div className="text-center py-8">
