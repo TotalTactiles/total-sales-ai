@@ -304,11 +304,11 @@ const AIManagerDashboard: React.FC = () => {
                       <Users className="h-5 w-5 text-blue-600" />
                       Team Performance
                     </CardTitle>
-                    <TeamPerformanceFilter 
-                      value={teamFilterType}
-                      onChange={setTeamFilterType}
-                    />
                   </div>
+                  <TeamPerformanceFilter 
+                    value={teamFilterType}
+                    onChange={setTeamFilterType}
+                  />
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {displayedMembers.map((member) => (
@@ -423,7 +423,7 @@ const AIManagerDashboard: React.FC = () => {
         <MetricModal
           isOpen={!!selectedMetric}
           onClose={() => setSelectedMetric(null)}
-          metricType={selectedMetric}
+          type={selectedMetric as any}
         />
       )}
 
@@ -431,7 +431,7 @@ const AIManagerDashboard: React.FC = () => {
         <TeamMemberModal
           isOpen={!!selectedMember}
           onClose={() => setSelectedMember(null)}
-          member={selectedMember}
+          member={selectedMember as any}
         />
       )}
     </div>

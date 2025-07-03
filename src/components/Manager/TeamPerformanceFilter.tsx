@@ -5,14 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Filter, Users, TrendingUp, TrendingDown, AlertTriangle, Award, Activity, Tag } from 'lucide-react';
 
 interface TeamPerformanceFilterProps {
-  selectedFilter: string;
-  onFilterChange: (filter: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   className?: string;
 }
 
 const TeamPerformanceFilter: React.FC<TeamPerformanceFilterProps> = ({
-  selectedFilter,
-  onFilterChange,
+  value,
+  onChange,
   className = ''
 }) => {
   const filterOptions = [
@@ -49,7 +49,7 @@ const TeamPerformanceFilter: React.FC<TeamPerformanceFilterProps> = ({
         <span className="text-sm font-medium text-gray-700">Filter Team:</span>
       </div>
       
-      <Select value={selectedFilter} onValueChange={onFilterChange}>
+      <Select value={value} onValueChange={onChange}>
         <SelectTrigger className="w-48 h-9">
           <SelectValue placeholder="Select filter" />
         </SelectTrigger>
@@ -68,11 +68,11 @@ const TeamPerformanceFilter: React.FC<TeamPerformanceFilterProps> = ({
         </SelectContent>
       </Select>
 
-      {selectedFilter !== 'all' && (
-        <Badge className={`${getFilterColor(selectedFilter)} text-xs`}>
+      {value !== 'all' && (
+        <Badge className={`${getFilterColor(value)} text-xs`}>
           <div className="flex items-center gap-1">
-            {getFilterIcon(selectedFilter)}
-            <span>{filterOptions.find(opt => opt.value === selectedFilter)?.label}</span>
+            {getFilterIcon(value)}
+            <span>{filterOptions.find(opt => opt.value === value)?.label}</span>
           </div>
         </Badge>
       )}
