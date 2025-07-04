@@ -1,205 +1,274 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { 
   Users, 
-  Brain, 
-  TrendingUp, 
-  TrendingDown,
-  AlertTriangle,
+  Award, 
+  Settings, 
+  Search, 
   Download,
-  RefreshCw,
-  Search,
-  Calendar
+  Filter,
+  Calendar,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  AlertTriangle,
+  Target,
+  Brain
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { useLocation } from 'react-router-dom';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-import TeamRewardsManagement from '@/components/Manager/TeamRewardsManagement';
-
-interface TeamMember {
-  id: string;
-  name: string;
-  initials: string;
-  role: string;
-  avgScore: number;
-  demos: number;
-  deals: number;
-  revenue: number;
-  rewardProgress: number;
-  conversionRate: number;
-  avgDealSize: number;
-  status: '🔥Hot Streak' | '🟡Moderate' | '❄️Slowing';
-  statusReason: string;
-  coachingAlerts: number;
-  focusZone: 'hot' | 'moderate' | 'slowing';
-  milestones: string[];
-  kpis: {
-    calls: number;
-    demos: number;
-    revenue: number;
-    trend: 'up' | 'down' | 'stable';
-  };
-}
+import { demoTeamMembers, demoManagerRecommendations } from '@/data/demoData';
+import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
+import DetailedTeamTable from '@/components/Manager/DetailedTeamTable';
+import ProcessInReview from '@/components/Manager/ProcessInReview';
 
 const EnhancedTeamManagement: React.FC = () => {
-  const location = useLocation();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'time' | 'member' | 'activity'>('all');
-  
-  // Determine default tab based on URL
-  const getDefaultTab = () => {
-    if (location.pathname.includes('/team/rewards')) return 'rewards';
-    return 'overview';
-  };
+  const [selectedTab, setSelectedTab] = useState('overview');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [timeFilter, setTimeFilter] = useState('This Week');
+  const [activityType, setActivityType] = useState('All Activities');
 
-  // Mock team data with enhanced features for Team in Review
-  const teamMembers: TeamMember[] = [
+  // Mock team in review data (previously from Team in Review subtab)
+  const teamInReviewData = [
     {
-      id: '1',
+      id: 'sj-001',
       name: 'Sarah Johnson',
-      initials: 'SJ',
       role: 'Senior Sales Rep',
+      avatar: 'SJ',
       avgScore: 94,
+      trend: 'up',
+      streakStatus: 'Hot Streak',
       demos: 23,
       deals: 8,
       revenue: 145000,
-      rewardProgress: 80,
-      conversionRate: 34.2,
-      avgDealSize: 18125,
-      status: '🔥Hot Streak',
-      statusReason: 'Demo conversion up 35% vs last month',
-      coachingAlerts: 0,
-      focusZone: 'hot',
-      milestones: ['Hit 40 calls/day record', 'Closed 3 enterprise deals this week'],
-      kpis: { calls: 198, demos: 57, revenue: 145000, trend: 'up' }
+      rewardProgress: 80
     },
     {
-      id: '2',
+      id: 'mc-002', 
       name: 'Michael Chen',
-      initials: 'MC',
       role: 'Sales Rep',
+      avatar: 'MC',
       avgScore: 71,
+      trend: 'down',
+      streakStatus: 'Slowing',
       demos: 15,
       deals: 4,
       revenue: 89000,
-      rewardProgress: 92,
-      conversionRate: 28.1,
-      avgDealSize: 22250,
-      status: '❄️Slowing',
-      statusReason: '25% drop in demo conversion vs last month',
-      coachingAlerts: 3,
-      focusZone: 'slowing',
-      milestones: ['Completed objection handling training'],
-      kpis: { calls: 143, demos: 32, revenue: 89000, trend: 'down' }
+      rewardProgress: 92
     },
     {
-      id: '3',
-      name: 'Emily Rodriguez',
-      initials: 'ER',
+      id: 'er-003',
+      name: 'Emily Rodriguez', 
       role: 'Sales Rep',
+      avatar: 'ER',
       avgScore: 88,
+      trend: 'up',
+      streakStatus: 'Moderate',
       demos: 19,
       deals: 6,
       revenue: 112000,
-      rewardProgress: 68,
-      conversionRate: 31.8,
-      avgDealSize: 18667,
-      status: '🟡Moderate',
-      statusReason: 'Consistent performance, slight uptick in activity',
-      coachingAlerts: 1,
-      focusZone: 'moderate',
-      milestones: ['Hit 10 demos this week', 'Improved follow-up response time'],
-      kpis: { calls: 172, demos: 41, revenue: 112000, trend: 'up' }
+      rewardProgress: 68
     }
   ];
 
-  const getStatusColor = (status: string) => {
-    if (status.includes('🔥')) return 'bg-green-100 text-green-800';
-    if (status.includes('🟡')) return 'bg-yellow-100 text-yellow-800';
-    if (status.includes('❄️')) return 'bg-red-100 text-red-800';
-    return 'bg-gray-100 text-gray-800';
-  };
-
   const getTrendIcon = (trend: string) => {
-    if (trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
-    if (trend === 'down') return <TrendingDown className="h-4 w-4 text-red-600" />;
-    return <div className="h-4 w-4" />;
+    switch (trend) {
+      case 'up': return <TrendingUp className="h-4 w-4 text-green-600" />;
+      case 'down': return <TrendingDown className="h-4 w-4 text-red-600" />;
+      default: return <Minus className="h-4 w-4 text-gray-400" />;
+    }
   };
 
-  const generatePDF = () => {
-    console.log('Generating PDF for manager meetings...');
+  const getStreakColor = (status: string) => {
+    switch (status) {
+      case 'Hot Streak': return 'bg-green-100 text-green-800';
+      case 'Slowing': return 'bg-red-100 text-red-800';
+      case 'Moderate': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
   };
-
-  const handleRedistribution = () => {
-    console.log('Opening lead redistribution modal...');
-  };
-
-  const filteredMembers = teamMembers.filter(member =>
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.role.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-slate-50 to-blue-50">
-      <ManagerNavigation />
-      
-      <div className="pt-[60px] px-6 py-6">
-        <div className="max-w-7xl mx-auto">
-          <Tabs defaultValue={getDefaultTab()} className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Team Management</h1>
-                <p className="text-gray-600">Enhanced team insights and management tools</p>
-              </div>
-              <TabsList className="grid w-fit grid-cols-3">
-                <TabsTrigger value="overview">Team Overview</TabsTrigger>
-                <TabsTrigger value="rewards">Team Rewards</TabsTrigger>
-                <TabsTrigger value="review">Team in Review</TabsTrigger>
-              </TabsList>
-            </div>
+    <div className="min-h-screen bg-background p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Team Management</h1>
+          <p className="text-slate-600">Enhanced team insights and management tools</p>
+        </div>
 
-            <TabsContent value="overview" className="space-y-6">
-              {/* Smart Coaching Alerts - Manager focused, no sales coaching */}
-              <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-t-lg">
-                  <CardTitle className="flex items-center gap-2">
-                    <Brain className="h-5 w-5" />
-                    Smart Coaching Alerts
-                    <Badge className="bg-white/20 text-white text-xs ml-auto">
-                      {teamMembers.reduce((acc, member) => acc + member.coachingAlerts, 0)} Active
-                    </Badge>
-                  </CardTitle>
+        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Team Overview
+            </TabsTrigger>
+            <TabsTrigger value="rewards" className="flex items-center gap-2">
+              <Award className="h-4 w-4" />
+              Team Rewards
+            </TabsTrigger>
+            <TabsTrigger value="process" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Process in Review
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Team Overview Tab */}
+          <TabsContent value="overview" className="mt-6">
+            <div className="space-y-6">
+              {/* Team in Review Section (Merged from previous subtab) */}
+              <Card className="rounded-lg shadow-md">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      <CardTitle>Team in Review</CardTitle>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <Button variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Filter className="h-4 w-4" />
+                        <select 
+                          value={timeFilter} 
+                          onChange={(e) => setTimeFilter(e.target.value)}
+                          className="text-sm border rounded px-2 py-1"
+                        >
+                          <option>This Week</option>
+                          <option>This Month</option>
+                          <option>Last Quarter</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        <select 
+                          value={activityType} 
+                          onChange={(e) => setActivityType(e.target.value)}
+                          className="text-sm border rounded px-2 py-1"
+                        >
+                          <option>All Activities</option>
+                          <option>Calls</option>
+                          <option>Demos</option>
+                          <option>Deals</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-4">
+                    <div className="flex-1">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          placeholder="Search team members..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="p-6">
+                <CardContent>
                   <div className="space-y-4">
-                    {teamMembers.filter(member => member.coachingAlerts > 0).map((member) => (
-                      <div key={member.id} className="bg-red-50 border border-red-200 rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback className="bg-red-600 text-white">
-                                {member.initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h4 className="font-semibold text-red-900">{member.name}</h4>
-                              <p className="text-sm text-red-700">{member.statusReason}</p>
+                    {teamInReviewData.map((member) => (
+                      <div key={member.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
+                            {member.avatar}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{member.name}</h4>
+                            <p className="text-sm text-gray-600">{member.role}</p>
+                            <Badge className={getStreakColor(member.streakStatus)}>
+                              {member.streakStatus}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="text-center">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xl font-bold">{member.avgScore}</span>
+                              {getTrendIcon(member.trend)}
                             </div>
+                            <p className="text-xs text-gray-500">Avg Score</p>
                           </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
-                              <Calendar className="h-4 w-4 mr-1" />
-                              Schedule 1-on-1
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              Team Drill
-                            </Button>
+                          <div className="text-center">
+                            <p className="font-semibold">{member.demos}</p>
+                            <p className="text-xs text-gray-500">Demos</p>
                           </div>
+                          <div className="text-center">
+                            <p className="font-semibold">{member.deals}</p>
+                            <p className="text-xs text-gray-500">Deals</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="font-semibold">${member.revenue.toLocaleString()}</p>
+                            <p className="text-xs text-gray-500">Revenue</p>
+                          </div>
+                          <div className="text-center min-w-[100px]">
+                            <div className="w-full bg-gray-200 rounded-full h-2 mb-1">
+                              <div 
+                                className="bg-orange-500 h-2 rounded-full" 
+                                style={{ width: `${member.rewardProgress}%` }}
+                              ></div>
+                            </div>
+                            <p className="text-xs text-gray-500">{member.rewardProgress}%</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* AI Summary */}
+                    <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Brain className="h-5 w-5 text-purple-600" />
+                        <h4 className="font-semibold text-purple-900">AI Summary (Demo Mode)</h4>
+                      </div>
+                      <p className="text-purple-800 text-sm italic">
+                        "Sarah closed most this week. Marcus's drop detected. Suggest peer pairing. Mike's demo ratio dropped 18% this week - suggest peer coaching."
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Smart Coaching Alerts */}
+              <Card className="rounded-lg shadow-md">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-orange-600" />
+                      Smart Coaching Alerts
+                      <Badge variant="outline" className="bg-orange-100 text-orange-800">
+                        4 Active
+                      </Badge>
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {demoManagerRecommendations.map((rec) => (
+                      <div key={rec.id} className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                            {rec.rep_name.split(' ').map(n => n[0]).join('')}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-red-900">{rec.rep_name}</h4>
+                            <p className="text-sm text-red-700">{rec.message}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button size="sm" variant="outline" className="border-red-300 text-red-700">
+                            Schedule 1-on-1
+                          </Button>
+                          <Button size="sm" className="bg-red-600 hover:bg-red-700">
+                            {rec.action}
+                          </Button>
                         </div>
                       </div>
                     ))}
@@ -207,182 +276,65 @@ const EnhancedTeamManagement: React.FC = () => {
                 </CardContent>
               </Card>
 
+              {/* Detailed Team Performance Table */}
+              <DetailedTeamTable />
+
               {/* AI Manager Insights */}
-              <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-                <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
+              <Card className="rounded-lg shadow-md">
+                <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Brain className="h-5 w-5" />
+                    <Brain className="h-5 w-5 text-purple-600" />
                     AI Manager Insights
-                    <Badge className="bg-white/20 text-white text-xs ml-auto">
+                    <Badge variant="outline" className="bg-gray-100 text-gray-600">
                       Demo Mode
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <div className="space-y-4">
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                      <p className="text-purple-800 italic">
-                        "James is 80% toward his bonus – push 2 more deals before Friday."
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-900">Bonus Alert</span>
+                      </div>
+                      <p className="text-sm text-blue-800">
+                        "James is 80% toward his bonus — push 2 more deals before Friday."
                       </p>
                     </div>
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-blue-800 italic">
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingDown className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-900">Performance</span>
+                      </div>
+                      <p className="text-sm text-blue-800">
                         "Team reward completion rate down 12% this month. Recommend checking in."
                       </p>
                     </div>
-                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <p className="text-green-800 italic">
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-900">Success</span>
+                      </div>
+                      <p className="text-sm text-green-800">
                         "Sarah closed most this week. Marcus's drop detected. Suggest peer pairing."
                       </p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </TabsContent>
 
-              {/* Suggested Lead Redistribution */}
-              <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <RefreshCw className="h-5 w-5 text-indigo-600" />
-                    Suggested Lead Redistribution
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h4 className="font-semibold text-indigo-900">Workload Imbalance Detected</h4>
-                        <p className="text-sm text-indigo-700">
-                          Sarah has 47 active leads while Michael has 23. Consider redistributing 8-12 leads for optimal performance.
-                        </p>
-                      </div>
-                      <Button 
-                        onClick={handleRedistribution}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                      >
-                        Approve Redistribution
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+          {/* Team Rewards Tab */}
+          <TabsContent value="rewards" className="mt-6">
+            <ManagerTeamTable teamMembers={demoTeamMembers} />
+          </TabsContent>
 
-            <TabsContent value="rewards">
-              <TeamRewardsManagement />
-            </TabsContent>
-
-            <TabsContent value="review" className="space-y-6">
-              {/* Team in Review Section */}
-              <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-blue-600" />
-                      Team in Review
-                    </CardTitle>
-                    <div className="flex gap-2">
-                      <Button onClick={generatePDF} variant="outline" size="sm">
-                        <Download className="h-4 w-4 mr-2" />
-                        Export
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {/* Search and Filters */}
-                  <div className="flex gap-4 mt-4">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="Search team members..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                    <Button variant="outline" size="sm" onClick={() => setFilterType('time')}>
-                      Time Filter
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => setFilterType('activity')}>
-                      Activity Type
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  {/* Table Layout */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 border-b">
-                        <tr>
-                          <th className="text-left p-4 font-medium text-gray-600">Name</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Role</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Avg Score</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Demos</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Deals</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Revenue</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Reward Progress</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredMembers.map((member) => (
-                          <tr key={member.id} className="border-b hover:bg-gray-50">
-                            <td className="p-4">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm">
-                                    {member.initials}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium">{member.name}</div>
-                                  <Badge className={`text-xs ${getStatusColor(member.status)}`}>
-                                    {member.status}
-                                  </Badge>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4 text-sm text-gray-600">{member.role}</td>
-                            <td className="p-4">
-                              <div className="flex items-center gap-1">
-                                <span className="font-medium">{member.avgScore}</span>
-                                {getTrendIcon(member.kpis.trend)}
-                              </div>
-                            </td>
-                            <td className="p-4 font-medium">{member.demos}</td>
-                            <td className="p-4 font-medium">{member.deals}</td>
-                            <td className="p-4 font-medium">${member.revenue.toLocaleString()}</td>
-                            <td className="p-4">
-                              <div className="flex items-center gap-2">
-                                <div className="w-20 bg-gray-200 rounded-full h-2">
-                                  <div 
-                                    className="bg-orange-500 h-2 rounded-full"
-                                    style={{ width: `${member.rewardProgress}%` }}
-                                  />
-                                </div>
-                                <span className="text-sm font-medium">{member.rewardProgress}%</span>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* AI Summary Area */}
-                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
-                    <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
-                      <Brain className="h-4 w-4 text-purple-600" />
-                      AI Summary (Demo Mode)
-                    </h4>
-                    <p className="text-sm text-gray-700 italic">
-                      "Sarah closed most this week. Marcus's drop detected. Suggest peer pairing. Mike's demo ratio dropped 18% this week - suggest peer coaching."
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
+          {/* Process in Review Tab */}
+          <TabsContent value="process" className="mt-6">
+            <ProcessInReview />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
