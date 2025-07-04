@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,12 +18,12 @@ import {
   Minus,
   AlertTriangle,
   Target,
-  Brain
+  Brain,
+  UserCheck
 } from 'lucide-react';
 import { demoTeamMembers, demoManagerRecommendations } from '@/data/demoData';
 import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
 import DetailedTeamTable from '@/components/Manager/DetailedTeamTable';
-import ProcessInReview from '@/components/Manager/ProcessInReview';
 import TeamRewardsManagement from '@/components/Manager/TeamRewardsManagement';
 
 const EnhancedTeamManagement: React.FC = () => {
@@ -30,6 +31,14 @@ const EnhancedTeamManagement: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState('This Week');
   const [activityType, setActivityType] = useState('All Activities');
+
+  // Mock sales reps data
+  const salesRepsData = [
+    { name: 'Sarah Chen', deals: 12, value: '$145K', conversion: '28%', status: 'exceeding', calls: 89, training: 92, emoji: '🔥' },
+    { name: 'Mike Johnson', deals: 8, value: '$98K', conversion: '22%', status: 'on-track', calls: 67, training: 78, emoji: '📈' },
+    { name: 'Emma Davis', deals: 6, value: '$67K', conversion: '18%', status: 'needs-support', calls: 45, training: 56, emoji: '⚠️' },
+    { name: 'James Wilson', deals: 10, value: '$123K', conversion: '25%', status: 'on-track', calls: 78, training: 84, emoji: '📊' }
+  ];
 
   const teamInReviewData = [
     {
@@ -100,18 +109,18 @@ const EnhancedTeamManagement: React.FC = () => {
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Team Overview
             </TabsTrigger>
+            <TabsTrigger value="sales-reps" className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4" />
+              Sales Reps
+            </TabsTrigger>
             <TabsTrigger value="rewards" className="flex items-center gap-2">
               <Award className="h-4 w-4" />
               Team Rewards
-            </TabsTrigger>
-            <TabsTrigger value="process" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Process in Review
             </TabsTrigger>
           </TabsList>
 
@@ -324,14 +333,49 @@ const EnhancedTeamManagement: React.FC = () => {
             </div>
           </TabsContent>
 
+          {/* Sales Reps Tab */}
+          <TabsContent value="sales-reps" className="mt-6">
+            <Card className="rounded-lg shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Individual Rep Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {salesRepsData.map((rep, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-lg">{rep.emoji}</span>
+                        </div>
+                        <div>
+                          <h4 className="font-medium">{rep.name}</h4>
+                          <p className="text-sm text-muted-foreground">{rep.deals} deals • {rep.value} pipeline • {rep.calls} calls</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium">{rep.conversion} conversion</span>
+                        <span className="text-sm text-muted-foreground">{rep.training}% training</span>
+                        <Badge variant={
+                          rep.status === 'exceeding' ? 'default' :
+                          rep.status === 'on-track' ? 'secondary' :
+                          'destructive'
+                        }>
+                          {rep.status.replace('-', ' ')}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Team Rewards Tab */}
           <TabsContent value="rewards" className="mt-6">
             <TeamRewardsManagement />
-          </TabsContent>
-
-          {/* Process in Review Tab */}
-          <TabsContent value="process" className="mt-6">
-            <ProcessInReview />
           </TabsContent>
         </Tabs>
       </div>

@@ -17,15 +17,25 @@ import {
   CheckCircle,
   Zap,
   Activity,
-  Calendar
+  Calendar,
+  Settings
 } from 'lucide-react';
 import FunnelChart from '@/components/Manager/FunnelChart';
 import AIFunnelInsights from '@/components/Manager/AIFunnelInsights';
 import RetentionIntelligencePanel from '@/components/Manager/RetentionIntelligencePanel';
+import ProcessInReview from '@/components/Manager/ProcessInReview';
 
 const BusinessOps = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [aiAnalyticsActive, setAiAnalyticsActive] = useState(true);
+
+  // Mock sales reps data
+  const salesRepsData = [
+    { name: 'Sarah Chen', deals: 12, value: '$145K', conversion: '28%', status: 'exceeding', calls: 89, training: 92, emoji: '🔥' },
+    { name: 'Mike Johnson', deals: 8, value: '$98K', conversion: '22%', status: 'on-track', calls: 67, training: 78, emoji: '📈' },
+    { name: 'Emma Davis', deals: 6, value: '$67K', conversion: '18%', status: 'needs-support', calls: 45, training: 56, emoji: '⚠️' },
+    { name: 'James Wilson', deals: 10, value: '$123K', conversion: '25%', status: 'on-track', calls: 78, training: 84, emoji: '📊' }
+  ];
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -57,9 +67,9 @@ const BusinessOps = () => {
 
       {/* Business Operations Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="sales-reps">Sales Reps</TabsTrigger>
+          <TabsTrigger value="process-review">Process in Review</TabsTrigger>
           <TabsTrigger value="funnels">Funnels</TabsTrigger>
           <TabsTrigger value="retention">Retention</TabsTrigger>
         </TabsList>
@@ -231,48 +241,8 @@ const BusinessOps = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="sales-reps" className="space-y-6">
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Individual Rep Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { name: 'Sarah Chen', deals: 12, value: '$145K', conversion: '28%', status: 'exceeding', calls: 89, training: 92, emoji: '🔥' },
-                  { name: 'Mike Johnson', deals: 8, value: '$98K', conversion: '22%', status: 'on-track', calls: 67, training: 78, emoji: '📈' },
-                  { name: 'Emma Davis', deals: 6, value: '$67K', conversion: '18%', status: 'needs-support', calls: 45, training: 56, emoji: '⚠️' },
-                  { name: 'James Wilson', deals: 10, value: '$123K', conversion: '25%', status: 'on-track', calls: 78, training: 84, emoji: '📊' }
-                ].map((rep, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-lg">{rep.emoji}</span>
-                      </div>
-                      <div>
-                        <h4 className="font-medium">{rep.name}</h4>
-                        <p className="text-sm text-muted-foreground">{rep.deals} deals • {rep.value} pipeline • {rep.calls} calls</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm font-medium">{rep.conversion} conversion</span>
-                      <span className="text-sm text-muted-foreground">{rep.training}% training</span>
-                      <Badge variant={
-                        rep.status === 'exceeding' ? 'default' :
-                        rep.status === 'on-track' ? 'secondary' :
-                        'destructive'
-                      }>
-                        {rep.status.replace('-', ' ')}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="process-review" className="space-y-6">
+          <ProcessInReview />
         </TabsContent>
 
         <TabsContent value="funnels" className="space-y-6">
@@ -333,7 +303,6 @@ const BusinessOps = () => {
             </Card>
           </div>
           
-          {/* NEW: Retention Intelligence Panel */}
           <RetentionIntelligencePanel />
         </TabsContent>
       </Tabs>

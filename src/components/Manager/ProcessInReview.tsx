@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +23,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ProcessStageEditor from './ProcessStageEditor';
 
 interface SalesStage {
   id: string;
@@ -35,6 +35,9 @@ interface SalesStage {
   conditions: string[];
   triggers: string[];
   isCustom: boolean;
+  managerNotes?: string;
+  exampleReplies?: string;
+  internalTips?: string;
 }
 
 interface SalesProcess {
@@ -50,6 +53,7 @@ interface SalesProcess {
 const ProcessInReview: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('builder');
   const [editingStage, setEditingStage] = useState<string | null>(null);
+  const [selectedStageForEdit, setSelectedStageForEdit] = useState<SalesStage | null>(null);
   const [aiOptimizationEnabled, setAiOptimizationEnabled] = useState(false);
 
   // Mock sales process data
@@ -67,7 +71,10 @@ const ProcessInReview: React.FC = () => {
         dropOffRate: 15,
         conditions: ['Valid contact info', 'Meets ICP criteria'],
         triggers: ['Form submission', 'Demo request', 'Inbound call'],
-        isCustom: false
+        isCustom: false,
+        managerNotes: 'Focus on speed to lead - respond within 5 minutes for best conversion rates',
+        exampleReplies: 'Thank you for your interest! I\'d love to learn more about your current challenges with [relevant topic].',
+        internalTips: 'Use lead scoring to prioritize responses. Check LinkedIn profile before calling.'
       },
       {
         id: 'stage-002',
@@ -78,7 +85,10 @@ const ProcessInReview: React.FC = () => {
         dropOffRate: 32,
         conditions: ['Budget confirmed', 'Authority identified', 'Need established'],
         triggers: ['Qualification call completed', 'BANT checklist done'],
-        isCustom: false
+        isCustom: false,
+        managerNotes: 'Don\'t rush this stage - thorough qualification saves time later',
+        exampleReplies: 'What\'s driving you to look for a solution like this now? What happens if you don\'t solve this?',
+        internalTips: 'Use MEDDIC framework. Always identify the decision-making process.'
       },
       {
         id: 'stage-003',
@@ -89,7 +99,10 @@ const ProcessInReview: React.FC = () => {
         dropOffRate: 28,
         conditions: ['Pain points identified', 'Current solution mapped'],
         triggers: ['Discovery call scheduled', 'Needs analysis completed'],
-        isCustom: false
+        isCustom: false,
+        managerNotes: 'Ask open-ended questions to uncover deeper needs',
+        exampleReplies: 'Can you walk me through your current process for [relevant task]? What are the biggest challenges you face?',
+        internalTips: 'Use the 5 Whys technique. Document everything in CRM.'
       },
       {
         id: 'stage-004',
@@ -100,7 +113,10 @@ const ProcessInReview: React.FC = () => {
         dropOffRate: 22,
         conditions: ['Demo completed', 'Technical questions answered'],
         triggers: ['Demo scheduled', 'Follow-up questions received'],
-        isCustom: false
+        isCustom: false,
+        managerNotes: 'Focus on the top 3 benefits that address the customer\'s pain points',
+        exampleReplies: 'Based on what you\'ve shared, I think you\'ll be most excited about [feature 1], [feature 2], and [feature 3].',
+        internalTips: 'Practice demo beforehand. Record and review demos for improvement.'
       },
       {
         id: 'stage-005',
@@ -111,7 +127,10 @@ const ProcessInReview: React.FC = () => {
         dropOffRate: 38,
         conditions: ['Proposal sent', 'Pricing discussed'],
         triggers: ['Proposal requested', 'Quote approved internally'],
-        isCustom: false
+        isCustom: false,
+        managerNotes: 'Clearly outline the value proposition and ROI',
+        exampleReplies: 'Here\'s a proposal that outlines how we can help you achieve [specific goals] and improve [key metrics].',
+        internalTips: 'Customize proposal for each client. Offer flexible payment options.'
       },
       {
         id: 'stage-006',
@@ -122,7 +141,10 @@ const ProcessInReview: React.FC = () => {
         dropOffRate: 15,
         conditions: ['Terms agreed', 'Pricing finalized'],
         triggers: ['Counter-offer received', 'Contract review started'],
-        isCustom: false
+        isCustom: false,
+        managerNotes: 'Be prepared to offer concessions, but hold firm on key terms',
+        exampleReplies: 'I understand your concerns about pricing. Let\'s explore some options that could work for both of us.',
+        internalTips: 'Know your walk-away point. Get creative with value-added services.'
       },
       {
         id: 'stage-007',
@@ -133,7 +155,10 @@ const ProcessInReview: React.FC = () => {
         dropOffRate: 0,
         conditions: ['Contract signed', 'Payment terms agreed'],
         triggers: ['Signature received', 'Implementation started'],
-        isCustom: false
+        isCustom: false,
+        managerNotes: 'Celebrate the win and ensure a smooth onboarding process',
+        exampleReplies: 'Congratulations! We\'re excited to have you as a customer and look forward to helping you achieve your goals.',
+        internalTips: 'Send a thank-you note. Schedule a kickoff call with the implementation team.'
       }
     ],
     isDefault: true,
@@ -169,6 +194,24 @@ const ProcessInReview: React.FC = () => {
     }
   ];
 
+  const handleStageClick = (stage: SalesStage) => {
+    setSelectedStageForEdit(stage);
+  };
+
+  const handleSaveStage = (updatedStage: SalesStage) => {
+    setCurrentProcess(prev => ({
+      ...prev,
+      stages: prev.stages.map(stage => 
+        stage.id === updatedStage.id ? updatedStage : stage
+      ),
+      lastModified: new Date().toISOString()
+    }));
+    
+    // AI ingestion simulation
+    console.log('Pushing stage data to Company Brain:', updatedStage);
+    toast.success('Stage updated and synced to Company Brain');
+  };
+
   const addNewStage = () => {
     const newStage: SalesStage = {
       id: `stage-${Date.now()}`,
@@ -179,7 +222,10 @@ const ProcessInReview: React.FC = () => {
       dropOffRate: 50,
       conditions: ['Add condition'],
       triggers: ['Add trigger'],
-      isCustom: true
+      isCustom: true,
+      managerNotes: '',
+      exampleReplies: '',
+      internalTips: ''
     };
     
     setCurrentProcess(prev => ({
@@ -187,7 +233,7 @@ const ProcessInReview: React.FC = () => {
       stages: [...prev.stages.slice(0, -1), newStage, prev.stages[prev.stages.length - 1]]
     }));
     
-    setEditingStage(newStage.id);
+    setSelectedStageForEdit(newStage);
     toast.success('New stage added');
   };
 
@@ -200,7 +246,9 @@ const ProcessInReview: React.FC = () => {
   };
 
   const saveProcess = () => {
-    toast.success('Sales process saved successfully');
+    // AI ingestion simulation
+    console.log('Pushing complete process to Company Brain:', currentProcess);
+    toast.success('Sales process saved and synced to Company Brain');
   };
 
   const resetToDefault = () => {
@@ -298,7 +346,10 @@ const ProcessInReview: React.FC = () => {
                 {currentProcess.stages.map((stage, index) => (
                   <div key={stage.id} className="flex items-center gap-4">
                     <div className="flex-1">
-                      <Card className="p-4 hover:shadow-md transition-shadow">
+                      <Card 
+                        className="p-4 hover:shadow-md transition-shadow cursor-pointer hover:bg-gray-50"
+                        onClick={() => handleStageClick(stage)}
+                      >
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
@@ -313,11 +364,17 @@ const ProcessInReview: React.FC = () => {
                             {stage.isCustom && (
                               <Badge variant="outline" className="text-xs">Custom</Badge>
                             )}
-                            <Button variant="ghost" size="sm" onClick={() => setEditingStage(stage.id)}>
+                            <Button variant="ghost" size="sm" onClick={(e) => {
+                              e.stopPropagation();
+                              handleStageClick(stage);
+                            }}>
                               <Edit className="h-3 w-3" />
                             </Button>
                             {stage.isCustom && (
-                              <Button variant="ghost" size="sm" onClick={() => removeStage(stage.id)}>
+                              <Button variant="ghost" size="sm" onClick={(e) => {
+                                e.stopPropagation();
+                                removeStage(stage.id);
+                              }}>
                                 <Trash2 className="h-3 w-3 text-red-600" />
                               </Button>
                             )}
@@ -496,6 +553,16 @@ const ProcessInReview: React.FC = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Stage Editor Modal */}
+      {selectedStageForEdit && (
+        <ProcessStageEditor
+          stage={selectedStageForEdit}
+          isOpen={!!selectedStageForEdit}
+          onClose={() => setSelectedStageForEdit(null)}
+          onSave={handleSaveStage}
+        />
+      )}
     </div>
   );
 };
