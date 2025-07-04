@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,6 +23,7 @@ import { demoTeamMembers, demoManagerRecommendations } from '@/data/demoData';
 import ManagerTeamTable from '@/components/Manager/ManagerTeamTable';
 import DetailedTeamTable from '@/components/Manager/DetailedTeamTable';
 import ProcessInReview from '@/components/Manager/ProcessInReview';
+import TeamRewardsManagement from '@/components/Manager/TeamRewardsManagement';
 
 const EnhancedTeamManagement: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('overview');
@@ -31,7 +31,6 @@ const EnhancedTeamManagement: React.FC = () => {
   const [timeFilter, setTimeFilter] = useState('This Week');
   const [activityType, setActivityType] = useState('All Activities');
 
-  // Mock team in review data (previously from Team in Review subtab)
   const teamInReviewData = [
     {
       id: 'sj-001',
@@ -327,7 +326,7 @@ const EnhancedTeamManagement: React.FC = () => {
 
           {/* Team Rewards Tab */}
           <TabsContent value="rewards" className="mt-6">
-            <ManagerTeamTable teamMembers={demoTeamMembers} />
+            <TeamRewardsManagement />
           </TabsContent>
 
           {/* Process in Review Tab */}
