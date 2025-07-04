@@ -10,17 +10,14 @@ import {
   Brain, 
   TrendingUp, 
   TrendingDown,
-  Award,
   AlertTriangle,
-  Calendar,
   Download,
   RefreshCw,
-  Trophy,
-  Gift,
   Search,
-  FileText
+  Calendar
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { useLocation } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import TeamRewardsManagement from '@/components/Manager/TeamRewardsManagement';
 
@@ -50,10 +47,15 @@ interface TeamMember {
 }
 
 const EnhancedTeamManagement: React.FC = () => {
-  const [selectedKPI, setSelectedKPI] = useState<'calls' | 'demos' | 'revenue'>('calls');
-  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter'>('month');
+  const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'time' | 'member' | 'activity'>('all');
+  
+  // Determine default tab based on URL
+  const getDefaultTab = () => {
+    if (location.pathname.includes('/team/rewards')) return 'rewards';
+    return 'overview';
+  };
 
   // Mock team data with enhanced features for Team in Review
   const teamMembers: TeamMember[] = [
@@ -148,7 +150,7 @@ const EnhancedTeamManagement: React.FC = () => {
       
       <div className="pt-[60px] px-6 py-6">
         <div className="max-w-7xl mx-auto">
-          <Tabs defaultValue="overview" className="space-y-6">
+          <Tabs defaultValue={getDefaultTab()} className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Team Management</h1>
@@ -162,7 +164,7 @@ const EnhancedTeamManagement: React.FC = () => {
             </div>
 
             <TabsContent value="overview" className="space-y-6">
-              {/* Smart Coaching Alerts */}
+              {/* Smart Coaching Alerts - Manager focused, no sales coaching */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardHeader className="bg-gradient-to-r from-red-500 to-orange-500 text-white rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">

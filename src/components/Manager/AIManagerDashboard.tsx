@@ -12,9 +12,6 @@ import {
   Users, 
   DollarSign,
   Target,
-  Calendar,
-  Phone,
-  Mail,
   AlertTriangle,
   Trophy,
   Gift,
@@ -374,9 +371,9 @@ const AIManagerDashboard: React.FC = () => {
               <BusinessOpsSnapshot />
             </div>
 
-            {/* Right Column - Team Performance */}
+            {/* Right Column - Team Performance and Rewards */}
             <div className="space-y-6">
-              {/* Team Performance Grid - Moved up per requirements */}
+              {/* Team Performance Grid */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -434,7 +431,7 @@ const AIManagerDashboard: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Team Rewards Snapshot - Fixed logic per requirements */}
+              {/* Team Rewards Snapshot */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardHeader>
                   <div className="flex items-center justify-between">

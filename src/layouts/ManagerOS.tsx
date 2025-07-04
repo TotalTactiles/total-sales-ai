@@ -28,6 +28,7 @@ const ManagerOS: React.FC = () => {
           <Route path="dashboard" element={<ManagerDashboard />} />
           <Route path="business-ops" element={<BusinessOps />} />
           <Route path="team" element={<ManagerTeam />} />
+          <Route path="team/rewards" element={<ManagerTeam />} />
           <Route path="leads" element={<LeadIntelligenceCommand />} />
           <Route path="leads/:leadId" element={<LeadWorkspace />} />
           <Route path="ai" element={<ManagerAI />} />
