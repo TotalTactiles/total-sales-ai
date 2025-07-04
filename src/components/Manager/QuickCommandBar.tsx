@@ -17,7 +17,7 @@ const QuickCommandBar: React.FC = () => {
   };
 
   return (
-    <div className="sticky top-[120px] z-30 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200 shadow-sm">
+    <div className="sticky top-[60px] z-30 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-3">
         <form onSubmit={handleSubmit} className="flex items-center gap-3">
           <div className="relative flex-1">
