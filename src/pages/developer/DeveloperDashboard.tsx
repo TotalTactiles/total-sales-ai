@@ -122,7 +122,7 @@ const DeveloperDashboard: React.FC = () => {
       title: 'System Logs', 
       description: 'Real-time monitoring',
       icon: <Monitor className="h-5 w-5" />,
-      path: '/developer/logs',
+      path: '/developer/api-logs',
       status: 'active',
       count: displayLogs.length
     },
@@ -135,10 +135,10 @@ const DeveloperDashboard: React.FC = () => {
       count: enabledFlags
     },
     { 
-      title: 'AI Suggestions', 
-      description: 'TSAM optimization insights',
+      title: 'AI Brain Monitor', 
+      description: 'TSAM brain insights',
       icon: <Zap className="h-5 w-5" />,
-      path: '/developer/ai-suggestions',
+      path: '/developer/tsam-brain',
       status: 'active',
       count: 8
     },
@@ -146,7 +146,7 @@ const DeveloperDashboard: React.FC = () => {
       title: 'System Updates', 
       description: 'Deployment history',
       icon: <GitCommit className="h-5 w-5" />,
-      path: '/developer/updates',
+      path: '/developer/system-updates',
       status: 'stable',
       count: 3
     }
@@ -154,207 +154,201 @@ const DeveloperDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto p-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Developer Control Panel</h1>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="text-sm text-muted-foreground">TSAM AI Brain Active • Last updated 2 mins ago</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-              <Brain className="h-3 w-3 mr-1" />
-              Developer Mode
-            </Badge>
-            <Button variant="outline" size="sm">
-              <Activity className="h-4 w-4 mr-2" />
-              Refresh Status
-            </Button>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Developer Control Panel</h1>
+          <div className="flex items-center gap-2 mt-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            <span className="text-sm text-muted-foreground">TSAM AI Brain Active • Last updated 2 mins ago</span>
           </div>
         </div>
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            <Brain className="h-3 w-3 mr-1" />
+            Developer Mode
+          </Badge>
+          <Button variant="outline" size="sm">
+            <Activity className="h-4 w-4 mr-2" />
+            Refresh Status
+          </Button>
+        </div>
+      </div>
 
-        {isDemo && <DemoBanner />}
-        
-        {/* System Health Overview */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">System Health Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {systemHealthCards.map((card, index) => (
-              <Card key={index} className="relative">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-                  {card.icon}
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold mb-1">{card.value}</div>
-                  <p className="text-xs text-muted-foreground mb-2">{card.description}</p>
-                  <div className="flex items-center justify-between">
-                    {getStatusBadge(card.status)}
-                    <span className="text-xs text-muted-foreground">{card.lastUpdated}</span>
+      {isDemo && <DemoBanner />}
+      
+      {/* System Health Overview */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold text-foreground">System Health Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {systemHealthCards.map((card, index) => (
+            <Card key={index} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                {card.icon}
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold mb-1">{card.value}</div>
+                <p className="text-xs text-muted-foreground mb-2">{card.description}</p>
+                <div className="flex items-center justify-between">
+                  {getStatusBadge(card.status)}
+                  <span className="text-xs text-muted-foreground">{card.lastUpdated}</span>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="space-y-6">
+        <h2 className="text-xl font-semibold text-foreground">Developer Tools</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {quickActions.map((action, index) => (
+            <Link key={index} to={action.path}>
+              <Card className="hover:shadow-md transition-all duration-200 cursor-pointer group">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
+                        {action.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">{action.title}</h3>
+                        <p className="text-sm text-muted-foreground">{action.description}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary">{action.count}</Badge>
+                      {getStatusBadge(action.status)}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            </Link>
+          ))}
         </div>
-
-        {/* Quick Actions */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold text-foreground">Developer Tools</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {quickActions.map((action, index) => (
-              <Link key={index} to={action.path}>
-                <Card className="hover:shadow-md transition-all duration-200 cursor-pointer group">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
-                          {action.icon}
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-foreground">{action.title}</h3>
-                          <p className="text-sm text-muted-foreground">{action.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">{action.count}</Badge>
-                        {getStatusBadge(action.status)}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* System Activity & Insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Recent System Activity
-                </CardTitle>
-                <Badge variant="outline">{displayLogs.length} Events</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {displayLogs.slice(0, 5).map((log, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                      <div>
-                        <p className="text-sm font-medium">{'type' in log ? log.type : 'System Event'}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date('created_at' in log ? log.created_at : Date.now()).toLocaleTimeString()}
-                        </p>
-                      </div>
-                    </div>
-                    {'priority' in log && (
-                      <Badge 
-                        variant={log.priority === 'critical' ? 'destructive' : 
-                                log.priority === 'high' ? 'outline' : 'secondary'}
-                        className="text-xs"
-                      >
-                        {log.priority}
-                      </Badge>
-                    )}
-                  </div>
-                ))}
-                {displayLogs.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Performance Metrics
-                </CardTitle>
-                <Badge variant="outline">Live Data</Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">API Response Time</span>
-                  <span className="text-sm font-bold text-green-600">{systemStats.responseTime}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">System Uptime</span>
-                  <span className="text-sm font-bold text-green-600">{systemStats.uptime}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Feature Flags Active</span>
-                  <span className="text-sm font-bold text-blue-600">{enabledFlags}/{displayFeatureFlags.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">Critical Issues</span>
-                  <span className={`text-sm font-bold ${criticalIssues > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {criticalIssues}
-                  </span>
-                </div>
-                {brainData && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">AI Processing</span>
-                    <span className="text-sm font-bold text-purple-600">Active</span>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* AI Integration Status */}
-        {brainData && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-purple-600" />
-                TSAM AI Brain Integration
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">{brainData.logs?.length || 0}</p>
-                  <p className="text-sm text-muted-foreground">Processing Logs</p>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">{brainData.applied_fixes?.length || 0}</p>
-                  <p className="text-sm text-muted-foreground">Applied Optimizations</p>
-                </div>
-                <div className="text-center p-4 bg-orange-50 rounded-lg">
-                  <p className="text-2xl font-bold text-orange-600">{brainData.unresolved_bugs?.length || 0}</p>
-                  <p className="text-sm text-muted-foreground">Pending Issues</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
+
+      {/* System Activity & Insights */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Recent System Activity
+              </CardTitle>
+              <Badge variant="outline">{displayLogs.length} Events</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {displayLogs.slice(0, 5).map((log, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                    <div>
+                      <p className="text-sm font-medium">{'type' in log ? log.type : 'System Event'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {new Date('created_at' in log ? log.created_at : Date.now()).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+                  {'priority' in log && (
+                    <Badge 
+                      variant={log.priority === 'critical' ? 'destructive' : 
+                              log.priority === 'high' ? 'outline' : 'secondary'}
+                      className="text-xs"
+                    >
+                      {log.priority}
+                    </Badge>
+                  )}
+                </div>
+              ))}
+              {displayLogs.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                Performance Metrics
+              </CardTitle>
+              <Badge variant="outline">Live Data</Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">API Response Time</span>
+                <span className="text-sm font-bold text-green-600">{systemStats.responseTime}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">System Uptime</span>
+                <span className="text-sm font-bold text-green-600">{systemStats.uptime}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Feature Flags Active</span>
+                <span className="text-sm font-bold text-blue-600">{enabledFlags}/{displayFeatureFlags.length}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Critical Issues</span>
+                <span className={`text-sm font-bold ${criticalIssues > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  {criticalIssues}
+                </span>
+              </div>
+              {brainData && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">AI Processing</span>
+                  <span className="text-sm font-bold text-purple-600">Active</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* AI Integration Status */}
+      {brainData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-purple-600" />
+              TSAM AI Brain Integration
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <p className="text-2xl font-bold text-blue-600">{brainData.logs?.length || 0}</p>
+                <p className="text-sm text-muted-foreground">Processing Logs</p>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <p className="text-2xl font-bold text-green-600">{brainData.applied_fixes?.length || 0}</p>
+                <p className="text-sm text-muted-foreground">Applied Optimizations</p>
+              </div>
+              <div className="text-center p-4 bg-orange-50 rounded-lg">
+                <p className="text-2xl font-bold text-orange-600">{brainData.unresolved_bugs?.length || 0}</p>
+                <p className="text-sm text-muted-foreground">Pending Issues</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

@@ -79,8 +79,8 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
   };
 
   const SidebarContentComponent = () => (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 p-6">
+    <SidebarContent>
+      <div className="p-6">
         <div className="mb-8">
           <h2 className={`text-xl font-bold text-green-400 transition-all duration-300 ${
             !open && !isMobile ? 'text-center text-sm' : ''
@@ -97,48 +97,42 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
             </>
           )}
         </div>
-        
-        <div className="space-y-2">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Button
-                key={item.path}
-                variant={isActive ? 'default' : 'ghost'}
-                className={`w-full gap-3 transition-all duration-300 ${
-                  !open && !isMobile ? 'justify-center px-2' : 'justify-start'
-                } ${
-                  isActive 
-                    ? 'bg-green-600 hover:bg-green-700 text-white' 
-                    : 'hover:bg-gray-800 text-gray-300'
-                }`}
-                onClick={() => handleNavigation(item.path)}
-                title={!open && !isMobile ? item.label : undefined}
-              >
-                <item.icon className="h-4 w-4 flex-shrink-0" />
-                {(open || isMobile) && (
-                  <span className="truncate">{item.label}</span>
-                )}
-              </Button>
-            );
-          })}
-        </div>
       </div>
 
-      <div className="p-6">
+      <SidebarGroup>
+        <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <SidebarMenuItem key={item.path}>
+                  <SidebarMenuButton
+                    onClick={() => handleNavigation(item.path)}
+                    isActive={isActive}
+                    tooltip={!open && !isMobile ? item.label : undefined}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
+      <div className="mt-auto p-6">
         <Button
           variant="outline"
-          className={`w-full gap-3 text-red-400 border-red-400 hover:bg-red-900/20 transition-all duration-300 ${
-            !open && !isMobile ? 'justify-center px-2' : 'justify-start'
-          }`}
+          className="w-full gap-3 text-red-400 border-red-400 hover:bg-red-900/20"
           onClick={handleSignOut}
-          title={!open && !isMobile ? 'Sign Out' : undefined}
         >
-          <LogOut className="h-4 w-4 flex-shrink-0" />
+          <LogOut className="h-4 w-4" />
           {(open || isMobile) && <span>Sign Out</span>}
         </Button>
       </div>
-    </div>
+    </SidebarContent>
   );
 
   if (isMobile) {
@@ -172,12 +166,12 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
 
   return (
     <Sidebar
-      className={`fixed left-0 top-0 h-full bg-gray-900 text-white shadow-lg z-40 transition-all duration-300 ease-in-out ${
-        open ? 'w-64' : 'w-16'
-      }`}
+      className="bg-gray-900 text-white shadow-lg border-r border-gray-700"
       collapsible="icon"
     >
-      <SidebarTrigger className="absolute -right-3 top-6 bg-gray-900 border border-gray-700 hover:bg-gray-800 z-50 w-6 h-6 rounded-full flex items-center justify-center" />
+      <div className="absolute -right-4 top-6 z-50">
+        <SidebarTrigger className="bg-gray-900 border border-gray-700 hover:bg-gray-800 text-white w-8 h-8 rounded-full" />
+      </div>
       <SidebarContentComponent />
     </Sidebar>
   );

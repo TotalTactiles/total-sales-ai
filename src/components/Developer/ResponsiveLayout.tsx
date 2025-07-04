@@ -14,10 +14,10 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children, className
 
   const getLayoutClasses = () => {
     if (isMobile) {
-      return 'w-full px-4 sm:px-6';
+      return 'w-full px-4 sm:px-6 py-6';
     }
     
-    return 'transition-all duration-300 ease-in-out px-6';
+    return 'transition-all duration-300 ease-in-out px-8 py-6';
   };
 
   const getContentStyle = () => {
@@ -28,19 +28,17 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children, className
       };
     }
     
-    // Desktop layout with proper sidebar spacing
-    const sidebarWidth = open ? 256 : 64; // 16rem expanded, 4rem collapsed
+    // No need to manually calculate margins - sidebar component handles this
     return {
-      marginLeft: `${sidebarWidth}px`,
-      width: `calc(100vw - ${sidebarWidth}px)`,
-      maxWidth: `calc(100vw - ${sidebarWidth}px)`,
+      width: '100%',
+      maxWidth: '100%',
       transition: 'all 0.3s ease-in-out'
     };
   };
 
   return (
     <div 
-      className={`min-h-screen ${getLayoutClasses()} ${className}`}
+      className={`min-h-screen bg-background ${getLayoutClasses()} ${className}`}
       style={getContentStyle()}
     >
       <div className="max-w-full overflow-x-hidden">
