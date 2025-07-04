@@ -24,6 +24,7 @@ import QuickCommandBar from './QuickCommandBar';
 import RiskRadarCard from './RiskRadarCard';
 import TeamRewardsCard from './TeamRewardsCard';
 import TeamNudgesCard from './TeamNudgesCard';
+
 interface TeamMember {
   id: string;
   name: string;
@@ -39,6 +40,7 @@ interface TeamMember {
   lastActivity: string;
   riskLevel: 'low' | 'medium' | 'high';
 }
+
 const AIManagerDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
@@ -89,9 +91,11 @@ const AIManagerDashboard: React.FC = () => {
     lastActivity: '4 hours ago',
     riskLevel: 'low'
   }];
+
   const handleWeeklyDigest = () => {
     alert('Weekly Digest exported successfully! (Demo mode)');
   };
+
   const getFilteredTeamMembers = () => {
     switch (teamFilterType) {
       case 'top-converters':
@@ -106,9 +110,11 @@ const AIManagerDashboard: React.FC = () => {
         return teamMembers.slice(0, 3);
     }
   };
+
   const getTrendIcon = (trend: string) => {
     return trend === 'up' ? <TrendingUp className="h-4 w-4 text-green-600" /> : trend === 'down' ? <TrendingDown className="h-4 w-4 text-red-600" /> : <div className="h-4 w-4" />;
   };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ahead':
@@ -169,14 +175,25 @@ const AIManagerDashboard: React.FC = () => {
         return null;
     }
   };
+
   const displayedMembers = getFilteredTeamMembers();
+
   return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <ManagerNavigation />
       
-      {/* Quick Command Bar - Top sticky */}
-      <QuickCommandBar />
+      {/* Manager Action Panel - Sticky directly under navigation */}
+      <div className="fixed top-[60px] left-0 right-0 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-3">
+          <ManagerActionPanel />
+        </div>
+      </div>
       
-      <div className="pt-[60px] px-6 py-6">
+      {/* Quick Command Bar - Now positioned below the action panel */}
+      <div className="fixed top-[120px] right-6 z-30">
+        <QuickCommandBar />
+      </div>
+      
+      <div className="pt-[180px] px-6 py-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header with Weekly Digest */}
           <div className="flex items-center justify-between">
@@ -315,9 +332,6 @@ const AIManagerDashboard: React.FC = () => {
             <TeamNudgesCard />
           </div>
 
-          {/* Manager Action Panel - Now positioned under the 3-card row */}
-          <ManagerActionPanel />
-
           {/* Bottom Components */}
           
         </div>
@@ -329,4 +343,5 @@ const AIManagerDashboard: React.FC = () => {
       {selectedMember && <TeamMemberModal isOpen={!!selectedMember} onClose={() => setSelectedMember(null)} member={selectedMember as any} />}
     </div>;
 };
+
 export default AIManagerDashboard;
