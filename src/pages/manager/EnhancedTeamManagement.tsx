@@ -16,8 +16,11 @@ import {
   Download,
   RefreshCw,
   Trophy,
-  Gift
+  Gift,
+  Search,
+  FileText
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import TeamRewardsManagement from '@/components/Manager/TeamRewardsManagement';
 
@@ -25,6 +28,14 @@ interface TeamMember {
   id: string;
   name: string;
   initials: string;
+  role: string;
+  avgScore: number;
+  demos: number;
+  deals: number;
+  revenue: number;
+  rewardProgress: number;
+  conversionRate: number;
+  avgDealSize: number;
   status: '🔥Hot Streak' | '🟡Moderate' | '❄️Slowing';
   statusReason: string;
   coachingAlerts: number;
@@ -41,13 +52,23 @@ interface TeamMember {
 const EnhancedTeamManagement: React.FC = () => {
   const [selectedKPI, setSelectedKPI] = useState<'calls' | 'demos' | 'revenue'>('calls');
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'quarter'>('month');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'time' | 'member' | 'activity'>('all');
 
-  // Mock team data with enhanced features
+  // Mock team data with enhanced features for Team in Review
   const teamMembers: TeamMember[] = [
     {
       id: '1',
       name: 'Sarah Johnson',
       initials: 'SJ',
+      role: 'Senior Sales Rep',
+      avgScore: 94,
+      demos: 23,
+      deals: 8,
+      revenue: 145000,
+      rewardProgress: 80,
+      conversionRate: 34.2,
+      avgDealSize: 18125,
       status: '🔥Hot Streak',
       statusReason: 'Demo conversion up 35% vs last month',
       coachingAlerts: 0,
@@ -59,6 +80,14 @@ const EnhancedTeamManagement: React.FC = () => {
       id: '2',
       name: 'Michael Chen',
       initials: 'MC',
+      role: 'Sales Rep',
+      avgScore: 71,
+      demos: 15,
+      deals: 4,
+      revenue: 89000,
+      rewardProgress: 92,
+      conversionRate: 28.1,
+      avgDealSize: 22250,
       status: '❄️Slowing',
       statusReason: '25% drop in demo conversion vs last month',
       coachingAlerts: 3,
@@ -70,6 +99,14 @@ const EnhancedTeamManagement: React.FC = () => {
       id: '3',
       name: 'Emily Rodriguez',
       initials: 'ER',
+      role: 'Sales Rep',
+      avgScore: 88,
+      demos: 19,
+      deals: 6,
+      revenue: 112000,
+      rewardProgress: 68,
+      conversionRate: 31.8,
+      avgDealSize: 18667,
       status: '🟡Moderate',
       statusReason: 'Consistent performance, slight uptick in activity',
       coachingAlerts: 1,
@@ -100,8 +137,13 @@ const EnhancedTeamManagement: React.FC = () => {
     console.log('Opening lead redistribution modal...');
   };
 
+  const filteredMembers = teamMembers.filter(member =>
+    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-r from-slate-50 to-blue-50">
       <ManagerNavigation />
       
       <div className="pt-[60px] px-6 py-6">
@@ -110,12 +152,12 @@ const EnhancedTeamManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Team Management</h1>
-                <p className="text-gray-600">Enhanced team insights and coaching tools</p>
+                <p className="text-gray-600">Enhanced team insights and management tools</p>
               </div>
               <TabsList className="grid w-fit grid-cols-3">
                 <TabsTrigger value="overview">Team Overview</TabsTrigger>
                 <TabsTrigger value="rewards">Team Rewards</TabsTrigger>
-                <TabsTrigger value="analytics">Performance Analytics</TabsTrigger>
+                <TabsTrigger value="review">Team in Review</TabsTrigger>
               </TabsList>
             </div>
 
@@ -163,88 +205,34 @@ const EnhancedTeamManagement: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Focus Zones */}
+              {/* AI Manager Insights */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-                <CardHeader>
+                <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
                   <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-blue-600" />
-                    Team Focus Zones
+                    <Brain className="h-5 w-5" />
+                    AI Manager Insights
+                    <Badge className="bg-white/20 text-white text-xs ml-auto">
+                      Demo Mode
+                    </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {teamMembers.map((member) => (
-                      <div key={member.id} className="space-y-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-12 w-12">
-                            <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
-                              {member.initials}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h4 className="font-semibold text-gray-900">{member.name}</h4>
-                            <Badge className={getStatusColor(member.status)}>
-                              {member.status}
-                            </Badge>
-                          </div>
-                        </div>
-                        
-                        <div className="text-sm text-gray-600 p-3 bg-gray-50 rounded-lg">
-                          {member.statusReason}
-                        </div>
-
-                        {/* KPI Summary */}
-                        <div className="grid grid-cols-3 gap-2 text-sm">
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <span className="font-semibold">{member.kpis.calls}</span>
-                              {getTrendIcon(member.kpis.trend)}
-                            </div>
-                            <span className="text-gray-600">Calls</span>
-                          </div>
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <span className="font-semibold">{member.kpis.demos}</span>
-                              {getTrendIcon(member.kpis.trend)}
-                            </div>
-                            <span className="text-gray-600">Demos</span>
-                          </div>
-                          <div className="text-center">
-                            <div className="flex items-center justify-center gap-1">
-                              <span className="font-semibold">${(member.kpis.revenue / 1000).toFixed(0)}K</span>
-                              {getTrendIcon(member.kpis.trend)}
-                            </div>
-                            <span className="text-gray-600">Revenue</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Rep Milestones Feed */}
-              <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-yellow-600" />
-                    Rep Milestones Feed
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {teamMembers.flatMap(member => 
-                      member.milestones.map((milestone, index) => (
-                        <div key={`${member.id}-${index}`} className="flex items-center gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                          <Award className="h-5 w-5 text-yellow-600" />
-                          <div className="flex-1">
-                            <span className="font-medium text-gray-900">{member.name}</span>
-                            <span className="text-gray-600"> {milestone}</span>
-                          </div>
-                          <span className="text-xs text-gray-500">Today</span>
-                        </div>
-                      ))
-                    )}
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <p className="text-purple-800 italic">
+                        "James is 80% toward his bonus – push 2 more deals before Friday."
+                      </p>
+                    </div>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <p className="text-blue-800 italic">
+                        "Team reward completion rate down 12% this month. Recommend checking in."
+                      </p>
+                    </div>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                      <p className="text-green-800 italic">
+                        "Sarah closed most this week. Marcus's drop detected. Suggest peer pairing."
+                      </p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -282,56 +270,112 @@ const EnhancedTeamManagement: React.FC = () => {
               <TeamRewardsManagement />
             </TabsContent>
 
-            <TabsContent value="analytics" className="space-y-6">
-              {/* Growth History Controls */}
-              <div className="flex items-center justify-between">
-                <div className="flex gap-4">
-                  <div className="flex gap-2">
-                    <span className="text-sm text-gray-600">KPI:</span>
-                    {(['calls', 'demos', 'revenue'] as const).map((kpi) => (
-                      <Button
-                        key={kpi}
-                        variant={selectedKPI === kpi ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setSelectedKPI(kpi)}
-                        className="capitalize"
-                      >
-                        {kpi}
-                      </Button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="text-sm text-gray-600">Period:</span>
-                    {(['week', 'month', 'quarter'] as const).map((period) => (
-                      <Button
-                        key={period}
-                        variant={selectedPeriod === period ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setSelectedPeriod(period)}
-                        className="capitalize"
-                      >
-                        {period}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                <Button onClick={generatePDF} variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
-              </div>
-
-              {/* Analytics Placeholder */}
+            <TabsContent value="review" className="space-y-6">
+              {/* Team in Review Section */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-                <CardContent className="p-12 text-center">
-                  <TrendingUp className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Growth History Analytics</h3>
-                  <p className="text-gray-600 mb-4">
-                    Interactive charts showing {selectedKPI} performance trends over the past {selectedPeriod}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Charts and detailed analytics will be implemented here
-                  </p>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-blue-600" />
+                      Team in Review
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Button onClick={generatePDF} variant="outline" size="sm">
+                        <Download className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Search and Filters */}
+                  <div className="flex gap-4 mt-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search team members..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setFilterType('time')}>
+                      Time Filter
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setFilterType('activity')}>
+                      Activity Type
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {/* Table Layout */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b">
+                        <tr>
+                          <th className="text-left p-4 font-medium text-gray-600">Name</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Role</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Avg Score</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Demos</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Deals</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Revenue</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Reward Progress</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredMembers.map((member) => (
+                          <tr key={member.id} className="border-b hover:bg-gray-50">
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm">
+                                    {member.initials}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">{member.name}</div>
+                                  <Badge className={`text-xs ${getStatusColor(member.status)}`}>
+                                    {member.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="p-4 text-sm text-gray-600">{member.role}</td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-1">
+                                <span className="font-medium">{member.avgScore}</span>
+                                {getTrendIcon(member.kpis.trend)}
+                              </div>
+                            </td>
+                            <td className="p-4 font-medium">{member.demos}</td>
+                            <td className="p-4 font-medium">{member.deals}</td>
+                            <td className="p-4 font-medium">${member.revenue.toLocaleString()}</td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-2">
+                                <div className="w-20 bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-orange-500 h-2 rounded-full"
+                                    style={{ width: `${member.rewardProgress}%` }}
+                                  />
+                                </div>
+                                <span className="text-sm font-medium">{member.rewardProgress}%</span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* AI Summary Area */}
+                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
+                    <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                      <Brain className="h-4 w-4 text-purple-600" />
+                      AI Summary (Demo Mode)
+                    </h4>
+                    <p className="text-sm text-gray-700 italic">
+                      "Sarah closed most this week. Marcus's drop detected. Suggest peer pairing. Mike's demo ratio dropped 18% this week - suggest peer coaching."
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

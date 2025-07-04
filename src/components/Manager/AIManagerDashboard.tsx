@@ -119,7 +119,7 @@ const AIManagerDashboard: React.FC = () => {
   const teamRewards: TeamReward[] = [
     {
       id: '1',
-      title: '$1K Bonus',
+      title: 'Gold Bonus - $1K',
       type: 'bonus',
       targetType: 'revenue',
       participants: [
@@ -131,7 +131,7 @@ const AIManagerDashboard: React.FC = () => {
     },
     {
       id: '2',
-      title: 'Friday Off',
+      title: 'Friday Off Reward',
       type: 'time-off',
       targetType: 'calls',
       participants: [
@@ -142,7 +142,7 @@ const AIManagerDashboard: React.FC = () => {
     },
     {
       id: '3',
-      title: 'Team Recognition',
+      title: 'Team Recognition Award',
       type: 'recognition',
       targetType: 'demos',
       participants: [
@@ -374,9 +374,9 @@ const AIManagerDashboard: React.FC = () => {
               <BusinessOpsSnapshot />
             </div>
 
-            {/* Right Column - Team Performance and Rewards */}
+            {/* Right Column - Team Performance */}
             <div className="space-y-6">
-              {/* Team Performance Grid */}
+              {/* Team Performance Grid - Moved up per requirements */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardHeader>
                   <div className="flex items-center justify-between">
@@ -434,16 +434,16 @@ const AIManagerDashboard: React.FC = () => {
                 </CardContent>
               </Card>
 
-              {/* Team Rewards Snapshot */}
+              {/* Team Rewards Snapshot - Fixed logic per requirements */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <Gift className="h-5 w-5 text-orange-600" />
-                      Team Rewards Snapshot
+                      Rewards Snapshot
                     </CardTitle>
                     <Select value={rewardFilter} onValueChange={setRewardFilter}>
-                      <SelectTrigger className="w-32 h-8">
+                      <SelectTrigger className="w-40 h-8">
                         <Filter className="h-3 w-3 mr-1" />
                         <SelectValue />
                       </SelectTrigger>
@@ -457,28 +457,31 @@ const AIManagerDashboard: React.FC = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {displayedRewards.map((reward) => (
-                    <div key={reward.id} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
+                    <div key={reward.id} className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between mb-3">
                         <h4 className="font-medium text-gray-900">{reward.title}</h4>
                         <Badge className="text-xs bg-orange-100 text-orange-800">
                           {reward.participants.length} reps
                         </Badge>
                       </div>
                       
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {reward.participants.map((participant) => (
-                          <div key={participant.id} className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Avatar className="h-6 w-6">
-                                <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs">
-                                  {participant.initials}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="text-sm text-gray-700">{participant.name}</span>
+                          <div key={participant.id} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6">
+                                  <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs">
+                                    {participant.initials}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="text-sm text-gray-700">{participant.name}</span>
+                              </div>
+                              <span className="text-sm font-semibold text-orange-600">
+                                {participant.progress}%
+                              </span>
                             </div>
-                            <span className="text-sm font-semibold text-orange-600">
-                              {participant.progress}%
-                            </span>
+                            <Progress value={participant.progress} className="h-2" />
                           </div>
                         ))}
                       </div>
