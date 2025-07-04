@@ -1,99 +1,163 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import StatsCard from '@/components/Dashboard/StatsCard';
 import { 
-  Code, 
   Activity, 
   AlertTriangle, 
-  CheckCircle,
-  Server,
-  Database,
-  Zap,
-  Bug,
-  GitBranch,
+  Code, 
+  Database, 
+  GitCommit, 
   Monitor,
+  TrendingUp,
+  Zap,
+  Shield,
+  Users,
   Brain,
-  Network,
-  Flag,
-  TrendingUp
+  CheckCircle,
+  Clock,
+  Server,
+  Wifi
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import DemoBanner from '@/components/DemoBanner';
+import { useTSAM } from '@/hooks/useTSAM';
+import { useDemoMode } from '@/hooks/useDemoMode';
 
-const DeveloperDashboard = () => {
-  const { profile } = useAuth();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+const DeveloperDashboard: React.FC = () => {
+  const { isDeveloper, logs, brainData, featureFlags, loading } = useTSAM();
+  const { isDemo, getDemoData } = useDemoMode();
+  const [systemStats, setSystemStats] = useState({
+    errorCount: 0,
+    activeUsers: 0,
+    uptime: '99.9%',
+    responseTime: '145ms',
+    deploymentStatus: 'stable'
+  });
 
   useEffect(() => {
-    // Simulate data loading
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
+    // Simulate real-time stats update
+    const interval = setInterval(() => {
+      setSystemStats(prev => ({
+        ...prev,
+        activeUsers: Math.floor(Math.random() * 50) + 20,
+        responseTime: `${Math.floor(Math.random() * 100) + 100}ms`
+      }));
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const mockStats = [
-    {
-      title: "TSAM Brain Status",
-      value: "Active",
-      change: "All AI models operational",
-      changeType: "positive" as const,
-      icon: Brain,
-      iconColor: "text-purple-600"
+  // Use demo data if in demo mode
+  const displayLogs = isDemo ? getDemoData('tsam_logs') || [] : logs;
+  const displayFeatureFlags = isDemo ? getDemoData('feature_flags') || [] : featureFlags;
+
+  if (!isDeveloper && !isDemo) {
+    return <div>Access Denied</div>;
+  }
+
+  const criticalIssues = displayLogs.filter(log => {
+    return 'priority' in log && log.priority === 'critical';
+  }).length;
+  
+  const enabledFlags = displayFeatureFlags.filter(item => {
+    return 'enabled' in item && item.enabled;
+  }).length;
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+      case 'healthy':
+      case 'stable':
+        return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">✓ Active</Badge>;
+      case 'degraded':
+      case 'warning':
+        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 border-yellow-200">⚠ Degraded</Badge>;
+      case 'down':
+      case 'error':
+        return <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">❌ Offline</Badge>;
+      default:
+        return <Badge variant="secondary">Unknown</Badge>;
+    }
+  };
+
+  const systemHealthCards = [
+    { 
+      title: 'AI Brain Status', 
+      value: 'Active', 
+      icon: <Brain className="h-5 w-5" />,
+      description: 'TSAM AI Processing',
+      status: 'active',
+      lastUpdated: '2 mins ago'
     },
-    {
-      title: "System Health",
-      value: "99.9%",
-      change: "All systems operational",
-      changeType: "positive" as const,
-      icon: Server,
-      iconColor: "text-green-600"
+    { 
+      title: 'Database Health', 
+      value: systemStats.responseTime, 
+      icon: <Database className="h-5 w-5" />,
+      description: 'Query Performance',
+      status: 'active',
+      lastUpdated: '1 min ago'
     },
-    {
-      title: "API Requests",
-      value: "2.4M",
-      change: "+15% from last week",
-      changeType: "positive" as const,
-      icon: Activity,
-      iconColor: "text-blue-600"
+    { 
+      title: 'Auth Service', 
+      value: systemStats.uptime, 
+      icon: <Shield className="h-5 w-5" />,
+      description: 'Authentication System',
+      status: 'active',
+      lastUpdated: '30 sec ago'
     },
-    {
-      title: "Active Bugs",
-      value: "3",
-      change: "2 resolved this week",
-      changeType: "positive" as const,
-      icon: Bug,
-      iconColor: "text-orange-600"
+    { 
+      title: 'Active Sessions', 
+      value: systemStats.activeUsers.toString(), 
+      icon: <Users className="h-5 w-5" />,
+      description: 'Current User Sessions',
+      status: 'active',
+      lastUpdated: 'Live'
     }
   ];
 
-  const systemHealth = [
-    { service: "TSAM Brain AI", status: "healthy", uptime: "99.9%", description: "Claude, GPT, Gemini active" },
-    { service: "Authentication Service", status: "healthy", uptime: "99.9%", description: "User auth & sessions" },
-    { service: "Database Cluster", status: "healthy", uptime: "99.8%", description: "Primary & backup DBs" },
-    { service: "AI Agent Processing", status: "warning", uptime: "97.5%", description: "Relevance AI agents" },
-    { service: "File Storage", status: "healthy", uptime: "100%", description: "Document & media storage" },
-  ];
-
-  const recentLogs = [
-    { timestamp: "2024-01-15 14:32:15", level: "INFO", message: "TSAM Brain: Claude 4 model switched automatically", service: "ai-brain" },
-    { timestamp: "2024-01-15 14:31:45", level: "WARN", message: "High memory usage detected in AI processing", service: "ai-agent" },
-    { timestamp: "2024-01-15 14:30:12", level: "INFO", message: "Feature flag: ai_suggestions_v2 enabled", service: "feature-flags" },
-    { timestamp: "2024-01-15 14:28:33", level: "ERROR", message: "Rate limit exceeded for API key", service: "api" },
-    { timestamp: "2024-01-15 14:27:18", level: "INFO", message: "System update v2.1.0 deployed successfully", service: "deployment" },
+  const quickActions = [
+    { 
+      title: 'System Logs', 
+      description: 'Real-time monitoring',
+      icon: <Monitor className="h-5 w-5" />,
+      path: '/developer/logs',
+      status: 'active',
+      count: displayLogs.length
+    },
+    { 
+      title: 'Feature Flags', 
+      description: 'Toggle system features',
+      icon: <Code className="h-5 w-5" />,
+      path: '/developer/feature-flags',
+      status: 'stable',
+      count: enabledFlags
+    },
+    { 
+      title: 'AI Suggestions', 
+      description: 'TSAM optimization insights',
+      icon: <Zap className="h-5 w-5" />,
+      path: '/developer/ai-suggestions',
+      status: 'active',
+      count: 8
+    },
+    { 
+      title: 'System Updates', 
+      description: 'Deployment history',
+      icon: <GitCommit className="h-5 w-5" />,
+      path: '/developer/updates',
+      status: 'stable',
+      count: 3
+    }
   ];
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-64"></div>
-          <div className="card-grid card-grid-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
-            ))}
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         </div>
       </div>
@@ -101,149 +165,195 @@ const DeveloperDashboard = () => {
   }
 
   return (
-    <div className="dashboard-content space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="responsive-text-2xl font-bold text-gray-900">Developer OS Dashboard</h1>
-          <p className="text-gray-600 mt-1 responsive-text-base">
-            Welcome back, {profile?.full_name || 'Developer'} - TSAM Brain is active
-          </p>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Developer Control Panel</h1>
+            <div className="flex items-center gap-2 mt-2">
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+              <span className="text-sm text-muted-foreground">TSAM AI Brain Active • Last updated 2 mins ago</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <Brain className="h-3 w-3 mr-1" />
+              Developer Mode
+            </Badge>
+            <Button variant="outline" size="sm">
+              <Activity className="h-4 w-4 mr-2" />
+              Refresh Status
+            </Button>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-            <Brain className="h-3 w-3 mr-1" />
-            TSAM Brain Online
-          </Badge>
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            All Systems Operational
-          </Badge>
-        </div>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="card-grid card-grid-4">
-        {mockStats.map((stat, index) => (
-          <StatsCard key={index} {...stat} />
-        ))}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="card-grid card-grid-1 lg:grid-cols-3 gap-6">
-        {/* System Health */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Monitor className="h-5 w-5 text-green-600" />
-              System Health Monitor
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {systemHealth.map((service, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className={`w-3 h-3 rounded-full ${
-                    service.status === 'healthy' ? 'bg-green-500' :
-                    service.status === 'warning' ? 'bg-yellow-500' :
-                    'bg-red-500'
-                  }`}></div>
-                  <div>
-                    <p className="font-medium text-gray-900">{service.service}</p>
-                    <p className="text-sm text-gray-600">{service.description}</p>
-                    <p className="text-xs text-gray-500">Uptime: {service.uptime}</p>
+        {isDemo && <DemoBanner />}
+        
+        {/* System Health Overview */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-foreground">System Health Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {systemHealthCards.map((card, index) => (
+              <Card key={index} className="relative">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                  {card.icon}
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold mb-1">{card.value}</div>
+                  <p className="text-xs text-muted-foreground mb-2">{card.description}</p>
+                  <div className="flex items-center justify-between">
+                    {getStatusBadge(card.status)}
+                    <span className="text-xs text-muted-foreground">{card.lastUpdated}</span>
                   </div>
-                </div>
-                <Badge variant={
-                  service.status === 'healthy' ? 'default' :
-                  service.status === 'warning' ? 'secondary' :
-                  'destructive'
-                }>
-                  {service.status}
-                </Badge>
-              </div>
+                </CardContent>
+              </Card>
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Recent Logs */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Code className="h-5 w-5 text-blue-600" />
-              Live System Logs
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {recentLogs.map((log, index) => (
-              <div key={index} className="text-xs">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    log.level === 'INFO' ? 'bg-blue-100 text-blue-800' :
-                    log.level === 'WARN' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {log.level}
+        {/* Quick Actions */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-foreground">Developer Tools</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {quickActions.map((action, index) => (
+              <Link key={index} to={action.path}>
+                <Card className="hover:shadow-md transition-all duration-200 cursor-pointer group">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors">
+                          {action.icon}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">{action.title}</h3>
+                          <p className="text-sm text-muted-foreground">{action.description}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">{action.count}</Badge>
+                        {getStatusBadge(action.status)}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* System Activity & Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Recent System Activity
+                </CardTitle>
+                <Badge variant="outline">{displayLogs.length} Events</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {displayLogs.slice(0, 5).map((log, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                      <div>
+                        <p className="text-sm font-medium">{'type' in log ? log.type : 'System Event'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date('created_at' in log ? log.created_at : Date.now()).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                    {'priority' in log && (
+                      <Badge 
+                        variant={log.priority === 'critical' ? 'destructive' : 
+                                log.priority === 'high' ? 'outline' : 'secondary'}
+                        className="text-xs"
+                      >
+                        {log.priority}
+                      </Badge>
+                    )}
+                  </div>
+                ))}
+                {displayLogs.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Performance Metrics
+                </CardTitle>
+                <Badge variant="outline">Live Data</Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">API Response Time</span>
+                  <span className="text-sm font-bold text-green-600">{systemStats.responseTime}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">System Uptime</span>
+                  <span className="text-sm font-bold text-green-600">{systemStats.uptime}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Feature Flags Active</span>
+                  <span className="text-sm font-bold text-blue-600">{enabledFlags}/{displayFeatureFlags.length}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Critical Issues</span>
+                  <span className={`text-sm font-bold ${criticalIssues > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {criticalIssues}
                   </span>
-                  <span className="text-gray-500">{log.timestamp}</span>
                 </div>
-                <p className="text-gray-700 ml-2">{log.message}</p>
-                <p className="text-gray-500 ml-2">Service: {log.service}</p>
+                {brainData && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">AI Processing</span>
+                    <span className="text-sm font-bold text-purple-600">Active</span>
+                  </div>
+                )}
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* TSAM Brain Quick Actions */}
-      <div className="card-grid card-grid-1 sm:card-grid-2 lg:card-grid-3 xl:grid-cols-5 gap-4">
-        <Card className="mobile-card hover:shadow-md transition-shadow cursor-pointer touch-target" onClick={() => navigate('/developer/tsam-brain')}>
-          <CardContent className="p-4 sm:p-6 text-center">
-            <Brain className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2 responsive-text-base">TSAM Brain</h3>
-            <p className="responsive-text-sm text-gray-600">AI Control Tower</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="mobile-card hover:shadow-md transition-shadow cursor-pointer touch-target" onClick={() => navigate('/developer/ai-integration')}>
-          <CardContent className="p-4 sm:p-6 text-center">
-            <Network className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2 responsive-text-base">AI Integration</h3>
-            <p className="responsive-text-sm text-gray-600">Model mapping</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="mobile-card hover:shadow-md transition-shadow cursor-pointer touch-target" onClick={() => navigate('/developer/feature-flags')}>
-          <CardContent className="p-4 sm:p-6 text-center">
-            <Flag className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2 responsive-text-base">Feature Flags</h3>
-            <p className="responsive-text-sm text-gray-600">Control rollouts</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="mobile-card hover:shadow-md transition-shadow cursor-pointer touch-target" onClick={() => navigate('/developer/system-updates')}>
-          <CardContent className="p-4 sm:p-6 text-center">
-            <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2 responsive-text-base">System Updates</h3>
-            <p className="responsive-text-sm text-gray-600">Track deployments</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="mobile-card hover:shadow-md transition-shadow cursor-pointer touch-target" onClick={() => navigate('/developer/system-monitor')}>
-          <CardContent className="p-4 sm:p-6 text-center">
-            <Activity className="h-6 w-6 sm:h-8 sm:w-8 text-red-600 mx-auto mb-3" />
-            <h3 className="font-semibold text-gray-900 mb-2 responsive-text-base">Live Monitor</h3>
-            <p className="responsive-text-sm text-gray-600">Real-time metrics</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* TSAM Brain Status Message */}
-      <div className="text-center py-8">
-        <h2 className="responsive-text-xl font-semibold text-purple-600">🧠 TSAM Brain Developer OS Active</h2>
-        <p className="text-gray-600 mt-2 responsive-text-base max-w-4xl mx-auto">
-          Full system visibility with AI-powered insights and autonomous optimization capabilities
-        </p>
+        {/* AI Integration Status */}
+        {brainData && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-purple-600" />
+                TSAM AI Brain Integration
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-600">{brainData.logs?.length || 0}</p>
+                  <p className="text-sm text-muted-foreground">Processing Logs</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <p className="text-2xl font-bold text-green-600">{brainData.applied_fixes?.length || 0}</p>
+                  <p className="text-sm text-muted-foreground">Applied Optimizations</p>
+                </div>
+                <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <p className="text-2xl font-bold text-orange-600">{brainData.unresolved_bugs?.length || 0}</p>
+                  <p className="text-sm text-muted-foreground">Pending Issues</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

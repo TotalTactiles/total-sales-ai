@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface TSAMCardProps {
   title: string;
@@ -17,30 +18,33 @@ const TSAMCard: React.FC<TSAMCardProps> = ({
   className = "",
   priority = 'medium'
 }) => {
-  const getPriorityColors = () => {
+  const getPriorityBadge = () => {
     switch (priority) {
       case 'critical':
-        return 'border-red-500 bg-red-50/10';
+        return <Badge variant="destructive" className="text-xs">Critical</Badge>;
       case 'high':
-        return 'border-orange-500 bg-orange-50/10';
+        return <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-200">High</Badge>;
       case 'medium':
-        return 'border-blue-500 bg-blue-50/10';
+        return <Badge variant="secondary" className="text-xs">Medium</Badge>;
       case 'low':
-        return 'border-green-500 bg-green-50/10';
+        return <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">Low</Badge>;
       default:
-        return 'border-gray-500 bg-gray-50/10';
+        return null;
     }
   };
 
   return (
-    <Card className={`${getPriorityColors()} backdrop-blur-sm ${className}`}>
+    <Card className={`transition-shadow duration-200 hover:shadow-md ${className}`}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          {icon}
-          {title}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-foreground">
+            {icon}
+            {title}
+          </CardTitle>
+          {getPriorityBadge()}
+        </div>
       </CardHeader>
-      <CardContent className="text-gray-100">
+      <CardContent className="text-muted-foreground">
         {children}
       </CardContent>
     </Card>
