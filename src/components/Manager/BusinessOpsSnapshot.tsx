@@ -132,14 +132,14 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
 
   const getTrendIcon = (trend: string) => {
     switch (trend) {
-      case 'up': return <TrendingUp className="h-3 w-3" />;
-      case 'down': return <TrendingDown className="h-3 w-3" />;
+      case 'up': return <TrendingUp className="h-4 w-4" />;
+      case 'down': return <TrendingDown className="h-4 w-4" />;
       default: return null;
     }
   };
 
   return (
-    <Card className={`border-0 bg-white/80 backdrop-blur-sm shadow-lg mb-8 ${className}`}>
+    <Card className={`border-0 bg-white/80 backdrop-blur-sm shadow-lg ${className}`}>
       <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg pb-4">
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5" />
@@ -161,36 +161,33 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
               <div
                 key={metric.id}
                 onClick={() => handleMetricClick(metric.id, metric.deepDive)}
-                className={`${metric.bgColor} ${metric.borderColor} border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 group h-32`}
+                className={`${metric.bgColor} ${metric.borderColor} border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 group min-h-[140px] flex flex-col justify-between`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <IconComponent className={`h-4 w-4 ${metric.textColor}`} />
+                <div className="flex items-center justify-between mb-3">
+                  <IconComponent className={`h-5 w-5 ${metric.textColor} flex-shrink-0`} />
                   <div className={`flex items-center gap-1 ${metric.textColor}`}>
                     {getTrendIcon(metric.trend)}
                   </div>
                 </div>
                 
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-gray-900 text-sm">
+                <div className="space-y-2 flex-1">
+                  <h4 className="font-semibold text-gray-900 text-sm leading-tight">
                     {metric.title}
                   </h4>
-                  <div className={`text-xl font-bold ${metric.textColor}`}>
+                  <div className={`text-xl font-bold ${metric.textColor} leading-tight`}>
                     {metric.value}
                   </div>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-600 leading-tight">
                     {metric.subtitle}
                   </p>
                 </div>
 
-                {/* Always visible insights */}
-                <div className="mt-2">
-                  <div className="text-xs text-gray-700 space-y-1">
-                    {metric.insights.slice(0, 1).map((insight, index) => (
-                      <div key={index} className="flex items-center gap-1">
-                        <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                        <span className="truncate">{insight}</span>
-                      </div>
-                    ))}
+                <div className="mt-3 pt-2 border-t border-gray-200">
+                  <div className="text-xs text-gray-700">
+                    <div className="flex items-start gap-1">
+                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                      <span className="leading-tight">{metric.insights[0]}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -201,17 +198,26 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
         {/* Goal Alignment Summary */}
         <div className="mt-6 pt-6 border-t border-gray-200">
           <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Target className="h-4 w-4 text-blue-600" />
+            <div className="flex items-center gap-2 mb-3">
+              <Target className="h-5 w-5 text-blue-600 flex-shrink-0" />
               <span className="font-semibold text-blue-900">Goal Alignment Summary</span>
             </div>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p>• Q4 Revenue: <span className="font-medium">78% to target</span> (on track)</p>
-              <p>• Team Performance: <span className="font-medium">Above expectations</span></p>
-              <p>• Pipeline Health: <span className="font-medium">Strong momentum</span></p>
+            <div className="text-sm text-blue-700 space-y-2">
+              <div className="flex items-center justify-between">
+                <span>Q4 Revenue:</span>
+                <span className="font-medium">78% to target (on track)</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Team Performance:</span>
+                <span className="font-medium">Above expectations</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Pipeline Health:</span>
+                <span className="font-medium">Strong momentum</span>
+              </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-blue-200">
-              <p className="text-sm font-medium text-blue-900">Next Recommended Action:</p>
+            <div className="mt-4 pt-3 border-t border-blue-200">
+              <p className="text-sm font-medium text-blue-900 mb-1">Next Recommended Action:</p>
               <p className="text-sm text-blue-700">Focus on price objection training for underperforming reps</p>
             </div>
           </div>

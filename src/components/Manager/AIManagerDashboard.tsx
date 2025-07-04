@@ -28,11 +28,15 @@ import TeamPerformanceFilter from './TeamPerformanceFilter';
 
 // New superpower components
 import ManagerActionPanel from './ManagerActionPanel';
-import LiveRepTracker from './LiveRepTracker';
 import SmartForecastBar from './SmartForecastBar';
 import RiskRadar from './RiskRadar';
 import CoachingNudges from './CoachingNudges';
 import QuickCommandBar from './QuickCommandBar';
+
+// New layout components
+import RiskRadarCard from './RiskRadarCard';
+import TeamRewardsCard from './TeamRewardsCard';
+import TeamNudgesCard from './TeamNudgesCard';
 
 interface TeamMember {
   id: string;
@@ -50,29 +54,11 @@ interface TeamMember {
   riskLevel: 'low' | 'medium' | 'high';
 }
 
-interface TeamReward {
-  id: string;
-  title: string;
-  type: 'bonus' | 'time-off' | 'recognition';
-  targetType: 'revenue' | 'calls' | 'demos';
-  participants: Array<{
-    id: string;
-    name: string;
-    initials: string;
-    progress: number;
-    currentValue: number;
-    targetValue: number;
-  }>;
-  deadline: string;
-  status: 'active' | 'completed' | 'expired';
-}
-
 const AIManagerDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [teamFilterType, setTeamFilterType] = useState<string>('all');
-  const [rewardFilter, setRewardFilter] = useState<string>('all');
 
   // Mock team data
   const teamMembers: TeamMember[] = [
@@ -123,36 +109,6 @@ const AIManagerDashboard: React.FC = () => {
     }
   ];
 
-  const teamRewards: TeamReward[] = [
-    {
-      id: '1',
-      title: 'Gold Bonus - $1K',
-      type: 'bonus',
-      targetType: 'revenue',
-      participants: [
-        { id: '1', name: 'Sarah Johnson', initials: 'SJ', progress: 80, currentValue: 40000, targetValue: 50000 },
-        { id: '3', name: 'Emily Rodriguez', initials: 'ER', progress: 60, currentValue: 30000, targetValue: 50000 }
-      ],
-      deadline: '2024-02-29',
-      status: 'active'
-    },
-    {
-      id: '2',
-      title: 'Friday Off Reward',
-      type: 'time-off',
-      targetType: 'calls',
-      participants: [
-        { id: '2', name: 'Michael Chen', initials: 'MC', progress: 92, currentValue: 92, targetValue: 100 }
-      ],
-      deadline: '2024-02-15',
-      status: 'active'
-    }
-  ];
-
-  const handleTeamRewardsClick = () => {
-    navigate('/manager/team');
-  };
-
   const handleWeeklyDigest = () => {
     alert('Weekly Digest exported successfully! (Demo mode)');
   };
@@ -169,20 +125,6 @@ const AIManagerDashboard: React.FC = () => {
         return teamMembers.filter(member => member.riskLevel === 'high').slice(0, 3);
       default:
         return teamMembers.slice(0, 3);
-    }
-  };
-
-  const getFilteredRewards = () => {
-    switch (rewardFilter) {
-      case 'by-reward':
-        return teamRewards;
-      case 'top-3-progress':
-        return teamRewards.map(reward => ({
-          ...reward,
-          participants: reward.participants.sort((a, b) => b.progress - a.progress).slice(0, 3)
-        }));
-      default:
-        return teamRewards;
     }
   };
 
@@ -282,7 +224,6 @@ const AIManagerDashboard: React.FC = () => {
   };
 
   const displayedMembers = getFilteredTeamMembers();
-  const displayedRewards = getFilteredRewards();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
@@ -383,13 +324,12 @@ const AIManagerDashboard: React.FC = () => {
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Business Operations + Live Rep Tracker */}
+            {/* Left Column - Business Operations */}
             <div className="lg:col-span-2 space-y-6">
               <BusinessOpsSnapshot />
-              <LiveRepTracker />
             </div>
 
-            {/* Right Column - Team Performance, Risk Radar, Coaching, and Rewards */}
+            {/* Right Column - Team Performance */}
             <div className="space-y-6">
               {/* Team Performance Grid */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
@@ -448,76 +388,20 @@ const AIManagerDashboard: React.FC = () => {
                   ))}
                 </CardContent>
               </Card>
-
-              {/* Risk Radar */}
-              <RiskRadar />
-
-              {/* Coaching Nudges */}
-              <CoachingNudges />
-
-              {/* Team Rewards Snapshot */}
-              <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Gift className="h-5 w-5 text-orange-600" />
-                      Rewards Snapshot
-                    </CardTitle>
-                    <Select value={rewardFilter} onValueChange={setRewardFilter}>
-                      <SelectTrigger className="w-40 h-8">
-                        <Filter className="h-3 w-3 mr-1" />
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Rewards</SelectItem>
-                        <SelectItem value="by-reward">By Reward</SelectItem>
-                        <SelectItem value="top-3-progress">Top 3 Progress</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {displayedRewards.map((reward) => (
-                    <div key={reward.id} className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-medium text-gray-900">{reward.title}</h4>
-                        <Badge className="text-xs bg-orange-100 text-orange-800">
-                          {reward.participants.length} reps
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {reward.participants.map((participant) => (
-                          <div key={participant.id} className="space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6">
-                                  <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs">
-                                    {participant.initials}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="text-sm text-gray-700">{participant.name}</span>
-                              </div>
-                              <span className="text-sm font-semibold text-orange-600">
-                                {participant.progress}%
-                              </span>
-                            </div>
-                            <Progress value={participant.progress} className="h-2" />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  <Button 
-                    onClick={handleTeamRewardsClick}
-                    className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white"
-                  >
-                    View All Team Rewards
-                  </Button>
-                </CardContent>
-              </Card>
             </div>
+          </div>
+
+          {/* New 3-Column Layout Section */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <RiskRadarCard />
+            <TeamRewardsCard />
+            <TeamNudgesCard />
+          </div>
+
+          {/* Bottom Components */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <RiskRadar />
+            <CoachingNudges />
           </div>
         </div>
       </div>
