@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,12 +16,14 @@ import {
   BarChart3,
   MessageSquare,
   Globe,
-  Upload
+  Upload,
+  Target
 } from 'lucide-react';
 import CRMIntegrationsPanel from '@/components/CRM/CRMIntegrationsPanel';
 import WorkflowBuilder from '@/components/Automation/WorkflowBuilder';
 import SocialMediaIntegrations from '@/components/Manager/SocialMediaIntegrations';
 import WebsiteParser from '@/components/Manager/WebsiteParser';
+import BusinessGoalsTab from '@/components/Manager/BusinessGoalsTab';
 
 const ManagerCompanyBrain = () => {
   const [selectedTab, setSelectedTab] = useState('overview');
@@ -59,9 +62,9 @@ const ManagerCompanyBrain = () => {
               <Zap className="h-4 w-4" />
               Automation
             </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4" />
-              AI Insights
+            <TabsTrigger value="business-goals" className="flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Business Goals
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -162,6 +165,64 @@ const ManagerCompanyBrain = () => {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* AI-Generated Insights Section - Migrated from AI Insights tab */}
+              <Card className="rounded-lg shadow-md">
+                <CardHeader>
+                  <CardTitle>AI-Generated Insights</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <Brain className="h-5 w-5 text-blue-600 mt-1" />
+                        <div>
+                          <h4 className="font-medium text-blue-900 mb-1">Lead Conversion Opportunity</h4>
+                          <p className="text-blue-800 text-sm">
+                            AI detected a 23% increase in response rates for emails sent between 2-4 PM. 
+                            Consider adjusting your team's outreach schedule.
+                          </p>
+                          <Button size="sm" variant="outline" className="mt-2 border-blue-300 text-blue-700">
+                            Apply Suggestion
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <TrendingUp className="h-5 w-5 text-green-600 mt-1" />
+                        <div>
+                          <h4 className="font-medium text-green-900 mb-1">Performance Trend</h4>
+                          <p className="text-green-800 text-sm">
+                            Your team's average deal size has increased by 15% this month. 
+                            The AI suggests focusing on enterprise leads for continued growth.
+                          </p>
+                          <Button size="sm" variant="outline" className="mt-2 border-green-300 text-green-700">
+                            View Analysis
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <Zap className="h-5 w-5 text-purple-600 mt-1" />
+                        <div>
+                          <h4 className="font-medium text-purple-900 mb-1">Automation Recommendation</h4>
+                          <p className="text-purple-800 text-sm">
+                            Create an automated follow-up sequence for leads in "proposal" stage. 
+                            This could improve conversion rates by an estimated 18%.
+                          </p>
+                          <Button size="sm" variant="outline" className="mt-2 border-purple-300 text-purple-700">
+                            Create Workflow
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 
@@ -244,63 +305,8 @@ const ManagerCompanyBrain = () => {
             <WorkflowBuilder />
           </TabsContent>
 
-          <TabsContent value="insights" className="mt-6">
-            <Card className="rounded-lg shadow-md">
-              <CardHeader>
-                <CardTitle>AI-Generated Insights</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <Brain className="h-5 w-5 text-blue-600 mt-1" />
-                      <div>
-                        <h4 className="font-medium text-blue-900 mb-1">Lead Conversion Opportunity</h4>
-                        <p className="text-blue-800 text-sm">
-                          AI detected a 23% increase in response rates for emails sent between 2-4 PM. 
-                          Consider adjusting your team's outreach schedule.
-                        </p>
-                        <Button size="sm" variant="outline" className="mt-2 border-blue-300 text-blue-700">
-                          Apply Suggestion
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <TrendingUp className="h-5 w-5 text-green-600 mt-1" />
-                      <div>
-                        <h4 className="font-medium text-green-900 mb-1">Performance Trend</h4>
-                        <p className="text-green-800 text-sm">
-                          Your team's average deal size has increased by 15% this month. 
-                          The AI suggests focusing on enterprise leads for continued growth.
-                        </p>
-                        <Button size="sm" variant="outline" className="mt-2 border-green-300 text-green-700">
-                          View Analysis
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <Zap className="h-5 w-5 text-purple-600 mt-1" />
-                      <div>
-                        <h4 className="font-medium text-purple-900 mb-1">Automation Recommendation</h4>
-                        <p className="text-purple-800 text-sm">
-                          Create an automated follow-up sequence for leads in "proposal" stage. 
-                          This could improve conversion rates by an estimated 18%.
-                        </p>
-                        <Button size="sm" variant="outline" className="mt-2 border-purple-300 text-purple-700">
-                          Create Workflow
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="business-goals" className="mt-6">
+            <BusinessGoalsTab />
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">
@@ -324,6 +330,11 @@ const ManagerCompanyBrain = () => {
                       <label className="flex items-center gap-2">
                         <input type="checkbox" className="rounded" />
                         <span className="text-sm">Auto-update knowledge base from CRM data</span>
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input type="checkbox" className="rounded" />
+                        <span className="text-sm">Enable Goal-Aware AI Suggestions</span>
+                        <Badge variant="outline" className="ml-2 text-xs">Default OFF</Badge>
                       </label>
                     </div>
                   </div>
