@@ -1,9 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { AlertTriangle, TrendingDown, Users } from 'lucide-react';
-
 interface RiskItem {
   id: string;
   type: 'high-stakes' | 'rep-performance' | 'lead-source';
@@ -12,7 +10,6 @@ interface RiskItem {
   severity: 'high' | 'medium' | 'low';
   value?: string;
 }
-
 const RiskRadar: React.FC = () => {
   const riskItems: RiskItem[] = [{
     id: '1',
@@ -34,7 +31,6 @@ const RiskRadar: React.FC = () => {
     description: '75% of leads assigned to 2 reps',
     severity: 'medium'
   }];
-
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'high':
@@ -47,7 +43,6 @@ const RiskRadar: React.FC = () => {
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
-
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'high-stakes':
@@ -60,38 +55,6 @@ const RiskRadar: React.FC = () => {
         return <AlertTriangle className="h-4 w-4" />;
     }
   };
-
-  return (
-    <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-red-700">
-          <AlertTriangle className="h-5 w-5" />
-          Risk Radar
-          <Badge className="bg-red-100 text-red-800 text-xs ml-auto">
-            {riskItems.length} Issues
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-3">
-          {riskItems.map(item => (
-            <div key={item.id} className={`p-3 rounded-lg border ${getSeverityColor(item.severity)}`}>
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  {getTypeIcon(item.type)}
-                  <h4 className="font-medium text-sm">{item.title}</h4>
-                </div>
-                {item.value && (
-                  <span className="font-semibold text-sm">{item.value}</span>
-                )}
-              </div>
-              <p className="text-xs opacity-80 ml-6">{item.description}</p>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return;
 };
-
 export default RiskRadar;
