@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,13 @@ import {
   Search,
   Filter,
   Download,
-  Eye
+  Eye,
+  AlertTriangle,
+  TrendingDown,
+  DollarSign,
+  UserCheck,
+  BarChart3,
+  Share
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
@@ -47,6 +52,15 @@ const LeadIntelligenceCommand: React.FC = () => {
     }
   };
 
+  const getStageColor = (stage: string) => {
+    switch (stage) {
+      case 'Demo Scheduled': return 'bg-purple-100 text-purple-800';
+      case 'Qualification': return 'bg-blue-100 text-blue-800';
+      case 'Executive Review': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const filteredLeads = mockLeads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lead.company.toLowerCase().includes(searchTerm.toLowerCase());
@@ -68,6 +82,56 @@ const LeadIntelligenceCommand: React.FC = () => {
     return acc;
   }, {} as Record<string, number>);
 
+  // Analytics data
+  const leadSourceData = [
+    { source: 'Meta Ads', percentage: '20%', leads: 8 },
+    { source: 'Google Ads', percentage: '20%', leads: 6 },
+    { source: 'Referral', percentage: '20%', leads: 4 },
+    { source: 'LinkedIn', percentage: '40%', leads: 2 }
+  ];
+
+  const sourceQualityData = [
+    { source: 'Referrals', quality: '48%', color: 'text-green-600' },
+    { source: 'Organic', quality: '31%', color: 'text-blue-600' },
+    { source: 'Meta Ads', quality: '12%', color: 'text-orange-600' }
+  ];
+
+  const costPerLeadData = [
+    { source: 'Meta Ads', cost: '$42' },
+    { source: 'Google Ads', cost: '$68' },
+    { source: 'Referral', cost: '$15' },
+    { source: 'LinkedIn', cost: '$89' }
+  ];
+
+  const stalledLeadsData = [
+    { source: 'Meta Ads', count: 1 },
+    { source: 'Google Ads', count: 0 },
+    { source: 'Referral', count: 0 },
+    { source: 'LinkedIn', count: 1 },
+    { source: 'Organic', count: 0 }
+  ];
+
+  const leadDistributionData = [
+    { rep: 'James', leads: 5 },
+    { rep: 'Sarah', leads: 2 },
+    { rep: 'Mike', leads: 1 }
+  ];
+
+  const handleWeeklyDigest = () => {
+    // Mock export functionality
+    alert('Weekly Digest exported successfully! (Demo mode)');
+  };
+
+  const handleDistributeLeads = () => {
+    // Mock lead distribution functionality
+    alert('Lead Distribution modal opened (Demo mode)');
+  };
+
+  const calculateDaysInStage = (updatedAt: string) => {
+    const daysDiff = Math.floor((new Date().getTime() - new Date(updatedAt).getTime()) / (1000 * 3600 * 24));
+    return Math.max(1, daysDiff);
+  };
+
   const LeadRow: React.FC<{ lead: MockLead }> = ({ lead }) => (
     <tr 
       key={lead.id} 
@@ -87,20 +151,22 @@ const LeadIntelligenceCommand: React.FC = () => {
           </div>
         </div>
       </td>
+      <td className="p-4 text-sm text-gray-600">{lead.rep || 'Unassigned'}</td>
       <td className="p-4">
         <Badge className={getStatusColor(lead.status)}>
           {lead.status}
         </Badge>
       </td>
+      <td className="p-4 text-sm text-gray-600">{lead.source}</td>
       <td className="p-4">
-        <Badge className={getPriorityColor(lead.priority)}>
-          {lead.priority}
+        <Badge className={getStageColor(lead.stage || 'New')}>
+          {lead.stage || 'New'}
         </Badge>
       </td>
-      <td className="p-4 text-sm text-gray-600">{lead.source}</td>
-      <td className="p-4 font-medium">{lead.score}</td>
-      <td className="p-4 text-sm text-gray-600">{lead.rep || 'Unassigned'}</td>
+      <td className="p-4 text-sm text-gray-600">{calculateDaysInStage(lead.updatedAt)} days</td>
+      <td className="p-4 text-sm text-gray-600">{lead.lastActivity}</td>
       <td className="p-4 text-sm text-gray-600">${lead.value?.toLocaleString() || '0'}</td>
+      <td className="p-4 text-sm font-medium">{lead.roas || '0'}x</td>
       <td className="p-4">
         <Button size="sm" variant="outline" onClick={(e) => {
           e.stopPropagation();
@@ -122,19 +188,147 @@ const LeadIntelligenceCommand: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Lead Intelligence Command</h1>
-              <p className="text-gray-600">Comprehensive lead management and analytics</p>
+              <p className="text-gray-600">Oversee pipeline quality, lead sources, and rep outcomes — all in one dashboard</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleWeeklyDigest}>
                 <Download className="h-4 w-4 mr-2" />
-                Export
+                Weekly Digest
               </Button>
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
+              <Button variant="outline" size="sm" onClick={handleDistributeLeads}>
+                <Share className="h-4 w-4 mr-2" />
+                Distribute Leads
               </Button>
             </div>
           </div>
+
+          {/* Manager Lead Insights Overview - 5 Analytics Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Top Lead Sources</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {leadSourceData.map((item, index) => (
+                    <div key={index} className="flex justify-between text-xs">
+                      <span className="text-gray-600">{item.source}</span>
+                      <span className="font-medium">{item.percentage}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Source-to-Close Quality</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {sourceQualityData.map((item, index) => (
+                    <div key={index} className="flex justify-between text-xs">
+                      <span className="text-gray-600">{item.source}</span>
+                      <span className={`font-medium ${item.color}`}>{item.quality}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Cost-Per-Lead</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {costPerLeadData.map((item, index) => (
+                    <div key={index} className="flex justify-between text-xs">
+                      <span className="text-gray-600">{item.source}</span>
+                      <span className="font-medium">{item.cost}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Stalled Leads</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {stalledLeadsData.map((item, index) => (
+                    <div key={index} className="flex justify-between text-xs">
+                      <span className="text-gray-600">{item.source}</span>
+                      <span className={`font-medium ${item.count > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {item.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">Lead Distribution</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {leadDistributionData.map((item, index) => (
+                    <div key={index} className="flex justify-between text-xs">
+                      <span className="text-gray-600">{item.rep}</span>
+                      <span className="font-medium">{item.leads}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* AI Manager Insights */}
+          <Card className="border-0 bg-gradient-to-r from-yellow-50 to-orange-50 shadow-lg mb-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-orange-800">
+                <AlertTriangle className="h-5 w-5" />
+                AI Manager Insights
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white/60 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-4 w-4 text-orange-600" />
+                    <h4 className="font-medium text-orange-800">Source Saturation Alert</h4>
+                  </div>
+                  <p className="text-sm text-orange-700">
+                    75% of Meta leads assigned to 2 reps — suggest redistribution.
+                  </p>
+                </div>
+                
+                <div className="bg-white/60 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <h4 className="font-medium text-green-800">Performance Boost Alert</h4>
+                  </div>
+                  <p className="text-sm text-green-700">
+                    Referral leads converting 48% faster — prioritize to new reps.
+                  </p>
+                </div>
+                
+                <div className="bg-white/60 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 className="h-4 w-4 text-blue-600" />
+                    <h4 className="font-medium text-blue-800">Top ROAS Pairing</h4>
+                  </div>
+                  <p className="text-sm text-blue-700">
+                    Mike Johnson closing referral leads 3.3x faster than average.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
@@ -190,7 +384,7 @@ const LeadIntelligenceCommand: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                       <Users className="h-5 w-5 text-blue-600" />
-                      All Leads
+                      Lead Outcome Tracker
                     </CardTitle>
                     <div className="flex gap-4">
                       <div className="relative">
@@ -210,13 +404,15 @@ const LeadIntelligenceCommand: React.FC = () => {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="text-left p-4 font-medium text-gray-600">Lead</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Lead Name</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Assigned Rep</th>
                           <th className="text-left p-4 font-medium text-gray-600">Status</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Priority</th>
                           <th className="text-left p-4 font-medium text-gray-600">Source</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Score</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Rep</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Stage</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Time in Stage</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Last Activity</th>
                           <th className="text-left p-4 font-medium text-gray-600">Value</th>
+                          <th className="text-left p-4 font-medium text-gray-600">ROAS</th>
                           <th className="text-left p-4 font-medium text-gray-600">Actions</th>
                         </tr>
                       </thead>
@@ -231,6 +427,7 @@ const LeadIntelligenceCommand: React.FC = () => {
               </Card>
             </TabsContent>
 
+            
             <TabsContent value="by-source" className="space-y-6">
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
                 <CardHeader>
@@ -255,11 +452,15 @@ const LeadIntelligenceCommand: React.FC = () => {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="text-left p-4 font-medium text-gray-600">Lead</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Source</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Lead Name</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Assigned Rep</th>
                           <th className="text-left p-4 font-medium text-gray-600">Status</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Score</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Source</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Stage</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Time in Stage</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Last Activity</th>
                           <th className="text-left p-4 font-medium text-gray-600">Value</th>
+                          <th className="text-left p-4 font-medium text-gray-600">ROAS</th>
                           <th className="text-left p-4 font-medium text-gray-600">Actions</th>
                         </tr>
                       </thead>
@@ -298,11 +499,15 @@ const LeadIntelligenceCommand: React.FC = () => {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="text-left p-4 font-medium text-gray-600">Lead</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Rep</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Lead Name</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Assigned Rep</th>
                           <th className="text-left p-4 font-medium text-gray-600">Status</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Score</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Source</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Stage</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Time in Stage</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Last Activity</th>
                           <th className="text-left p-4 font-medium text-gray-600">Value</th>
+                          <th className="text-left p-4 font-medium text-gray-600">ROAS</th>
                           <th className="text-left p-4 font-medium text-gray-600">Actions</th>
                         </tr>
                       </thead>
@@ -357,52 +562,21 @@ const LeadIntelligenceCommand: React.FC = () => {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b">
                         <tr>
-                          <th className="text-left p-4 font-medium text-gray-600">Lead</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Lead Name</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Assigned Rep</th>
                           <th className="text-left p-4 font-medium text-gray-600">Status</th>
-                          <th className="text-left p-4 font-medium text-gray-600">Conversion %</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Source</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Stage</th>
+                          <th className="text-left p-4 font-medium text-gray-600">Time in Stage</th>
                           <th className="text-left p-4 font-medium text-gray-600">Last Activity</th>
                           <th className="text-left p-4 font-medium text-gray-600">Value</th>
+                          <th className="text-left p-4 font-medium text-gray-600">ROAS</th>
                           <th className="text-left p-4 font-medium text-gray-600">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {filteredLeads.map((lead) => (
-                          <tr 
-                            key={lead.id} 
-                            className="border-b hover:bg-gray-50 cursor-pointer transition-colors"
-                            onClick={() => handleLeadClick(lead.id)}
-                          >
-                            <td className="p-4">
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm">
-                                    {lead.name.split(' ').map(n => n[0]).join('')}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium text-gray-900">{lead.name}</div>
-                                  <div className="text-sm text-gray-600">{lead.company}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <Badge className={getStatusColor(lead.status)}>
-                                {lead.status}
-                              </Badge>
-                            </td>
-                            <td className="p-4 font-medium">{lead.conversionLikelihood}%</td>
-                            <td className="p-4 text-sm text-gray-600">{lead.lastActivity}</td>
-                            <td className="p-4 text-sm text-gray-600">${lead.value?.toLocaleString() || '0'}</td>
-                            <td className="p-4">
-                              <Button size="sm" variant="outline" onClick={(e) => {
-                                e.stopPropagation();
-                                handleLeadClick(lead.id);
-                              }}>
-                                <Eye className="h-3 w-3 mr-1" />
-                                View
-                              </Button>
-                            </td>
-                          </tr>
+                          <LeadRow key={lead.id} lead={lead} />
                         ))}
                       </tbody>
                     </table>
