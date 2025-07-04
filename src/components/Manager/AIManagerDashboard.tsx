@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -229,10 +228,7 @@ const AIManagerDashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <ManagerNavigation />
       
-      {/* Manager Action Panel - Sticky at top */}
-      <ManagerActionPanel />
-      
-      {/* Quick Command Bar - Below action panel */}
+      {/* Quick Command Bar - Top sticky */}
       <QuickCommandBar />
       
       <div className="pt-[60px] px-6 py-6">
@@ -391,12 +387,15 @@ const AIManagerDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* New 3-Column Layout Section */}
+          {/* 3-Column Layout Section - Risk Radar, Rewards, Team Nudges */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <RiskRadarCard />
             <TeamRewardsCard />
             <TeamNudgesCard />
           </div>
+
+          {/* Manager Action Panel - Now positioned under the 3-card row */}
+          <ManagerActionPanel />
 
           {/* Bottom Components */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
