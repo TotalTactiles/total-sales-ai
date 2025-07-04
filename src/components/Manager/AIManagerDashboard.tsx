@@ -5,19 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  DollarSign,
-  Target,
-  AlertTriangle,
-  Trophy,
-  Gift,
-  Filter,
-  Download,
-  FileText
-} from 'lucide-react';
+import { TrendingUp, TrendingDown, Users, DollarSign, Target, AlertTriangle, Trophy, Gift, Filter, Download, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import BusinessOpsSnapshot from './BusinessOpsSnapshot';
@@ -36,7 +24,6 @@ import QuickCommandBar from './QuickCommandBar';
 import RiskRadarCard from './RiskRadarCard';
 import TeamRewardsCard from './TeamRewardsCard';
 import TeamNudgesCard from './TeamNudgesCard';
-
 interface TeamMember {
   id: string;
   name: string;
@@ -52,7 +39,6 @@ interface TeamMember {
   lastActivity: string;
   riskLevel: 'low' | 'medium' | 'high';
 }
-
 const AIManagerDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
@@ -60,64 +46,58 @@ const AIManagerDashboard: React.FC = () => {
   const [teamFilterType, setTeamFilterType] = useState<string>('all');
 
   // Mock team data
-  const teamMembers: TeamMember[] = [
-    {
-      id: '1',
-      name: 'Sarah Johnson',
-      initials: 'SJ',
-      revenue: 145000,
-      target: 150000,
-      conversion: 34.2,
-      calls: 198,
-      emails: 147,
-      meetings: 23,
-      trend: 'up',
-      status: 'on-track',
-      lastActivity: '2 hours ago',
-      riskLevel: 'low'
-    },
-    {
-      id: '2',
-      name: 'Michael Chen',
-      initials: 'MC',
-      revenue: 89000,
-      target: 120000,
-      conversion: 28.1,
-      calls: 143,
-      emails: 98,
-      meetings: 15,
-      trend: 'down',
-      status: 'behind',
-      lastActivity: '1 day ago',
-      riskLevel: 'high'
-    },
-    {
-      id: '3',
-      name: 'Emily Rodriguez',
-      initials: 'ER',
-      revenue: 112000,
-      target: 130000,
-      conversion: 31.8,
-      calls: 172,
-      emails: 124,
-      meetings: 19,
-      trend: 'up',
-      status: 'on-track',
-      lastActivity: '4 hours ago',
-      riskLevel: 'low'
-    }
-  ];
-
+  const teamMembers: TeamMember[] = [{
+    id: '1',
+    name: 'Sarah Johnson',
+    initials: 'SJ',
+    revenue: 145000,
+    target: 150000,
+    conversion: 34.2,
+    calls: 198,
+    emails: 147,
+    meetings: 23,
+    trend: 'up',
+    status: 'on-track',
+    lastActivity: '2 hours ago',
+    riskLevel: 'low'
+  }, {
+    id: '2',
+    name: 'Michael Chen',
+    initials: 'MC',
+    revenue: 89000,
+    target: 120000,
+    conversion: 28.1,
+    calls: 143,
+    emails: 98,
+    meetings: 15,
+    trend: 'down',
+    status: 'behind',
+    lastActivity: '1 day ago',
+    riskLevel: 'high'
+  }, {
+    id: '3',
+    name: 'Emily Rodriguez',
+    initials: 'ER',
+    revenue: 112000,
+    target: 130000,
+    conversion: 31.8,
+    calls: 172,
+    emails: 124,
+    meetings: 19,
+    trend: 'up',
+    status: 'on-track',
+    lastActivity: '4 hours ago',
+    riskLevel: 'low'
+  }];
   const handleWeeklyDigest = () => {
     alert('Weekly Digest exported successfully! (Demo mode)');
   };
-
   const getFilteredTeamMembers = () => {
     switch (teamFilterType) {
       case 'top-converters':
         return [...teamMembers].sort((a, b) => b.conversion - a.conversion).slice(0, 3);
       case 'top-output':
-        return [...teamMembers].sort((a, b) => (b.calls + b.emails) - (a.calls + a.emails)).slice(0, 3);
+        return [...teamMembers].sort((a, b) => b.calls + b.emails - (a.calls + a.emails)).slice(0, 3);
       case 'lowest-performers':
         return [...teamMembers].sort((a, b) => a.conversion - b.conversion).slice(0, 3);
       case 'flagged-reps':
@@ -126,19 +106,19 @@ const AIManagerDashboard: React.FC = () => {
         return teamMembers.slice(0, 3);
     }
   };
-
   const getTrendIcon = (trend: string) => {
-    return trend === 'up' ? <TrendingUp className="h-4 w-4 text-green-600" /> : 
-           trend === 'down' ? <TrendingDown className="h-4 w-4 text-red-600" /> : 
-           <div className="h-4 w-4" />;
+    return trend === 'up' ? <TrendingUp className="h-4 w-4 text-green-600" /> : trend === 'down' ? <TrendingDown className="h-4 w-4 text-red-600" /> : <div className="h-4 w-4" />;
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'ahead': return 'bg-green-100 text-green-800';
-      case 'on-track': return 'bg-blue-100 text-blue-800';
-      case 'behind': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'ahead':
+        return 'bg-green-100 text-green-800';
+      case 'on-track':
+        return 'bg-blue-100 text-blue-800';
+      case 'behind':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -150,16 +130,8 @@ const AIManagerDashboard: React.FC = () => {
           title: 'Team Revenue',
           metric: '$340,320',
           change: '+12% from last month',
-          insights: [
-            'Strong performance across all team members',
-            'Sarah leading with $145K revenue',
-            'Michael needs support to reach target'
-          ],
-          recommendations: [
-            'Focus on supporting Michael with deal closures',
-            'Leverage Sarah\'s success strategies team-wide',
-            'Schedule team performance review'
-          ],
+          insights: ['Strong performance across all team members', 'Sarah leading with $145K revenue', 'Michael needs support to reach target'],
+          recommendations: ['Focus on supporting Michael with deal closures', 'Leverage Sarah\'s success strategies team-wide', 'Schedule team performance review'],
           deepDiveLink: '/manager/reports',
           deepDiveLinkText: 'View Revenue Analytics'
         };
@@ -168,16 +140,8 @@ const AIManagerDashboard: React.FC = () => {
           title: 'At Risk Reps',
           metric: '1 Rep',
           change: 'Needs immediate attention',
-          insights: [
-            'Michael Chen showing performance decline',
-            '25% below target with high risk level',
-            'Recent activity drop detected'
-          ],
-          recommendations: [
-            'Schedule 1-on-1 with Michael immediately',
-            'Review workload and provide support',
-            'Consider temporary assistance'
-          ],
+          insights: ['Michael Chen showing performance decline', '25% below target with high risk level', 'Recent activity drop detected'],
+          recommendations: ['Schedule 1-on-1 with Michael immediately', 'Review workload and provide support', 'Consider temporary assistance'],
           deepDiveLink: '/manager/team',
           deepDiveLinkText: 'View Team Details'
         };
@@ -186,16 +150,8 @@ const AIManagerDashboard: React.FC = () => {
           title: 'Pipeline Value',
           metric: '+$137,700',
           change: 'Expected this quarter',
-          insights: [
-            'Strong pipeline growth across team',
-            'Multiple high-value deals in progress',
-            'Conversion rates improving'
-          ],
-          recommendations: [
-            'Focus on deal acceleration',
-            'Review pricing strategies',
-            'Prepare for quota achievement'
-          ],
+          insights: ['Strong pipeline growth across team', 'Multiple high-value deals in progress', 'Conversion rates improving'],
+          recommendations: ['Focus on deal acceleration', 'Review pricing strategies', 'Prepare for quota achievement'],
           deepDiveLink: '/manager/pipeline',
           deepDiveLinkText: 'View Pipeline Details'
         };
@@ -204,16 +160,8 @@ const AIManagerDashboard: React.FC = () => {
           title: 'Active Rewards',
           metric: '3 Rewards',
           change: 'Team incentives running',
-          insights: [
-            'Multiple team members engaged in rewards',
-            'High participation across all programs',
-            'Strong motivation indicators'
-          ],
-          recommendations: [
-            'Monitor reward progress closely',
-            'Consider additional incentives',
-            'Celebrate upcoming achievements'
-          ],
+          insights: ['Multiple team members engaged in rewards', 'High participation across all programs', 'Strong motivation indicators'],
+          recommendations: ['Monitor reward progress closely', 'Consider additional incentives', 'Celebrate upcoming achievements'],
           deepDiveLink: '/manager/team',
           deepDiveLinkText: 'View Team Rewards'
         };
@@ -221,11 +169,8 @@ const AIManagerDashboard: React.FC = () => {
         return null;
     }
   };
-
   const displayedMembers = getFilteredTeamMembers();
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <ManagerNavigation />
       
       {/* Quick Command Bar - Top sticky */}
@@ -252,10 +197,7 @@ const AIManagerDashboard: React.FC = () => {
 
           {/* Top Metrics Row - 4 Summary Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card 
-              className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-              onClick={() => setSelectedMetric('team_revenue')}
-            >
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer" onClick={() => setSelectedMetric('team_revenue')}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Team Revenue</CardTitle>
                 <DollarSign className="h-4 w-4 text-green-600" />
@@ -269,10 +211,7 @@ const AIManagerDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card 
-              className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-              onClick={() => setSelectedMetric('at_risk')}
-            >
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer" onClick={() => setSelectedMetric('at_risk')}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">At Risk</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-red-600" />
@@ -283,10 +222,7 @@ const AIManagerDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card 
-              className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-              onClick={() => setSelectedMetric('pipeline')}
-            >
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer" onClick={() => setSelectedMetric('pipeline')}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Pipeline Delta</CardTitle>
                 <Target className="h-4 w-4 text-blue-600" />
@@ -300,10 +236,7 @@ const AIManagerDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Card 
-              className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
-              onClick={() => setSelectedMetric('active_rewards')}
-            >
+            <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer" onClick={() => setSelectedMetric('active_rewards')}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Active Rewards</CardTitle>
                 <Trophy className="h-4 w-4 text-yellow-600" />
@@ -336,18 +269,10 @@ const AIManagerDashboard: React.FC = () => {
                       Team Performance
                     </CardTitle>
                   </div>
-                  <TeamPerformanceFilter 
-                    value={teamFilterType}
-                    onChange={setTeamFilterType}
-                  />
+                  <TeamPerformanceFilter value={teamFilterType} onChange={setTeamFilterType} />
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {displayedMembers.map((member) => (
-                    <div
-                      key={member.id}
-                      className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                      onClick={() => setSelectedMember(member)}
-                    >
+                  {displayedMembers.map(member => <div key={member.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => setSelectedMember(member)}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10">
@@ -376,12 +301,8 @@ const AIManagerDashboard: React.FC = () => {
                         </div>
                       </div>
                       
-                      <Progress 
-                        value={(member.revenue / member.target) * 100} 
-                        className="mt-2" 
-                      />
-                    </div>
-                  ))}
+                      <Progress value={member.revenue / member.target * 100} className="mt-2" />
+                    </div>)}
                 </CardContent>
               </Card>
             </div>
@@ -398,32 +319,14 @@ const AIManagerDashboard: React.FC = () => {
           <ManagerActionPanel />
 
           {/* Bottom Components */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RiskRadar />
-            <CoachingNudges />
-          </div>
+          
         </div>
       </div>
 
       {/* Modals */}
-      {selectedMetric && (
-        <MetricModal
-          isOpen={!!selectedMetric}
-          onClose={() => setSelectedMetric(null)}
-          type={selectedMetric as any}
-          {...getMetricModalConfig(selectedMetric)!}
-        />
-      )}
+      {selectedMetric && <MetricModal isOpen={!!selectedMetric} onClose={() => setSelectedMetric(null)} type={selectedMetric as any} {...getMetricModalConfig(selectedMetric)!} />}
 
-      {selectedMember && (
-        <TeamMemberModal
-          isOpen={!!selectedMember}
-          onClose={() => setSelectedMember(null)}
-          member={selectedMember as any}
-        />
-      )}
-    </div>
-  );
+      {selectedMember && <TeamMemberModal isOpen={!!selectedMember} onClose={() => setSelectedMember(null)} member={selectedMember as any} />}
+    </div>;
 };
-
 export default AIManagerDashboard;
