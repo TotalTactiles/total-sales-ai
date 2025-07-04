@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ import QuickCommandBar from './QuickCommandBar';
 import RiskRadarCard from './RiskRadarCard';
 import TeamRewardsCard from './TeamRewardsCard';
 import TeamNudgesCard from './TeamNudgesCard';
+
 interface TeamMember {
   id: string;
   name: string;
@@ -39,6 +41,7 @@ interface TeamMember {
   lastActivity: string;
   riskLevel: 'low' | 'medium' | 'high';
 }
+
 const AIManagerDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [selectedMetric, setSelectedMetric] = useState<string | null>(null);
@@ -89,9 +92,11 @@ const AIManagerDashboard: React.FC = () => {
     lastActivity: '4 hours ago',
     riskLevel: 'low'
   }];
+
   const handleWeeklyDigest = () => {
     alert('Weekly Digest exported successfully! (Demo mode)');
   };
+
   const getFilteredTeamMembers = () => {
     switch (teamFilterType) {
       case 'top-converters':
@@ -106,9 +111,11 @@ const AIManagerDashboard: React.FC = () => {
         return teamMembers.slice(0, 3);
     }
   };
+
   const getTrendIcon = (trend: string) => {
     return trend === 'up' ? <TrendingUp className="h-4 w-4 text-green-600" /> : trend === 'down' ? <TrendingDown className="h-4 w-4 text-red-600" /> : <div className="h-4 w-4" />;
   };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ahead':
@@ -169,14 +176,17 @@ const AIManagerDashboard: React.FC = () => {
         return null;
     }
   };
+
   const displayedMembers = getFilteredTeamMembers();
-  return <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <ManagerNavigation />
       
       {/* Quick Command Bar - Top sticky */}
       <QuickCommandBar />
       
-      <div className="pt-[60px] px-6 py-6">
+      <div className="pt-[120px] px-6 py-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header with Weekly Digest */}
           <div className="flex items-center justify-between">
@@ -251,6 +261,13 @@ const AIManagerDashboard: React.FC = () => {
           {/* Smart Forecast Bar */}
           <SmartForecastBar />
 
+          {/* NEW: 3-Column Layout Section - Risk Radar, Rewards, Team Nudges */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <RiskRadarCard />
+            <TeamRewardsCard />
+            <TeamNudgesCard />
+          </div>
+
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Business Operations */}
@@ -272,7 +289,8 @@ const AIManagerDashboard: React.FC = () => {
                   <TeamPerformanceFilter value={teamFilterType} onChange={setTeamFilterType} />
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {displayedMembers.map(member => <div key={member.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => setSelectedMember(member)}>
+                  {displayedMembers.map(member => (
+                    <div key={member.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer" onClick={() => setSelectedMember(member)}>
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                           <Avatar className="h-10 w-10">
@@ -302,31 +320,37 @@ const AIManagerDashboard: React.FC = () => {
                       </div>
                       
                       <Progress value={member.revenue / member.target * 100} className="mt-2" />
-                    </div>)}
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             </div>
           </div>
 
-          {/* 3-Column Layout Section - Risk Radar, Rewards, Team Nudges */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <RiskRadarCard />
-            <TeamRewardsCard />
-            <TeamNudgesCard />
-          </div>
-
-          {/* Manager Action Panel - Now positioned under the 3-card row */}
+          {/* RELOCATED: Manager Action Panel - Now at bottom */}
           <ManagerActionPanel />
-
-          {/* Bottom Components */}
-          
         </div>
       </div>
 
       {/* Modals */}
-      {selectedMetric && <MetricModal isOpen={!!selectedMetric} onClose={() => setSelectedMetric(null)} type={selectedMetric as any} {...getMetricModalConfig(selectedMetric)!} />}
+      {selectedMetric && (
+        <MetricModal
+          isOpen={!!selectedMetric}
+          onClose={() => setSelectedMetric(null)}
+          type={selectedMetric as any}
+          {...getMetricModalConfig(selectedMetric)!}
+        />
+      )}
 
-      {selectedMember && <TeamMemberModal isOpen={!!selectedMember} onClose={() => setSelectedMember(null)} member={selectedMember as any} />}
-    </div>;
+      {selectedMember && (
+        <TeamMemberModal
+          isOpen={!!selectedMember}
+          onClose={() => setSelectedMember(null)}
+          member={selectedMember as any}
+        />
+      )}
+    </div>
+  );
 };
+
 export default AIManagerDashboard;

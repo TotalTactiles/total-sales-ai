@@ -51,8 +51,8 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
       trend: 'down',
       deepDive: 'Team > Coaching Logs',
       insights: [
-        'Price objections up 12% this week',
-        'Need better value proposition training'
+        'Price objections up 12%',
+        'Need value prop training'
       ]
     },
     {
@@ -161,7 +161,7 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
               <div
                 key={metric.id}
                 onClick={() => handleMetricClick(metric.id, metric.deepDive)}
-                className={`${metric.bgColor} ${metric.borderColor} border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 group min-h-[140px] flex flex-col justify-between`}
+                className={`${metric.bgColor} ${metric.borderColor} border-2 rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 group h-48 flex flex-col justify-between`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <IconComponent className={`h-5 w-5 ${metric.textColor} flex-shrink-0`} />
@@ -170,57 +170,29 @@ const BusinessOpsSnapshot: React.FC<BusinessOpsSnapshotProps> = ({ className = '
                   </div>
                 </div>
                 
-                <div className="space-y-2 flex-1">
-                  <h4 className="font-semibold text-gray-900 text-sm leading-tight">
+                <div className="space-y-2 flex-1 flex flex-col justify-center">
+                  <h4 className="font-semibold text-gray-900 text-sm leading-tight text-center">
                     {metric.title}
                   </h4>
-                  <div className={`text-xl font-bold ${metric.textColor} leading-tight`}>
+                  <div className={`text-xl font-bold ${metric.textColor} leading-tight text-center`}>
                     {metric.value}
                   </div>
-                  <p className="text-xs text-gray-600 leading-tight">
+                  <p className="text-xs text-gray-600 leading-tight text-center">
                     {metric.subtitle}
                   </p>
                 </div>
 
                 <div className="mt-3 pt-2 border-t border-gray-200">
-                  <div className="text-xs text-gray-700">
-                    <div className="flex items-start gap-1">
-                      <div className="w-1.5 h-1.5 bg-gray-400 rounded-full mt-1.5 flex-shrink-0"></div>
-                      <span className="leading-tight">{metric.insights[0]}</span>
+                  <div className="text-xs text-gray-700 text-center">
+                    <div className="space-y-1">
+                      <div className="truncate">{metric.insights[0]}</div>
+                      <div className="truncate opacity-75">{metric.insights[1]}</div>
                     </div>
                   </div>
                 </div>
               </div>
             );
           })}
-        </div>
-
-        {/* Goal Alignment Summary */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="h-5 w-5 text-blue-600 flex-shrink-0" />
-              <span className="font-semibold text-blue-900">Goal Alignment Summary</span>
-            </div>
-            <div className="text-sm text-blue-700 space-y-2">
-              <div className="flex items-center justify-between">
-                <span>Q4 Revenue:</span>
-                <span className="font-medium">78% to target (on track)</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Team Performance:</span>
-                <span className="font-medium">Above expectations</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span>Pipeline Health:</span>
-                <span className="font-medium">Strong momentum</span>
-              </div>
-            </div>
-            <div className="mt-4 pt-3 border-t border-blue-200">
-              <p className="text-sm font-medium text-blue-900 mb-1">Next Recommended Action:</p>
-              <p className="text-sm text-blue-700">Focus on price objection training for underperforming reps</p>
-            </div>
-          </div>
         </div>
       </CardContent>
     </Card>

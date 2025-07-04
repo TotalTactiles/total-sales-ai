@@ -19,6 +19,9 @@ import {
   Activity,
   Calendar
 } from 'lucide-react';
+import FunnelChart from '@/components/Manager/FunnelChart';
+import AIFunnelInsights from '@/components/Manager/AIFunnelInsights';
+import RetentionIntelligencePanel from '@/components/Manager/RetentionIntelligencePanel';
 
 const BusinessOps = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
@@ -273,37 +276,10 @@ const BusinessOps = () => {
         </TabsContent>
 
         <TabsContent value="funnels" className="space-y-6">
-          <Card className="rounded-lg shadow-sm">
-            <CardHeader>
-              <CardTitle>Conversion Funnel Analysis</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-5 gap-4 text-center">
-                  <div className="p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">1,240</div>
-                    <p className="text-sm text-muted-foreground">Leads</p>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-lg text-gray-400">→</div>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">186</div>
-                    <p className="text-sm text-muted-foreground">Qualified</p>
-                    <p className="text-xs text-green-600">15% conversion</p>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <div className="text-lg text-gray-400">→</div>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">45</div>
-                    <p className="text-sm text-muted-foreground">Closed</p>
-                    <p className="text-xs text-green-600">24% close rate</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <FunnelChart />
+            <AIFunnelInsights />
+          </div>
         </TabsContent>
 
         <TabsContent value="retention" className="space-y-6">
@@ -356,6 +332,9 @@ const BusinessOps = () => {
               </CardContent>
             </Card>
           </div>
+          
+          {/* NEW: Retention Intelligence Panel */}
+          <RetentionIntelligencePanel />
         </TabsContent>
       </Tabs>
     </div>
