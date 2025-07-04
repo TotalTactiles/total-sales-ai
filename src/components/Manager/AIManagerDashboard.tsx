@@ -15,7 +15,9 @@ import {
   AlertTriangle,
   Trophy,
   Gift,
-  Filter
+  Filter,
+  Download,
+  FileText
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
@@ -23,6 +25,14 @@ import BusinessOpsSnapshot from './BusinessOpsSnapshot';
 import MetricModal from './MetricModal';
 import TeamMemberModal from './TeamMemberModal';
 import TeamPerformanceFilter from './TeamPerformanceFilter';
+
+// New superpower components
+import ManagerActionPanel from './ManagerActionPanel';
+import LiveRepTracker from './LiveRepTracker';
+import SmartForecastBar from './SmartForecastBar';
+import RiskRadar from './RiskRadar';
+import CoachingNudges from './CoachingNudges';
+import QuickCommandBar from './QuickCommandBar';
 
 interface TeamMember {
   id: string;
@@ -136,23 +146,15 @@ const AIManagerDashboard: React.FC = () => {
       ],
       deadline: '2024-02-15',
       status: 'active'
-    },
-    {
-      id: '3',
-      title: 'Team Recognition Award',
-      type: 'recognition',
-      targetType: 'demos',
-      participants: [
-        { id: '1', name: 'Sarah Johnson', initials: 'SJ', progress: 75, currentValue: 12, targetValue: 16 },
-        { id: '3', name: 'Emily Rodriguez', initials: 'ER', progress: 68, currentValue: 11, targetValue: 16 }
-      ],
-      deadline: '2024-02-20',
-      status: 'active'
     }
   ];
 
   const handleTeamRewardsClick = () => {
     navigate('/manager/team');
+  };
+
+  const handleWeeklyDigest = () => {
+    alert('Weekly Digest exported successfully! (Demo mode)');
   };
 
   const getFilteredTeamMembers = () => {
@@ -286,20 +288,32 @@ const AIManagerDashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       <ManagerNavigation />
       
+      {/* Manager Action Panel - Sticky at top */}
+      <ManagerActionPanel />
+      
+      {/* Quick Command Bar - Below action panel */}
+      <QuickCommandBar />
+      
       <div className="pt-[60px] px-6 py-6">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
+          {/* Header with Weekly Digest */}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
-              <p className="text-gray-600">Overview and team management</p>
+              <p className="text-gray-600">AI-enhanced team intelligence and control center</p>
             </div>
-            <Badge className="bg-blue-100 text-blue-800">
-              Manager View
-            </Badge>
+            <div className="flex gap-2">
+              <Button onClick={handleWeeklyDigest} variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Weekly Digest
+              </Button>
+              <Badge className="bg-blue-100 text-blue-800">
+                Manager View
+              </Badge>
+            </div>
           </div>
 
-          {/* Top Metrics Row */}
+          {/* Top Metrics Row - 4 Summary Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card 
               className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
@@ -337,7 +351,7 @@ const AIManagerDashboard: React.FC = () => {
               onClick={() => setSelectedMetric('pipeline')}
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Pipeline</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Pipeline Delta</CardTitle>
                 <Target className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
@@ -364,14 +378,18 @@ const AIManagerDashboard: React.FC = () => {
             </Card>
           </div>
 
+          {/* Smart Forecast Bar */}
+          <SmartForecastBar />
+
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Business Operations */}
-            <div className="lg:col-span-2">
+            {/* Left Column - Business Operations + Live Rep Tracker */}
+            <div className="lg:col-span-2 space-y-6">
               <BusinessOpsSnapshot />
+              <LiveRepTracker />
             </div>
 
-            {/* Right Column - Team Performance and Rewards */}
+            {/* Right Column - Team Performance, Risk Radar, Coaching, and Rewards */}
             <div className="space-y-6">
               {/* Team Performance Grid */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
@@ -430,6 +448,12 @@ const AIManagerDashboard: React.FC = () => {
                   ))}
                 </CardContent>
               </Card>
+
+              {/* Risk Radar */}
+              <RiskRadar />
+
+              {/* Coaching Nudges */}
+              <CoachingNudges />
 
               {/* Team Rewards Snapshot */}
               <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
