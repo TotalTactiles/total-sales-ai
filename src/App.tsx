@@ -7,10 +7,15 @@ import AuthPage from '@/pages/auth/AuthPage';
 import MainLayout from '@/layouts/MainLayout';
 import LogoutHandler from '@/components/LogoutHandler';
 import NewLandingPage from '@/pages/NewLandingPage';
+import GlobalFeedback from '@/components/feedback/GlobalFeedback';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSessionRefresh } from '@/hooks/useSessionRefresh';
 
 const AppRoutes: React.FC = () => {
   const { user, loading } = useAuth();
+  
+  // Initialize session refresh for authenticated users
+  useSessionRefresh();
 
   // Show loading spinner while determining auth state
   if (loading) {
@@ -52,6 +57,7 @@ const App: React.FC = () => {
       <AuthProvider>
         <DemoDataProvider>
           <AppRoutes />
+          <GlobalFeedback />
         </DemoDataProvider>
       </AuthProvider>
     </Router>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Loader2, FileText, Bot, Upload, RefreshCw } from 'lucide-react';
+import { useOptimizedPerformance } from '@/hooks/useOptimizedPerformance';
 
 interface LoadingManagerProps {
   type: 'report' | 'ai' | 'upload' | 'sync' | 'default';
@@ -16,6 +17,8 @@ const LoadingManager: React.FC<LoadingManagerProps> = ({
   progress,
   className = ''
 }) => {
+  const { isSlowDevice } = useOptimizedPerformance();
+
   const getLoadingContent = () => {
     switch (type) {
       case 'report':
@@ -23,35 +26,35 @@ const LoadingManager: React.FC<LoadingManagerProps> = ({
           icon: <FileText className="h-8 w-8 text-blue-500 animate-pulse" />,
           title: 'Generating Report',
           description: message || 'AI is analyzing data and creating your report...',
-          animation: 'animate-bounce'
+          animation: isSlowDevice ? '' : 'animate-bounce'
         };
       case 'ai':
         return {
           icon: <Bot className="h-8 w-8 text-purple-500 animate-pulse" />,
           title: 'TSAM Brain Processing',
           description: message || 'AI assistant is thinking...',
-          animation: 'animate-pulse'
+          animation: isSlowDevice ? '' : 'animate-pulse'
         };
       case 'upload':
         return {
           icon: <Upload className="h-8 w-8 text-green-500 animate-bounce" />,
           title: 'Uploading Files',
           description: message || 'Files are being uploaded to the cloud...',
-          animation: 'animate-bounce'
+          animation: isSlowDevice ? '' : 'animate-bounce'
         };
       case 'sync':
         return {
           icon: <RefreshCw className="h-8 w-8 text-orange-500 animate-spin" />,
           title: 'Syncing Data',
           description: message || 'Synchronizing with backend systems...',
-          animation: 'animate-spin'
+          animation: isSlowDevice ? '' : 'animate-spin'
         };
       default:
         return {
           icon: <Loader2 className="h-8 w-8 text-blue-500 animate-spin" />,
           title: 'Loading',
           description: message || 'Please wait...',
-          animation: 'animate-spin'
+          animation: isSlowDevice ? '' : 'animate-spin'
         };
     }
   };

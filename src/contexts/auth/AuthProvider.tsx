@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { AuthContextType, Profile } from './types';
 import { logger } from '@/utils/logger';
 import { signIn, signUp, signUpWithOAuth, signOut } from './authService';
+import { showAuthFeedback } from '@/utils/feedbackHelpers';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -123,13 +124,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (result.error) {
         logger.error('Sign in failed:', result.error, 'auth');
+        showAuthFeedback.loginError(result.error.message);
         return result;
       }
 
       logger.info('Sign in successful', {}, 'auth');
+      showAuthFeedback.loginSuccess();
       return result;
     } catch (error) {
       logger.error('Sign in exception:', error, 'auth');
+      showAuthFeedback.loginError();
       return { error };
     }
   };
@@ -142,13 +146,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (result.error) {
         logger.error('Sign up failed:', result.error, 'auth');
+        showAuthFeedback.signupError(result.error.message);
         return result;
       }
 
       logger.info('Sign up successful', {}, 'auth');
+      showAuthFeedback.signupSuccess();
       return result;
     } catch (error) {
       logger.error('Sign up exception:', error, 'auth');
+      showAuthFeedback.signupError();
       return { error };
     }
   };
@@ -162,19 +169,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setSession(null);
       setProfile(null);
       
-      // Clear storage
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
-      }
-
-      // Call Supabase signout
-      const { error } = await supabase.auth.signOut();
+      const { error } = await signOut();
       
       if (error) {
         logger.error('Sign out error:', error, 'auth');
       } else {
         logger.info('Sign out successful', {}, 'auth');
+        showAuthFeedback.logoutSuccess();
       }
       
       return { error: null };
