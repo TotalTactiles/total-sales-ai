@@ -23,21 +23,21 @@ export const PERMISSIONS = {
 } as const;
 
 export const hasPermission = (userRole: Role, permission: keyof typeof PERMISSIONS): boolean => {
-  return PERMISSIONS[permission].includes(userRole);
+  return PERMISSIONS[permission].includes(userRole as any);
 };
 
 export const canAccessRoute = (userRole: Role, routePath: string): boolean => {
   // Route-based permission checking
   if (routePath.startsWith('/developer')) {
-    return ['developer', 'admin'].includes(userRole);
+    return (['developer', 'admin'] as Role[]).includes(userRole);
   }
   
   if (routePath.startsWith('/manager')) {
-    return ['manager', 'admin'].includes(userRole);
+    return (['manager', 'admin'] as Role[]).includes(userRole);
   }
   
   if (routePath.startsWith('/sales')) {
-    return ['sales_rep', 'manager', 'admin'].includes(userRole);
+    return (['sales_rep', 'manager', 'admin'] as Role[]).includes(userRole);
   }
   
   return true; // Public routes
