@@ -14,34 +14,15 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children, className
 
   const getLayoutClasses = () => {
     if (isMobile) {
-      return 'w-full px-4 sm:px-6 py-6';
+      return 'w-full px-4 sm:px-6 py-6 pt-20'; // Add top padding for mobile header
     }
     
-    return 'transition-all duration-300 ease-in-out px-8 py-6';
-  };
-
-  const getContentStyle = () => {
-    if (isMobile) {
-      return {
-        width: '100%',
-        marginLeft: '0px'
-      };
-    }
-    
-    // No need to manually calculate margins - sidebar component handles this
-    return {
-      width: '100%',
-      maxWidth: '100%',
-      transition: 'all 0.3s ease-in-out'
-    };
+    return 'transition-all duration-300 ease-in-out px-8 py-6 w-full';
   };
 
   return (
-    <div 
-      className={`min-h-screen bg-background ${getLayoutClasses()} ${className}`}
-      style={getContentStyle()}
-    >
-      <div className="max-w-full overflow-x-hidden">
+    <div className={`min-h-screen bg-gray-900 text-white ${getLayoutClasses()} ${className}`}>
+      <div className="max-w-[1440px] mx-auto">
         {children}
       </div>
     </div>
