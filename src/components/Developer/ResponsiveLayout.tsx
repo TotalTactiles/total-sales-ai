@@ -12,19 +12,10 @@ const ResponsiveLayout: React.FC<ResponsiveLayoutProps> = ({ children, className
   const isMobile = useIsMobile();
   const { open } = useSidebar();
 
-  const getLayoutClasses = () => {
-    if (isMobile) {
-      return 'w-full px-4 sm:px-6 py-6 pt-20'; // Add top padding for mobile header
-    }
-    
-    return 'transition-all duration-300 ease-in-out px-8 py-6 w-full';
-  };
-
+  // This component is now handled by UnifiedLayout, so we just pass through
   return (
-    <div className={`min-h-screen bg-gray-900 text-white ${getLayoutClasses()} ${className}`}>
-      <div className="max-w-[1440px] mx-auto">
-        {children}
-      </div>
+    <div className={`w-full ${className}`}>
+      {children}
     </div>
   );
 };

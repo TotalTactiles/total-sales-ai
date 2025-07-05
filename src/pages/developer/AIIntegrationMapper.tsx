@@ -1,381 +1,433 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { 
   Network, 
   Brain, 
-  Database,
-  Zap,
+  Zap, 
+  Database, 
+  RefreshCw,
+  CheckCircle,
+  AlertTriangle,
+  Clock,
   Activity,
   Settings,
-  Eye,
-  BarChart3,
-  ArrowRight,
-  CheckCircle,
-  AlertTriangle
+  ExternalLink
 } from 'lucide-react';
+import LoadingManager from '@/components/layout/LoadingManager';
+import { useAsyncOperation } from '@/hooks/useAsyncOperation';
+
+interface AIIntegration {
+  id: string;
+  name: string;
+  type: 'llm' | 'voice' | 'analytics' | 'automation';
+  provider: string;
+  status: 'connected' | 'disconnected' | 'error' | 'limited';
+  health: number;
+  apiKey: string;
+  endpoint: string;
+  requestCount: number;
+  errorRate: number;
+  avgResponseTime: number;
+  rateLimitRemaining: number;
+  rateLimitTotal: number;
+  lastUpdated: Date;
+}
 
 const AIIntegrationMapper: React.FC = () => {
-  const [aiIntegrations, setAiIntegrations] = useState([
+  const { execute, isLoading } = useAsyncOperation();
+  const [integrations, setIntegrations] = useState<AIIntegration[]>([
     {
-      model: 'Claude 4 Sonnet',
-      status: 'active',
-      locations: ['Manager OS - AI Assistant', 'Sales Rep - Copilot', 'TSAM Brain'],
-      inputs: ['User conversations', 'Company knowledge', 'CRM data'],
-      outputs: ['Strategic recommendations', 'Sales scripts', 'Lead insights'],
-      usage: 85,
-      latency: 120,
-      cost: '$240/month'
+      id: '1',
+      name: 'OpenAI GPT-4',
+      type: 'llm',
+      provider: 'OpenAI',
+      status: 'connected',
+      health: 98,
+      apiKey: 'sk-...abc123',
+      endpoint: 'https://api.openai.com/v1/chat/completions',
+      requestCount: 12547,
+      errorRate: 0.2,
+      avgResponseTime: 850,
+      rateLimitRemaining: 8750,
+      rateLimitTotal: 10000,
+      lastUpdated: new Date(Date.now() - 1000 * 60 * 5)
     },
     {
-      model: 'GPT-4.1',
-      status: 'active',
-      locations: ['Sales Academy', 'Lead Intelligence', 'Document Processing'],
-      inputs: ['Training content', 'Lead data', 'PDF documents'],
-      outputs: ['Lesson content', 'Lead scoring', 'Document summaries'],
-      usage: 72,
-      latency: 95,
-      cost: '$180/month'
+      id: '2',
+      name: 'Anthropic Claude',
+      type: 'llm',
+      provider: 'Anthropic',
+      status: 'connected',
+      health: 95,
+      apiKey: 'sk-ant-...def456',
+      endpoint: 'https://api.anthropic.com/v1/messages',
+      requestCount: 8934,
+      errorRate: 0.8,
+      avgResponseTime: 1200,
+      rateLimitRemaining: 4500,
+      rateLimitTotal: 5000,
+      lastUpdated: new Date(Date.now() - 1000 * 60 * 2)
     },
     {
-      model: 'Gemini Pro',
-      status: 'standby',
-      locations: ['Backup system', 'Load balancing'],
-      inputs: ['Emergency requests', 'Overflow traffic'],
-      outputs: ['Fallback responses', 'Basic assistance'],
-      usage: 15,
-      latency: 180,
-      cost: '$45/month'
+      id: '3',
+      name: 'ElevenLabs Voice',
+      type: 'voice',
+      provider: 'ElevenLabs',
+      status: 'limited',
+      health: 87,
+      apiKey: 'xi-...ghi789',
+      endpoint: 'https://api.elevenlabs.io/v1/text-to-speech',
+      requestCount: 2341,
+      errorRate: 2.1,
+      avgResponseTime: 2300,
+      rateLimitRemaining: 250,
+      rateLimitTotal: 1000,
+      lastUpdated: new Date(Date.now() - 1000 * 60 * 10)
+    },
+    {
+      id: '4',
+      name: 'Retell AI',
+      type: 'voice',
+      provider: 'Retell',
+      status: 'connected',
+      health: 92,
+      apiKey: 'ret-...jkl012',
+      endpoint: 'https://api.retellai.com/v1/call',
+      requestCount: 1567,
+      errorRate: 1.5,
+      avgResponseTime: 650,
+      rateLimitRemaining: 7800,
+      rateLimitTotal: 8000,
+      lastUpdated: new Date(Date.now() - 1000 * 60 * 1)
+    },
+    {
+      id: '5',
+      name: 'Custom Analytics Engine',
+      type: 'analytics',
+      provider: 'TSAM Internal',
+      status: 'error',
+      health: 34,
+      apiKey: 'internal-key',
+      endpoint: 'https://analytics.tsam.internal/api/v1',
+      requestCount: 4567,
+      errorRate: 15.3,
+      avgResponseTime: 5600,
+      rateLimitRemaining: 0,
+      rateLimitTotal: 1000,
+      lastUpdated: new Date(Date.now() - 1000 * 60 * 30)
+    },
+    {
+      id: '6',
+      name: 'Automation Flow Engine',
+      type: 'automation',
+      provider: 'TSAM Internal',
+      status: 'connected',
+      health: 89,
+      apiKey: 'auto-...mno345',
+      endpoint: 'https://automation.tsam.internal/api/v1',
+      requestCount: 3456,
+      errorRate: 3.2,
+      avgResponseTime: 450,
+      rateLimitRemaining: 9500,
+      rateLimitTotal: 10000,
+      lastUpdated: new Date(Date.now() - 1000 * 60 * 7)
     }
   ]);
 
-  const [dataFlows, setDataFlows] = useState([
-    {
-      source: 'CRM Integration',
-      destination: 'Claude 4 Sonnet',
-      dataType: 'Lead Information',
-      volume: '1.2K records/day',
-      status: 'healthy'
-    },
-    {
-      source: 'User Sessions',
-      destination: 'GPT-4.1',
-      dataType: 'Behavior Patterns',
-      volume: '850 events/hour',
-      status: 'healthy'
-    },
-    {
-      source: 'Document Uploads',
-      destination: 'All Models',
-      dataType: 'Knowledge Base',
-      volume: '45 docs/week',
-      status: 'healthy'
-    },
-    {
-      source: 'Call Recordings',
-      destination: 'Claude 4 Sonnet',
-      dataType: 'Conversation Analysis',
-      volume: '120 calls/day',
-      status: 'warning'
-    }
-  ]);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIntegrations(prev => prev.map(integration => ({
+        ...integration,
+        health: integration.status === 'connected' 
+          ? Math.max(80, Math.min(100, integration.health + (Math.random() - 0.5) * 2))
+          : integration.health,
+        requestCount: integration.status === 'connected'
+          ? integration.requestCount + Math.floor(Math.random() * 5)
+          : integration.requestCount,
+        avgResponseTime: integration.status === 'connected'
+          ? Math.max(200, Math.min(3000, integration.avgResponseTime + (Math.random() - 0.5) * 100))
+          : integration.avgResponseTime,
+        rateLimitRemaining: integration.status !== 'error'
+          ? Math.max(0, integration.rateLimitRemaining - Math.floor(Math.random() * 10))
+          : integration.rateLimitRemaining
+      })));
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const refreshIntegrations = async () => {
+    await execute(async () => {
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      setIntegrations(prev => prev.map(integration => ({
+        ...integration,
+        health: integration.status === 'error' ? Math.random() * 40 + 60 : integration.health,
+        status: integration.status === 'error' ? 'connected' : integration.status,
+        errorRate: Math.max(0, integration.errorRate - Math.random() * 2),
+        lastUpdated: new Date()
+      })));
+    }, 'sync');
+  };
+
+  const testIntegration = async (integrationId: string) => {
+    await execute(async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setIntegrations(prev => prev.map(integration =>
+        integration.id === integrationId
+          ? { 
+              ...integration, 
+              health: Math.random() * 20 + 80,
+              avgResponseTime: Math.random() * 500 + 300,
+              lastUpdated: new Date()
+            }
+          : integration
+      ));
+    }, 'ai');
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'standby': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'inactive': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'connected': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'limited': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'error': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      case 'disconnected': return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
   };
 
-  const getFlowStatusColor = (status: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'healthy': return 'text-green-600';
-      case 'warning': return 'text-yellow-600';
-      case 'error': return 'text-red-600';
-      default: return 'text-gray-600';
+      case 'connected': return <CheckCircle className="h-4 w-4" />;
+      case 'limited': return <Clock className="h-4 w-4" />;
+      case 'error': return <AlertTriangle className="h-4 w-4" />;
+      case 'disconnected': return <Network className="h-4 w-4" />;
+      default: return <Network className="h-4 w-4" />;
     }
   };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'llm': return <Brain className="h-5 w-5 text-purple-400" />;
+      case 'voice': return <Activity className="h-5 w-5 text-blue-400" />;
+      case 'analytics': return <Database className="h-5 w-5 text-green-400" />;
+      case 'automation': return <Zap className="h-5 w-5 text-orange-400" />;
+      default: return <Network className="h-5 w-5 text-gray-400" />;
+    }
+  };
+
+  const getHealthColor = (health: number) => {
+    if (health >= 85) return 'text-green-400';
+    if (health >= 70) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  const stats = {
+    total: integrations.length,
+    connected: integrations.filter(i => i.status === 'connected').length,
+    errors: integrations.filter(i => i.status === 'error').length,
+    totalRequests: integrations.reduce((sum, i) => sum + i.requestCount, 0)
+  };
+
+  if (isLoading) {
+    return <LoadingManager type="ai" message="Mapping AI integrations..." />;
+  }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">AI Integration Mapper</h1>
-          <p className="text-gray-600">Visualize and manage AI model deployments across TSAM OS</p>
+          <h1 className="text-3xl font-bold text-white">AI Integration Mapper</h1>
+          <p className="text-gray-400 mt-2">Monitor and manage AI service integrations</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline">
-            <Eye className="h-4 w-4 mr-2" />
-            Live Monitor
+        <div className="flex items-center gap-3">
+          <Button 
+            onClick={refreshIntegrations}
+            disabled={isLoading}
+            variant="outline"
+            className="border-gray-600 text-gray-300 hover:bg-gray-800"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Refresh All
           </Button>
-          <Button>
+          <Button className="bg-blue-600 hover:bg-blue-700">
             <Settings className="h-4 w-4 mr-2" />
-            Configure Models
+            Add Integration
           </Button>
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Models</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{aiIntegrations.filter(ai => ai.status === 'active').length}</div>
-            <p className="text-xs text-green-600">+1 standby</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Usage</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(aiIntegrations.reduce((sum, ai) => sum + ai.usage, 0) / aiIntegrations.length)}%
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Total Integrations</p>
+                <p className="text-2xl font-bold text-white">{stats.total}</p>
+              </div>
+              <Network className="h-8 w-8 text-blue-400" />
             </div>
-            <p className="text-xs text-blue-600">Average across models</p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Data Flows</CardTitle>
-            <Network className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{dataFlows.length}</div>
-            <p className="text-xs text-purple-600">Active pipelines</p>
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Connected</p>
+                <p className="text-2xl font-bold text-green-400">{stats.connected}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-400" />
+            </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Cost</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$465</div>
-            <p className="text-xs text-orange-600">All AI services</p>
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Errors</p>
+                <p className="text-2xl font-bold text-red-400">{stats.errors}</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-red-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Total Requests</p>
+                <p className="text-2xl font-bold text-white">{stats.totalRequests.toLocaleString()}</p>
+              </div>
+              <Activity className="h-8 w-8 text-purple-400" />
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="models" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="models">Model Status</TabsTrigger>
-          <TabsTrigger value="flows">Data Flows</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="models" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {aiIntegrations.map((integration, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Brain className="h-5 w-5 text-purple-600" />
-                      {integration.model}
-                    </CardTitle>
-                    <Badge className={getStatusColor(integration.status)}>
-                      {integration.status}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
+      {/* Integration Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {integrations.map((integration) => (
+          <Card key={integration.id} className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {getTypeIcon(integration.type)}
                   <div>
-                    <h4 className="font-medium text-sm mb-2">Deployed Locations</h4>
-                    <div className="space-y-1">
-                      {integration.locations.map((location, idx) => (
-                        <div key={idx} className="flex items-center gap-2 text-sm">
-                          <CheckCircle className="h-3 w-3 text-green-500" />
-                          {location}
-                        </div>
-                      ))}
-                    </div>
+                    <CardTitle className="text-white">{integration.name}</CardTitle>
+                    <p className="text-gray-400 text-sm">{integration.provider}</p>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Input Sources</h4>
-                      <ul className="text-xs text-gray-600 space-y-1">
-                        {integration.inputs.map((input, idx) => (
-                          <li key={idx}>• {input}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Output Types</h4>
-                      <ul className="text-xs text-gray-600 space-y-1">
-                        {integration.outputs.map((output, idx) => (
-                          <li key={idx}>• {output}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Usage</span>
-                      <span>{integration.usage}%</span>
-                    </div>
-                    <Progress value={integration.usage} />
-                  </div>
-
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>Latency: {integration.latency}ms</span>
-                    <span>Cost: {integration.cost}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="flows" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Network className="h-5 w-5 text-blue-600" />
-                Data Flow Visualization
-              </CardTitle>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={getStatusColor(integration.status)}>
+                    {getStatusIcon(integration.status)}
+                    {integration.status.toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {dataFlows.map((flow, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Database className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium text-sm">{flow.source}</span>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
-                      <div className="flex items-center gap-2">
-                        <Brain className="h-4 w-4 text-purple-600" />
-                        <span className="font-medium text-sm">{flow.destination}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="text-sm font-medium">{flow.dataType}</p>
-                        <p className="text-xs text-gray-600">{flow.volume}</p>
-                      </div>
-                      <div className={`flex items-center gap-1 ${getFlowStatusColor(flow.status)}`}>
-                        {flow.status === 'healthy' ? (
-                          <CheckCircle className="h-4 w-4" />
-                        ) : flow.status === 'warning' ? (
-                          <AlertTriangle className="h-4 w-4" />
-                        ) : (
-                          <Activity className="h-4 w-4" />
-                        )}
-                        <span className="text-sm capitalize">{flow.status}</span>
-                      </div>
-                    </div>
+            <CardContent className="space-y-4">
+              {/* Health Bar */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-400">Health</span>
+                  <span className={`text-sm font-bold ${getHealthColor(integration.health)}`}>
+                    {integration.health}%
+                  </span>
+                </div>
+                <Progress value={integration.health} className="h-2" />
+              </div>
+
+              {/* Metrics Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                  <p className="text-lg font-bold text-white">{integration.requestCount.toLocaleString()}</p>
+                  <p className="text-xs text-gray-400">Requests</p>
+                </div>
+                <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                  <p className={`text-lg font-bold ${integration.errorRate > 5 ? 'text-red-400' : 'text-green-400'}`}>
+                    {integration.errorRate.toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-gray-400">Error Rate</p>
+                </div>
+                <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                  <p className="text-lg font-bold text-white">{integration.avgResponseTime}ms</p>
+                  <p className="text-xs text-gray-400">Avg Response</p>
+                </div>
+                <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                  <p className={`text-lg font-bold ${
+                    integration.rateLimitRemaining / integration.rateLimitTotal < 0.2 ? 'text-red-400' : 'text-green-400'
+                  }`}>
+                    {integration.rateLimitRemaining}
+                  </p>
+                  <p className="text-xs text-gray-400">Rate Limit</p>
+                </div>
+              </div>
+
+              {/* Rate Limit Bar */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-400">Rate Limit Usage</span>
+                  <span className="text-sm text-gray-400">
+                    {integration.rateLimitRemaining}/{integration.rateLimitTotal}
+                  </span>
+                </div>
+                <Progress 
+                  value={(integration.rateLimitTotal - integration.rateLimitRemaining) / integration.rateLimitTotal * 100} 
+                  className="h-2" 
+                />
+              </div>
+
+              {/* Connection Details */}
+              <div className="text-sm">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-gray-400">API Key:</span>
+                  <span className="text-white font-mono">{integration.apiKey}</span>
+                </div>
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-gray-400">Endpoint:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white text-xs truncate max-w-[200px]">
+                      {integration.endpoint}
+                    </span>
+                    <ExternalLink className="h-3 w-3 text-gray-400" />
                   </div>
-                ))}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">Last Updated:</span>
+                  <span className="text-white">{integration.lastUpdated.toLocaleTimeString()}</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => testIntegration(integration.id)}
+                  size="sm"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Activity className="h-4 w-4 mr-2" />
+                  Test Connection
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure
+                </Button>
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Real-time Data Processing</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Activity className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-green-900">Live Processing</span>
-                  </div>
-                  <p className="text-2xl font-bold text-green-800">2.4K</p>
-                  <p className="text-sm text-green-600">Events/hour</p>
-                </div>
-                
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Database className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-blue-900">Queue Size</span>
-                  </div>
-                  <p className="text-2xl font-bold text-blue-800">47</p>
-                  <p className="text-sm text-blue-600">Pending items</p>
-                </div>
-                
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="h-4 w-4 text-purple-600" />
-                    <span className="font-medium text-purple-900">Throughput</span>
-                  </div>
-                  <p className="text-2xl font-bold text-purple-800">98.5%</p>
-                  <p className="text-sm text-purple-600">Success rate</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="performance" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Model Performance Metrics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {aiIntegrations.filter(ai => ai.status === 'active').map((model, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium">{model.model}</span>
-                        <span className="text-sm text-gray-600">{model.latency}ms avg</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${Math.max(10, 100 - (model.latency / 2))}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Cost Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {aiIntegrations.map((model, index) => (
-                    <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium text-sm">{model.model}</p>
-                        <p className="text-xs text-gray-600">{model.usage}% utilization</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-sm">{model.cost}</p>
-                        <p className="text-xs text-gray-600">Monthly</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
+        ))}
+      </div>
     </div>
   );
 };

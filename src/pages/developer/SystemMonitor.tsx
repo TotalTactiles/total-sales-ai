@@ -1,286 +1,262 @@
+
 import React, { useState, useEffect } from 'react';
-import TSAMLayout from '@/components/Developer/TSAMLayout';
-import TSAMCard from '@/components/Developer/TSAMCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
 import { 
-  Activity, 
+  Monitor, 
   Cpu, 
+  HardDrive, 
+  Wifi, 
   Database, 
-  Globe, 
-  HardDrive,
-  MemoryStick,
+  Activity,
   RefreshCw,
-  Server,
-  Wifi,
-  AlertTriangle
+  AlertTriangle,
+  CheckCircle,
+  Clock
 } from 'lucide-react';
+import LoadingManager from '@/components/layout/LoadingManager';
+import { useAsyncOperation } from '@/hooks/useAsyncOperation';
 
-interface SystemMetric {
-  name: string;
-  value: string | number;
-  unit?: string;
-  status: 'healthy' | 'warning' | 'critical';
-  icon: React.ReactNode;
-}
+const SystemMonitor: React.FC = () => {
+  const { execute, isLoading } = useAsyncOperation();
+  const [systemMetrics, setSystemMetrics] = useState({
+    cpu: { usage: 45, status: 'healthy' },
+    memory: { usage: 62, total: 16, used: 9.9, status: 'healthy' },
+    disk: { usage: 78, total: 512, used: 399, status: 'warning' },
+    network: { latency: 24, throughput: 1.2, status: 'healthy' },
+    database: { connections: 12, queries: 245, status: 'healthy' }
+  });
 
-const SystemMonitorPage: React.FC = () => {
-  const { profile } = useAuth();
-  const [metrics, setMetrics] = useState<SystemMetric[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const isDeveloper = profile?.role === 'developer';
+  const [logs, setLogs] = useState([
+    { id: 1, level: 'info', message: 'System startup completed', timestamp: new Date(Date.now() - 1000 * 60 * 2) },
+    { id: 2, level: 'warning', message: 'High disk usage detected', timestamp: new Date(Date.now() - 1000 * 60 * 5) },
+    { id: 3, level: 'error', message: 'API timeout on external service', timestamp: new Date(Date.now() - 1000 * 60 * 10) },
+    { id: 4, level: 'info', message: 'Database backup completed', timestamp: new Date(Date.now() - 1000 * 60 * 15) }
+  ]);
 
   useEffect(() => {
-    if (!isDeveloper) return;
-
-    const generateMetrics = (): SystemMetric[] => [
-      {
-        name: 'CPU Usage',
-        value: Math.floor(Math.random() * 40) + 20,
-        unit: '%',
-        status: Math.random() > 0.8 ? 'warning' : 'healthy',
-        icon: <Cpu className="h-4 w-4" />
-      },
-      {
-        name: 'Memory Usage',
-        value: Math.floor(Math.random() * 30) + 50,
-        unit: '%',
-        status: Math.random() > 0.9 ? 'critical' : 'healthy',
-        icon: <MemoryStick className="h-4 w-4" />
-      },
-      {
-        name: 'Disk Usage',
-        value: Math.floor(Math.random() * 20) + 65,
-        unit: '%',
-        status: 'healthy',
-        icon: <HardDrive className="h-4 w-4" />
-      },
-      {
-        name: 'Active Connections',
-        value: Math.floor(Math.random() * 100) + 150,
-        unit: '',
-        status: 'healthy',
-        icon: <Wifi className="h-4 w-4" />
-      },
-      {
-        name: 'Response Time',
-        value: Math.floor(Math.random() * 50) + 120,
-        unit: 'ms',
-        status: Math.random() > 0.7 ? 'warning' : 'healthy',
-        icon: <Activity className="h-4 w-4" />
-      },
-      {
-        name: 'Database Connections',
-        value: Math.floor(Math.random() * 20) + 5,
-        unit: '',
-        status: 'healthy',
-        icon: <Database className="h-4 w-4" />
-      }
-    ];
-
-    setMetrics(generateMetrics());
-    setLoading(false);
-
-    // Update metrics every 10 seconds
     const interval = setInterval(() => {
-      setMetrics(generateMetrics());
-    }, 10000);
+      setSystemMetrics(prev => ({
+        ...prev,
+        cpu: { ...prev.cpu, usage: Math.max(20, Math.min(90, prev.cpu.usage + (Math.random() - 0.5) * 10)) },
+        network: { ...prev.network, latency: Math.max(10, Math.min(100, prev.network.latency + (Math.random() - 0.5) * 20)) }
+      }));
+    }, 3000);
 
     return () => clearInterval(interval);
-  }, [isDeveloper]);
+  }, []);
 
-  if (!isDeveloper) {
-    return <div>Access Denied</div>;
-  }
+  const refreshMetrics = async () => {
+    await execute(async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setSystemMetrics(prev => ({
+        ...prev,
+        cpu: { usage: Math.floor(Math.random() * 80) + 10, status: 'healthy' },
+        memory: { usage: Math.floor(Math.random() * 40) + 40, total: 16, used: Math.floor(Math.random() * 8) + 6, status: 'healthy' }
+      }));
+    }, 'sync');
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-400" />;
+      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-400" />;
+      case 'error': return <AlertTriangle className="h-4 w-4 text-red-400" />;
+      default: return <Clock className="h-4 w-4 text-gray-400" />;
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy':
-        return 'text-green-400';
-      case 'warning':
-        return 'text-yellow-400';
-      case 'critical':
-        return 'text-red-400';
-      default:
-        return 'text-gray-400';
+      case 'healthy': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'warning': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'error': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
   };
 
-  const getPriorityFromStatus = (status: string) => {
-    switch (status) {
-      case 'critical':
-        return 'critical' as const;
-      case 'warning':
-        return 'high' as const;
-      default:
-        return 'medium' as const;
+  const getLevelColor = (level: string) => {
+    switch (level) {
+      case 'error': return 'text-red-400';
+      case 'warning': return 'text-yellow-400';
+      case 'info': return 'text-blue-400';
+      default: return 'text-gray-400';
     }
   };
 
-  const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const generateMetrics = (): SystemMetric[] => [
-        {
-          name: 'CPU Usage',
-          value: Math.floor(Math.random() * 40) + 20,
-          unit: '%',
-          status: Math.random() > 0.8 ? 'warning' : 'healthy',
-          icon: <Cpu className="h-4 w-4" />
-        },
-        {
-          name: 'Memory Usage',
-          value: Math.floor(Math.random() * 30) + 50,
-          unit: '%',
-          status: Math.random() > 0.9 ? 'critical' : 'healthy',
-          icon: <MemoryStick className="h-4 w-4" />
-        },
-        {
-          name: 'Disk Usage',
-          value: Math.floor(Math.random() * 20) + 65,
-          unit: '%',
-          status: 'healthy',
-          icon: <HardDrive className="h-4 w-4" />
-        },
-        {
-          name: 'Active Connections',
-          value: Math.floor(Math.random() * 100) + 150,
-          unit: '',
-          status: 'healthy',
-          icon: <Wifi className="h-4 w-4" />
-        },
-        {
-          name: 'Response Time',
-          value: Math.floor(Math.random() * 50) + 120,
-          unit: 'ms',
-          status: Math.random() > 0.7 ? 'warning' : 'healthy',
-          icon: <Activity className="h-4 w-4" />
-        },
-        {
-          name: 'Database Connections',
-          value: Math.floor(Math.random() * 20) + 5,
-          unit: '',
-          status: 'healthy',
-          icon: <Database className="h-4 w-4" />
-        }
-      ];
-      setMetrics(generateMetrics());
-      setLoading(false);
-    }, 1000);
-  };
-
-  if (loading) {
-    return (
-      <TSAMLayout title="System Monitor">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400"></div>
-        </div>
-      </TSAMLayout>
-    );
+  if (isLoading) {
+    return <LoadingManager type="sync" message="Refreshing system metrics..." />;
   }
 
   return (
-    <TSAMLayout title="System Performance Monitor">
-      <div className="space-y-6">
-        {/* Header with Refresh */}
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Server className="h-6 w-6 text-purple-400" />
-            <h2 className="text-xl font-bold text-white">Live System Metrics</h2>
-          </div>
-          <Button
-            onClick={handleRefresh}
-            variant="outline"
-            className="border-purple-500 text-purple-300"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">System Monitor</h1>
+          <p className="text-gray-400 mt-2">Real-time system performance and health metrics</p>
         </div>
-
-        {/* System Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {metrics.map((metric, index) => (
-            <TSAMCard 
-              key={index} 
-              title={metric.name} 
-              icon={metric.icon}
-              priority={getPriorityFromStatus(metric.status)}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className={`text-2xl font-bold ${getStatusColor(metric.status)}`}>
-                    {metric.value}{metric.unit}
-                  </div>
-                  <div className={`text-sm capitalize ${getStatusColor(metric.status)}`}>
-                    {metric.status}
-                  </div>
-                </div>
-                {metric.status !== 'healthy' && (
-                  <AlertTriangle className={`h-5 w-5 ${getStatusColor(metric.status)}`} />
-                )}
-              </div>
-            </TSAMCard>
-          ))}
-        </div>
-
-        {/* System Health Overview */}
-        <TSAMCard title="System Health Overview" icon={<Globe className="h-5 w-5" />}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400 mb-2">99.9%</div>
-              <div className="text-gray-300">Uptime</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-400 mb-2">
-                {metrics.filter(m => m.status === 'healthy').length}
-              </div>
-              <div className="text-gray-300">Healthy Services</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-400 mb-2">
-                {metrics.filter(m => m.status !== 'healthy').length}
-              </div>
-              <div className="text-gray-300">Issues Detected</div>
-            </div>
-          </div>
-        </TSAMCard>
-
-        {/* Recent Alerts */}
-        <TSAMCard title="Recent System Alerts" icon={<AlertTriangle className="h-5 w-5" />}>
-          <div className="space-y-3">
-            {metrics
-              .filter(metric => metric.status !== 'healthy')
-              .map((metric, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    {metric.icon}
-                    <div>
-                      <p className="text-white font-medium">{metric.name}</p>
-                      <p className="text-sm text-gray-400">
-                        Current: {metric.value}{metric.unit}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    metric.status === 'critical' ? 'bg-red-500/20 text-red-400' :
-                    'bg-yellow-500/20 text-yellow-400'
-                  }`}>
-                    {metric.status}
-                  </span>
-                </div>
-              ))}
-            {metrics.filter(m => m.status !== 'healthy').length === 0 && (
-              <div className="text-center py-4 text-gray-400">
-                All systems are running normally
-              </div>
-            )}
-          </div>
-        </TSAMCard>
+        <Button 
+          onClick={refreshMetrics}
+          disabled={isLoading}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
-    </TSAMLayout>
+
+      {/* System Metrics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-white">CPU Usage</CardTitle>
+            <Cpu className="h-4 w-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{systemMetrics.cpu.usage.toFixed(1)}%</div>
+            <div className="flex items-center justify-between mt-2">
+              <div className="w-full bg-gray-700 rounded-full h-2 mr-2">
+                <div 
+                  className="bg-blue-400 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${systemMetrics.cpu.usage}%` }}
+                />
+              </div>
+              <Badge className={getStatusColor(systemMetrics.cpu.status)}>
+                {getStatusIcon(systemMetrics.cpu.status)}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-white">Memory</CardTitle>
+            <HardDrive className="h-4 w-4 text-green-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{systemMetrics.memory.used}GB</div>
+            <p className="text-xs text-gray-400">of {systemMetrics.memory.total}GB total</p>
+            <div className="flex items-center justify-between mt-2">
+              <div className="w-full bg-gray-700 rounded-full h-2 mr-2">
+                <div 
+                  className="bg-green-400 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${systemMetrics.memory.usage}%` }}
+                />
+              </div>
+              <Badge className={getStatusColor(systemMetrics.memory.status)}>
+                {getStatusIcon(systemMetrics.memory.status)}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-white">Network</CardTitle>
+            <Wifi className="h-4 w-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{systemMetrics.network.latency}ms</div>
+            <p className="text-xs text-gray-400">{systemMetrics.network.throughput}Gbps throughput</p>
+            <div className="flex items-center justify-between mt-2">
+              <div className="text-sm text-gray-400">Latency</div>
+              <Badge className={getStatusColor(systemMetrics.network.status)}>
+                {getStatusIcon(systemMetrics.network.status)}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-white">Database</CardTitle>
+            <Database className="h-4 w-4 text-orange-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{systemMetrics.database.connections}</div>
+            <p className="text-xs text-gray-400">{systemMetrics.database.queries} queries/min</p>
+            <div className="flex items-center justify-between mt-2">
+              <div className="text-sm text-gray-400">Active connections</div>
+              <Badge className={getStatusColor(systemMetrics.database.status)}>
+                {getStatusIcon(systemMetrics.database.status)}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-white">Storage</CardTitle>
+            <HardDrive className="h-4 w-4 text-red-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{systemMetrics.disk.used}GB</div>
+            <p className="text-xs text-gray-400">of {systemMetrics.disk.total}GB used</p>
+            <div className="flex items-center justify-between mt-2">
+              <div className="w-full bg-gray-700 rounded-full h-2 mr-2">
+                <div 
+                  className="bg-red-400 h-2 rounded-full transition-all duration-300" 
+                  style={{ width: `${systemMetrics.disk.usage}%` }}
+                />
+              </div>
+              <Badge className={getStatusColor(systemMetrics.disk.status)}>
+                {getStatusIcon(systemMetrics.disk.status)}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-white">System Health</CardTitle>
+            <Activity className="h-4 w-4 text-green-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-400">Healthy</div>
+            <p className="text-xs text-gray-400">All systems operational</p>
+            <div className="flex items-center justify-between mt-2">
+              <div className="text-sm text-gray-400">Overall status</div>
+              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                <CheckCircle className="h-4 w-4" />
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* System Logs */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Monitor className="h-5 w-5" />
+            System Logs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {logs.map((log) => (
+              <div key={log.id} className="flex items-center justify-between p-3 bg-gray-700/50 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${
+                    log.level === 'error' ? 'bg-red-400' : 
+                    log.level === 'warning' ? 'bg-yellow-400' : 'bg-blue-400'
+                  }`} />
+                  <div>
+                    <p className="text-white text-sm">{log.message}</p>
+                    <p className="text-gray-400 text-xs">{log.timestamp.toLocaleTimeString()}</p>
+                  </div>
+                </div>
+                <Badge variant="outline" className={`${getLevelColor(log.level)} border-current`}>
+                  {log.level.toUpperCase()}
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
-export default SystemMonitorPage;
+export default SystemMonitor;

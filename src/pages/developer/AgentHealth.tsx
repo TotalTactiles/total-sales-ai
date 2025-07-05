@@ -1,268 +1,334 @@
 
 import React, { useState, useEffect } from 'react';
-import TSAMLayout from '@/components/Developer/TSAMLayout';
-import TSAMCard from '@/components/Developer/TSAMCard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
+import { Progress } from '@/components/ui/progress';
 import { 
-  Brain, 
   Activity, 
-  TrendingUp, 
-  TrendingDown,
+  Bot, 
+  Brain, 
+  Zap, 
+  Heart, 
   RefreshCw,
-  Settings,
   AlertTriangle,
   CheckCircle,
-  Clock
+  Phone,
+  MessageSquare,
+  Users
 } from 'lucide-react';
+import LoadingManager from '@/components/layout/LoadingManager';
+import { useAsyncOperation } from '@/hooks/useAsyncOperation';
 
-interface AgentMetric {
+interface Agent {
   id: string;
   name: string;
-  status: 'healthy' | 'warning' | 'critical' | 'offline';
-  successRate: number;
-  responseTime: number;
+  type: 'voice' | 'chat' | 'automation';
+  status: 'active' | 'idle' | 'error' | 'maintenance';
+  health: number;
+  activeConnections: number;
+  tasksCompleted: number;
+  errorRate: number;
   lastActive: Date;
-  totalRequests: number;
-  errorCount: number;
-  type: 'sales' | 'support' | 'analysis' | 'automation';
+  uptime: string;
 }
 
-const AgentHealthPage: React.FC = () => {
-  const { profile } = useAuth();
-  const [agents, setAgents] = useState<AgentMetric[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const isDeveloper = profile?.role === 'developer';
+const AgentHealth: React.FC = () => {
+  const { execute, isLoading } = useAsyncOperation();
+  const [agents, setAgents] = useState<Agent[]>([
+    {
+      id: '1',
+      name: 'TSAM Voice Agent',
+      type: 'voice',
+      status: 'active',
+      health: 98,
+      activeConnections: 12,
+      tasksCompleted: 1247,
+      errorRate: 0.2,
+      lastActive: new Date(),
+      uptime: '99.8%'
+    },
+    {
+      id: '2',
+      name: 'Chat Assistant',
+      type: 'chat',
+      status: 'active',
+      health: 95,
+      activeConnections: 34,
+      tasksCompleted: 3456,
+      errorRate: 1.1,
+      lastActive: new Date(Date.now() - 1000 * 30),
+      uptime: '98.2%'
+    },
+    {
+      id: '3',
+      name: 'Lead Automation Agent',
+      type: 'automation',
+      status: 'idle',
+      health: 89,
+      activeConnections: 0,
+      tasksCompleted: 789,
+      errorRate: 2.3,
+      lastActive: new Date(Date.now() - 1000 * 60 * 5),
+      uptime: '96.7%'
+    },
+    {
+      id: '4',
+      name: 'Sales Assistant AI',
+      type: 'chat',
+      status: 'error',
+      health: 45,
+      activeConnections: 0,
+      tasksCompleted: 234,
+      errorRate: 15.4,
+      lastActive: new Date(Date.now() - 1000 * 60 * 15),
+      uptime: '82.1%'
+    }
+  ]);
 
   useEffect(() => {
-    if (!isDeveloper) return;
+    const interval = setInterval(() => {
+      setAgents(prev => prev.map(agent => ({
+        ...agent,
+        health: Math.max(0, Math.min(100, agent.health + (Math.random() - 0.5) * 2)),
+        activeConnections: agent.status === 'active' 
+          ? Math.max(0, agent.activeConnections + Math.floor((Math.random() - 0.5) * 3))
+          : 0,
+        lastActive: agent.status === 'active' ? new Date() : agent.lastActive
+      })));
+    }, 5000);
 
-    // Generate mock agent health data
-    const mockAgents: AgentMetric[] = [
-      {
-        id: '1',
-        name: 'Sales Assistant',
-        status: 'healthy',
-        successRate: 94.2,
-        responseTime: 1.2,
-        lastActive: new Date(Date.now() - 300000), // 5 minutes ago
-        totalRequests: 1247,
-        errorCount: 3,
-        type: 'sales'
-      },
-      {
-        id: '2',
-        name: 'Lead Qualifier',
-        status: 'warning',
-        successRate: 78.5,
-        responseTime: 2.1,
-        lastActive: new Date(Date.now() - 600000), // 10 minutes ago
-        totalRequests: 892,
-        errorCount: 15,
-        type: 'analysis'
-      },
-      {
-        id: '3',
-        name: 'Email Generator',
-        status: 'healthy',
-        successRate: 96.8,
-        responseTime: 0.8,
-        lastActive: new Date(Date.now() - 120000), // 2 minutes ago
-        totalRequests: 2341,
-        errorCount: 1,
-        type: 'automation'
-      },
-      {
-        id: '4',
-        name: 'Call Scheduler',
-        status: 'critical',
-        successRate: 45.2,
-        responseTime: 5.4,
-        lastActive: new Date(Date.now() - 3600000), // 1 hour ago
-        totalRequests: 456,
-        errorCount: 28,
-        type: 'automation'
-      },
-      {
-        id: '5',
-        name: 'Data Analyzer',
-        status: 'healthy',
-        successRate: 91.7,
-        responseTime: 1.8,
-        lastActive: new Date(Date.now() - 180000), // 3 minutes ago
-        totalRequests: 734,
-        errorCount: 5,
-        type: 'analysis'
-      }
-    ];
+    return () => clearInterval(interval);
+  }, []);
 
-    setAgents(mockAgents);
-    setLoading(false);
-  }, [isDeveloper]);
+  const refreshAgents = async () => {
+    await execute(async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setAgents(prev => prev.map(agent => ({
+        ...agent,
+        health: Math.min(100, agent.health + Math.random() * 10),
+        status: agent.status === 'error' ? 'active' : agent.status,
+        errorRate: Math.max(0, agent.errorRate - Math.random() * 2)
+      })));
+    }, 'sync');
+  };
 
-  if (!isDeveloper) {
-    return <div>Access Denied</div>;
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'healthy':
-        return <CheckCircle className="h-4 w-4 text-green-400" />;
-      case 'warning':
-        return <AlertTriangle className="h-4 w-4 text-yellow-400" />;
-      case 'critical':
-        return <AlertTriangle className="h-4 w-4 text-red-400" />;
-      case 'offline':
-        return <Clock className="h-4 w-4 text-gray-400" />;
-      default:
-        return <Activity className="h-4 w-4 text-gray-400" />;
-    }
+  const restartAgent = async (agentId: string) => {
+    await execute(async () => {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      setAgents(prev => prev.map(agent => 
+        agent.id === agentId 
+          ? { ...agent, status: 'active', health: 100, errorRate: 0, lastActive: new Date() }
+          : agent
+      ));
+    }, 'sync');
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy':
-        return 'border-green-500 bg-green-50/10';
-      case 'warning':
-        return 'border-yellow-500 bg-yellow-50/10';
-      case 'critical':
-        return 'border-red-500 bg-red-50/10';
-      case 'offline':
-        return 'border-gray-500 bg-gray-50/10';
-      default:
-        return 'border-gray-500 bg-gray-50/10';
+      case 'active': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'idle': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'error': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      case 'maintenance': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
   };
 
-  const getPriorityFromStatus = (status: string) => {
+  const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'critical':
-        return 'critical' as const;
-      case 'warning':
-        return 'high' as const;
-      default:
-        return 'medium' as const;
+      case 'active': return <CheckCircle className="h-4 w-4" />;
+      case 'idle': return <Activity className="h-4 w-4" />;
+      case 'error': return <AlertTriangle className="h-4 w-4" />;
+      case 'maintenance': return <RefreshCw className="h-4 w-4" />;
+      default: return <Activity className="h-4 w-4" />;
     }
   };
 
-  const healthyCount = agents.filter(a => a.status === 'healthy').length;
-  const warningCount = agents.filter(a => a.status === 'warning').length;
-  const criticalCount = agents.filter(a => a.status === 'critical').length;
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'voice': return <Phone className="h-5 w-5 text-blue-400" />;
+      case 'chat': return <MessageSquare className="h-5 w-5 text-green-400" />;
+      case 'automation': return <Zap className="h-5 w-5 text-purple-400" />;
+      default: return <Bot className="h-5 w-5 text-gray-400" />;
+    }
+  };
 
-  if (loading) {
-    return (
-      <TSAMLayout title="Agent Health">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-400"></div>
-        </div>
-      </TSAMLayout>
-    );
+  const getHealthColor = (health: number) => {
+    if (health >= 90) return 'text-green-400';
+    if (health >= 70) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  const overallHealth = Math.round(agents.reduce((sum, agent) => sum + agent.health, 0) / agents.length);
+  const activeAgents = agents.filter(agent => agent.status === 'active').length;
+  const errorAgents = agents.filter(agent => agent.status === 'error').length;
+
+  if (isLoading) {
+    return <LoadingManager type="sync" message="Refreshing agent health..." />;
   }
 
   return (
-    <TSAMLayout title="AI Agent Health Monitor">
-      <div className="space-y-6">
-        {/* Health Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <TSAMCard title="Total Agents" icon={<Brain className="h-4 w-4" />}>
-            <div className="text-2xl font-bold text-white">{agents.length}</div>
-          </TSAMCard>
-          
-          <TSAMCard title="Healthy" icon={<CheckCircle className="h-4 w-4" />} priority="low">
-            <div className="text-2xl font-bold text-green-400">{healthyCount}</div>
-          </TSAMCard>
-          
-          <TSAMCard title="Warnings" icon={<AlertTriangle className="h-4 w-4" />} priority="medium">
-            <div className="text-2xl font-bold text-yellow-400">{warningCount}</div>
-          </TSAMCard>
-          
-          <TSAMCard title="Critical" icon={<AlertTriangle className="h-4 w-4" />} priority="critical">
-            <div className="text-2xl font-bold text-red-400">{criticalCount}</div>
-          </TSAMCard>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Agent Health Monitor</h1>
+          <p className="text-gray-400 mt-2">Monitor AI agent performance and system health</p>
         </div>
-
-        {/* Agent Details */}
-        <div className="space-y-4">
-          {agents.map((agent) => (
-            <div 
-              key={agent.id}
-              className={`p-6 rounded-lg border-l-4 ${getStatusColor(agent.status)} backdrop-blur-sm`}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-3">
-                  {getStatusIcon(agent.status)}
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">{agent.name}</h3>
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
-                      <span className="capitalize">{agent.type} Agent</span>
-                      <span>Last active: {agent.lastActive.toLocaleTimeString()}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" className="border-gray-600 text-gray-300">
-                    <Settings className="h-3 w-3 mr-1" />
-                    Configure
-                  </Button>
-                  <Button size="sm" variant="outline" className="border-gray-600 text-gray-300">
-                    <RefreshCw className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div>
-                  <p className="text-sm text-gray-400 mb-1">Success Rate</p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-semibold text-white">{agent.successRate}%</p>
-                    {agent.successRate >= 90 ? (
-                      <TrendingUp className="h-4 w-4 text-green-400" />
-                    ) : (
-                      <TrendingDown className="h-4 w-4 text-red-400" />
-                    )}
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-400 mb-1">Response Time</p>
-                  <p className="text-lg font-semibold text-white">{agent.responseTime}s</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-400 mb-1">Total Requests</p>
-                  <p className="text-lg font-semibold text-white">{agent.totalRequests.toLocaleString()}</p>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-gray-400 mb-1">Error Count</p>
-                  <p className="text-lg font-semibold text-white">{agent.errorCount}</p>
-                </div>
-              </div>
-
-              {/* Performance Bar */}
-              <div className="mt-4">
-                <div className="flex justify-between text-sm text-gray-400 mb-1">
-                  <span>Performance</span>
-                  <span>{agent.successRate}%</span>
-                </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full ${
-                      agent.successRate >= 90 ? 'bg-green-400' :
-                      agent.successRate >= 70 ? 'bg-yellow-400' : 'bg-red-400'
-                    }`}
-                    style={{ width: `${agent.successRate}%` }}
-                  ></div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <Button 
+          onClick={refreshAgents}
+          disabled={isLoading}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh All
+        </Button>
       </div>
-    </TSAMLayout>
+
+      {/* Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Overall Health</p>
+                <p className={`text-2xl font-bold ${getHealthColor(overallHealth)}`}>
+                  {overallHealth}%
+                </p>
+              </div>
+              <Heart className="h-8 w-8 text-red-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Active Agents</p>
+                <p className="text-2xl font-bold text-green-400">{activeAgents}</p>
+              </div>
+              <Bot className="h-8 w-8 text-green-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Error Agents</p>
+                <p className="text-2xl font-bold text-red-400">{errorAgents}</p>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-red-400" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-gray-800 border-gray-700">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-400">Total Connections</p>
+                <p className="text-2xl font-bold text-blue-400">
+                  {agents.reduce((sum, agent) => sum + agent.activeConnections, 0)}
+                </p>
+              </div>
+              <Users className="h-8 w-8 text-blue-400" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Agent Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {agents.map((agent) => (
+          <Card key={agent.id} className="bg-gray-800 border-gray-700">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {getTypeIcon(agent.type)}
+                  <div>
+                    <CardTitle className="text-white">{agent.name}</CardTitle>
+                    <p className="text-gray-400 text-sm capitalize">{agent.type} Agent</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className={getStatusColor(agent.status)}>
+                    {getStatusIcon(agent.status)}
+                    {agent.status.toUpperCase()}
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Health Bar */}
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-gray-400">Health</span>
+                  <span className={`text-sm font-bold ${getHealthColor(agent.health)}`}>
+                    {agent.health}%
+                  </span>
+                </div>
+                <Progress 
+                  value={agent.health} 
+                  className="h-2"
+                />
+              </div>
+
+              {/* Agent Metrics */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                  <p className="text-lg font-bold text-white">{agent.activeConnections}</p>
+                  <p className="text-xs text-gray-400">Active Connections</p>
+                </div>
+                <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                  <p className="text-lg font-bold text-white">{agent.tasksCompleted}</p>
+                  <p className="text-xs text-gray-400">Tasks Completed</p>
+                </div>
+                <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                  <p className={`text-lg font-bold ${agent.errorRate > 5 ? 'text-red-400' : 'text-green-400'}`}>
+                    {agent.errorRate.toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-gray-400">Error Rate</p>
+                </div>
+                <div className="text-center p-3 bg-gray-700/50 rounded-lg">
+                  <p className="text-lg font-bold text-white">{agent.uptime}</p>
+                  <p className="text-xs text-gray-400">Uptime</p>
+                </div>
+              </div>
+
+              {/* Last Active */}
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Last Active:</span>
+                <span className="text-white">{agent.lastActive.toLocaleTimeString()}</span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2">
+                {agent.status === 'error' && (
+                  <Button 
+                    onClick={() => restartAgent(agent.id)}
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    size="sm"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Restart Agent
+                  </Button>
+                )}
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                >
+                  View Logs
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 };
 
-export default AgentHealthPage;
+export default AgentHealth;

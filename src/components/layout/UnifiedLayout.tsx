@@ -53,16 +53,23 @@ const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({ children }) => {
 
   const getMainClasses = () => {
     if (isDeveloper) {
-      return 'flex-1 min-w-0';
+      return 'flex-1 min-w-0 overflow-hidden';
     }
     return 'pt-16'; // Account for fixed top navigation
+  };
+
+  const getContentClasses = () => {
+    if (isDeveloper) {
+      return 'h-full w-full p-6 overflow-y-auto';
+    }
+    return 'max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6';
   };
 
   return (
     <div className={cn(getLayoutClasses(), getThemeClasses())}>
       {renderNavigation()}
       <main className={cn(getMainClasses())}>
-        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={cn(getContentClasses())}>
           {children}
         </div>
       </main>

@@ -1,376 +1,411 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Brain, 
-  Activity, 
-  Database,
-  Zap,
+  Zap, 
+  Database, 
+  Network, 
+  RefreshCw,
+  Activity,
+  MessageSquare,
   TrendingUp,
-  AlertTriangle,
-  CheckCircle,
-  Eye,
-  Settings,
+  Users,
   Clock,
-  Network,
-  Shield,
-  BarChart3
+  CheckCircle,
+  AlertTriangle
 } from 'lucide-react';
+import LoadingManager from '@/components/layout/LoadingManager';
+import { useAsyncOperation } from '@/hooks/useAsyncOperation';
+
+interface TSAMMetrics {
+  systemHealth: number;
+  processingLoad: number;
+  memoryUsage: number;
+  networkLatency: number;
+  activeConnections: number;
+  queriesProcessed: number;
+  learningProgress: number;
+  knowledgeBase: number;
+}
+
+interface BrainModule {
+  name: string;
+  status: 'active' | 'idle' | 'error';
+  performance: number;
+  tasks: number;
+  description: string;
+}
 
 const TSAMBrainDashboard: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [isDeveloper] = useState(true); // Simplified for demo
-  const [logs, setLogs] = useState([
-    { id: 1, type: 'AI Model Switch', created_at: new Date().toISOString(), resolved: true, priority: 'high' },
-    { id: 2, type: 'Memory Optimization', created_at: new Date().toISOString(), resolved: false, priority: 'medium' },
-    { id: 3, type: 'Feature Flag Update', created_at: new Date().toISOString(), resolved: true, priority: 'low' }
-  ]);
+  const { execute, isLoading } = useAsyncOperation();
+  const [metrics, setMetrics] = useState<TSAMMetrics>({
+    systemHealth: 96,
+    processingLoad: 73,
+    memoryUsage: 58,
+    networkLatency: 12,
+    activeConnections: 47,
+    queriesProcessed: 15234,
+    learningProgress: 84,
+    knowledgeBase: 91
+  });
 
-  const [aiModels] = useState([
-    { name: 'Claude 4 Sonnet', status: 'active', usage: 85, latency: 120 },
-    { name: 'GPT-4.1', status: 'active', usage: 72, latency: 95 },
-    { name: 'Gemini Pro', status: 'standby', usage: 15, latency: 180 }
-  ]);
-
-  const [learningInsights] = useState([
+  const [brainModules, setBrainModules] = useState<BrainModule[]>([
     {
-      type: 'pattern_detected',
-      message: 'Sales reps perform 34% better during 10-11 AM calls',
-      confidence: 92,
-      impact: 'high',
-      timestamp: new Date()
+      name: 'Natural Language Processing',
+      status: 'active',
+      performance: 94,
+      tasks: 156,
+      description: 'Processing and understanding human language'
     },
     {
-      type: 'optimization_found',
-      message: 'Manager dashboard loads 2.3s faster with lazy loading',
-      confidence: 88,
-      impact: 'medium',
-      timestamp: new Date()
+      name: 'Sales Intelligence Engine',
+      status: 'active',
+      performance: 89,
+      tasks: 89,
+      description: 'Analyzing sales patterns and opportunities'
     },
     {
-      type: 'anomaly_detected',
-      message: 'Unusual spike in API errors from CRM integration',
-      confidence: 95,
-      impact: 'critical',
-      timestamp: new Date()
+      name: 'Conversation Manager',
+      status: 'active',
+      performance: 97,
+      tasks: 234,
+      description: 'Managing multi-turn conversations'
+    },
+    {
+      name: 'Knowledge Retrieval',
+      status: 'idle',
+      performance: 76,
+      tasks: 45,
+      description: 'Accessing and retrieving relevant information'
+    },
+    {
+      name: 'Predictive Analytics',
+      status: 'active',
+      performance: 82,
+      tasks: 67,
+      description: 'Predicting outcomes and trends'
+    },
+    {
+      name: 'Voice Recognition',
+      status: 'error',
+      performance: 34,
+      tasks: 12,
+      description: 'Processing voice inputs and commands'
     }
   ]);
 
-  const [metrics] = useState({
-    responseTime: 145,
-    systemHealth: 'healthy'
-  });
+  const [recentActivity, setRecentActivity] = useState([
+    { id: 1, type: 'query', message: 'Processed sales qualification query', timestamp: new Date(Date.now() - 1000 * 45) },
+    { id: 2, type: 'learning', message: 'Updated conversation patterns database', timestamp: new Date(Date.now() - 1000 * 120) },
+    { id: 3, type: 'analysis', message: 'Completed lead scoring analysis', timestamp: new Date(Date.now() - 1000 * 180) },
+    { id: 4, type: 'optimization', message: 'Optimized response generation algorithms', timestamp: new Date(Date.now() - 1000 * 240) }
+  ]);
 
   useEffect(() => {
-    // Simulate data loading without subscriptions
-    const timer = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      setMetrics(prev => ({
+        ...prev,
+        processingLoad: Math.max(30, Math.min(100, prev.processingLoad + (Math.random() - 0.5) * 10)),
+        activeConnections: Math.max(20, Math.min(80, prev.activeConnections + Math.floor((Math.random() - 0.5) * 6))),
+        networkLatency: Math.max(5, Math.min(50, prev.networkLatency + (Math.random() - 0.5) * 8)),
+        queriesProcessed: prev.queriesProcessed + Math.floor(Math.random() * 5)
+      }));
+
+      setBrainModules(prev => prev.map(module => ({
+        ...module,
+        performance: module.status === 'active' 
+          ? Math.max(70, Math.min(100, module.performance + (Math.random() - 0.5) * 3))
+          : module.performance,
+        tasks: module.status === 'active'
+          ? Math.max(0, module.tasks + Math.floor((Math.random() - 0.5) * 4))
+          : module.tasks
+      })));
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const checkSystemHealth = () => {
-    console.log('System health check initiated');
+  const refreshBrainData = async () => {
+    await execute(async () => {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setMetrics(prev => ({
+        ...prev,
+        systemHealth: Math.max(90, Math.min(100, prev.systemHealth + Math.random() * 5)),
+        learningProgress: Math.max(80, Math.min(100, prev.learningProgress + Math.random() * 3)),
+        knowledgeBase: Math.max(85, Math.min(100, prev.knowledgeBase + Math.random() * 2))
+      }));
+
+      // Add new activity
+      const newActivity = {
+        id: Date.now(),
+        type: 'optimization',
+        message: 'Brain module performance optimized',
+        timestamp: new Date()
+      };
+      setRecentActivity(prev => [newActivity, ...prev.slice(0, 9)]);
+    }, 'ai');
   };
 
-  if (!isDeveloper) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Developer Access Required</h3>
-          <p className="text-gray-500">TSAM Brain dashboard is only available to developers.</p>
-        </div>
-      </div>
-    );
+  const restartModule = async (moduleName: string) => {
+    await execute(async () => {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      setBrainModules(prev => prev.map(module =>
+        module.name === moduleName
+          ? { ...module, status: 'active', performance: 95, tasks: 0 }
+          : module
+      ));
+    }, 'sync');
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-green-500/20 text-green-400 border-green-500/30';
+      case 'idle': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
+      case 'error': return 'bg-red-500/20 text-red-400 border-red-500/30';
+      default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active': return <CheckCircle className="h-4 w-4" />;
+      case 'idle': return <Clock className="h-4 w-4" />;
+      case 'error': return <AlertTriangle className="h-4 w-4" />;
+      default: return <Activity className="h-4 w-4" />;
+    }
+  };
+
+  const getPerformanceColor = (performance: number) => {
+    if (performance >= 85) return 'text-green-400';
+    if (performance >= 70) return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'query': return <MessageSquare className="h-4 w-4 text-blue-400" />;
+      case 'learning': return <Brain className="h-4 w-4 text-green-400" />;
+      case 'analysis': return <Activity className="h-4 w-4 text-yellow-400" />;
+      case 'optimization': return <Zap className="h-4 w-4 text-purple-400" />;
+      default: return <Activity className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  if (isLoading) {
+    return <LoadingManager type="ai" message="Connecting to TSAM Brain..." />;
   }
 
   return (
-    <div className="dashboard-content space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="responsive-text-2xl font-bold text-gray-900">TSAM Brain Control Tower</h1>
-          <p className="text-gray-600 mt-1 responsive-text-base">Central AI intelligence and system optimization command center</p>
+          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+            <Brain className="h-8 w-8 text-purple-400 animate-pulse" />
+            TSAM Brain Control Center
+          </h1>
+          <p className="text-gray-400 mt-2">Advanced AI system monitoring and neural network oversight</p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+        <div className="flex items-center gap-3">
+          <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30 animate-pulse">
             <Brain className="h-3 w-3 mr-1" />
-            TSAM Brain Online
+            NEURAL ACTIVE
           </Badge>
-          <Button onClick={checkSystemHealth} size="sm">
-            <Activity className="h-4 w-4 mr-2" />
-            Health Check
+          <Button 
+            onClick={refreshBrainData}
+            disabled={isLoading}
+            className="bg-purple-600 hover:bg-purple-700"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Sync Brain
           </Button>
         </div>
       </div>
 
-      {/* System Health Overview */}
-      <div className="card-grid card-grid-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Health</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">Healthy</div>
-            <p className="text-xs text-muted-foreground">All systems monitored</p>
+      {/* Core System Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="bg-gray-800 border-gray-700 border-l-4 border-l-green-400">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <Activity className="h-6 w-6 text-green-400" />
+              <span className={`text-lg font-bold ${getPerformanceColor(metrics.systemHealth)}`}>
+                {metrics.systemHealth}%
+              </span>
+            </div>
+            <p className="text-sm text-gray-400">System Health</p>
+            <Progress value={metrics.systemHealth} className="mt-2 h-2" />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">AI Models Active</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{aiModels.filter(m => m.status === 'active').length}</div>
-            <p className="text-xs text-green-600">+1 standby model</p>
+        <Card className="bg-gray-800 border-gray-700 border-l-4 border-l-blue-400">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <Zap className="h-6 w-6 text-blue-400" />
+              <span className={`text-lg font-bold ${getPerformanceColor(metrics.processingLoad)}`}>
+                {metrics.processingLoad}%
+              </span>
+            </div>
+            <p className="text-sm text-gray-400">Processing Load</p>
+            <Progress value={metrics.processingLoad} className="mt-2 h-2" />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Learning Events</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{logs.length}</div>
-            <p className="text-xs text-blue-600">Last 24 hours</p>
+        <Card className="bg-gray-800 border-gray-700 border-l-4 border-l-yellow-400">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <Database className="h-6 w-6 text-yellow-400" />
+              <span className={`text-lg font-bold ${getPerformanceColor(metrics.memoryUsage)}`}>
+                {metrics.memoryUsage}%
+              </span>
+            </div>
+            <p className="text-sm text-gray-400">Memory Usage</p>
+            <Progress value={metrics.memoryUsage} className="mt-2 h-2" />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Response Time</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.responseTime}ms</div>
-            <p className="text-xs text-purple-600">Average latency</p>
+        <Card className="bg-gray-800 border-gray-700 border-l-4 border-l-purple-400">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <Network className="h-6 w-6 text-purple-400" />
+              <span className="text-lg font-bold text-purple-400">{metrics.networkLatency}ms</span>
+            </div>
+            <p className="text-sm text-gray-400">Network Latency</p>
+            <p className="text-xs text-purple-400 mt-1">Neural pathways</p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="intelligence" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="intelligence">AI Intelligence</TabsTrigger>
-          <TabsTrigger value="models">Model Status</TabsTrigger>
-          <TabsTrigger value="learning">Learning Logs</TabsTrigger>
-          <TabsTrigger value="control">Control Panel</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="intelligence" className="space-y-6">
-          {/* AI Insights */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-purple-600" />
-                AI Learning Insights
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {learningInsights.map((insight, index) => (
-                <div key={index} className={`p-4 border-l-4 rounded-lg ${
-                  insight.impact === 'critical' ? 'bg-red-50 border-red-400' :
-                  insight.impact === 'high' ? 'bg-orange-50 border-orange-400' :
-                  'bg-blue-50 border-blue-400'
-                }`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h4 className="font-medium text-sm capitalize">{insight.type.replace('_', ' ')}</h4>
-                      <p className="text-sm text-gray-700 mt-1">{insight.message}</p>
-                      <p className="text-xs text-gray-500 mt-2">{insight.timestamp.toLocaleTimeString()}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className={`${
-                        insight.impact === 'critical' ? 'text-red-700 border-red-200' :
-                        insight.impact === 'high' ? 'text-orange-700 border-orange-200' :
-                        'text-blue-700 border-blue-200'
-                      }`}>
-                        {insight.impact}
-                      </Badge>
-                      <span className="text-xs text-gray-500">{insight.confidence}%</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Impact Mapping */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Network className="h-5 w-5 text-blue-600" />
-                System Impact Mapping
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="card-grid card-grid-3 gap-4">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span className="font-medium text-green-900">Sales OS</span>
-                  </div>
-                  <p className="text-sm text-green-700">94% AI assistance adoption</p>
-                  <p className="text-xs text-green-600 mt-1">Performance: Excellent</p>
-                </div>
-                
-                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                    <span className="font-medium text-yellow-900">Manager OS</span>
-                  </div>
-                  <p className="text-sm text-yellow-700">67% feature utilization</p>
-                  <p className="text-xs text-yellow-600 mt-1">Performance: Good</p>
-                </div>
-                
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Database className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-blue-900">Developer OS</span>
-                  </div>
-                  <p className="text-sm text-blue-700">100% monitoring coverage</p>
-                  <p className="text-xs text-blue-600 mt-1">Performance: Optimal</p>
-                </div>
+      {/* Performance Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-green-400" />
+              Brain Performance Metrics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                <Users className="h-6 w-6 text-blue-400 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-white">{metrics.activeConnections}</p>
+                <p className="text-xs text-gray-400">Active Connections</p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                <MessageSquare className="h-6 w-6 text-green-400 mx-auto mb-2" />
+                <p className="text-2xl font-bold text-white">{metrics.queriesProcessed.toLocaleString()}</p>
+                <p className="text-xs text-gray-400">Queries Processed</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-400">Learning Progress</span>
+                  <span className={`font-bold ${getPerformanceColor(metrics.learningProgress)}`}>
+                    {metrics.learningProgress}%
+                  </span>
+                </div>
+                <Progress value={metrics.learningProgress} className="h-2" />
+              </div>
+              
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-gray-400">Knowledge Base</span>
+                  <span className={`font-bold ${getPerformanceColor(metrics.knowledgeBase)}`}>
+                    {metrics.knowledgeBase}%
+                  </span>
+                </div>
+                <Progress value={metrics.knowledgeBase} className="h-2" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <TabsContent value="models" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-purple-600" />
-                AI Model Status & Performance
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {aiModels.map((model, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-3 h-3 rounded-full ${
-                      model.status === 'active' ? 'bg-green-500' :
-                      model.status === 'standby' ? 'bg-yellow-500' : 'bg-red-500'
-                    }`}></div>
-                    <div>
-                      <h4 className="font-medium">{model.name}</h4>
-                      <p className="text-sm text-gray-600">Latency: {model.latency}ms</p>
+        <Card className="bg-gray-800 border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Clock className="h-5 w-5 text-yellow-400" />
+              Recent Brain Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentActivity.map((activity) => (
+                <div key={activity.id} className="p-3 bg-gray-700/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {getActivityIcon(activity.type)}
+                    <div className="flex-1">
+                      <p className="text-white text-sm">{activity.message}</p>
+                      <p className="text-gray-400 text-xs">
+                        {activity.timestamp.toLocaleTimeString()} • {activity.type}
+                      </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{model.usage}% Usage</p>
-                      <Progress value={model.usage} className="w-24 h-2" />
-                    </div>
-                    <Badge variant={model.status === 'active' ? 'default' : 'secondary'}>
-                      {model.status}
+                    <Badge variant="outline" className="text-xs capitalize">
+                      {activity.type}
                     </Badge>
                   </div>
                 </div>
               ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="learning" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-green-600" />
-                Learning Activity Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {logs.slice(0, 10).map((log, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <Clock className="h-4 w-4 text-gray-500" />
-                        <div>
-                          <p className="font-medium text-sm">{log.type}</p>
-                          <p className="text-xs text-gray-600">{new Date(log.created_at).toLocaleString()}</p>
-                        </div>
-                      </div>
-                      <Badge variant={log.resolved ? 'default' : 'secondary'}>
-                        {log.priority}
-                      </Badge>
+      {/* Brain Modules */}
+      <Card className="bg-gray-800 border-gray-700">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Brain className="h-5 w-5 text-purple-400" />
+            Neural Module Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {brainModules.map((module, index) => (
+              <Card key={index} className="bg-gray-700 border-gray-600">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-white text-sm">{module.name}</h4>
+                    <Badge className={getStatusColor(module.status)}>
+                      {getStatusIcon(module.status)}
+                      {module.status.toUpperCase()}
+                    </Badge>
+                  </div>
+                  
+                  <p className="text-gray-400 text-xs mb-3">{module.description}</p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-400">Performance</span>
+                      <span className={`text-xs font-bold ${getPerformanceColor(module.performance)}`}>
+                        {module.performance}%
+                      </span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="control" className="space-y-6">
-          <div className="card-grid card-grid-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-blue-600" />
-                  Learning Controls
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">User Session Tracking</h4>
-                    <p className="text-sm text-gray-600">Monitor user behavior patterns</p>
+                    <Progress value={module.performance} className="h-1" />
+                    
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-gray-400">Tasks: {module.tasks}</span>
+                      {module.status === 'error' && (
+                        <Button
+                          size="sm"
+                          onClick={() => restartModule(module.name)}
+                          className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700"
+                        >
+                          Restart
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <Badge variant="default">Enabled</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">API Log Analysis</h4>
-                    <p className="text-sm text-gray-600">Analyze API performance and errors</p>
-                  </div>
-                  <Badge variant="default">Enabled</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium">Real-time Optimization</h4>
-                    <p className="text-sm text-gray-600">Auto-suggest system improvements</p>
-                  </div>
-                  <Badge variant="outline">Disabled</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="h-5 w-5 text-purple-600" />
-                  Emergency Controls
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button variant="outline" className="w-full">
-                  <Database className="h-4 w-4 mr-2" />
-                  Freeze & Snapshot Current State
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  View Change Timeline
-                </Button>
-                <Button variant="destructive" className="w-full">
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Emergency AI Shutdown
-                </Button>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
