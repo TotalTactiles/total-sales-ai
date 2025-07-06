@@ -41,10 +41,23 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
     logout();
   };
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    if (isMobile) {
-      setMobileMenuOpen(false);
+  const handleNavigation = (path: string, event?: React.MouseEvent) => {
+    if (event) {
+      event.preventDefault();
+    }
+    
+    try {
+      // Ensure clean navigation without race conditions
+      setTimeout(() => {
+        navigate(path);
+        if (isMobile) {
+          setMobileMenuOpen(false);
+        }
+      }, 0);
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Fallback: force navigation
+      window.location.href = path;
     }
   };
 
@@ -77,14 +90,18 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
         <SidebarGroupContent>
           <SidebarMenu>
             {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
+              const isActive = location.pathname === item.path || 
+                              (item.path === '/developer/dashboard' && location.pathname === '/developer/');
+              
               return (
                 <SidebarMenuItem key={item.path}>
                   <SidebarMenuButton 
-                    onClick={() => handleNavigation(item.path)} 
+                    onClick={(e) => handleNavigation(item.path, e)} 
                     isActive={isActive}
                     tooltip={!open && !isMobile ? item.label : undefined}
-                    className={`text-white hover:bg-gray-800 ${isActive ? 'bg-gray-800 text-green-400' : ''}`}
+                    className={`text-white hover:bg-gray-800 transition-colors cursor-pointer ${
+                      isActive ? 'bg-gray-800 text-green-400' : ''
+                    }`}
                   >
                     {getIcon(item.icon)}
                     <span>{item.label}</span>

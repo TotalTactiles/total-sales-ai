@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,13 @@ import { useAsyncOperation } from '@/hooks/useAsyncOperation';
 import { useTSAM } from '@/hooks/useTSAM';
 import { useDemoMode } from '@/hooks/useDemoMode';
 
+// Loading fallback component
+const DashboardLoadingFallback = () => (
+  <div className="w-full h-screen flex items-center justify-center bg-gray-900">
+    <LoadingManager type="default" message="Loading TSAM Developer Control Panel..." />
+  </div>
+);
+
 const DeveloperDashboard: React.FC = () => {
   const { isDeveloper, logs, brainData, featureFlags, loading } = useTSAM();
   const { isDemo, getDemoData } = useDemoMode();
@@ -42,27 +49,47 @@ const DeveloperDashboard: React.FC = () => {
     lastUpdated: new Date().toLocaleTimeString()
   });
 
-  useEffect(() => {
-    // Simulate real-time stats update
-    const interval = setInterval(() => {
-      setSystemStats(prev => ({
-        ...prev,
-        activeUsers: Math.floor(Math.random() * 50) + 20,
-        responseTime: `${Math.floor(Math.random() * 100) + 100}ms`,
-        lastUpdated: new Date().toLocaleTimeString()
-      }));
-    }, 10000);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-    return () => clearInterval(interval);
+  useEffect(() => {
+    // Ensure component is properly initialized
+    const initializeDashboard = () => {
+      try {
+        setIsInitialized(true);
+        
+        // Simulate real-time stats update
+        const interval = setInterval(() => {
+          setSystemStats(prev => ({
+            ...prev,
+            activeUsers: Math.floor(Math.random() * 50) + 20,
+            responseTime: `${Math.floor(Math.random() * 100) + 100}ms`,
+            lastUpdated: new Date().toLocaleTimeString()
+          }));
+        }, 10000);
+
+        return () => clearInterval(interval);
+      } catch (error) {
+        console.error('Dashboard initialization error:', error);
+        setIsInitialized(true); // Still set to true to show error state
+      }
+    };
+
+    const cleanup = initializeDashboard();
+    return cleanup;
   }, []);
 
   // Use demo data if in demo mode
   const displayLogs = isDemo ? getDemoData('tsam_logs') || [] : logs;
   const displayFeatureFlags = isDemo ? getDemoData('feature_flags') || [] : featureFlags;
 
+  // Show loading state until fully initialized
+  if (!isInitialized || loading) {
+    return <DashboardLoadingFallback />;
+  }
+
   if (!isDeveloper && !isDemo) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="w-full h-full flex items-center justify-center bg-gray-900">
         <div className="text-center">
           <AlertTriangle className="h-16 w-16 text-red-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-red-400">Access Denied</h2>
@@ -193,12 +220,8 @@ const DeveloperDashboard: React.FC = () => {
     }, 'sync');
   };
 
-  if (loading) {
-    return <LoadingManager type="default" message="Loading TSAM Developer OS..." />;
-  }
-
   return (
-    <div className="space-y-8">
+    <div className="w-full space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -404,4 +427,11 @@ const DeveloperDashboard: React.FC = () => {
   );
 };
 
-export default DeveloperDashboard;
+// Wrap the component with Suspense
+const DeveloperDashboardWithSuspense: React.FC = () => (
+  <Suspense fallback={<DashboardLoadingFallback />}>
+    <DeveloperDashboard />
+  </Suspense>
+);
+
+export default DeveloperDashboardWithSuspense;

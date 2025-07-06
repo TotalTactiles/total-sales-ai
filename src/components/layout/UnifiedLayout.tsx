@@ -24,13 +24,13 @@ const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({ children }) => {
   const getThemeClasses = () => {
     switch (osTheme) {
       case 'dark':
-        return 'bg-gray-900 text-white';
+        return 'bg-gray-900 text-white min-h-screen';
       case 'manager':
-        return 'bg-gradient-to-br from-purple-50 to-blue-50';
+        return 'bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen';
       case 'sales':
-        return 'bg-gradient-to-br from-blue-50 to-cyan-50';
+        return 'bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen';
       default:
-        return 'bg-white';
+        return 'bg-white min-h-screen';
     }
   };
 
@@ -46,23 +46,23 @@ const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({ children }) => {
 
   const getLayoutClasses = () => {
     if (isDeveloper) {
-      return 'flex min-h-screen';
+      return 'flex w-full min-h-screen';
     }
-    return 'min-h-screen';
+    return 'w-full min-h-screen';
   };
 
   const getMainClasses = () => {
     if (isDeveloper) {
-      return 'flex-1 min-w-0 overflow-hidden';
+      return 'flex-1 w-full min-w-0 overflow-hidden';
     }
-    return 'pt-16'; // Account for fixed top navigation
+    return 'w-full pt-16'; // Account for fixed top navigation
   };
 
   const getContentClasses = () => {
     if (isDeveloper) {
-      return 'h-full w-full p-6 overflow-y-auto';
+      return 'w-full h-full p-6 overflow-y-auto';
     }
-    return 'max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6';
+    return 'w-full px-4 sm:px-6 lg:px-8 py-6';
   };
 
   return (
