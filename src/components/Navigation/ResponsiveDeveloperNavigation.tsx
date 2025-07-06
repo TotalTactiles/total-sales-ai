@@ -42,7 +42,7 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
     logout();
   };
 
-  const handleNavigation = async (path: string, event?: React.MouseEvent) => {
+  const handleNavigation = (path: string, event?: React.MouseEvent) => {
     if (event) {
       event.preventDefault();
       event.stopPropagation();
@@ -51,6 +51,7 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
     // Prevent multiple rapid clicks
     if (isNavigating) return;
     
+    console.log('Navigating to:', path, 'from:', location.pathname);
     setIsNavigating(true);
     
     try {
@@ -59,8 +60,23 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
         setMobileMenuOpen(false);
       }
       
-      // Force immediate navigation without delays
-      navigate(path, { replace: false });
+      // Special handling for dashboard navigation
+      if (path === '/developer/dashboard') {
+        // Clear any existing state that might interfere
+        console.log('Dashboard navigation - clearing state');
+        
+        // Force navigation with replace to ensure clean state
+        navigate('/developer/dashboard', { 
+          replace: true,
+          state: { fromNavigation: true, timestamp: Date.now() }
+        });
+      } else {
+        // Regular navigation for other routes
+        navigate(path, { 
+          replace: false,
+          state: { fromNavigation: true, timestamp: Date.now() }
+        });
+      }
       
     } catch (error) {
       console.error('Navigation error:', error);
@@ -70,7 +86,7 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
       // Reset navigation state after a short delay
       setTimeout(() => {
         setIsNavigating(false);
-      }, 500);
+      }, 1000);
     }
   };
 

@@ -20,7 +20,7 @@ import {
   Wifi,
   RefreshCw
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import DemoBanner from '@/components/DemoBanner';
 import LoadingManager from '@/components/layout/LoadingManager';
 import { useAsyncOperation } from '@/hooks/useAsyncOperation';
@@ -53,6 +53,7 @@ const DeveloperDashboard: React.FC = () => {
   const { isDeveloper, logs, brainData, featureFlags, loading, error } = useTSAM();
   const { isDemo, getDemoData } = useDemoMode();
   const { execute, isLoading, progress } = useAsyncOperation();
+  const location = useLocation();
   
   const [systemStats, setSystemStats] = useState({
     errorCount: 0,
@@ -65,17 +66,30 @@ const DeveloperDashboard: React.FC = () => {
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [dashboardError, setDashboardError] = useState<Error | null>(null);
+  const [forceRerender, setForceRerender] = useState(0);
+
+  // Handle navigation state from router
+  useEffect(() => {
+    const navigationState = location.state as any;
+    if (navigationState?.fromNavigation) {
+      console.log('Dashboard loaded from navigation:', navigationState);
+      // Force a rerender to ensure fresh state
+      setForceRerender(prev => prev + 1);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     // Ensure component is properly initialized
     const initializeDashboard = async () => {
       try {
+        console.log('Initializing dashboard...');
         setDashboardError(null);
         setIsInitialized(false);
         
         // Small delay to ensure proper render
         await new Promise(resolve => setTimeout(resolve, 100));
         
+        console.log('Dashboard initialization complete');
         setIsInitialized(true);
         
         // Simulate real-time stats update
@@ -102,7 +116,7 @@ const DeveloperDashboard: React.FC = () => {
         cleanup.then(cleanupFn => cleanupFn?.());
       }
     };
-  }, []);
+  }, [forceRerender]); // Include forceRerender to trigger reinit on navigation
 
   // Use demo data if in demo mode
   const displayLogs = isDemo ? getDemoData('tsam_logs') || [] : logs;
@@ -110,12 +124,9 @@ const DeveloperDashboard: React.FC = () => {
 
   // Handle retry for dashboard errors
   const retryDashboard = () => {
+    console.log('Retrying dashboard initialization...');
     setDashboardError(null);
-    setIsInitialized(false);
-    // Re-trigger initialization
-    setTimeout(() => {
-      setIsInitialized(true);
-    }, 100);
+    setForceRerender(prev => prev + 1);
   };
 
   // Show error state if there's a dashboard error
