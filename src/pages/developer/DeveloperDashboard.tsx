@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,13 +29,28 @@ import { useDemoMode } from '@/hooks/useDemoMode';
 
 // Loading fallback component
 const DashboardLoadingFallback = () => (
-  <div className="w-full h-screen flex items-center justify-center bg-gray-900">
+  <div className="w-full min-h-[60vh] flex items-center justify-center bg-transparent">
     <LoadingManager type="default" message="Loading TSAM Developer Control Panel..." />
   </div>
 );
 
+// Error fallback component
+const DashboardErrorFallback = ({ error, retry }: { error: Error; retry: () => void }) => (
+  <div className="w-full min-h-[60vh] flex items-center justify-center bg-transparent">
+    <div className="text-center max-w-md mx-auto p-6">
+      <AlertTriangle className="h-16 w-16 text-red-400 mx-auto mb-4" />
+      <h2 className="text-xl font-semibold text-red-400 mb-2">Dashboard Error</h2>
+      <p className="text-gray-400 mb-4">{error.message || 'Failed to load dashboard'}</p>
+      <Button onClick={retry} variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800">
+        <RefreshCw className="h-4 w-4 mr-2" />
+        Retry Loading
+      </Button>
+    </div>
+  </div>
+);
+
 const DeveloperDashboard: React.FC = () => {
-  const { isDeveloper, logs, brainData, featureFlags, loading } = useTSAM();
+  const { isDeveloper, logs, brainData, featureFlags, loading, error } = useTSAM();
   const { isDemo, getDemoData } = useDemoMode();
   const { execute, isLoading, progress } = useAsyncOperation();
   
@@ -50,11 +64,18 @@ const DeveloperDashboard: React.FC = () => {
   });
 
   const [isInitialized, setIsInitialized] = useState(false);
+  const [dashboardError, setDashboardError] = useState<Error | null>(null);
 
   useEffect(() => {
     // Ensure component is properly initialized
-    const initializeDashboard = () => {
+    const initializeDashboard = async () => {
       try {
+        setDashboardError(null);
+        setIsInitialized(false);
+        
+        // Small delay to ensure proper render
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         setIsInitialized(true);
         
         // Simulate real-time stats update
@@ -70,17 +91,37 @@ const DeveloperDashboard: React.FC = () => {
         return () => clearInterval(interval);
       } catch (error) {
         console.error('Dashboard initialization error:', error);
+        setDashboardError(error as Error);
         setIsInitialized(true); // Still set to true to show error state
       }
     };
 
     const cleanup = initializeDashboard();
-    return cleanup;
+    return () => {
+      if (cleanup instanceof Promise) {
+        cleanup.then(cleanupFn => cleanupFn?.());
+      }
+    };
   }, []);
 
   // Use demo data if in demo mode
   const displayLogs = isDemo ? getDemoData('tsam_logs') || [] : logs;
   const displayFeatureFlags = isDemo ? getDemoData('feature_flags') || [] : featureFlags;
+
+  // Handle retry for dashboard errors
+  const retryDashboard = () => {
+    setDashboardError(null);
+    setIsInitialized(false);
+    // Re-trigger initialization
+    setTimeout(() => {
+      setIsInitialized(true);
+    }, 100);
+  };
+
+  // Show error state if there's a dashboard error
+  if (dashboardError) {
+    return <DashboardErrorFallback error={dashboardError} retry={retryDashboard} />;
+  }
 
   // Show loading state until fully initialized
   if (!isInitialized || loading) {
@@ -89,7 +130,7 @@ const DeveloperDashboard: React.FC = () => {
 
   if (!isDeveloper && !isDemo) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-900">
+      <div className="w-full min-h-[60vh] flex items-center justify-center bg-transparent">
         <div className="text-center">
           <AlertTriangle className="h-16 w-16 text-red-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-red-400">Access Denied</h2>
@@ -221,7 +262,7 @@ const DeveloperDashboard: React.FC = () => {
   };
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 bg-transparent">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

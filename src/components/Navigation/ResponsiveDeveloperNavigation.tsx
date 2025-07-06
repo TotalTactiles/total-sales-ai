@@ -18,6 +18,7 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
   const isMobile = useIsMobile();
   const { open, setOpen } = useSidebar();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Persist sidebar state only for desktop
   useEffect(() => {
@@ -41,23 +42,35 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
     logout();
   };
 
-  const handleNavigation = (path: string, event?: React.MouseEvent) => {
+  const handleNavigation = async (path: string, event?: React.MouseEvent) => {
     if (event) {
       event.preventDefault();
+      event.stopPropagation();
     }
     
+    // Prevent multiple rapid clicks
+    if (isNavigating) return;
+    
+    setIsNavigating(true);
+    
     try {
-      // Ensure clean navigation without race conditions
-      setTimeout(() => {
-        navigate(path);
-        if (isMobile) {
-          setMobileMenuOpen(false);
-        }
-      }, 0);
+      // Close mobile menu immediately
+      if (isMobile) {
+        setMobileMenuOpen(false);
+      }
+      
+      // Force immediate navigation without delays
+      navigate(path, { replace: false });
+      
     } catch (error) {
       console.error('Navigation error:', error);
-      // Fallback: force navigation
+      // Fallback: force page reload as last resort
       window.location.href = path;
+    } finally {
+      // Reset navigation state after a short delay
+      setTimeout(() => {
+        setIsNavigating(false);
+      }, 500);
     }
   };
 
@@ -98,10 +111,11 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
                   <SidebarMenuButton 
                     onClick={(e) => handleNavigation(item.path, e)} 
                     isActive={isActive}
+                    disabled={isNavigating}
                     tooltip={!open && !isMobile ? item.label : undefined}
                     className={`text-white hover:bg-gray-800 transition-colors cursor-pointer ${
                       isActive ? 'bg-gray-800 text-green-400' : ''
-                    }`}
+                    } ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     {getIcon(item.icon)}
                     <span>{item.label}</span>
@@ -118,6 +132,7 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
           variant="outline" 
           className="w-full gap-3 text-red-400 border-red-400 hover:bg-red-900/20 bg-transparent" 
           onClick={handleSignOut}
+          disabled={isNavigating}
         >
           <Icons.LogOut className="h-4 w-4" />
           {(open || isMobile) && <span>Sign Out</span>}
@@ -140,7 +155,7 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
           </div>
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" disabled={isNavigating}>
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
