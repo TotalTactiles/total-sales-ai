@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +10,7 @@ const DeveloperDashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="p-6 flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-16 w-16 border-4 border-green-400 border-t-transparent"></div>
       </div>
     );

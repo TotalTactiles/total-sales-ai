@@ -1,7 +1,11 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 import LogoutButton from '@/components/auth/LogoutButton';
+import SalesNavigation from '@/components/Navigation/SalesNavigation';
+import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
+import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;
@@ -9,60 +13,59 @@ interface UnifiedLayoutProps {
 
 const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({ children }) => {
   const { profile } = useAuth();
+  const { isDemoUser, demoRole } = useDemoMode();
 
-  const getThemeClasses = () => {
-    switch (profile?.role) {
+  const userRole = isDemoUser ? demoRole : profile?.role;
+
+  const renderNavigation = () => {
+    switch (userRole) {
+      case 'sales_rep':
+        return <SalesNavigation />;
+      case 'manager':
+        return <ManagerNavigation />;
       case 'developer':
       case 'admin':
-        return 'bg-gray-900 text-white';
-      case 'manager':
-        return 'bg-blue-50 text-blue-900';
-      case 'sales_rep':
+        return <DeveloperNavigation />;
       default:
-        return 'bg-green-50 text-green-900';
-    }
-  };
-
-  const getRoleDisplay = () => {
-    switch (profile?.role) {
-      case 'developer':
-        return 'Developer OS';
-      case 'admin':
-        return 'Admin OS';
-      case 'manager':
-        return 'Manager OS';
-      case 'sales_rep':
-        return 'Sales OS';
-      default:
-        return 'TSAM OS';
+        return <SalesNavigation />;
     }
   };
 
   return (
-    <div className={`min-h-screen ${getThemeClasses()}`}>
-      {/* Header */}
-      <header className="border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-        <div className="flex h-16 items-center justify-between px-6">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold text-gray-900">{getRoleDisplay()}</h1>
-            <div className="text-sm text-gray-500">
-              Welcome, {profile?.full_name || 'User'}
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">
-              Role: <span className="font-medium capitalize">{profile?.role?.replace('_', ' ')}</span>
-            </div>
-            <LogoutButton />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen">
+      {/* Navigation Panel */}
+      {renderNavigation()}
 
       {/* Main Content */}
-      <main className="flex-1">
-        {children}
-      </main>
+      <div className="ml-64">
+        {/* Top Bar */}
+        <div className="fixed top-0 right-0 left-64 h-16 bg-white/95 backdrop-blur-sm border-b border-gray-200 z-40 flex items-center justify-between px-6">
+          <div className="flex items-center gap-4">
+            <h1 className="text-lg font-semibold text-gray-900">
+              {userRole === 'sales_rep' ? 'Sales OS' : 
+               userRole === 'manager' ? 'Manager OS' : 
+               'Developer OS'}
+            </h1>
+            {isDemoUser && (
+              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
+                Demo Mode
+              </span>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-600">
+              {profile?.full_name || 'Demo User'}
+            </span>
+            <LogoutButton variant="outline" size="sm" />
+          </div>
+        </div>
+
+        {/* Page Content */}
+        <div className="pt-16">
+          {children}
+        </div>
+      </div>
     </div>
   );
 };
