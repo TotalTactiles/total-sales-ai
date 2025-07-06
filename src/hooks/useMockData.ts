@@ -1,136 +1,113 @@
 
+import { useState, useEffect } from 'react';
 import { Lead } from '@/types/lead';
+import { useDemoMode } from '@/contexts/DemoModeContext';
+import { logger } from '@/utils/logger';
 
 export const useMockData = () => {
-  const leads: Lead[] = [
-    {
-      id: '1',
-      name: 'Sarah Chen',
-      email: 'sarah.chen@techcorp.com',
-      phone: '+1-555-0123',
-      company: 'TechCorp',
-      status: 'proposal',
-      priority: 'high',
-      source: 'LinkedIn',
-      score: 94,
-      conversionLikelihood: 86,
-      lastContact: '2024-01-15T10:00:00Z',
-      speedToLead: 2,
-      tags: ['enterprise', 'hot lead'],
-      createdAt: '2024-01-10T09:00:00Z',
-      updatedAt: '2024-01-15T10:00:00Z',
-      companyId: 'demo-company',
-      isSensitive: false,
-      value: 94760,
-      lastActivity: 'No reply in 4 days',
-      aiPriority: 'High',
-      nextAction: 'Reschedule call',
-      lastAIInsight: 'No reply in 4 days – reschedule now'
-    },
-    {
-      id: '2',
-      name: 'Mike Rodriguez',
-      email: 'mike.rodriguez@startupx.com',
-      phone: '+1-555-0124',
-      company: 'StartupX',
-      status: 'negotiation',
-      priority: 'high',
-      source: 'Referral',
-      score: 87,
-      conversionLikelihood: 82,
-      lastContact: '2024-01-14T15:30:00Z',
-      speedToLead: 1,
-      tags: ['decision maker', 'budget approved'],
-      createdAt: '2024-01-08T14:00:00Z',
-      updatedAt: '2024-01-14T15:30:00Z',
-      companyId: 'demo-company',
-      isSensitive: false,
-      value: 78500,
-      lastActivity: 'Opened proposal twice',
-      aiPriority: 'High',
-      nextAction: 'Follow up on proposal',
-      lastAIInsight: 'Opened proposal twice, no reply'
-    },
-    {
-      id: '3',
-      name: 'Lisa Wang',
-      email: 'lisa.wang@enterprise.co',
-      phone: '+1-555-0125',
-      company: 'Enterprise Co',
-      status: 'qualified',
-      priority: 'high',
-      source: 'Website',
-      score: 76,
-      conversionLikelihood: 74,
-      lastContact: '2024-01-13T09:15:00Z',
-      speedToLead: 3,
-      tags: ['demo requested', 'technical buyer'],
-      createdAt: '2024-01-09T11:00:00Z',
-      updatedAt: '2024-01-13T09:15:00Z',
-      companyId: 'demo-company',
-      isSensitive: false,
-      value: 65200,
-      lastActivity: 'Last call 6 days ago',
-      aiPriority: 'Medium',
-      nextAction: 'Schedule demo',
-      lastAIInsight: 'Last call 6 days ago – follow-up recommended'
-    },
-    {
-      id: '4',
-      name: 'David Kim',
-      email: 'david.kim@globalsoft.com',
-      phone: '+1-555-0126',
-      company: 'GlobalSoft',
-      status: 'contacted',
-      priority: 'medium',
-      source: 'Cold Email',
-      score: 71,
-      conversionLikelihood: 68,
-      lastContact: '2024-01-12T14:45:00Z',
-      speedToLead: 4,
-      tags: ['interested', 'budget questions'],
-      createdAt: '2024-01-07T16:30:00Z',
-      updatedAt: '2024-01-12T14:45:00Z',
-      companyId: 'demo-company',
-      isSensitive: false,
-      value: 52300,
-      lastActivity: 'Clicked demo link',
-      aiPriority: 'Medium',
-      nextAction: 'Book demo call',
-      lastAIInsight: 'Clicked demo link, but didn\'t book'
-    },
-    {
-      id: '5',
-      name: 'Jennifer Lee',
-      email: 'jennifer.lee@cloudfirst.com',
-      phone: '+1-555-0127',
-      company: 'CloudFirst',
-      status: 'new',
-      priority: 'medium',
-      source: 'Trade Show',
-      score: 69,
-      conversionLikelihood: 65,
-      lastContact: '2024-01-11T11:20:00Z',
-      speedToLead: 2,
-      tags: ['new contact', 'interested'],
-      createdAt: '2024-01-11T11:20:00Z',
-      updatedAt: '2024-01-11T11:20:00Z',
-      companyId: 'demo-company',
-      isSensitive: false,
-      value: 41800,
-      lastActivity: 'Initial contact made',
-      aiPriority: 'Low',
-      nextAction: 'Qualification call',
-      lastAIInsight: 'New lead, strong initial interest'
-    }
-  ];
+  const { isDemoUser, getMockData } = useDemoMode();
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getLeadById = (id: string): Lead | undefined => {
-    return leads.find(lead => lead.id === id);
-  };
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      
+      if (isDemoUser) {
+        logger.info('🎭 Loading demo leads data');
+        const demoLeads = getMockData('leads') || [];
+        setLeads(demoLeads);
+      } else {
+        // For non-demo users, return empty array (they would use real data hooks)
+        setLeads([]);
+      }
+      
+      setIsLoading(false);
+    };
+
+    loadData();
+  }, [isDemoUser, getMockData]);
 
   return {
     leads,
-    getLeadById
+    isLoading,
+    refetch: () => {
+      if (isDemoUser) {
+        const demoLeads = getMockData('leads') || [];
+        setLeads(demoLeads);
+      }
+    }
+  };
+};
+
+export const useTeamData = () => {
+  const { isDemoUser, getMockData } = useDemoMode();
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [pipelineHealth, setPipelineHealth] = useState({});
+  const [alerts, setAlerts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      
+      if (isDemoUser) {
+        logger.info('🎭 Loading demo team data');
+        setTeamMembers(getMockData('team-members') || []);
+        setPipelineHealth(getMockData('pipeline-health') || {});
+        setAlerts(getMockData('manager-alerts') || []);
+      } else {
+        setTeamMembers([]);
+        setPipelineHealth({});
+        setAlerts([]);
+      }
+      
+      setIsLoading(false);
+    };
+
+    loadData();
+  }, [isDemoUser, getMockData]);
+
+  return {
+    teamMembers,
+    pipelineHealth,
+    alerts,
+    isLoading
+  };
+};
+
+export const useSystemData = () => {
+  const { isDemoUser, getMockData } = useDemoMode();
+  const [agentLogs, setAgentLogs] = useState([]);
+  const [systemHealth, setSystemHealth] = useState({});
+  const [recentCommits, setRecentCommits] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      
+      if (isDemoUser) {
+        logger.info('🎭 Loading demo system data');
+        setAgentLogs(getMockData('agent-logs') || []);
+        setSystemHealth(getMockData('system-health') || {});
+        setRecentCommits(getMockData('recent-commits') || []);
+      } else {
+        setAgentLogs([]);
+        setSystemHealth({});
+        setRecentCommits([]);
+      }
+      
+      setIsLoading(false);
+    };
+
+    loadData();
+  }, [isDemoUser, getMockData]);
+
+  return {
+    agentLogs,
+    systemHealth,
+    recentCommits,
+    isLoading
   };
 };

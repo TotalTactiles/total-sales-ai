@@ -28,6 +28,7 @@ import PerformanceCardsGrid from '@/components/Dashboard/PerformanceCardsGrid';
 import OptimizedPipelinePulse from '@/components/Dashboard/OptimizedPipelinePulse';
 import RewardsProgress from '@/components/Dashboard/RewardsProgress';
 import AIOptimizedSchedule from '@/components/Dashboard/AIOptimizedSchedule';
+import SalesDemoActions from '@/components/demo/SalesDemoActions';
 
 const SalesRepDashboard: React.FC = () => {
   const { profile } = useAuth();
@@ -36,6 +37,9 @@ const SalesRepDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Demo Actions Panel */}
+        <SalesDemoActions />
+
         {/* Top Section with Performance Cards and Voice Briefing */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Performance Cards Grid - Now in top-left */}

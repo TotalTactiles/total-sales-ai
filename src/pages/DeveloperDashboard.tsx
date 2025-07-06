@@ -4,10 +4,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Zap, Bot, Activity, CheckCircle, Circle } from 'lucide-react';
 import AISystemStatus from '@/components/developer/AISystemStatus';
+import DeveloperDemoActions from '@/components/demo/DeveloperDemoActions';
 
 const DeveloperDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
+      {/* Demo Actions Panel */}
+      <DeveloperDemoActions />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Developer Dashboard</h1>
