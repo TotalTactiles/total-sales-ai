@@ -3,14 +3,18 @@ import React from 'react';
 import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
-import DeveloperDashboard from '@/pages/DeveloperDashboard';
+import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
+import ManagerDashboard from '@/pages/ManagerDashboard';
+import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import NewLandingPage from '@/pages/NewLandingPage';
 import AuthPage from '@/pages/auth/AuthPage';
 import SecureRouteGuard from '@/components/auth/SecureRouteGuard';
+import { useDemoMode } from '@/contexts/DemoModeContext';
 import { logger } from '@/utils/logger';
 
 const AppRoutes: React.FC = () => {
   const { user, profile, loading } = useAuth();
+  const { isDemoUser, demoRole } = useDemoMode();
   const [searchParams] = useSearchParams();
 
   if (loading) {
@@ -38,12 +42,14 @@ const AppRoutes: React.FC = () => {
   }
 
   // User is authenticated - determine their role and route accordingly
-  const userRole = profile?.role;
+  const userRole = profile?.role || (isDemoUser ? demoRole : null);
   
   logger.info('🧭 Routing authenticated user:', { 
     userId: user.id, 
     role: userRole,
-    email: user.email 
+    email: user.email,
+    isDemoUser,
+    demoRole 
   });
 
   return (
@@ -65,15 +71,7 @@ const AppRoutes: React.FC = () => {
         <SecureRouteGuard allowedRoles={['manager', 'admin']}>
           <UnifiedLayout>
             <Routes>
-              <Route path="dashboard" element={
-                <div className="p-6">
-                  <h1 className="text-2xl font-bold text-gray-800 mb-4">Manager Dashboard</h1>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <p className="text-blue-800">✅ Manager OS fully operational</p>
-                    <p className="text-blue-600 text-sm mt-2">Mock data and workflows active</p>
-                  </div>
-                </div>
-              } />
+              <Route path="dashboard" element={<ManagerDashboard />} />
               <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
             </Routes>
           </UnifiedLayout>
@@ -85,22 +83,14 @@ const AppRoutes: React.FC = () => {
         <SecureRouteGuard allowedRoles={['sales_rep', 'admin']}>
           <UnifiedLayout>
             <Routes>
-              <Route path="dashboard" element={
-                <div className="p-6">
-                  <h1 className="text-2xl font-bold text-gray-800 mb-4">Sales Dashboard</h1>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-green-800">✅ Sales OS fully operational</p>
-                    <p className="text-green-600 text-sm mt-2">Mock leads and pipeline active</p>
-                  </div>
-                </div>
-              } />
+              <Route path="dashboard" element={<SalesRepDashboard />} />
               <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
             </Routes>
           </UnifiedLayout>
         </SecureRouteGuard>
       } />
       
-      {/* Role-based default redirect */}
+      {/* Role-based default redirect - Enhanced for demo users */}
       <Route path="/" element={
         <Navigate 
           to={
