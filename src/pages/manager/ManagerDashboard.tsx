@@ -17,6 +17,16 @@ const ManagerDashboard: React.FC = () => {
     );
   }
 
+  // Ensure pipelineHealth has default values
+  const healthData = {
+    totalValue: 0,
+    dealCount: 0,
+    avgDealSize: 0,
+    conversionRate: 0,
+    hotDeals: 0,
+    ...pipelineHealth
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
@@ -43,10 +53,10 @@ const ManagerDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                ${pipelineHealth.totalValue?.toLocaleString() || '0'}
+                ${healthData.totalValue?.toLocaleString() || '0'}
               </div>
               <div className="text-sm text-gray-500">
-                {pipelineHealth.dealCount || 0} active deals
+                {healthData.dealCount || 0} active deals
               </div>
             </CardContent>
           </Card>
@@ -57,7 +67,7 @@ const ManagerDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                ${pipelineHealth.avgDealSize?.toLocaleString() || '0'}
+                ${healthData.avgDealSize?.toLocaleString() || '0'}
               </div>
               <div className="text-sm text-green-600">
                 ↑ 12% from last month
@@ -71,7 +81,7 @@ const ManagerDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                {pipelineHealth.conversionRate || 0}%
+                {healthData.conversionRate || 0}%
               </div>
               <div className="text-sm text-green-600">
                 ↑ 3.2% from last month
@@ -85,7 +95,7 @@ const ManagerDashboard: React.FC = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-orange-600">
-                {pipelineHealth.hotDeals || 0}
+                {healthData.hotDeals || 0}
               </div>
               <div className="text-sm text-gray-500">
                 Closing this week

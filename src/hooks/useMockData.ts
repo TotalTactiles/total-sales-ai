@@ -28,9 +28,14 @@ export const useMockData = () => {
     loadData();
   }, [isDemoUser, getMockData]);
 
+  const getLeadById = (leadId: string): Lead | undefined => {
+    return leads.find(lead => lead.id === leadId);
+  };
+
   return {
     leads,
     isLoading,
+    getLeadById,
     refetch: () => {
       if (isDemoUser) {
         const demoLeads = getMockData('leads') || [];

@@ -29,7 +29,7 @@ export const DemoModeProvider: React.FC<DemoModeProviderProps> = ({ children }) 
       if (demoUser) {
         setIsDemoUser(true);
         setDemoRole(demoUser.role);
-        logger.info('🎭 Demo mode activated for:', demoUser.name, demoUser.role);
+        logger.info(`🎭 Demo mode activated for: ${demoUser.name} (${demoUser.role})`);
       } else {
         setIsDemoUser(false);
         setDemoRole(null);
@@ -43,7 +43,7 @@ export const DemoModeProvider: React.FC<DemoModeProviderProps> = ({ children }) 
   const getMockData = (dataType: string): any => {
     if (!isDemoUser) return null;
 
-    logger.info('🎭 Fetching mock data:', dataType, 'for role:', demoRole);
+    logger.info(`🎭 Fetching mock data: ${dataType} for role: ${demoRole}`);
 
     switch (dataType) {
       case 'leads':
@@ -65,7 +65,7 @@ export const DemoModeProvider: React.FC<DemoModeProviderProps> = ({ children }) 
       case 'recent-commits':
         return demoRole === 'developer' ? mockDeveloperData.recentCommits : [];
       default:
-        logger.warn('🎭 Unknown mock data type requested:', dataType);
+        logger.warn(`🎭 Unknown mock data type requested: ${dataType}`);
         return null;
     }
   };
@@ -75,7 +75,7 @@ export const DemoModeProvider: React.FC<DemoModeProviderProps> = ({ children }) 
       throw new Error('Simulation only available for demo users');
     }
 
-    logger.info('🎭 Simulating action:', action, 'with payload:', payload);
+    logger.info(`🎭 Simulating action: ${action} with payload: ${JSON.stringify(payload)}`);
 
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700));
