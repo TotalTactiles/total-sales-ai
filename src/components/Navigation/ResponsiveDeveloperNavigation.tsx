@@ -60,16 +60,30 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
         setMobileMenuOpen(false);
       }
       
-      // Special handling for dashboard navigation
+      // Force clean navigation for dashboard
       if (path === '/developer/dashboard') {
-        // Clear any existing state that might interfere
-        console.log('Dashboard navigation - clearing state');
+        console.log('Dashboard navigation - force clean routing');
         
-        // Force navigation with replace to ensure clean state
-        navigate('/developer/dashboard', { 
+        // Clear any navigation state
+        window.history.replaceState(null, '', path);
+        
+        // Use navigate with replace and force refresh
+        navigate(path, { 
           replace: true,
-          state: { fromNavigation: true, timestamp: Date.now() }
+          state: { 
+            fromNavigation: true, 
+            timestamp: Date.now(),
+            forceRefresh: true
+          }
         });
+        
+        // Ensure page loads by forcing a small delay
+        setTimeout(() => {
+          if (window.location.pathname !== path) {
+            window.location.href = path;
+          }
+        }, 100);
+        
       } else {
         // Regular navigation for other routes
         navigate(path, { 
@@ -83,7 +97,7 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
       // Fallback: force page reload as last resort
       window.location.href = path;
     } finally {
-      // Reset navigation state after a short delay
+      // Reset navigation state after a delay
       setTimeout(() => {
         setIsNavigating(false);
       }, 1000);

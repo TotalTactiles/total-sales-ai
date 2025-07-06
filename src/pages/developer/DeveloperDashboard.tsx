@@ -67,22 +67,28 @@ const DeveloperDashboard: React.FC = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [dashboardError, setDashboardError] = useState<Error | null>(null);
   const [forceRerender, setForceRerender] = useState(0);
+  const [navigationKey, setNavigationKey] = useState(0);
 
-  // Handle navigation state from router
+  // Enhanced navigation state handling
   useEffect(() => {
     const navigationState = location.state as any;
-    if (navigationState?.fromNavigation) {
-      console.log('Dashboard loaded from navigation:', navigationState);
-      // Force a rerender to ensure fresh state
+    console.log('Dashboard navigation state:', navigationState, 'pathname:', location.pathname);
+    
+    if (navigationState?.fromNavigation || navigationState?.forceRefresh) {
+      console.log('Navigation detected - forcing dashboard refresh');
+      setNavigationKey(prev => prev + 1);
       setForceRerender(prev => prev + 1);
+      
+      // Clear navigation state to prevent loops
+      window.history.replaceState(null, '', location.pathname);
     }
-  }, [location.state]);
+  }, [location.state, location.pathname]);
 
+  // Dashboard initialization with enhanced error handling
   useEffect(() => {
-    // Ensure component is properly initialized
     const initializeDashboard = async () => {
       try {
-        console.log('Initializing dashboard...');
+        console.log('Initializing dashboard... (navigationKey:', navigationKey, ')');
         setDashboardError(null);
         setIsInitialized(false);
         
@@ -116,7 +122,7 @@ const DeveloperDashboard: React.FC = () => {
         cleanup.then(cleanupFn => cleanupFn?.());
       }
     };
-  }, [forceRerender]); // Include forceRerender to trigger reinit on navigation
+  }, [navigationKey, forceRerender]);
 
   // Use demo data if in demo mode
   const displayLogs = isDemo ? getDemoData('tsam_logs') || [] : logs;
@@ -126,17 +132,25 @@ const DeveloperDashboard: React.FC = () => {
   const retryDashboard = () => {
     console.log('Retrying dashboard initialization...');
     setDashboardError(null);
+    setNavigationKey(prev => prev + 1);
     setForceRerender(prev => prev + 1);
   };
+
+  // Enhanced loading state with navigation detection
+  if (!isInitialized || loading) {
+    return (
+      <div className="w-full min-h-[60vh] flex items-center justify-center bg-transparent">
+        <LoadingManager 
+          type="default" 
+          message={navigationKey > 0 ? "Loading Developer Dashboard..." : "Initializing TSAM Developer Control Panel..."} 
+        />
+      </div>
+    );
+  }
 
   // Show error state if there's a dashboard error
   if (dashboardError) {
     return <DashboardErrorFallback error={dashboardError} retry={retryDashboard} />;
-  }
-
-  // Show loading state until fully initialized
-  if (!isInitialized || loading) {
-    return <DashboardLoadingFallback />;
   }
 
   if (!isDeveloper && !isDemo) {
@@ -273,7 +287,7 @@ const DeveloperDashboard: React.FC = () => {
   };
 
   return (
-    <div className="w-full space-y-8 bg-transparent">
+    <div className="w-full space-y-8 bg-transparent" key={`dashboard-${navigationKey}`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -479,7 +493,7 @@ const DeveloperDashboard: React.FC = () => {
   );
 };
 
-// Wrap the component with Suspense
+// Wrap the component with Suspense and error boundary
 const DeveloperDashboardWithSuspense: React.FC = () => (
   <Suspense fallback={<DashboardLoadingFallback />}>
     <DeveloperDashboard />
