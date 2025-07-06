@@ -1,12 +1,13 @@
 
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
-import AppRoutes from '@/router/AppRoutes';
-import GlobalFeedback from '@/components/feedback/GlobalFeedback';
-import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import { TSAMAIProvider } from '@/contexts/TSAMAIContext';
+import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
+import GlobalFeedback from '@/components/feedback/GlobalFeedback';
+import NewLandingPage from '@/pages/NewLandingPage';
+import AppRoutes from '@/router/AppRoutes';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,7 +27,13 @@ function App() {
             <UnifiedAIProvider>
               <div className="min-h-screen w-full overflow-hidden">
                 <GlobalFeedback />
-                <AppRoutes />
+                <Routes>
+                  {/* Landing Page */}
+                  <Route path="/landing" element={<NewLandingPage />} />
+                  
+                  {/* Main App Routes */}
+                  <Route path="/*" element={<AppRoutes />} />
+                </Routes>
               </div>
             </UnifiedAIProvider>
           </TSAMAIProvider>
