@@ -151,7 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       await authSignOut();
       
-      // Clear all state
+      // Clear all state immediately
       setUser(null);
       setProfile(null);
       setSession(null);

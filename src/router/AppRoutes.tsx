@@ -31,6 +31,7 @@ const AppRoutes: React.FC = () => {
 
   // If no user, show public routes (landing page and auth)
   if (!user) {
+    logger.info('🔐 No authenticated user, showing public routes');
     return (
       <Routes>
         <Route path="/" element={<NewLandingPage />} />

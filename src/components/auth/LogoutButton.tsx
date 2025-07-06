@@ -35,21 +35,19 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({
       await signOut();
       
       // Clear any local storage or session data
-      localStorage.removeItem('supabase.auth.token');
+      localStorage.clear();
       sessionStorage.clear();
       
-      // Force navigate to auth page
-      navigate('/auth', { replace: true });
-      
-      // Force page reload to clear any cached state
-      window.location.href = '/auth';
-      
       logger.info('✅ Logout completed successfully');
+      
+      // Force immediate redirect to auth page with replace
+      window.location.replace('/auth');
+      
     } catch (error) {
       logger.error('❌ Logout error:', error);
       
       // Even if logout fails, still redirect to auth
-      window.location.href = '/auth';
+      window.location.replace('/auth');
     } finally {
       setIsLoggingOut(false);
     }
