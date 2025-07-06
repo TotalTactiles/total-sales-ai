@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Zap, Users, BarChart3, Shield, Rocket } from 'lucide-react';
+import { Brain, Zap, Users, BarChart3, Shield, Rocket, ArrowRight, Star } from 'lucide-react';
 
 const NewLandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,166 +18,232 @@ const NewLandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="relative z-10 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Brain className="h-6 w-6 text-white" />
+      <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+              <Brain className="h-5 w-5 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-white">TSAM OS</h1>
-              <p className="text-xs text-blue-300">AI-Powered Sales Platform</p>
-            </div>
+            <span className="text-xl font-bold text-gray-900">TSAM OS</span>
           </div>
           <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={handleSignIn} className="border-blue-500 text-blue-300 hover:bg-blue-500 hover:text-white">
+            <Button variant="ghost" onClick={handleSignIn} className="text-gray-600 hover:text-gray-900">
               Sign In
             </Button>
-            <Button onClick={handleGetStarted} className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-              Get Started
+            <Button onClick={handleGetStarted} className="bg-blue-600 hover:bg-blue-700">
+              Get Started Free
             </Button>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <main className="relative z-10 px-6 pt-16 pb-24">
-        <div className="max-w-7xl mx-auto text-center">
-          <Badge className="mb-6 bg-blue-500/20 text-blue-300 border-blue-500/30">
-            <Rocket className="h-3 w-3 mr-1" />
-            Now Available - AI-Powered Sales OS
+      <section className="container px-4 py-24 md:px-6">
+        <div className="mx-auto max-w-4xl text-center">
+          <Badge variant="secondary" className="mb-6 bg-blue-50 text-blue-700 hover:bg-blue-100">
+            <Star className="mr-1 h-3 w-3" />
+            Trusted by 10,000+ Sales Teams
           </Badge>
           
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-            The Future of
-            <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Sales Operations
-            </span>
+          <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+            Transform Your Sales Team with
+            <span className="block text-blue-600">AI-Powered Intelligence</span>
           </h1>
           
-          <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-            TSAM OS combines AI intelligence, automation, and analytics to revolutionize how sales teams operate. 
-            Built for high-performance teams that demand results.
+          <p className="mb-8 text-xl text-gray-600 sm:text-2xl">
+            TSAM OS combines artificial intelligence, automation, and analytics to supercharge your sales operations. 
+            Close more deals, faster than ever before.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <Button 
               size="lg" 
               onClick={handleGetStarted}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-3"
+              className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-4"
             >
-              <Rocket className="h-5 w-5 mr-2" />
               Get Started Free
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Button 
               size="lg" 
               variant="outline" 
-              className="border-blue-500 text-blue-300 hover:bg-blue-500 hover:text-white text-lg px-8 py-3"
+              className="border-gray-300 text-gray-700 hover:bg-gray-50 text-lg px-8 py-4"
             >
               Watch Demo
             </Button>
           </div>
+          
+          <p className="mt-4 text-sm text-gray-500">
+            No credit card required • 14-day free trial • Setup in under 5 minutes
+          </p>
+        </div>
+      </section>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-20">
-            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
-              <CardHeader>
-                <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <Brain className="h-6 w-6 text-blue-400" />
-                </div>
-                <CardTitle className="text-white">AI-Powered Intelligence</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Advanced AI agents analyze leads, optimize outreach, and provide real-time coaching
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
-              <CardHeader>
-                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <Zap className="h-6 w-6 text-purple-400" />
-                </div>
-                <CardTitle className="text-white">Smart Automation</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Automate repetitive tasks, email sequences, and follow-ups while maintaining personalization
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
-              <CardHeader>
-                <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-green-400" />
-                </div>
-                <CardTitle className="text-white">Team Collaboration</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Unified workspace for sales reps, managers, and developers with role-based access
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
-              <CardHeader>
-                <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <BarChart3 className="h-6 w-6 text-yellow-400" />
-                </div>
-                <CardTitle className="text-white">Advanced Analytics</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Deep insights into performance, conversion rates, and predictive forecasting
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
-              <CardHeader>
-                <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-red-400" />
-                </div>
-                <CardTitle className="text-white">Enterprise Security</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Bank-level security with role-based permissions and audit trails
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="bg-gray-800/50 border-gray-700 backdrop-blur-sm">
-              <CardHeader>
-                <div className="w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center mb-4">
-                  <Rocket className="h-6 w-6 text-cyan-400" />
-                </div>
-                <CardTitle className="text-white">Rapid Deployment</CardTitle>
-                <CardDescription className="text-gray-400">
-                  Get up and running in minutes with intelligent onboarding and setup
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-
-          {/* CTA Section */}
-          <div className="mt-24 text-center">
-            <h2 className="text-3xl font-bold text-white mb-4">Ready to Transform Your Sales?</h2>
-            <p className="text-gray-300 mb-8 max-w-2xl mx-auto">
-              Join forward-thinking companies that are already using TSAM OS to accelerate their sales performance.
+      {/* Features Section */}
+      <section className="bg-gray-50 py-24">
+        <div className="container px-4 md:px-6">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">
+              Everything you need to accelerate sales
+            </h2>
+            <p className="mb-16 text-lg text-gray-600">
+              Powerful features designed to help your team sell smarter, not harder.
             </p>
-            <Button 
-              size="lg" 
-              onClick={handleGetStarted}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-lg px-8 py-3"
-            >
-              <Rocket className="h-5 w-5 mr-2" />
-              Start Your Free Trial
-            </Button>
+          </div>
+          
+          <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="border-0 bg-white shadow-sm">
+              <CardHeader>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100">
+                  <Brain className="h-6 w-6 text-blue-600" />
+                </div>
+                <CardTitle className="text-xl">AI Sales Assistant</CardTitle>
+                <CardDescription className="text-base">
+                  Get real-time coaching, script suggestions, and objection handling powered by advanced AI.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 bg-white shadow-sm">
+              <CardHeader>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100">
+                  <Zap className="h-6 w-6 text-purple-600" />
+                </div>
+                <CardTitle className="text-xl">Smart Automation</CardTitle>
+                <CardDescription className="text-base">
+                  Automate follow-ups, email sequences, and lead routing while maintaining personal touch.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 bg-white shadow-sm">
+              <CardHeader>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-green-100">
+                  <BarChart3 className="h-6 w-6 text-green-600" />
+                </div>
+                <CardTitle className="text-xl">Performance Analytics</CardTitle>
+                <CardDescription className="text-base">
+                  Track performance, forecast revenue, and identify bottlenecks with comprehensive analytics.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 bg-white shadow-sm">
+              <CardHeader>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100">
+                  <Users className="h-6 w-6 text-orange-600" />
+                </div>
+                <CardTitle className="text-xl">Team Collaboration</CardTitle>
+                <CardDescription className="text-base">
+                  Unified workspace for sales reps, managers, and teams with role-based permissions.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 bg-white shadow-sm">
+              <CardHeader>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-red-100">
+                  <Shield className="h-6 w-6 text-red-600" />
+                </div>
+                <CardTitle className="text-xl">Enterprise Security</CardTitle>
+                <CardDescription className="text-base">
+                  Bank-level security with SSO, audit trails, and compliance-ready data protection.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 bg-white shadow-sm">
+              <CardHeader>
+                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-cyan-100">
+                  <Rocket className="h-6 w-6 text-cyan-600" />
+                </div>
+                <CardTitle className="text-xl">Quick Setup</CardTitle>
+                <CardDescription className="text-base">
+                  Get up and running in minutes with guided onboarding and smart integrations.
+                </CardDescription>
+              </CardHeader>
+            </Card>
           </div>
         </div>
-      </main>
+      </section>
 
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-      </div>
+      {/* Social Proof Section */}
+      <section className="py-24">
+        <div className="container px-4 md:px-6">
+          <div className="mx-auto max-w-4xl text-center">
+            <h2 className="mb-16 text-3xl font-bold text-gray-900">
+              Trusted by sales teams at leading companies
+            </h2>
+            <div className="grid grid-cols-2 gap-8 opacity-60 md:grid-cols-4">
+              <div className="flex items-center justify-center">
+                <div className="text-2xl font-bold text-gray-400">TechCorp</div>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="text-2xl font-bold text-gray-400">SalesForce</div>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="text-2xl font-bold text-gray-400">GrowthCo</div>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="text-2xl font-bold text-gray-400">ScaleUp</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="bg-blue-600 py-24">
+        <div className="container px-4 md:px-6">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">
+              Ready to transform your sales process?
+            </h2>
+            <p className="mb-8 text-xl text-blue-100">
+              Join thousands of sales teams already using TSAM OS to close more deals and hit their targets.
+            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+              <Button 
+                size="lg" 
+                onClick={handleGetStarted}
+                className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-4"
+              >
+                Start Free Trial
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-4"
+              >
+                Schedule Demo
+              </Button>
+            </div>
+            <p className="mt-4 text-sm text-blue-200">
+              Free 14-day trial • No setup fees • Cancel anytime
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t bg-white py-12">
+        <div className="container px-4 md:px-6">
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+            <div className="flex items-center gap-2">
+              <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-600">
+                <Brain className="h-4 w-4 text-white" />
+              </div>
+              <span className="font-semibold text-gray-900">TSAM OS</span>
+            </div>
+            <p className="text-sm text-gray-500">
+              © 2024 TSAM OS. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
