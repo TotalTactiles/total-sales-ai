@@ -1,4 +1,3 @@
-
 //@vitest-environment jsdom
 
 import React, { createContext, useContext, useState } from 'react';
@@ -28,16 +27,38 @@ const MockAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children })
       role,
       full_name: 'Test User',
       company_id: 'test-company',
+      email: email,
+      phone_number: null,
       email_connected: false,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      last_login: new Date().toISOString(),
+      onboarding_step: null,
+      has_completed_onboarding: false,
+      assistant_name: 'AI Assistant',
+      voice_style: 'professional',
+      industry: null,
+      onboarding_complete: false,
+      sales_personality: null,
+      sales_style: null,
+      strength_area: null,
+      rep_motivation: null,
+      primary_goal: null,
+      motivation_trigger: null,
+      weakness: null,
+      mental_state_trigger: null,
+      management_style: null,
+      team_size: null,
+      preferred_team_personality: null,
+      team_obstacle: null,
+      business_goal: null,
+      influence_style: null
     } as Profile);
     return { error: null };
   };
 
-  const signOut = async () => {
+  const signOut = async (): Promise<void> => {
     setProfile(null);
-    return { error: null };
   };
 
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
