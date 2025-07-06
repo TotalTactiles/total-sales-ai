@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Brain, Zap, Bot, Activity, CheckCircle, Circle, Terminal, Database, Code, GitBranch, AlertTriangle, Settings } from 'lucide-react';
 import AISystemStatus from '@/components/developer/AISystemStatus';
-import DeveloperDemoActions from '@/components/demo/DeveloperDemoActions';
 import { useSystemData } from '@/hooks/useMockData';
 
 const DeveloperDashboard: React.FC = () => {
@@ -33,9 +32,6 @@ const DeveloperDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 p-6">
-      {/* Demo Actions Panel */}
-      <DeveloperDemoActions />
-
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Developer OS Dashboard</h1>

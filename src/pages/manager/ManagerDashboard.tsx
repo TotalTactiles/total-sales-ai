@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Users, TrendingUp, Target, AlertTriangle, DollarSign, Calendar, BarChart3, Award, Clock, Phone, Mail, Brain } from 'lucide-react';
 import { useTeamData } from '@/hooks/useMockData';
-import ManagerDemoActions from '@/components/demo/ManagerDemoActions';
 
 const ManagerDashboard: React.FC = () => {
   const { teamMembers, pipelineHealth, alerts, isLoading } = useTeamData();
@@ -33,9 +32,6 @@ const ManagerDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Demo Actions Panel */}
-        <ManagerDemoActions />
-
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
