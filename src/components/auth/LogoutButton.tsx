@@ -31,17 +31,25 @@ const LogoutButton: React.FC<LogoutButtonProps> = ({
     try {
       logger.info('🔐 Starting logout process');
       
+      // Sign out from Supabase
       await signOut();
       
-      // Navigate with success message
-      navigate('/auth?message=logout-success', { replace: true });
+      // Clear any local storage or session data
+      localStorage.removeItem('supabase.auth.token');
+      sessionStorage.clear();
+      
+      // Force navigate to auth page
+      navigate('/auth', { replace: true });
+      
+      // Force page reload to clear any cached state
+      window.location.href = '/auth';
       
       logger.info('✅ Logout completed successfully');
     } catch (error) {
       logger.error('❌ Logout error:', error);
       
       // Even if logout fails, still redirect to auth
-      navigate('/auth', { replace: true });
+      window.location.href = '/auth';
     } finally {
       setIsLoggingOut(false);
     }

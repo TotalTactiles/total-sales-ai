@@ -54,43 +54,49 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      {/* Developer OS Routes */}
+      {/* Developer OS Routes - Dark theme with comprehensive system monitoring */}
       <Route path="/developer/*" element={
         <SecureRouteGuard allowedRoles={['developer', 'admin']}>
-          <UnifiedLayout>
-            <Routes>
-              <Route path="dashboard" element={<DeveloperDashboard />} />
-              <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
-            </Routes>
-          </UnifiedLayout>
+          <div className="min-h-screen bg-gray-900">
+            <UnifiedLayout>
+              <Routes>
+                <Route path="dashboard" element={<DeveloperDashboard />} />
+                <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
+              </Routes>
+            </UnifiedLayout>
+          </div>
         </SecureRouteGuard>
       } />
       
-      {/* Manager OS Routes */}
+      {/* Manager OS Routes - Blue/purple gradient professional theme */}
       <Route path="/manager/*" element={
         <SecureRouteGuard allowedRoles={['manager', 'admin']}>
-          <UnifiedLayout>
-            <Routes>
-              <Route path="dashboard" element={<ManagerDashboard />} />
-              <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
-            </Routes>
-          </UnifiedLayout>
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+            <UnifiedLayout>
+              <Routes>
+                <Route path="dashboard" element={<ManagerDashboard />} />
+                <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
+              </Routes>
+            </UnifiedLayout>
+          </div>
         </SecureRouteGuard>
       } />
       
-      {/* Sales OS Routes */}
+      {/* Sales OS Routes - Light gradient with modern sales-focused design */}
       <Route path="/sales/*" element={
         <SecureRouteGuard allowedRoles={['sales_rep', 'admin']}>
-          <UnifiedLayout>
-            <Routes>
-              <Route path="dashboard" element={<SalesRepDashboard />} />
-              <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
-            </Routes>
-          </UnifiedLayout>
+          <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+            <UnifiedLayout>
+              <Routes>
+                <Route path="dashboard" element={<SalesRepDashboard />} />
+                <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
+              </Routes>
+            </UnifiedLayout>
+          </div>
         </SecureRouteGuard>
       } />
       
-      {/* Role-based default redirect - Enhanced for demo users */}
+      {/* Role-based default redirect */}
       <Route path="/" element={
         <Navigate 
           to={
@@ -102,7 +108,7 @@ const AppRoutes: React.FC = () => {
         />
       } />
       
-      {/* Auth redirect for authenticated users */}
+      {/* Auth redirect for authenticated users - prevent auth page access when logged in */}
       <Route path="/auth" element={
         <Navigate 
           to={
