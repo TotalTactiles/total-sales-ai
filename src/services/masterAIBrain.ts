@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 
@@ -33,6 +32,21 @@ export interface AutomationTrigger {
   userId: string;
   companyId: string;
   metadata: any;
+}
+
+export interface AIRecommendation {
+  id: string;
+  type: 'optimization' | 'feature_request' | 'bug_report' | 'performance' | 'security';
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  confidence: number;
+  impact: string;
+  implementation: string;
+  userId: string;
+  companyId: string;
+  timestamp: Date;
+  resolved: boolean;
 }
 
 class MasterAIBrain {
