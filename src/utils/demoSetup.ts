@@ -9,11 +9,21 @@ export const ensureDemoUsersExist = async (): Promise<void> => {
     
     for (const demoUser of demoUsers) {
       try {
-        // Check if demo user already exists in auth.users
-        const { data: existingAuth } = await supabase.auth.admin.getUserByEmail(demoUser.email);
+        // Check if demo user already exists by attempting to sign in
+        const { data: existingAuth, error: signInError } = await supabase.auth.signInWithPassword({
+          email: demoUser.email,
+          password: demoUser.password,
+        });
         
-        if (!existingAuth.user) {
-          // Create demo user in auth system
+        // If sign in succeeds, user exists - sign them out immediately
+        if (existingAuth.user && !signInError) {
+          await supabase.auth.signOut();
+          logger.info(`✅ Demo user already exists: ${demoUser.email}`);
+          continue;
+        }
+        
+        // If sign in fails with invalid credentials, user doesn't exist - create them
+        if (signInError && signInError.message.includes('Invalid login credentials')) {
           logger.info(`🎭 Creating demo user: ${demoUser.email}`);
           
           const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -34,8 +44,8 @@ export const ensureDemoUsersExist = async (): Promise<void> => {
           
           logger.info(`✅ Demo user created: ${demoUser.email}`);
           logDemoLogin(demoUser.email, true);
-        } else {
-          logger.info(`✅ Demo user already exists: ${demoUser.email}`);
+        } else if (signInError) {
+          logger.error(`❌ Error checking demo user ${demoUser.email}:`, signInError);
         }
       } catch (error) {
         logger.error(`❌ Error processing demo user ${demoUser.email}:`, error);
