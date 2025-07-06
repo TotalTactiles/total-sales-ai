@@ -4,7 +4,7 @@ import { Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import DeveloperDashboard from '@/pages/developer/DeveloperDashboard';
-import ManagerDashboard from '@/pages/ManagerDashboard';
+import ManagerDashboard from '@/pages/manager/ManagerDashboard';
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import NewLandingPage from '@/pages/NewLandingPage';
 import AuthPage from '@/pages/auth/AuthPage';
@@ -42,7 +42,7 @@ const AppRoutes: React.FC = () => {
   }
 
   // User is authenticated - determine their role and route accordingly
-  const userRole = profile?.role || (isDemoUser ? demoRole : null);
+  const userRole = isDemoUser ? demoRole : profile?.role;
   
   logger.info('🧭 Routing authenticated user:', { 
     userId: user.id, 
