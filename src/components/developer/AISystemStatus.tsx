@@ -3,9 +3,10 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Brain, Zap, Bot, Settings, CheckCircle, AlertTriangle, Circle } from 'lucide-react';
+import { Brain, Zap, Bot, Settings, CheckCircle, AlertTriangle, Circle, Rocket } from 'lucide-react';
 import { useTSAMAI } from '@/contexts/TSAMAIContext';
 
+// AI_INTEGRATION_PENDING - Component ready but AI disabled until go-live
 const AISystemStatus: React.FC = () => {
   const { 
     isSystemReady, 
@@ -62,12 +63,14 @@ const AISystemStatus: React.FC = () => {
           {getStatusBadge(isSystemReady, "System Ready", "Initializing")}
           {getStatusBadge(isLive, "AI Live", "AI Offline")}
           
+          {/* AI_INTEGRATION_PENDING - Go-live button ready */}
           {isSystemReady && (
             <Button
               onClick={isLive ? handleDeactivateAI : handleActivateAI}
               disabled={isProcessing}
               className={isLive ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"}
             >
+              <Rocket className="h-4 w-4 mr-2" />
               {isLive ? "Deactivate AI" : "🚀 Go Live"}
             </Button>
           )}
@@ -108,7 +111,7 @@ const AISystemStatus: React.FC = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-300">Status</span>
-                {getStatusBadge(aiMetrics?.activeModels > 0, "Online", "Standby")}
+                {getStatusBadge((aiMetrics?.activeModels || 0) > 0, "Online", "Standby")}
               </div>
             </div>
           </CardContent>
@@ -167,7 +170,7 @@ const AISystemStatus: React.FC = () => {
         </Card>
       </div>
 
-      {/* Launch Readiness */}
+      {/* Launch Readiness - AI_INTEGRATION_PENDING */}
       <Card className="bg-gray-800 border-gray-700">
         <CardHeader>
           <CardTitle className="text-white">Launch Readiness Checklist</CardTitle>
@@ -179,19 +182,19 @@ const AISystemStatus: React.FC = () => {
               <span className="text-gray-300">System Initialized</span>
             </div>
             <div className="flex items-center gap-3">
-              {getStatusBadge(aiMetrics?.totalModels > 0)}
+              {getStatusBadge((aiMetrics?.totalModels || 0) > 0)}
               <span className="text-gray-300">AI Models Configured</span>
             </div>
             <div className="flex items-center gap-3">
-              {getStatusBadge(aiMetrics?.totalAgents > 0)}
+              {getStatusBadge((aiMetrics?.totalAgents || 0) > 0)}
               <span className="text-gray-300">AI Agents Ready</span>
             </div>
             <div className="flex items-center gap-3">
-              {getStatusBadge(automationStatus?.totalWorkflows > 0)}
+              {getStatusBadge((automationStatus?.totalWorkflows || 0) > 0)}
               <span className="text-gray-300">Automation Workflows Ready</span>
             </div>
             <div className="flex items-center gap-3">
-              {getStatusBadge(aiMetrics?.readyForLaunch)}
+              {getStatusBadge(aiMetrics?.readyForLaunch || false)}
               <span className="text-gray-300">Backend Infrastructure Ready</span>
             </div>
             <div className="flex items-center gap-3">
@@ -202,7 +205,8 @@ const AISystemStatus: React.FC = () => {
         </CardContent>
       </Card>
 
-      {aiMetrics?.readyForLaunch && !isLive && (
+      {/* AI_INTEGRATION_PENDING - Ready for launch banner */}
+      {(aiMetrics?.readyForLaunch || false) && !isLive && (
         <Card className="bg-green-500/10 border-green-500/30">
           <CardContent className="p-6 text-center">
             <h3 className="text-xl font-bold text-green-400 mb-2">✅ TSAM AI BACKEND READY FOR LAUNCH</h3>
@@ -215,8 +219,23 @@ const AISystemStatus: React.FC = () => {
               className="bg-green-600 hover:bg-green-700"
               size="lg"
             >
+              <Rocket className="h-5 w-5 mr-2" />
               🚀 Activate TSAM AI System
             </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI_INTEGRATION_PENDING - Disabled notice */}
+      {!isLive && (
+        <Card className="bg-yellow-500/10 border-yellow-500/30">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-400" />
+              <span className="text-yellow-400">
+                AI System is ready but disabled. All AI features are mocked until manual activation.
+              </span>
+            </div>
           </CardContent>
         </Card>
       )}

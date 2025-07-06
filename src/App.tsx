@@ -8,7 +8,14 @@ import GlobalFeedback from '@/components/feedback/GlobalFeedback';
 import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import { TSAMAIProvider } from '@/contexts/TSAMAIContext';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
@@ -17,7 +24,7 @@ function App() {
         <AuthProvider>
           <TSAMAIProvider>
             <UnifiedAIProvider>
-              <div className="min-h-screen w-full">
+              <div className="min-h-screen w-full overflow-hidden">
                 <GlobalFeedback />
                 <AppRoutes />
               </div>

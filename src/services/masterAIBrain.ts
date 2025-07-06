@@ -1,5 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
+
+// AI_INTEGRATION_PENDING - All interfaces ready but implementation disabled
 
 export interface AIAgentConfig {
   agentId: string;
@@ -54,6 +57,7 @@ class MasterAIBrain {
   private agents: Map<string, AIAgentConfig> = new Map();
   private interactionQueue: AIInteraction[] = [];
   private automationQueue: AutomationTrigger[] = [];
+  private isLive: boolean = false; // AI_INTEGRATION_PENDING - Disabled until go-live
 
   static getInstance(): MasterAIBrain {
     if (!MasterAIBrain.instance) {
@@ -64,16 +68,19 @@ class MasterAIBrain {
 
   constructor() {
     this.initializeAgents();
+    logger.info('Master AI Brain initialized - AI_INTEGRATION_PENDING', null, 'master_brain');
   }
 
   private initializeAgents() {
+    // AI_INTEGRATION_PENDING - Agent configurations ready but inactive
+    
     // Sales OS Agents
     this.registerAgent({
       agentId: 'sales-ai-primary',
       agentType: 'sales',
       capabilities: ['lead_analysis', 'email_generation', 'call_preparation', 'objection_handling'],
       workspace: 'sales',
-      isActive: false, // Will be activated on go-live
+      isActive: false, // AI_INTEGRATION_PENDING
       priority: 1
     });
 
@@ -82,7 +89,7 @@ class MasterAIBrain {
       agentType: 'automation',
       capabilities: ['email_sequences', 'lead_scoring', 'follow_up_scheduling'],
       workspace: 'sales',
-      isActive: false,
+      isActive: false, // AI_INTEGRATION_PENDING
       priority: 2
     });
 
@@ -92,7 +99,7 @@ class MasterAIBrain {
       agentType: 'manager',
       capabilities: ['team_analysis', 'performance_insights', 'strategic_planning', 'report_generation'],
       workspace: 'manager',
-      isActive: false,
+      isActive: false, // AI_INTEGRATION_PENDING
       priority: 1
     });
 
@@ -101,7 +108,7 @@ class MasterAIBrain {
       agentType: 'automation',
       capabilities: ['team_notifications', 'report_automation', 'goal_tracking'],
       workspace: 'manager',
-      isActive: false,
+      isActive: false, // AI_INTEGRATION_PENDING
       priority: 2
     });
 
@@ -111,7 +118,7 @@ class MasterAIBrain {
       agentType: 'developer',
       capabilities: ['code_analysis', 'bug_detection', 'system_optimization', 'error_resolution'],
       workspace: 'developer',
-      isActive: false,
+      isActive: false, // AI_INTEGRATION_PENDING
       priority: 1
     });
 
@@ -120,17 +127,23 @@ class MasterAIBrain {
       agentType: 'orchestrator',
       capabilities: ['cross_agent_communication', 'system_coordination', 'resource_management'],
       workspace: 'developer',
-      isActive: false,
+      isActive: false, // AI_INTEGRATION_PENDING
       priority: 1
     });
   }
 
   registerAgent(config: AIAgentConfig) {
     this.agents.set(config.agentId, config);
-    logger.info('AI Agent registered:', { agentId: config.agentId, workspace: config.workspace });
+    logger.info('AI Agent registered (inactive)', { agentId: config.agentId, workspace: config.workspace }, 'master_brain');
   }
 
   async processInteraction(interaction: Omit<AIInteraction, 'id' | 'timestamp' | 'status'>): Promise<string> {
+    // AI_INTEGRATION_PENDING - Mock implementation until go-live
+    if (!this.isLive) {
+      logger.info('AI interaction mocked - system not live', interaction, 'master_brain');
+      return this.generateMockResponse(interaction);
+    }
+
     const fullInteraction: AIInteraction = {
       ...interaction,
       id: crypto.randomUUID(),
@@ -138,13 +151,10 @@ class MasterAIBrain {
       status: 'pending'
     };
 
-    // Log to database
+    // Log to database (safe operation)
     await this.logInteraction(fullInteraction);
-
-    // Queue for processing (when AI goes live)
     this.interactionQueue.push(fullInteraction);
 
-    // For now, return simulation response
     return this.generateSimulationResponse(fullInteraction);
   }
 
@@ -164,14 +174,20 @@ class MasterAIBrain {
         });
 
       if (error) {
-        logger.error('Failed to log AI interaction:', error);
+        logger.error('Failed to log AI interaction:', error, 'master_brain');
       }
     } catch (error) {
-      logger.error('Error logging AI interaction:', error);
+      logger.error('Error logging AI interaction:', error, 'master_brain');
     }
   }
 
   async queueAutomationTrigger(trigger: Omit<AutomationTrigger, 'id' | 'status'>): Promise<void> {
+    // AI_INTEGRATION_PENDING - Mock automation until go-live
+    if (!this.isLive) {
+      logger.info('Automation trigger mocked - system not live', trigger, 'master_brain');
+      return;
+    }
+
     const fullTrigger: AutomationTrigger = {
       ...trigger,
       id: crypto.randomUUID(),
@@ -179,15 +195,13 @@ class MasterAIBrain {
     };
 
     this.automationQueue.push(fullTrigger);
-
-    // Log automation trigger
     await this.logAutomationTrigger(fullTrigger);
 
     logger.info('Automation trigger queued:', { 
       id: fullTrigger.id, 
       eventType: fullTrigger.eventType,
       targetAgent: fullTrigger.targetAgent 
-    });
+    }, 'master_brain');
   }
 
   private async logAutomationTrigger(trigger: AutomationTrigger): Promise<void> {
@@ -206,11 +220,24 @@ class MasterAIBrain {
         });
 
       if (error) {
-        logger.error('Failed to log automation trigger:', error);
+        logger.error('Failed to log automation trigger:', error, 'master_brain');
       }
     } catch (error) {
-      logger.error('Error logging automation trigger:', error);
+      logger.error('Error logging automation trigger:', error, 'master_brain');
     }
+  }
+
+  private generateMockResponse(interaction: any): string {
+    // AI_INTEGRATION_PENDING - Mock responses for system stability
+    const mockResponses = {
+      sales: "AI Assistant coming soon - Sales analysis ready for activation.",
+      manager: "AI Assistant coming soon - Management insights ready for activation.", 
+      developer: "AI Assistant coming soon - Developer tools ready for activation.",
+      automation: "AI Assistant coming soon - Automation workflows ready for activation.",
+      orchestrator: "AI Assistant coming soon - System orchestration ready for activation."
+    };
+
+    return mockResponses[interaction.agentType as keyof typeof mockResponses] || "AI Assistant coming soon.";
   }
 
   private generateSimulationResponse(interaction: AIInteraction): string {
@@ -225,27 +252,28 @@ class MasterAIBrain {
     return responses[interaction.agentType as keyof typeof responses] || "AI system ready for activation.";
   }
 
-  // Agent communication methods
+  // Agent communication methods - AI_INTEGRATION_PENDING
   async routeToAgent(agentId: string, data: any, userId: string, companyId: string): Promise<any> {
     const agent = this.agents.get(agentId);
     if (!agent) {
       throw new Error(`Agent ${agentId} not found`);
     }
 
-    if (!agent.isActive) {
-      logger.info('Agent not active, queuing request:', { agentId, workspace: agent.workspace });
-      return { status: 'queued', message: 'Agent ready for activation' };
+    if (!this.isLive || !agent.isActive) {
+      logger.info('Agent routing mocked - system not live', { agentId, workspace: agent.workspace }, 'master_brain');
+      return { status: 'mocked', message: 'AI Assistant coming soon', agent: agent.agentType, workspace: agent.workspace };
     }
 
     // When live, this will route to actual AI processing
     return { status: 'ready', agent: agent.agentType, workspace: agent.workspace };
   }
 
+  // AI_INTEGRATION_PENDING - System control methods for go-live
   async enableAgent(agentId: string): Promise<void> {
     const agent = this.agents.get(agentId);
     if (agent) {
       agent.isActive = true;
-      logger.info('AI Agent activated:', { agentId, workspace: agent.workspace });
+      logger.info('AI Agent activated:', { agentId, workspace: agent.workspace }, 'master_brain');
     }
   }
 
@@ -253,7 +281,16 @@ class MasterAIBrain {
     for (const [agentId, agent] of this.agents) {
       agent.isActive = true;
     }
-    logger.info('All AI agents activated for go-live');
+    this.isLive = true;
+    logger.info('🚀 All AI agents activated for go-live', null, 'master_brain');
+  }
+
+  async disableAllAgents(): Promise<void> {
+    for (const [agentId, agent] of this.agents) {
+      agent.isActive = false;
+    }
+    this.isLive = false;
+    logger.info('All AI agents deactivated', null, 'master_brain');
   }
 
   // Memory and context methods
@@ -271,10 +308,10 @@ class MasterAIBrain {
         });
 
       if (error) {
-        logger.error('Failed to store prompt cache:', error);
+        logger.error('Failed to store prompt cache:', error, 'master_brain');
       }
     } catch (error) {
-      logger.error('Error storing prompt cache:', error);
+      logger.error('Error storing prompt cache:', error, 'master_brain');
     }
   }
 
@@ -298,13 +335,20 @@ class MasterAIBrain {
       activeAgents,
       queuedInteractions,
       queuedAutomations,
-      readyForLaunch: totalAgents > 0 && activeAgents === 0, // All agents registered but not active yet
+      readyForLaunch: totalAgents > 0 && !this.isLive, // Ready but not live
+      isLive: this.isLive,
       agents: Array.from(this.agents.values())
     };
   }
 
   // Event ingestion for backwards compatibility
   async ingestEvent(event: any): Promise<void> {
+    // AI_INTEGRATION_PENDING - Event ingestion mocked until go-live
+    if (!this.isLive) {
+      logger.info('Event ingestion mocked - system not live', event, 'master_brain');
+      return;
+    }
+
     if (event.event_type === 'ai_input') {
       await this.processInteraction({
         userId: event.user_id,
@@ -337,10 +381,10 @@ class MasterAIBrain {
         });
 
       if (error) {
-        logger.error('Failed to store brain log:', error);
+        logger.error('Failed to store brain log:', error, 'master_brain');
       }
     } catch (error) {
-      logger.error('Error storing brain log:', error);
+      logger.error('Error storing brain log:', error, 'master_brain');
     }
   }
 }
