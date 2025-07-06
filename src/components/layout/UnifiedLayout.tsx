@@ -1,11 +1,12 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useDemoMode } from '@/contexts/DemoModeContext';
-import LogoutButton from '@/components/auth/LogoutButton';
-import SalesNavigation from '@/components/Navigation/SalesNavigation';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
+import { useLocation } from 'react-router-dom';
+import { getOSTheme } from '@/router/routes';
 import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
+import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
+import { cn } from '@/lib/utils';
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;
@@ -13,59 +14,65 @@ interface UnifiedLayoutProps {
 
 const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({ children }) => {
   const { profile } = useAuth();
-  const { isDemoUser, demoRole } = useDemoMode();
+  const location = useLocation();
+  
+  const osTheme = getOSTheme(profile?.role || 'sales_rep');
+  const isDeveloper = profile?.role === 'developer';
+  const isManager = profile?.role === 'manager';
+  const isSales = profile?.role === 'sales_rep';
 
-  const userRole = isDemoUser ? demoRole : profile?.role;
-
-  const renderNavigation = () => {
-    switch (userRole) {
-      case 'sales_rep':
-        return <SalesNavigation />;
+  const getThemeClasses = () => {
+    switch (osTheme) {
+      case 'dark':
+        return 'bg-gray-900 text-white min-h-screen';
       case 'manager':
-        return <ManagerNavigation />;
-      case 'developer':
-      case 'admin':
-        return <DeveloperNavigation />;
+        return 'bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen';
+      case 'sales':
+        return 'bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen';
       default:
-        return <SalesNavigation />;
+        return 'bg-white min-h-screen';
     }
   };
 
+  const renderNavigation = () => {
+    if (isDeveloper) {
+      return <DeveloperNavigation />;
+    }
+    if (isManager) {
+      return <ManagerNavigation />;
+    }
+    return <SalesRepNavigation />;
+  };
+
+  const getLayoutClasses = () => {
+    if (isDeveloper) {
+      return 'flex w-full min-h-screen';
+    }
+    return 'w-full min-h-screen';
+  };
+
+  const getMainClasses = () => {
+    if (isDeveloper) {
+      return 'flex-1 w-full min-w-0 overflow-hidden';
+    }
+    return 'w-full pt-16'; // Account for fixed top navigation
+  };
+
+  const getContentClasses = () => {
+    if (isDeveloper) {
+      return 'w-full h-full p-6 overflow-y-auto';
+    }
+    return 'w-full px-4 sm:px-6 lg:px-8 py-6';
+  };
+
   return (
-    <div className="min-h-screen">
-      {/* Navigation Panel */}
+    <div className={cn(getLayoutClasses(), getThemeClasses())}>
       {renderNavigation()}
-
-      {/* Main Content */}
-      <div className="ml-64">
-        {/* Top Bar */}
-        <div className="fixed top-0 right-0 left-64 h-16 bg-white/95 backdrop-blur-sm border-b border-gray-200 z-40 flex items-center justify-between px-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-lg font-semibold text-gray-900">
-              {userRole === 'sales_rep' ? 'Sales OS' : 
-               userRole === 'manager' ? 'Manager OS' : 
-               'Developer OS'}
-            </h1>
-            {isDemoUser && (
-              <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs rounded-full">
-                Demo Mode
-              </span>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">
-              {profile?.full_name || 'Demo User'}
-            </span>
-            <LogoutButton variant="outline" size="sm" />
-          </div>
-        </div>
-
-        {/* Page Content */}
-        <div className="pt-16">
+      <main className={cn(getMainClasses())}>
+        <div className={cn(getContentClasses())}>
           {children}
         </div>
-      </div>
+      </main>
     </div>
   );
 };

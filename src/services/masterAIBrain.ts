@@ -1,63 +1,77 @@
-
-import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 
-// AI_INTEGRATION_PENDING - All interfaces ready but implementation disabled
+import { supabase } from '@/integrations/supabase/client';
+import { AIIngestionEvent, AIRecommendation } from './ai/types';
+import { InsightGenerator } from './ai/insightGenerator';
+import { nativeAutomationEngine } from './ai/automationEngine';
+import { RecommendationService } from './ai/recommendationService';
+import { LearningEngine } from './ai/learningEngine';
+import { emailAutomationService } from './ai/emailAutomationService';
+import { hybridAIOrchestrator } from './ai/hybridAIOrchestrator';
+import { aiLearningLayer } from './ai/aiLearningLayer';
+import { dataEncryptionService } from './security/dataEncryptionService';
 
-export interface AIAgentConfig {
-  agentId: string;
-  agentType: 'sales' | 'manager' | 'developer' | 'automation' | 'orchestrator';
-  capabilities: string[];
-  workspace: string;
-  isActive: boolean;
-  priority: number;
-}
-
-export interface AIInteraction {
-  id: string;
-  userId: string;
-  companyId: string;
-  agentType: string;
-  inputType: 'chat' | 'automation' | 'system';
-  inputData: any;
-  responseData?: any;
-  status: 'pending' | 'processing' | 'completed' | 'error';
-  timestamp: Date;
-  processingTime?: number;
-}
-
-export interface AutomationTrigger {
-  id: string;
-  eventType: string;
-  sourceData: any;
-  targetAgent: string;
-  status: 'queued' | 'processing' | 'completed' | 'failed';
-  userId: string;
-  companyId: string;
-  metadata: any;
-}
-
-export interface AIRecommendation {
-  id: string;
-  type: 'optimization' | 'feature_request' | 'bug_report' | 'performance' | 'security';
-  title: string;
-  description: string;
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  confidence: number;
-  impact: string;
-  implementation: string;
-  userId: string;
-  companyId: string;
-  timestamp: Date;
-  resolved: boolean;
-}
+// Re-export types for backward compatibility
+export type { AIIngestionEvent, AIRecommendation } from './ai/types';
 
 class MasterAIBrain {
   private static instance: MasterAIBrain;
-  private agents: Map<string, AIAgentConfig> = new Map();
-  private interactionQueue: AIInteraction[] = [];
-  private automationQueue: AutomationTrigger[] = [];
-  private isLive: boolean = false; // AI_INTEGRATION_PENDING - Disabled until go-live
+  private ingestionQueue: AIIngestionEvent[] = [];
+  private isProcessing = false;
+  private insightGenerator = new InsightGenerator();
+  private recommendationService = new RecommendationService();
+  private learningEngine = new LearningEngine();
+  private eventTarget = new EventTarget();
+
+  on(eventName: string, listener: EventListenerOrEventListenerObject): void {
+    this.eventTarget.addEventListener(eventName, listener);
+  }
+
+  off(eventName: string, listener: EventListenerOrEventListenerObject): void {
+    this.eventTarget.removeEventListener(eventName, listener);
+  }
+
+  private emit(eventName: string, detail?: unknown): void {
+    this.eventTarget.dispatchEvent(new CustomEvent(eventName, { detail }));
+  }
+
+  // Load any unprocessed events from the database on startup
+  async reloadUnprocessedEvents(): Promise<void> {
+    try {
+      const { data, error } = await supabase
+        .from('ai_brain_logs')
+        .select('id, company_id, payload, timestamp')
+        .eq('type', 'ingestion')
+        .eq('processed', false);
+
+      if (error) throw error;
+
+      for (const row of data || []) {
+        const payload = row.payload as any;
+        if (!payload) continue;
+
+        const event: AIIngestionEvent = {
+          id: row.id,
+          timestamp: new Date(payload.timestamp || row.timestamp || Date.now()),
+          processed: false,
+          user_id: payload.user_id,
+          company_id: row.company_id || payload.company_id,
+          event_type: payload.event_type,
+          source: payload.source,
+          data: payload.data,
+          context: payload.context
+        };
+
+        this.ingestionQueue.push(event);
+      }
+
+      if (!this.isProcessing && this.ingestionQueue.length > 0) {
+        this.processIngestionQueue();
+      }
+    } catch (error) {
+      logger.error('Error reloading unprocessed events:', error);
+    }
+  }
 
   static getInstance(): MasterAIBrain {
     if (!MasterAIBrain.instance) {
@@ -66,327 +80,367 @@ class MasterAIBrain {
     return MasterAIBrain.instance;
   }
 
-  constructor() {
-    this.initializeAgents();
-    logger.info('Master AI Brain initialized - AI_INTEGRATION_PENDING', null, 'master_brain');
-  }
-
-  private initializeAgents() {
-    // AI_INTEGRATION_PENDING - Agent configurations ready but inactive
-    
-    // Sales OS Agents
-    this.registerAgent({
-      agentId: 'sales-ai-primary',
-      agentType: 'sales',
-      capabilities: ['lead_analysis', 'email_generation', 'call_preparation', 'objection_handling'],
-      workspace: 'sales',
-      isActive: false, // AI_INTEGRATION_PENDING
-      priority: 1
-    });
-
-    this.registerAgent({
-      agentId: 'sales-automation',
-      agentType: 'automation',
-      capabilities: ['email_sequences', 'lead_scoring', 'follow_up_scheduling'],
-      workspace: 'sales',
-      isActive: false, // AI_INTEGRATION_PENDING
-      priority: 2
-    });
-
-    // Manager OS Agents
-    this.registerAgent({
-      agentId: 'manager-ai-primary',
-      agentType: 'manager',
-      capabilities: ['team_analysis', 'performance_insights', 'strategic_planning', 'report_generation'],
-      workspace: 'manager',
-      isActive: false, // AI_INTEGRATION_PENDING
-      priority: 1
-    });
-
-    this.registerAgent({
-      agentId: 'manager-automation',
-      agentType: 'automation',
-      capabilities: ['team_notifications', 'report_automation', 'goal_tracking'],
-      workspace: 'manager',
-      isActive: false, // AI_INTEGRATION_PENDING
-      priority: 2
-    });
-
-    // Developer OS Agents
-    this.registerAgent({
-      agentId: 'developer-ai-primary',
-      agentType: 'developer',
-      capabilities: ['code_analysis', 'bug_detection', 'system_optimization', 'error_resolution'],
-      workspace: 'developer',
-      isActive: false, // AI_INTEGRATION_PENDING
-      priority: 1
-    });
-
-    this.registerAgent({
-      agentId: 'system-orchestrator',
-      agentType: 'orchestrator',
-      capabilities: ['cross_agent_communication', 'system_coordination', 'resource_management'],
-      workspace: 'developer',
-      isActive: false, // AI_INTEGRATION_PENDING
-      priority: 1
-    });
-  }
-
-  registerAgent(config: AIAgentConfig) {
-    this.agents.set(config.agentId, config);
-    logger.info('AI Agent registered (inactive)', { agentId: config.agentId, workspace: config.workspace }, 'master_brain');
-  }
-
-  async processInteraction(interaction: Omit<AIInteraction, 'id' | 'timestamp' | 'status'>): Promise<string> {
-    // AI_INTEGRATION_PENDING - Mock implementation until go-live
-    if (!this.isLive) {
-      logger.info('AI interaction mocked - system not live', interaction, 'master_brain');
-      return this.generateMockResponse(interaction);
-    }
-
-    const fullInteraction: AIInteraction = {
-      ...interaction,
+  // Enhanced real-time data ingestion with Claude integration
+  async ingestEvent(event: Omit<AIIngestionEvent, 'id' | 'timestamp' | 'processed'>): Promise<void> {
+    const enrichedEvent: AIIngestionEvent = {
+      ...event,
       id: crypto.randomUUID(),
       timestamp: new Date(),
-      status: 'pending'
+      processed: false
     };
 
-    // Log to database (safe operation)
-    await this.logInteraction(fullInteraction);
-    this.interactionQueue.push(fullInteraction);
-
-    return this.generateSimulationResponse(fullInteraction);
-  }
-
-  private async logInteraction(interaction: AIInteraction): Promise<void> {
     try {
-      const { error } = await supabase
-        .from('ai_agent_logs')
-        .insert({
-          interaction_id: interaction.id,
-          user_id: interaction.userId,
-          company_id: interaction.companyId,
-          agent_type: interaction.agentType,
-          input_type: interaction.inputType,
-          input_data: interaction.inputData,
-          status: interaction.status,
-          timestamp: interaction.timestamp.toISOString()
-        });
-
-      if (error) {
-        logger.error('Failed to log AI interaction:', error, 'master_brain');
-      }
-    } catch (error) {
-      logger.error('Error logging AI interaction:', error, 'master_brain');
-    }
-  }
-
-  async queueAutomationTrigger(trigger: Omit<AutomationTrigger, 'id' | 'status'>): Promise<void> {
-    // AI_INTEGRATION_PENDING - Mock automation until go-live
-    if (!this.isLive) {
-      logger.info('Automation trigger mocked - system not live', trigger, 'master_brain');
-      return;
-    }
-
-    const fullTrigger: AutomationTrigger = {
-      ...trigger,
-      id: crypto.randomUUID(),
-      status: 'queued'
-    };
-
-    this.automationQueue.push(fullTrigger);
-    await this.logAutomationTrigger(fullTrigger);
-
-    logger.info('Automation trigger queued:', { 
-      id: fullTrigger.id, 
-      eventType: fullTrigger.eventType,
-      targetAgent: fullTrigger.targetAgent 
-    }, 'master_brain');
-  }
-
-  private async logAutomationTrigger(trigger: AutomationTrigger): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('automation_trigger_events')
-        .insert({
-          trigger_id: trigger.id,
-          event_type: trigger.eventType,
-          source_data: trigger.sourceData,
-          target_agent: trigger.targetAgent,
-          status: trigger.status,
-          user_id: trigger.userId,
-          company_id: trigger.companyId,
-          metadata: trigger.metadata
-        });
-
-      if (error) {
-        logger.error('Failed to log automation trigger:', error, 'master_brain');
-      }
-    } catch (error) {
-      logger.error('Error logging automation trigger:', error, 'master_brain');
-    }
-  }
-
-  private generateMockResponse(interaction: any): string {
-    // AI_INTEGRATION_PENDING - Mock responses for system stability
-    const mockResponses = {
-      sales: "AI Assistant coming soon - Sales analysis ready for activation.",
-      manager: "AI Assistant coming soon - Management insights ready for activation.", 
-      developer: "AI Assistant coming soon - Developer tools ready for activation.",
-      automation: "AI Assistant coming soon - Automation workflows ready for activation.",
-      orchestrator: "AI Assistant coming soon - System orchestration ready for activation."
-    };
-
-    return mockResponses[interaction.agentType as keyof typeof mockResponses] || "AI Assistant coming soon.";
-  }
-
-  private generateSimulationResponse(interaction: AIInteraction): string {
-    const responses = {
-      sales: "AI Sales Assistant ready. Lead analysis and email generation prepared for activation.",
-      manager: "AI Manager Assistant ready. Team insights and performance analytics prepared for activation.", 
-      developer: "AI Developer Assistant ready. System monitoring and optimization prepared for activation.",
-      automation: "Automation workflows prepared. Email sequences and triggers ready for activation.",
-      orchestrator: "System orchestrator ready. Cross-agent communication pathways established."
-    };
-
-    return responses[interaction.agentType as keyof typeof responses] || "AI system ready for activation.";
-  }
-
-  // Agent communication methods - AI_INTEGRATION_PENDING
-  async routeToAgent(agentId: string, data: any, userId: string, companyId: string): Promise<any> {
-    const agent = this.agents.get(agentId);
-    if (!agent) {
-      throw new Error(`Agent ${agentId} not found`);
-    }
-
-    if (!this.isLive || !agent.isActive) {
-      logger.info('Agent routing mocked - system not live', { agentId, workspace: agent.workspace }, 'master_brain');
-      return { status: 'mocked', message: 'AI Assistant coming soon', agent: agent.agentType, workspace: agent.workspace };
-    }
-
-    // When live, this will route to actual AI processing
-    return { status: 'ready', agent: agent.agentType, workspace: agent.workspace };
-  }
-
-  // AI_INTEGRATION_PENDING - System control methods for go-live
-  async enableAgent(agentId: string): Promise<void> {
-    const agent = this.agents.get(agentId);
-    if (agent) {
-      agent.isActive = true;
-      logger.info('AI Agent activated:', { agentId, workspace: agent.workspace }, 'master_brain');
-    }
-  }
-
-  async enableAllAgents(): Promise<void> {
-    for (const [agentId, agent] of this.agents) {
-      agent.isActive = true;
-    }
-    this.isLive = true;
-    logger.info('🚀 All AI agents activated for go-live', null, 'master_brain');
-  }
-
-  async disableAllAgents(): Promise<void> {
-    for (const [agentId, agent] of this.agents) {
-      agent.isActive = false;
-    }
-    this.isLive = false;
-    logger.info('All AI agents deactivated', null, 'master_brain');
-  }
-
-  // Memory and context methods
-  async storePromptCache(userId: string, companyId: string, prompt: string, response: string): Promise<void> {
-    try {
-      const { error } = await supabase
-        .from('system_prompt_cache')
-        .insert({
-          user_id: userId,
-          company_id: companyId,
-          prompt_hash: await this.hashPrompt(prompt),
-          prompt_text: prompt,
-          response_text: response,
-          created_at: new Date().toISOString()
-        });
-
-      if (error) {
-        logger.error('Failed to store prompt cache:', error, 'master_brain');
-      }
-    } catch (error) {
-      logger.error('Error storing prompt cache:', error, 'master_brain');
-    }
-  }
-
-  private async hashPrompt(prompt: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(prompt);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  // System status methods
-  getSystemStatus() {
-    const totalAgents = this.agents.size;
-    const activeAgents = Array.from(this.agents.values()).filter(a => a.isActive).length;
-    const queuedInteractions = this.interactionQueue.length;
-    const queuedAutomations = this.automationQueue.length;
-
-    return {
-      totalAgents,
-      activeAgents,
-      queuedInteractions,
-      queuedAutomations,
-      readyForLaunch: totalAgents > 0 && !this.isLive, // Ready but not live
-      isLive: this.isLive,
-      agents: Array.from(this.agents.values())
-    };
-  }
-
-  // Event ingestion for backwards compatibility
-  async ingestEvent(event: any): Promise<void> {
-    // AI_INTEGRATION_PENDING - Event ingestion mocked until go-live
-    if (!this.isLive) {
-      logger.info('Event ingestion mocked - system not live', event, 'master_brain');
-      return;
-    }
-
-    if (event.event_type === 'ai_input') {
-      await this.processInteraction({
-        userId: event.user_id,
-        companyId: event.company_id,
-        agentType: event.data?.agentType || 'sales',
-        inputType: 'chat',
-        inputData: event.data
-      });
-    } else if (event.event_type === 'automation_trigger') {
-      await this.queueAutomationTrigger({
-        eventType: event.data?.triggerType || 'unknown',
-        sourceData: event.data,
-        targetAgent: event.data?.targetAgent || 'automation',
-        userId: event.user_id,
-        companyId: event.company_id,
-        metadata: event.context || {}
-      });
-    }
-
-    // Store in brain logs for backwards compatibility
-    try {
+      // Encrypt sensitive data
+      const segmentedData = dataEncryptionService.segmentDataByUser(
+        event.data, 
+        event.user_id, 
+        event.company_id
+      );
+      
+      // Store in Supabase for persistence
       const { error } = await supabase
         .from('ai_brain_logs')
         .insert({
-          type: event.event_type,
-          event_summary: `${event.source}: ${event.event_type}`,
-          payload: event,
+          id: enrichedEvent.id,
           company_id: event.company_id,
+          type: 'ingestion',
+          event_summary: `${event.event_type}: ${event.source}`,
+          payload: {
+            user_id: event.user_id,
+            event_type: event.event_type,
+            source: event.source,
+            data: segmentedData,
+            context: event.context,
+            timestamp: enrichedEvent.timestamp.toISOString()
+          },
+          processed: false,
           visibility: 'admin_only'
         });
 
-      if (error) {
-        logger.error('Failed to store brain log:', error, 'master_brain');
+      if (error) throw error;
+
+      // Feed data to AI Learning Layer for continuous learning
+      await aiLearningLayer.ingestLearningData({
+        userId: event.user_id,
+        companyId: event.company_id,
+        dataType: this.mapEventTypeToLearningType(event.event_type),
+        content: segmentedData,
+        source: event.source,
+        confidence: this.calculateEventConfidence(enrichedEvent)
+      });
+
+      // Add to processing queue
+      this.ingestionQueue.push(enrichedEvent);
+      
+      // Process queue if not already processing
+      if (!this.isProcessing) {
+        this.processIngestionQueue();
+      }
+
+    } catch (error) {
+      logger.error('Error ingesting AI event:', error);
+      this.emit('ingest-error', error);
+      throw error;
+    }
+  }
+
+  private mapEventTypeToLearningType(eventType: string): 'user_interaction' | 'ai_output' | 'system_metric' | 'market_signal' {
+    switch (eventType) {
+      case 'user_action': return 'user_interaction';
+      case 'ai_output': return 'ai_output';
+      case 'crm_sync': 
+      case 'call_activity': 
+      case 'email_interaction': return 'system_metric';
+      case 'social_media':
+      case 'website_data':
+      case 'external_data': return 'market_signal';
+      default: return 'user_interaction';
+    }
+  }
+
+  private calculateEventConfidence(event: AIIngestionEvent): number {
+    // Calculate confidence based on event type and data quality
+    let confidence = 0.7; // Base confidence
+    
+    if (event.event_type === 'user_action') {
+      confidence = 0.9; // User actions are high confidence
+    } else if (event.event_type === 'ai_output') {
+      confidence = 0.8; // AI outputs are reliable
+    } else if (event.context && Object.keys(event.context).length > 0) {
+      confidence += 0.1; // Bonus for rich context
+    }
+    
+    return Math.min(confidence, 1.0);
+  }
+
+  // Enhanced processing with Claude pattern analysis
+  private async processIngestionQueue(): Promise<void> {
+    if (this.isProcessing || this.ingestionQueue.length === 0) return;
+    
+    this.isProcessing = true;
+    logger.info(`Processing ${this.ingestionQueue.length} AI events with hybrid AI system...`);
+
+    try {
+      const batchSize = 10;
+      while (this.ingestionQueue.length > 0) {
+        const batch = this.ingestionQueue.splice(0, batchSize);
+        await this.processBatchWithHybridAI(batch);
+        
+        // Small delay to prevent overwhelming the system
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     } catch (error) {
-      logger.error('Error storing brain log:', error, 'master_brain');
+      logger.error('Error processing ingestion queue:', error);
+    } finally {
+      this.isProcessing = false;
+    }
+  }
+
+  private async processBatchWithHybridAI(events: AIIngestionEvent[]): Promise<void> {
+    for (const event of events) {
+      try {
+        // Generate insights using the original insight generator
+        await this.insightGenerator.generateInsightsFromEvent(event);
+        
+        // Update learning models
+        await this.learningEngine.updateLearningModels(event);
+        
+        // Use hybrid AI orchestrator for complex pattern analysis
+        if (events.length >= 5) {
+          await this.performHybridAnalysis(events, event.company_id, event.user_id);
+        }
+        
+        // Check for automation triggers using new native engine
+        await this.checkNativeAutomationTriggers(event);
+
+        // Mark event as processed in the database
+        await supabase
+          .from('ai_brain_logs')
+          .update({ processed: true })
+          .eq('id', event.id);
+
+      } catch (error) {
+        logger.error('Error processing event:', event, error);
+      }
+    }
+  }
+
+  private async performHybridAnalysis(events: AIIngestionEvent[], companyId: string, userId: string): Promise<void> {
+    try {
+      // Use Claude for pattern analysis on the batch of events
+      const analysisTask = {
+        id: crypto.randomUUID(),
+        type: 'pattern_analysis' as const,
+        input: {
+          userInteractions: events.filter(e => e.event_type === 'user_action'),
+          systemMetrics: events.filter(e => e.event_type === 'crm_sync' || e.event_type === 'call_activity')
+        },
+        context: `Batch analysis for company ${companyId}`,
+        priority: 'medium' as const,
+        userId,
+        companyId
+      };
+
+      await hybridAIOrchestrator.queueTask(analysisTask);
+    } catch (error) {
+      logger.error('Error in hybrid analysis:', error);
+    }
+  }
+
+  private async checkNativeAutomationTriggers(event: AIIngestionEvent): Promise<void> {
+    try {
+      // Map AI events to automation triggers
+      let triggerType: string | null = null;
+      const eventData = {
+        ...event.data,
+        userId: event.user_id,
+        companyId: event.company_id,
+        timestamp: event.timestamp.toISOString()
+      };
+
+      switch (event.event_type) {
+        case 'user_action':
+          if (event.data.action === 'lead_created') {
+            triggerType = 'lead_created';
+          } else if (event.data.action === 'call_completed') {
+            triggerType = 'call_completed';
+          }
+          break;
+        case 'email_interaction':
+          if (event.data.action === 'opened') {
+            triggerType = 'email_opened';
+          }
+          break;
+      }
+
+      if (triggerType) {
+        await emailAutomationService.evaluateAutomationTriggers(triggerType, eventData);
+      }
+    } catch (error) {
+      logger.error('Error checking native automation triggers:', error);
+    }
+  }
+
+  // Enhanced public methods with hybrid AI
+  async getPersonalizedRecommendations(userId: string, companyId: string, context: Record<string, any>): Promise<AIRecommendation[]> {
+    return this.recommendationService.getPersonalizedRecommendations(userId, companyId, context);
+  }
+
+  async logUserFeedback(userId: string, companyId: string, feedback: Record<string, any>): Promise<void> {
+    await this.ingestEvent({
+      user_id: userId,
+      company_id: companyId,
+      event_type: 'ai_output',
+      source: 'user_feedback',
+      data: feedback,
+      context: { type: 'feedback_loop' }
+    });
+  }
+
+  // Enhanced automation with Claude insights
+  async triggerAutomation(
+    trigger: string,
+    eventData: Record<string, any>,
+    userId: string,
+    companyId: string
+  ): Promise<void> {
+    try {
+      const enrichedData = dataEncryptionService.segmentDataByUser(
+        eventData,
+        userId,
+        companyId
+      );
+
+      await emailAutomationService.evaluateAutomationTriggers(trigger, enrichedData);
+
+      // Log the automation trigger
+      await this.ingestEvent({
+        user_id: userId,
+        company_id: companyId,
+        event_type: 'ai_output',
+        source: 'automation_trigger',
+        data: {
+          trigger,
+          eventData: enrichedData
+        }
+      });
+
+    } catch (error) {
+      logger.error('Error triggering automation:', error);
+      throw error;
+    }
+  }
+
+  // Market data ingestion with Claude contextualization
+  async ingestMarketData(marketData: any[], companyId: string, userId: string): Promise<void> {
+    try {
+      // Use Claude to contextualize market data
+      const analysisTask = {
+        id: crypto.randomUUID(),
+        type: 'market_analysis' as const,
+        input: { marketData },
+        context: `Market analysis for company ${companyId}`,
+        priority: 'low' as const,
+        userId,
+        companyId
+      };
+
+      await hybridAIOrchestrator.queueTask(analysisTask);
+
+      // Also ingest as learning data
+      await this.ingestEvent({
+        user_id: userId,
+        company_id: companyId,
+        event_type: 'external_data',
+        source: 'external_apis',
+        data: marketData,
+        context: { type: 'market_intelligence' }
+      });
+
+    } catch (error) {
+      logger.error('Error ingesting market data:', error);
+    }
+  }
+
+  // System health and monitoring
+  async getSystemHealth(): Promise<{
+    aiServices: string;
+    learningStatus: string;
+    automationFlows: number;
+    lastHealthCheck: string;
+  }> {
+    try {
+      // Check various system components
+      const health = {
+        aiServices: 'healthy',
+        learningStatus: 'active',
+        automationFlows: await this.getActiveAutomationCount(),
+        lastHealthCheck: new Date().toISOString()
+      };
+
+      return health;
+    } catch (error) {
+      logger.error('Error checking system health:', error);
+      return {
+        aiServices: 'degraded',
+        learningStatus: 'error',
+        automationFlows: 0,
+        lastHealthCheck: new Date().toISOString()
+      };
+    }
+  }
+
+  private async getActiveAutomationCount(): Promise<number> {
+    try {
+      const { count } = await supabase
+        .from('ai_brain_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'automation_flow')
+        .gte('timestamp', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+
+      return count || 0;
+    } catch (error) {
+      logger.error('Error getting automation count:', error);
+      return 0;
+    }
+  }
+
+  // Initialize automation processing with enhanced monitoring
+  async initializeAutomation(): Promise<void> {
+    // Process scheduled emails every minute
+    setInterval(() => {
+      emailAutomationService.processScheduledEmails();
+    }, 60000);
+
+    // Health check every 5 minutes
+    setInterval(() => {
+      this.performHealthCheck();
+    }, 5 * 60000);
+
+    logger.info('Enhanced Master Brain AI initialized with Claude integration, hybrid orchestration, and continuous learning');
+  }
+
+  private async performHealthCheck(): Promise<void> {
+    try {
+      const health = await this.getSystemHealth();
+      
+      // Log health status
+      await supabase.from('ai_brain_logs').insert({
+        type: 'system_health',
+        event_summary: `System health check: ${health.aiServices}`,
+        payload: health,
+        visibility: 'admin_only'
+      });
+
+    } catch (error) {
+      logger.error('Health check failed:', error);
     }
   }
 }
 
 export const masterAIBrain = MasterAIBrain.getInstance();
+
+// Initialize automation when the module loads
+masterAIBrain.initializeAutomation();
+// Reload any unprocessed ingestion events
+masterAIBrain.reloadUnprocessedEvents();

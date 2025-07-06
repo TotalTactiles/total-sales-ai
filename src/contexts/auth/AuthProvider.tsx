@@ -2,13 +2,20 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { AuthContextType, Profile } from './types';
 import { logger } from '@/utils/logger';
-import { AuthContextType, Profile, Role } from './types';
-import { signIn as authSignIn, signUp as authSignUp, signUpWithOAuth as authSignUpWithOAuth, signOut as authSignOut } from './authService';
-import { fetchProfile as profileFetch, createProfile } from './profileService';
-import { isDemoMode, demoUsers, logDemoLogin } from '@/data/demo.mock.data';
+import { signIn, signUp, signUpWithOAuth, signOut } from './authService';
+import { showAuthFeedback } from '@/utils/feedbackHelpers';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -16,172 +23,186 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string): Promise<Profile | null> => {
+  // Simplified profile fetching
+  const fetchUserProfile = async (userId: string): Promise<Profile | null> => {
     try {
-      let userProfile = await profileFetch(userId);
-      
-      if (!userProfile && user) {
-        userProfile = await createProfile(user);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.warn('Profile not found:', error.message);
+        return null;
       }
-      
-      return userProfile;
+
+      return data as Profile;
     } catch (error) {
-      logger.error('Error fetching profile:', error);
+      console.error('Error fetching profile:', error);
       return null;
     }
   };
 
-  const handleAuthStateChange = async (event: string, session: Session | null) => {
-    logger.info('🔐 Auth state changed:', { event, hasSession: !!session });
-    
-    setSession(session);
-    setUser(session?.user ?? null);
-
-    if (session?.user) {
-      // Check if this is a demo user
-      const demoUser = demoUsers.find(du => du.email === session.user.email);
-      
-      if (demoUser) {
-        // Create demo profile
-        const demoProfile: Profile = {
-          id: session.user.id,
-          full_name: demoUser.name,
-          role: demoUser.role as Role,
-          company_id: session.user.id,
-          email: session.user.email,
-          phone_number: null,
-          email_connected: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          last_login: new Date().toISOString(),
-          onboarding_step: null,
-          has_completed_onboarding: true,
-          assistant_name: 'AI Assistant',
-          voice_style: 'professional',
-          industry: null,
-          onboarding_complete: true,
-          sales_personality: null,
-          sales_style: null,
-          strength_area: null,
-          rep_motivation: null,
-          primary_goal: null,
-          motivation_trigger: null,
-          weakness: null,
-          mental_state_trigger: null,
-          management_style: null,
-          team_size: null,
-          preferred_team_personality: null,
-          team_obstacle: null,
-          business_goal: null,
-          influence_style: null
-        };
-        
-        setProfile(demoProfile);
-        logDemoLogin(session.user.email!, true);
-      } else {
-        const userProfile = await fetchProfile(session.user.id);
-        setProfile(userProfile);
-      }
-    } else {
-      setProfile(null);
-    }
-    
-    setLoading(false);
-  };
-
+  // Initialize auth state
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
+    let mounted = true;
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      handleAuthStateChange('INITIAL_SESSION', session);
-    });
+    const initAuth = async () => {
+      try {
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          logger.error('Error getting session:', error, 'auth');
+        }
+
+        if (mounted) {
+          setSession(session);
+          setUser(session?.user ?? null);
+          
+          // Fetch profile if user exists
+          if (session?.user) {
+            const profileData = await fetchUserProfile(session.user.id);
+            if (mounted) {
+              setProfile(profileData);
+            }
+          }
+          
+          setLoading(false);
+        }
+      } catch (error) {
+        logger.error('Auth initialization error:', error, 'auth');
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+        
+        logger.info('Auth state changed:', { event, hasSession: !!session }, 'auth');
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user) {
+          // Fetch profile for authenticated user
+          fetchUserProfile(session.user.id).then(profileData => {
+            if (mounted) {
+              setProfile(profileData);
+            }
+          });
+        } else {
+          setProfile(null);
+        }
+        
+        setLoading(false);
+      }
+    );
+
+    initAuth();
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const handleSignIn = async (email: string, password: string) => {
+    logger.info('Sign in attempt:', { email }, 'auth');
+    
     try {
-      logger.info('🔐 Attempting sign in for:', email);
-      
-      // Check if this is a demo user
-      const demoUser = demoUsers.find(du => du.email === email && du.password === password);
-      
-      if (isDemoMode && demoUser) {
-        // For demo users, use the actual auth system but log the attempt
-        logDemoLogin(email, true);
-      }
-      
-      const result = await authSignIn(email, password);
+      const result = await signIn(email, password);
       
       if (result.error) {
-        logger.error('❌ Sign in failed:', result.error);
-        logDemoLogin(email, false);
-      } else {
-        logger.info('✅ Sign in successful');
+        logger.error('Sign in failed:', result.error, 'auth');
+        showAuthFeedback.loginError(result.error.message);
+        return result;
       }
-      
-      return { error: result.error };
+
+      logger.info('Sign in successful', {}, 'auth');
+      showAuthFeedback.loginSuccess();
+      return result;
     } catch (error) {
-      logger.error('❌ Sign in exception:', error);
+      logger.error('Sign in exception:', error, 'auth');
+      showAuthFeedback.loginError();
       return { error };
     }
   };
 
-  const signUp = async (email: string, password: string, options?: any) => {
-    const result = await authSignUp(email, password, options);
-    return { error: result.error };
-  };
-
-  const signUpWithOAuth = async (provider: 'google' | 'github') => {
-    const result = await authSignUpWithOAuth(provider);
-    return { error: result.error };
-  };
-
-  const signOut = async (): Promise<void> => {
+  const handleSignUp = async (email: string, password: string, options?: any) => {
+    logger.info('Sign up attempt:', { email }, 'auth');
+    
     try {
-      logger.info('🔐 Starting sign out process');
+      const result = await signUp(email, password, options);
       
-      await authSignOut();
+      if (result.error) {
+        logger.error('Sign up failed:', result.error, 'auth');
+        showAuthFeedback.signupError(result.error.message);
+        return result;
+      }
+
+      logger.info('Sign up successful', {}, 'auth');
+      showAuthFeedback.signupSuccess();
+      return result;
+    } catch (error) {
+      logger.error('Sign up exception:', error, 'auth');
+      showAuthFeedback.signupError();
+      return { error };
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      logger.info('Starting sign out', {}, 'auth');
       
-      // Clear all state immediately
+      // Clear state immediately for responsive UI
       setUser(null);
-      setProfile(null);
       setSession(null);
+      setProfile(null);
       
-      // Clear local storage
-      if (typeof window !== 'undefined') {
-        localStorage.clear();
-        sessionStorage.clear();
+      const { error } = await signOut();
+      
+      if (error) {
+        logger.error('Sign out error:', error, 'auth');
+      } else {
+        logger.info('Sign out successful', {}, 'auth');
+        showAuthFeedback.logoutSuccess();
       }
       
-      logger.info('✅ Sign out completed successfully');
+      return { error: null };
+      
     } catch (error) {
-      logger.error('❌ Error during sign out:', error);
-      // Still clear local state even if server signout fails
-      setUser(null);
-      setProfile(null);
-      setSession(null);
-      throw error;
+      logger.error('Sign out exception:', error, 'auth');
+      return { error: null };
     }
+  };
+
+  const fetchProfile = async () => {
+    if (!user?.id) return null;
+    
+    const profileData = await fetchUserProfile(user.id);
+    setProfile(profileData);
+    return profileData;
   };
 
   const value: AuthContextType = {
     user,
     profile,
-    session,
     loading,
-    signIn,
-    signUp,
+    session,
+    signIn: handleSignIn,
+    signUp: handleSignUp,
     signUpWithOAuth,
-    signOut,
+    signOut: handleSignOut,
     fetchProfile
   };
 
@@ -190,12 +211,4 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

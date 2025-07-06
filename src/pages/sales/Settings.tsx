@@ -1,187 +1,158 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Settings, User, Bell, Shield, Palette, Database } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Settings, Bell, Link2, Shield, User, Save } from 'lucide-react';
 
-const SalesSettings: React.FC = () => {
+const SettingsPage: React.FC = () => {
+  const [notifications, setNotifications] = useState(true);
+  const [autoDialer, setAutoDialer] = useState(false);
+  const [callRecording, setCallRecording] = useState(true);
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 p-6 pl-72">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600">Customize your Sales OS experience</p>
+          <p className="text-gray-600">Manage your account and preferences</p>
         </div>
-        <Badge className="bg-gray-100 text-gray-800">
-          <Settings className="h-3 w-3 mr-1" />
-          Preferences
-        </Badge>
+
+        <Tabs defaultValue="general" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="general">General</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            <TabsTrigger value="privacy">Privacy</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="general">
+            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-6 w-6" />
+                  General Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="timezone">Time Zone</Label>
+                    <Input id="timezone" defaultValue="Pacific Time (PST)" />
+                  </div>
+                  <div>
+                    <Label htmlFor="language">Language</Label>
+                    <Input id="language" defaultValue="English" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-6 w-6" />
+                  Notification Preferences
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Push Notifications</Label>
+                    <p className="text-sm text-gray-600">Receive AI nudges and reminders</p>
+                  </div>
+                  <Switch checked={notifications} onCheckedChange={setNotifications} />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Auto Dialer Alerts</Label>
+                    <p className="text-sm text-gray-600">Get notified when leads become available</p>
+                  </div>
+                  <Switch checked={autoDialer} onCheckedChange={setAutoDialer} />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Call Recording Notifications</Label>
+                    <p className="text-sm text-gray-600">Alerts when call analysis is ready</p>
+                  </div>
+                  <Switch checked={callRecording} onCheckedChange={setCallRecording} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="integrations">
+            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Link2 className="h-6 w-6" />
+                  Integrations
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Link2 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Connect Your Tools</h3>
+                  <p className="text-gray-600 mb-6">Integrate with your favorite sales tools</p>
+                  <Button>
+                    Browse Integrations
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="privacy">
+            <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-6 w-6" />
+                  Privacy & Security
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Data Sharing</Label>
+                    <p className="text-sm text-gray-600">Share anonymized data to improve AI</p>
+                  </div>
+                  <Switch />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Call Recording</Label>
+                    <p className="text-sm text-gray-600">Automatically record calls for AI analysis</p>
+                  </div>
+                  <Switch />
+                </div>
+
+                <div className="pt-4 border-t">
+                  <Button variant="destructive" size="sm">
+                    Delete Account
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+
+        <div className="mt-8">
+          <Button size="lg" className="w-full md:w-auto">
+            <Save className="h-4 w-4 mr-2" />
+            Save Changes
+          </Button>
+        </div>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Profile Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="h-5 w-5 mr-2" />
-              Profile Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Full Name</label>
-              <Input placeholder="Your full name" />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Email</label>
-              <Input placeholder="your.email@company.com" />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Phone</label>
-              <Input placeholder="+1 (555) 123-4567" />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Territory</label>
-              <Input placeholder="North America" />
-            </div>
-            <Button>Save Profile</Button>
-          </CardContent>
-        </Card>
-
-        {/* Notification Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Bell className="h-5 w-5 mr-2" />
-              Notifications
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Lead Assignments</p>
-                <p className="text-sm text-gray-600">Get notified of new leads</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Deal Updates</p>
-                <p className="text-sm text-gray-600">Pipeline changes and wins</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">AI Insights</p>
-                <p className="text-sm text-gray-600">Smart recommendations</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Daily Digest</p>
-                <p className="text-sm text-gray-600">Morning summary email</p>
-              </div>
-              <Switch />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Security Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Shield className="h-5 w-5 mr-2" />
-              Security
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Two-Factor Authentication</p>
-                <p className="text-sm text-gray-600">Add extra security to your account</p>
-              </div>
-              <Switch />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Session Timeout</p>
-                <p className="text-sm text-gray-600">Auto-logout after inactivity</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <Button variant="outline">Change Password</Button>
-          </CardContent>
-        </Card>
-
-        {/* AI Assistant Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Palette className="h-5 w-5 mr-2" />
-              AI Assistant
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Assistant Name</label>
-              <Input placeholder="AI Assistant" />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Voice Coaching</p>
-                <p className="text-sm text-gray-600">Real-time call guidance</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Auto Lead Scoring</p>
-                <p className="text-sm text-gray-600">AI-powered lead prioritization</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Smart Reminders</p>
-                <p className="text-sm text-gray-600">Intelligent follow-up alerts</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Data & Privacy */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Database className="h-5 w-5 mr-2" />
-            Data & Privacy
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline">Export Data</Button>
-            <Button variant="outline">Privacy Settings</Button>
-            <Button variant="destructive">Delete Account</Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
 
-export default SalesSettings;
+export default SettingsPage;

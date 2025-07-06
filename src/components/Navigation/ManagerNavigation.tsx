@@ -1,62 +1,127 @@
 
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
-  LayoutDashboard, 
-  Users, 
-  BarChart3, 
-  Target,
-  Brain,
-  FileText,
-  Activity,
-  Settings,
-  TrendingUp,
-  Shield
+  Menu,
+  X
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import UserDropdown from './UserDropdown';
+import UnifiedNotificationCenter from './UnifiedNotificationCenter';
 
 const ManagerNavigation: React.FC = () => {
-  const navigate = useNavigate();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { profile } = useAuth();
 
   const navItems = [
-    { path: '/manager/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/manager/business-ops', label: 'Business Ops', icon: TrendingUp },
-    { path: '/manager/team', label: 'Team Management', icon: Users },
-    { path: '/manager/leads', label: 'Lead Management', icon: Target },
-    { path: '/manager/ai', label: 'AI Assistant', icon: Brain },
-    { path: '/manager/company-brain', label: 'Company Brain', icon: FileText },
-    { path: '/manager/security', label: 'Security', icon: Shield },
-    { path: '/manager/reports', label: 'Reports', icon: BarChart3 },
-    { path: '/manager/settings', label: 'Settings', icon: Settings },
+    { name: 'Dashboard', href: '/manager/dashboard' },
+    { name: 'Business Ops', href: '/manager/business-ops' },
+    { name: 'Team', href: '/manager/team' },
+    { name: 'Leads', href: '/manager/leads' },
+    { name: 'AI Assistant', href: '/manager/ai' },
+    { name: 'Company Brain', href: '/manager/company-brain' },
+    { name: 'Security', href: '/manager/security' },
+    { name: 'Reports', href: '/manager/reports' },
+    { name: 'Settings', href: '/manager/settings' }
   ];
 
+  const isActive = (href: string) => {
+    return location.pathname === href || location.pathname.startsWith(href + '/');
+  };
+
   return (
-    <nav className="fixed left-0 top-0 h-full w-64 bg-white/95 backdrop-blur-sm border-r border-gray-200 shadow-lg z-50">
-      <div className="p-6">
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-blue-900">Manager OS</h2>
-          <p className="text-sm text-blue-600">v2.1</p>
+    <nav className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-50">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo and Brand */}
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">T</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">TSAM</span>
+            </div>
+            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+              Manager OS
+            </Badge>
+          </div>
+
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center space-x-1">
+            {navItems.map((item) => {
+              return (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer hover:bg-gray-100 ${
+                    isActive(item.href)
+                      ? 'bg-purple-100 text-purple-700'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {item.name}
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Right Side - Notifications, AI Status, User Menu */}
+          <div className="flex items-center gap-3">
+            {/* AI Assistant Status */}
+            <Badge variant="outline" className="hidden sm:flex bg-purple-50 text-purple-700 border-purple-200">
+              <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+              Manager AI Active
+            </Badge>
+
+            {/* Notifications */}
+            <UnifiedNotificationCenter />
+
+            {/* User Profile */}
+            <UserDropdown />
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="lg:hidden p-2"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
+          </div>
         </div>
-        
-        <div className="space-y-2">
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Button
-                key={item.path}
-                variant={isActive ? 'default' : 'ghost'}
-                className={`w-full justify-start gap-3 ${
-                  isActive ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'hover:bg-blue-50'
-                }`}
-                onClick={() => navigate(item.path)}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Button>
-            );
-          })}
-        </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden border-t border-gray-200 py-3">
+            <div className="space-y-1">
+              {navItems.map((item) => {
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center justify-center px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                      isActive(item.href)
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
