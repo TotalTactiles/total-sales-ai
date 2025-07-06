@@ -18,6 +18,19 @@ const DeveloperDashboard: React.FC = () => {
     );
   }
 
+  // Ensure systemHealth has proper structure with fallbacks
+  const healthData = {
+    performance: 'Online',
+    activeAgents: 6,
+    apiCalls: 1247,
+    uptime: '99.8%',
+    errors: 0,
+    responseTime: 45,
+    memoryUsage: 68,
+    cpuUsage: 23,
+    ...systemHealth
+  };
+
   return (
     <div className="space-y-6">
       {/* Demo Actions Panel */}
@@ -45,7 +58,7 @@ const DeveloperDashboard: React.FC = () => {
           <CardContent>
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-green-400" />
-              <span className="text-lg font-bold text-white">{systemHealth.performance || 'Online'}</span>
+              <span className="text-lg font-bold text-white">{healthData.performance}</span>
             </div>
           </CardContent>
         </Card>
@@ -57,7 +70,7 @@ const DeveloperDashboard: React.FC = () => {
           <CardContent>
             <div className="flex items-center gap-2">
               <Brain className="h-4 w-4 text-yellow-400" />
-              <span className="text-lg font-bold text-white">{systemHealth.activeAgents || 6} Active</span>
+              <span className="text-lg font-bold text-white">{healthData.activeAgents} Active</span>
             </div>
           </CardContent>
         </Card>
@@ -69,7 +82,7 @@ const DeveloperDashboard: React.FC = () => {
           <CardContent>
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-blue-400" />
-              <span className="text-lg font-bold text-white">{systemHealth.apiCalls || 1247}</span>
+              <span className="text-lg font-bold text-white">{healthData.apiCalls.toLocaleString()}</span>
             </div>
           </CardContent>
         </Card>
@@ -81,7 +94,7 @@ const DeveloperDashboard: React.FC = () => {
           <CardContent>
             <div className="flex items-center gap-2">
               <CheckCircle className="h-4 w-4 text-green-400" />
-              <span className="text-lg font-bold text-white">{systemHealth.uptime || '99.8%'}</span>
+              <span className="text-lg font-bold text-white">{healthData.uptime}</span>
             </div>
           </CardContent>
         </Card>
@@ -210,7 +223,7 @@ const DeveloperDashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="text-center py-6">
-            <div className="text-2xl font-bold text-green-400 mb-2">{systemHealth.errors || 0}</div>
+            <div className="text-2xl font-bold text-green-400 mb-2">{healthData.errors}</div>
             <div className="text-gray-400">Errors in last 24h</div>
           </div>
         </CardContent>
