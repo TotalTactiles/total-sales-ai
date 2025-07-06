@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import DeveloperDashboard from '@/pages/DeveloperDashboard';
 import NewLandingPage from '@/pages/NewLandingPage';
+import AuthPage from '@/pages/auth/AuthPage';
 
 const AppRoutes: React.FC = () => {
   const { user, profile, loading } = useAuth();
@@ -21,27 +22,13 @@ const AppRoutes: React.FC = () => {
     );
   }
 
-  // If no user, show landing page or redirect to auth
+  // If no user, show public routes (landing page and auth)
   if (!user) {
     return (
       <Routes>
         <Route path="/" element={<NewLandingPage />} />
-        <Route path="/auth" element={
-          <div className="min-h-screen bg-gray-900 flex items-center justify-center text-white">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
-              <p>Please sign in to access TSAM OS</p>
-              <div className="mt-4">
-                <button 
-                  onClick={() => window.location.href = '/landing'}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Back to Landing
-                </button>
-              </div>
-            </div>
-          </div>
-        } />
+        <Route path="/landing" element={<NewLandingPage />} />
+        <Route path="/auth" element={<AuthPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );
@@ -75,6 +62,15 @@ const AppRoutes: React.FC = () => {
         
         {/* Default Routes based on user role */}
         <Route path="/" element={
+          <Navigate 
+            to={profile?.role === 'developer' ? '/developer/dashboard' : 
+                profile?.role === 'manager' ? '/manager/dashboard' : 
+                '/sales/dashboard'} 
+            replace 
+          />
+        } />
+        
+        <Route path="/auth" element={
           <Navigate 
             to={profile?.role === 'developer' ? '/developer/dashboard' : 
                 profile?.role === 'manager' ? '/manager/dashboard' : 
