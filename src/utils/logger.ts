@@ -1,18 +1,22 @@
 
 export const logger = {
-  info: (message: string, data?: any) => {
-    console.log(`[INFO] ${message}`, data || '');
+  info: (message: string, data?: any, context?: string) => {
+    const prefix = context ? `[${context.toUpperCase()}]` : '';
+    console.log(`${prefix}[INFO] ${message}`, data || '');
   },
   
-  error: (message: string, error?: any) => {
-    console.error(`[ERROR] ${message}`, error || '');
+  error: (message: string, error?: any, context?: string) => {
+    const prefix = context ? `[${context.toUpperCase()}]` : '';
+    console.error(`${prefix}[ERROR] ${message}`, error || '');
   },
   
-  warn: (message: string, data?: any) => {
-    console.warn(`[WARN] ${message}`, data || '');
+  warn: (message: string, data?: any, context?: string) => {
+    const prefix = context ? `[${context.toUpperCase()}]` : '';
+    console.warn(`${prefix}[WARN] ${message}`, data || '');
   },
   
-  debug: (message: string, data?: any) => {
-    console.debug(`[DEBUG] ${message}`, data || '');
+  debug: (message: string, data?: any, context?: string) => {
+    const prefix = context ? `[${context.toUpperCase()}]` : '';
+    console.debug(`${prefix}[DEBUG] ${message}`, data || '');
   }
 };
