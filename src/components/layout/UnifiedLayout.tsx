@@ -1,12 +1,7 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocation } from 'react-router-dom';
-import { getOSTheme } from '@/router/routes';
-import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
-import { cn } from '@/lib/utils';
+import LogoutButton from '@/components/auth/LogoutButton';
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;
@@ -14,64 +9,59 @@ interface UnifiedLayoutProps {
 
 const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({ children }) => {
   const { profile } = useAuth();
-  const location = useLocation();
-  
-  const osTheme = getOSTheme(profile?.role || 'sales_rep');
-  const isDeveloper = profile?.role === 'developer';
-  const isManager = profile?.role === 'manager';
-  const isSales = profile?.role === 'sales_rep';
 
   const getThemeClasses = () => {
-    switch (osTheme) {
-      case 'dark':
-        return 'bg-gray-900 text-white min-h-screen w-full';
+    switch (profile?.role) {
+      case 'developer':
+      case 'admin':
+        return 'bg-gray-900 text-white';
       case 'manager':
-        return 'bg-gradient-to-br from-purple-50 to-blue-50 min-h-screen w-full';
-      case 'sales':
-        return 'bg-gradient-to-br from-blue-50 to-cyan-50 min-h-screen w-full';
+        return 'bg-blue-50 text-blue-900';
+      case 'sales_rep':
       default:
-        return 'bg-gray-900 text-white min-h-screen w-full';
+        return 'bg-green-50 text-green-900';
     }
   };
 
-  const renderNavigation = () => {
-    if (isDeveloper) {
-      return <DeveloperNavigation />;
+  const getRoleDisplay = () => {
+    switch (profile?.role) {
+      case 'developer':
+        return 'Developer OS';
+      case 'admin':
+        return 'Admin OS';
+      case 'manager':
+        return 'Manager OS';
+      case 'sales_rep':
+        return 'Sales OS';
+      default:
+        return 'TSAM OS';
     }
-    if (isManager) {
-      return <ManagerNavigation />;
-    }
-    return <SalesRepNavigation />;
-  };
-
-  const getLayoutClasses = () => {
-    if (isDeveloper) {
-      return 'flex w-full min-h-screen overflow-hidden';
-    }
-    return 'w-full min-h-screen';
-  };
-
-  const getMainClasses = () => {
-    if (isDeveloper) {
-      return 'flex-1 w-full min-w-0 overflow-hidden bg-gray-900';
-    }
-    return 'w-full pt-16 bg-inherit';
-  };
-
-  const getContentClasses = () => {
-    if (isDeveloper) {
-      return 'w-full h-full min-h-screen p-6 overflow-y-auto bg-gray-900';
-    }
-    return 'w-full px-4 sm:px-6 lg:px-8 py-6 max-w-none';
   };
 
   return (
-    <div className={cn(getLayoutClasses(), getThemeClasses())}>
-      {renderNavigation()}
-      <main className={cn(getMainClasses())}>
-        <div className={cn(getContentClasses())}>
-          {children}
+    <div className={`min-h-screen ${getThemeClasses()}`}>
+      {/* Header */}
+      <header className="border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+        <div className="flex h-16 items-center justify-between px-6">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-xl font-bold text-gray-900">{getRoleDisplay()}</h1>
+            <div className="text-sm text-gray-500">
+              Welcome, {profile?.full_name || 'User'}
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="text-sm text-gray-600">
+              Role: <span className="font-medium capitalize">{profile?.role?.replace('_', ' ')}</span>
+            </div>
+            <LogoutButton />
+          </div>
         </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1">
+        {children}
       </main>
     </div>
   );

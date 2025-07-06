@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import DeveloperSecretLogin from '@/components/Developer/DeveloperSecretLogin';
 import DemoLoginCards from '@/components/auth/DemoLoginCards';
 import AuthSignupForm from './components/AuthSignupForm';
@@ -29,6 +30,7 @@ const roles = [
 const AuthPage: React.FC = () => {
   const { user, profile, loading, signIn } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [selectedRole, setSelectedRole] = useState<'manager' | 'sales_rep'>('sales_rep');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,9 +39,21 @@ const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [demoUsersReady, setDemoUsersReady] = useState(false);
   const [authError, setAuthError] = useState<string>('');
+  const [authMessage, setAuthMessage] = useState<string>('');
   
-  // Developer secret trigger
   const { showDeveloperLogin, setShowDeveloperLogin } = useDeveloperSecretTrigger();
+
+  // Handle URL params for messages
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message === 'access-required') {
+      setAuthMessage('Access restricted. Please log in with an authorized account.');
+    } else if (message === 'profile-required') {
+      setAuthMessage('Profile setup required. Please complete your login.');
+    } else if (message === 'logout-success') {
+      setAuthMessage('Successfully logged out.');
+    }
+  }, [searchParams]);
 
   // Ensure demo users exist on component mount
   useEffect(() => {
@@ -49,7 +63,7 @@ const AuthPage: React.FC = () => {
         console.log('🎭 Demo users setup complete');
       }).catch(error => {
         console.error('🎭 Failed to setup demo users:', error);
-        setDemoUsersReady(true); // Continue anyway
+        setDemoUsersReady(true);
       });
     } else {
       setDemoUsersReady(true);
@@ -67,14 +81,15 @@ const AuthPage: React.FC = () => {
     }
   }, [selectedRole, activeTab]);
 
-  // Redirect authenticated users
+  // Redirect authenticated users to their dashboard
   useEffect(() => {
     if (!loading && user && profile) {
       console.log('🔍 User authenticated, redirecting based on role:', profile.role);
       
-      const targetRoute = profile.role === 'manager' ? '/manager/dashboard'
-        : profile.role === 'developer' ? '/developer/dashboard'
-        : '/sales/dashboard';
+      const targetRoute = 
+        profile.role === 'developer' || profile.role === 'admin' ? '/developer/dashboard' :
+        profile.role === 'manager' ? '/manager/dashboard' :
+        '/sales/dashboard';
       
       navigate(targetRoute, { replace: true });
     }
@@ -86,6 +101,7 @@ const AuthPage: React.FC = () => {
     
     setIsSubmitting(true);
     setAuthError('');
+    setAuthMessage('');
 
     try {
       console.log('🔐 Login attempt for:', email);
@@ -94,13 +110,22 @@ const AuthPage: React.FC = () => {
       
       if (result?.error) {
         console.error('❌ Login error:', result.error);
-        setAuthError(result.error.message || 'Login failed. Please try again.');
+        let errorMessage = 'Login failed. Please try again.';
+        
+        if (result.error.message?.includes('Invalid login credentials')) {
+          errorMessage = 'Invalid email or password. Please check your credentials.';
+        } else if (result.error.message?.includes('Email not confirmed')) {
+          errorMessage = 'Please check your email and click the confirmation link.';
+        } else if (result.error.message) {
+          errorMessage = result.error.message;
+        }
+        
+        setAuthError(errorMessage);
         setIsSubmitting(false);
         return;
       }
 
-      console.log('✅ Login successful');
-      // Don't set isSubmitting to false - let the redirect handle cleanup
+      console.log('✅ Login successful - redirect will happen automatically');
     } catch (error) {
       console.error('❌ Login exception:', error);
       setAuthError('An unexpected error occurred. Please try again.');
@@ -111,6 +136,7 @@ const AuthPage: React.FC = () => {
   const handleDemoLogin = async (demoEmail: string, demoPassword: string) => {
     setIsSubmitting(true);
     setAuthError('');
+    setAuthMessage('');
     
     try {
       console.log('🎭 Demo login attempt for:', demoEmail);
@@ -118,7 +144,7 @@ const AuthPage: React.FC = () => {
       const result = await signIn(demoEmail, demoPassword);
       if (result?.error) {
         console.error('❌ Demo login error:', result.error);
-        setAuthError(result.error.message || 'Demo login failed. Please try again.');
+        setAuthError('Demo login failed. Please try again.');
         setIsSubmitting(false);
         return;
       }
@@ -171,11 +197,22 @@ const AuthPage: React.FC = () => {
           </CardHeader>
           
           <CardContent className="space-y-6">
+            {/* Messages Display */}
+            {authMessage && (
+              <Alert className="border-blue-200 bg-blue-50">
+                <AlertDescription className="text-blue-700">
+                  {authMessage}
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Error Display */}
             {authError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
-                {authError}
-              </div>
+              <Alert className="border-red-200 bg-red-50">
+                <AlertDescription className="text-red-700">
+                  {authError}
+                </AlertDescription>
+              </Alert>
             )}
 
             {isDemoMode && demoUsersReady ? (
