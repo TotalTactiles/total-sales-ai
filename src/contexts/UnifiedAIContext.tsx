@@ -7,6 +7,10 @@ interface UnifiedAIContextType {
   isEnabled: boolean;
   processRequest: (request: any) => Promise<any>;
   getContextualResponse: (context: string, data?: any) => Promise<string>;
+  generateAIResponse: (prompt: string) => Promise<string>;
+  generateStrategyResponse: (prompt: string) => Promise<string>;
+  generateCommunication: (prompt: string) => Promise<string>;
+  logAIInteraction: (type: string, data: any) => Promise<void>;
   isProcessing: boolean;
 }
 
@@ -32,10 +36,33 @@ export const UnifiedAIProvider: React.FC<UnifiedAIProviderProps> = ({ children }
     return 'AI features are currently disabled';
   };
 
+  const generateAIResponse = async (prompt: string): Promise<string> => {
+    logger.info('AI response generation disabled', { prompt }, 'unified_ai');
+    return 'AI features are currently disabled. All AI integrations have been turned off.';
+  };
+
+  const generateStrategyResponse = async (prompt: string): Promise<string> => {
+    logger.info('Strategy AI response disabled', { prompt }, 'unified_ai');
+    return 'AI strategy features are currently disabled. All AI integrations have been turned off.';
+  };
+
+  const generateCommunication = async (prompt: string): Promise<string> => {
+    logger.info('Communication AI response disabled', { prompt }, 'unified_ai');
+    return 'AI communication features are currently disabled. All AI integrations have been turned off.';
+  };
+
+  const logAIInteraction = async (type: string, data: any): Promise<void> => {
+    logger.info('AI interaction logging disabled', { type, data }, 'unified_ai');
+  };
+
   const value: UnifiedAIContextType = {
     isEnabled: false, // AI_INTEGRATION_DISABLED
     processRequest,
     getContextualResponse,
+    generateAIResponse,
+    generateStrategyResponse,
+    generateCommunication,
+    logAIInteraction,
     isProcessing
   };
 
