@@ -10,7 +10,7 @@ import {
   Search, 
   Filter, 
   Download,
-  Distribute,
+  Share,
   AlertTriangle,
   TrendingUp,
   Target,
@@ -163,7 +163,7 @@ const RestoredLeadManagement: React.FC = () => {
               Weekly Digest
             </Button>
             <Button variant="outline" size="sm">
-              <Distribute className="h-4 w-4 mr-2" />
+              <Share className="h-4 w-4 mr-2" />
               Distribute Leads
             </Button>
           </div>

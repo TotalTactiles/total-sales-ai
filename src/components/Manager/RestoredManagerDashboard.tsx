@@ -322,11 +322,11 @@ const RestoredManagerDashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-4 p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Manager Dashboard</h1>
+          <h1 className="text-xl font-bold text-gray-900">Manager Dashboard</h1>
           <p className="text-sm text-gray-600">AI-enhanced team intelligence and control center</p>
         </div>
         <div className="flex gap-2">
@@ -339,22 +339,22 @@ const RestoredManagerDashboard: React.FC = () => {
       </div>
 
       {/* Top Business Metrics - 5 Cards in Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {businessMetrics.map((metric) => {
           const IconComponent = metric.icon;
           return (
             <Card 
               key={metric.id}
-              className={`${getMetricCardColor(metric.color)} border-2 hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-105`}
+              className={`${getMetricCardColor(metric.color)} border hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-105`}
               onClick={() => setSelectedMetric(metric)}
             >
-              <CardContent className="p-4">
+              <CardContent className="p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <IconComponent className={`h-5 w-5 text-${metric.color}-600`} />
+                  <IconComponent className={`h-4 w-4 text-${metric.color}-600`} />
                 </div>
                 <div className="space-y-1">
                   <p className={`text-xs font-medium text-${metric.color}-800`}>{metric.title}</p>
-                  <p className={`text-xl font-bold text-${metric.color}-900`}>{metric.value}</p>
+                  <p className={`text-lg font-bold text-${metric.color}-900`}>{metric.value}</p>
                   <p className={`text-xs text-${metric.color}-700`}>{metric.change}</p>
                 </div>
               </CardContent>
@@ -365,8 +365,8 @@ const RestoredManagerDashboard: React.FC = () => {
 
       {/* Monthly Forecast Progress Bar */}
       <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-md">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-3">
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between mb-2">
             <div>
               <h3 className="font-semibold text-gray-900">Monthly Forecast</h3>
               <p className="text-sm text-gray-600">Progress to Goal</p>
@@ -386,7 +386,7 @@ const RestoredManagerDashboard: React.FC = () => {
       </Card>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left Column - Business Operations Snapshot */}
         <div className="lg:col-span-2">
           <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
@@ -399,25 +399,25 @@ const RestoredManagerDashboard: React.FC = () => {
               <p className="text-purple-100 text-sm">AI-powered insights aligned with your business goals</p>
             </CardHeader>
             
-            <CardContent className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <CardContent className="p-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                 {businessSnapshots.map((snapshot) => {
                   const IconComponent = snapshot.icon;
                   return (
                     <div
                       key={snapshot.id}
                       onClick={() => setSelectedSnapshot(snapshot)}
-                      className={`${getSnapshotCardColor(snapshot.color)} text-white rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 h-32 flex flex-col justify-between`}
+                      className={`${getSnapshotCardColor(snapshot.color)} text-white rounded-lg p-3 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 h-24 flex flex-col justify-between`}
                     >
                       <div className="flex items-center justify-between">
-                        <IconComponent className="h-5 w-5 flex-shrink-0" />
-                        {snapshot.trend === 'up' && <TrendingUp className="h-4 w-4" />}
-                        {snapshot.trend === 'down' && <TrendingDown className="h-4 w-4" />}
+                        <IconComponent className="h-4 w-4 flex-shrink-0" />
+                        {snapshot.trend === 'up' && <TrendingUp className="h-3 w-3" />}
+                        {snapshot.trend === 'down' && <TrendingDown className="h-3 w-3" />}
                       </div>
                       
                       <div className="space-y-1">
-                        <h4 className="font-semibold text-sm leading-tight">{snapshot.title}</h4>
-                        <div className="text-lg font-bold leading-tight">{snapshot.value}</div>
+                        <h4 className="font-semibold text-xs leading-tight">{snapshot.title}</h4>
+                        <div className="text-sm font-bold leading-tight">{snapshot.value}</div>
                         <p className="text-xs opacity-90 leading-tight">{snapshot.subtitle}</p>
                       </div>
                     </div>
@@ -443,18 +443,18 @@ const RestoredManagerDashboard: React.FC = () => {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3">
               {teamMembers.map(member => (
-                <div key={member.id} className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold">
+                <div key={member.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-xs">
                           {member.initials}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <h4 className="font-semibold text-gray-900">{member.name}</h4>
+                        <h4 className="font-semibold text-gray-900 text-sm">{member.name}</h4>
                         <Badge className={getStatusColor(member.status)}>
                           {member.status}
                         </Badge>
@@ -464,7 +464,7 @@ const RestoredManagerDashboard: React.FC = () => {
                     {member.trend === 'down' && <TrendingDown className="h-4 w-4 text-red-600" />}
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 text-sm mb-3">
+                  <div className="grid grid-cols-2 gap-3 text-sm mb-2">
                     <div>
                       <div className="text-gray-600">Revenue</div>
                       <div className="font-semibold">${member.revenue.toLocaleString()}</div>
@@ -475,7 +475,7 @@ const RestoredManagerDashboard: React.FC = () => {
                     </div>
                   </div>
                   
-                  <Progress value={member.revenue / member.target * 100} className="mb-2" />
+                  <Progress value={member.revenue / member.target * 100} className="mb-1" />
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>${member.revenue.toLocaleString()} / ${member.target.toLocaleString()}</span>
                     <span>{Math.round(member.revenue / member.target * 100)}%</span>
