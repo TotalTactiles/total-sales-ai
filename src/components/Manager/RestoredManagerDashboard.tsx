@@ -20,7 +20,10 @@ import {
   Activity,
   Download,
   Filter,
-  Calendar
+  Calendar,
+  Award,
+  Star,
+  Gift
 } from 'lucide-react';
 import { BusinessSnapshotModal } from './BusinessSnapshotModal';
 import { MetricCardModal } from './MetricCardModal';
@@ -44,12 +47,36 @@ interface TeamMember {
   role?: string;
 }
 
+interface MarketingMetric {
+  id: string;
+  source: string;
+  leads: number;
+  conversion: number;
+  revenue: number;
+  cost: number;
+  roas: number;
+  trend: 'up' | 'down' | 'stable';
+}
+
+interface TeamReward {
+  id: string;
+  title: string;
+  description: string;
+  progress: number;
+  target: number;
+  participants: string[];
+  endDate: string;
+  reward: string;
+  type: 'individual' | 'team';
+}
+
 const RestoredManagerDashboard: React.FC = () => {
   const [selectedSnapshot, setSelectedSnapshot] = useState<any>(null);
   const [selectedMetric, setSelectedMetric] = useState<any>(null);
   const [teamFilterType, setTeamFilterType] = useState<string>('all');
+  const [marketingFilter, setMarketingFilter] = useState<string>('all');
+  const [salesFilter, setSalesFilter] = useState<string>('all');
 
-  // Mock data with online status
   const teamMembers: TeamMember[] = [
     {
       id: '1',
@@ -204,6 +231,85 @@ const RestoredManagerDashboard: React.FC = () => {
         'Prepare for month-end push'
       ],
       deepDiveLink: '/manager/business-ops'
+    }
+  ];
+
+  const marketingMetrics: MarketingMetric[] = [
+    {
+      id: '1',
+      source: 'Google Ads',
+      leads: 157,
+      conversion: 24.2,
+      revenue: 45000,
+      cost: 8500,
+      roas: 5.3,
+      trend: 'up'
+    },
+    {
+      id: '2',
+      source: 'Meta Ads',
+      leads: 203,
+      conversion: 18.7,
+      revenue: 38000,
+      cost: 12000,
+      roas: 3.2,
+      trend: 'down'
+    },
+    {
+      id: '3',
+      source: 'LinkedIn',
+      leads: 89,
+      conversion: 31.5,
+      revenue: 67000,
+      cost: 15000,
+      roas: 4.5,
+      trend: 'up'
+    },
+    {
+      id: '4',
+      source: 'Referrals',
+      leads: 45,
+      conversion: 48.9,
+      revenue: 125000,
+      cost: 2500,
+      roas: 50.0,
+      trend: 'up'
+    }
+  ];
+
+  const teamRewards: TeamReward[] = [
+    {
+      id: '1',
+      title: 'Q4 Revenue Champion',
+      description: 'First to reach $150K in quarterly revenue',
+      progress: 340320,
+      target: 600000,
+      participants: ['Sarah Johnson', 'Emily Rodriguez', 'Michael Chen'],
+      endDate: '2024-12-31',
+      reward: '$2,500 Bonus + Trophy',
+      type: 'individual'
+    },
+    {
+      id: '2',
+      title: 'Team Collaboration Sprint',
+      description: 'Complete 50 team referrals this month',
+      progress: 32,
+      target: 50,
+      participants: ['All Team Members'],
+      endDate: '2024-03-31',
+      reward: 'Team Dinner + Half Day Off',
+      type: 'team'
+    },
+    {
+      id: '3',
+      title: 'Client Satisfaction Hero',
+      description: 'Maintain 90%+ satisfaction score',
+      progress: 94,
+      target: 90,
+      participants: ['Sarah Johnson', 'Emily Rodriguez'],
+      endDate: '2024-04-15',
+      reward: 'Recognition + $500 Gift Card',
+      type: 'individual'
     }
   ];
 
@@ -363,6 +469,14 @@ const RestoredManagerDashboard: React.FC = () => {
     return false;
   });
 
+  const filteredMarketingMetrics = marketingMetrics.filter(metric => {
+    if (marketingFilter === 'all') return true;
+    if (marketingFilter === 'high-roas' && metric.roas > 4) return true;
+    if (marketingFilter === 'low-conversion' && metric.conversion < 25) return true;
+    if (marketingFilter === 'trending-up' && metric.trend === 'up') return true;
+    return false;
+  });
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
@@ -474,6 +588,67 @@ const RestoredManagerDashboard: React.FC = () => {
         </CardContent>
       </Card>
 
+      {/* Marketing & Sales Performance */}
+      <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-green-600" />
+              Marketing & Sales Performance
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Select value={marketingFilter} onValueChange={setMarketingFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Sources</SelectItem>
+                  <SelectItem value="high-roas">High ROAS</SelectItem>
+                  <SelectItem value="low-conversion">Low Conversion</SelectItem>
+                  <SelectItem value="trending-up">Trending Up</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {filteredMarketingMetrics.map((metric) => (
+              <div key={metric.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-semibold text-gray-900">{metric.source}</h4>
+                  {metric.trend === 'up' && <TrendingUp className="h-4 w-4 text-green-600" />}
+                  {metric.trend === 'down' && <TrendingDown className="h-4 w-4 text-red-600" />}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm mb-3">
+                  <div>
+                    <div className="text-gray-600 text-xs">Leads</div>
+                    <div className="font-semibold">{metric.leads}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-600 text-xs">Conversion</div>
+                    <div className="font-semibold text-blue-600">{metric.conversion}%</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-600 text-xs">Revenue</div>
+                    <div className="font-semibold text-green-600">${metric.revenue.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-gray-600 text-xs">ROAS</div>
+                    <div className="font-semibold text-purple-600">{metric.roas}x</div>
+                  </div>
+                </div>
+                
+                <div className="text-xs text-gray-500">
+                  Cost: ${metric.cost.toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Team Performance Section with Filters */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3">
@@ -539,7 +714,7 @@ const RestoredManagerDashboard: React.FC = () => {
                       </div>
                       <div>
                         <div className="text-gray-600 text-xs">Status</div>
-                        <Badge className={getStatusColor(member.status)} size="sm">
+                        <Badge className={getStatusColor(member.status)}>
                           {member.status}
                         </Badge>
                       </div>
@@ -572,6 +747,66 @@ const RestoredManagerDashboard: React.FC = () => {
           <TeamNudgesCard />
         </div>
       </div>
+
+      {/* Team Rewards Progress */}
+      <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-yellow-600" />
+            Team Rewards Progress
+          </CardTitle>
+          <p className="text-sm text-gray-600">Active incentives and achievements</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {teamRewards.map((reward) => (
+              <div key={reward.id} className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    {reward.type === 'team' ? <Users className="h-4 w-4 text-yellow-600" /> : <Award className="h-4 w-4 text-yellow-600" />}
+                    <Badge className={reward.type === 'team' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}>
+                      {reward.type}
+                    </Badge>
+                  </div>
+                  <Star className="h-4 w-4 text-yellow-500" />
+                </div>
+                
+                <h4 className="font-semibold text-gray-900 mb-2">{reward.title}</h4>
+                <p className="text-sm text-gray-600 mb-3">{reward.description}</p>
+                
+                <div className="mb-3">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-gray-600">Progress</span>
+                    <span className="font-medium">
+                      {reward.id === '1' ? `$${reward.progress.toLocaleString()}` : reward.progress}
+                      {' / '}
+                      {reward.id === '1' ? `$${reward.target.toLocaleString()}` : reward.target}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={reward.id === '1' ? (reward.progress / reward.target) * 100 : (reward.progress / reward.target) * 100} 
+                    className="h-2" 
+                  />
+                </div>
+                
+                <div className="space-y-2 text-xs text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <Gift className="h-3 w-3" />
+                    <span>{reward.reward}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>Ends: {reward.endDate}</span>
+                  </div>
+                  <div className="text-xs">
+                    <span className="font-medium">{reward.participants.length}</span> participant{reward.participants.length !== 1 ? 's' : ''}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Modals */}
       {selectedSnapshot && (
