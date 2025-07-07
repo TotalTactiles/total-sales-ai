@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,7 @@ import {
 } from 'lucide-react';
 import { BusinessSnapshotModal } from './BusinessSnapshotModal';
 import { MetricCardModal } from './MetricCardModal';
+import TeamNudgesCard from './TeamNudgesCard';
 
 interface TeamMember {
   id: string;
@@ -40,6 +40,8 @@ interface TeamMember {
   status: 'on-track' | 'behind' | 'ahead';
   lastActivity: string;
   riskLevel: 'low' | 'medium' | 'high';
+  isOnline: boolean;
+  role?: string;
 }
 
 const RestoredManagerDashboard: React.FC = () => {
@@ -47,7 +49,7 @@ const RestoredManagerDashboard: React.FC = () => {
   const [selectedMetric, setSelectedMetric] = useState<any>(null);
   const [teamFilterType, setTeamFilterType] = useState<string>('all');
 
-  // Mock data
+  // Mock data with online status
   const teamMembers: TeamMember[] = [
     {
       id: '1',
@@ -62,7 +64,9 @@ const RestoredManagerDashboard: React.FC = () => {
       trend: 'up',
       status: 'on-track',
       lastActivity: '2 hours ago',
-      riskLevel: 'low'
+      riskLevel: 'low',
+      isOnline: true,
+      role: 'Senior Rep'
     },
     {
       id: '2',
@@ -77,7 +81,26 @@ const RestoredManagerDashboard: React.FC = () => {
       trend: 'down',
       status: 'behind',
       lastActivity: '1 day ago',
-      riskLevel: 'high'
+      riskLevel: 'high',
+      isOnline: false,
+      role: 'Sales Rep'
+    },
+    {
+      id: '3',
+      name: 'Emily Rodriguez',
+      initials: 'ER',
+      revenue: 112000,
+      target: 110000,
+      conversion: 31.8,
+      calls: 167,
+      emails: 124,
+      meetings: 19,
+      trend: 'up',
+      status: 'ahead',
+      lastActivity: '30 minutes ago',
+      riskLevel: 'low',
+      isOnline: true,
+      role: 'Sales Rep'
     }
   ];
 
@@ -299,6 +322,15 @@ const RestoredManagerDashboard: React.FC = () => {
     }
   };
 
+  const getRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'low': return 'bg-green-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'high': return 'bg-red-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
   const getMetricCardColor = (color: string) => {
     switch (color) {
       case 'green': return 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-200';
@@ -321,12 +353,22 @@ const RestoredManagerDashboard: React.FC = () => {
     }
   };
 
+  const filteredTeamMembers = teamMembers.filter(member => {
+    if (teamFilterType === 'all') return true;
+    if (teamFilterType === 'performance' && member.status === 'behind') return true;
+    if (teamFilterType === 'coaching' && member.conversion < 30) return true;
+    if (teamFilterType === 'burnout' && member.riskLevel === 'high') return true;
+    if (teamFilterType === 'goals' && member.revenue < member.target) return true;
+    if (teamFilterType === 'activity' && member.calls < 150) return true;
+    return false;
+  });
+
   return (
-    <div className="space-y-4 p-4">
+    <div className="space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Manager Dashboard</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Manager Dashboard</h1>
           <p className="text-sm text-gray-600">AI-enhanced team intelligence and control center</p>
         </div>
         <div className="flex gap-2">
@@ -339,7 +381,7 @@ const RestoredManagerDashboard: React.FC = () => {
       </div>
 
       {/* Top Business Metrics - 5 Cards in Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {businessMetrics.map((metric) => {
           const IconComponent = metric.icon;
           return (
@@ -348,13 +390,13 @@ const RestoredManagerDashboard: React.FC = () => {
               className={`${getMetricCardColor(metric.color)} border hover:shadow-lg cursor-pointer transition-all duration-200 hover:scale-105`}
               onClick={() => setSelectedMetric(metric)}
             >
-              <CardContent className="p-3">
+              <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <IconComponent className={`h-4 w-4 text-${metric.color}-600`} />
+                  <IconComponent className={`h-5 w-5 text-${metric.color}-600`} />
                 </div>
                 <div className="space-y-1">
-                  <p className={`text-xs font-medium text-${metric.color}-800`}>{metric.title}</p>
-                  <p className={`text-lg font-bold text-${metric.color}-900`}>{metric.value}</p>
+                  <p className={`text-sm font-medium text-${metric.color}-800`}>{metric.title}</p>
+                  <p className={`text-xl font-bold text-${metric.color}-900`}>{metric.value}</p>
                   <p className={`text-xs text-${metric.color}-700`}>{metric.change}</p>
                 </div>
               </CardContent>
@@ -363,73 +405,78 @@ const RestoredManagerDashboard: React.FC = () => {
         })}
       </div>
 
-      {/* Monthly Forecast Progress Bar */}
-      <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-md">
-        <CardContent className="p-3">
-          <div className="flex items-center justify-between mb-2">
+      {/* Monthly Forecast - Redesigned */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="font-semibold text-gray-900">Monthly Forecast</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Monthly Forecast</h3>
               <p className="text-sm text-gray-600">Progress to Goal</p>
             </div>
             <div className="text-right">
-              <div className="text-sm font-semibold text-purple-600">+12%</div>
-              <div className="text-xs text-gray-500">$425,000 / $400,000</div>
+              <div className="text-2xl font-bold text-purple-600">+12%</div>
+              <div className="text-sm text-gray-500">above pace</div>
             </div>
           </div>
-          <Progress value={106} className="h-2 mb-2" />
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>Above pace by $25,000</span>
-            <span>106% Goal Progress</span>
-            <span>68% Month Complete</span>
+          
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm font-medium">
+              <span className="text-gray-600">$0</span>
+              <span className="text-purple-600">$425,000 Achieved</span>
+              <span className="text-gray-600">$400,000 Target</span>
+            </div>
+            <Progress value={106} className="h-4" />
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>68% Month Complete</span>
+              <span>106% Goal Progress</span>
+              <span>Above pace by $25,000</span>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left Column - Business Operations Snapshot */}
-        <div className="lg:col-span-2">
-          <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
-              <CardTitle className="flex items-center gap-2">
-                <Brain className="h-5 w-5" />
-                Business Operations Snapshot
-                <Badge className="bg-white/20 text-white text-xs ml-auto">Real-time</Badge>
-              </CardTitle>
-              <p className="text-purple-100 text-sm">AI-powered insights aligned with your business goals</p>
-            </CardHeader>
-            
-            <CardContent className="p-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {businessSnapshots.map((snapshot) => {
-                  const IconComponent = snapshot.icon;
-                  return (
-                    <div
-                      key={snapshot.id}
-                      onClick={() => setSelectedSnapshot(snapshot)}
-                      className={`${getSnapshotCardColor(snapshot.color)} text-white rounded-lg p-3 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 h-24 flex flex-col justify-between`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <IconComponent className="h-4 w-4 flex-shrink-0" />
-                        {snapshot.trend === 'up' && <TrendingUp className="h-3 w-3" />}
-                        {snapshot.trend === 'down' && <TrendingDown className="h-3 w-3" />}
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <h4 className="font-semibold text-xs leading-tight">{snapshot.title}</h4>
-                        <div className="text-sm font-bold leading-tight">{snapshot.value}</div>
-                        <p className="text-xs opacity-90 leading-tight">{snapshot.subtitle}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Business Operations Snapshot */}
+      <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-t-lg">
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Business Operations Snapshot
+            <Badge className="bg-white/20 text-white text-xs ml-auto">Real-time</Badge>
+          </CardTitle>
+          <p className="text-purple-100 text-sm">AI-powered insights aligned with your business goals</p>
+        </CardHeader>
+        
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {businessSnapshots.map((snapshot) => {
+              const IconComponent = snapshot.icon;
+              return (
+                <div
+                  key={snapshot.id}
+                  onClick={() => setSelectedSnapshot(snapshot)}
+                  className={`${getSnapshotCardColor(snapshot.color)} text-white rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 h-28 flex flex-col justify-between`}
+                >
+                  <div className="flex items-center justify-between">
+                    <IconComponent className="h-5 w-5 flex-shrink-0" />
+                    {snapshot.trend === 'up' && <TrendingUp className="h-4 w-4" />}
+                    {snapshot.trend === 'down' && <TrendingDown className="h-4 w-4" />}
+                  </div>
+                  
+                  <div className="space-y-1">
+                    <h4 className="font-semibold text-sm leading-tight">{snapshot.title}</h4>
+                    <div className="text-lg font-bold leading-tight">{snapshot.value}</div>
+                    <p className="text-xs opacity-90 leading-tight">{snapshot.subtitle}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Right Column - Team Performance */}
-        <div>
+      {/* Team Performance Section with Filters */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3">
           <Card className="bg-white/90 backdrop-blur-sm border-0 shadow-lg">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -437,53 +484,92 @@ const RestoredManagerDashboard: React.FC = () => {
                   <Users className="h-5 w-5 text-blue-600" />
                   Team Performance
                 </CardTitle>
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  All Team Members
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Select value={teamFilterType} onValueChange={setTeamFilterType}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Team</SelectItem>
+                      <SelectItem value="performance">Performance</SelectItem>
+                      <SelectItem value="coaching">Coaching</SelectItem>
+                      <SelectItem value="burnout">Burnout</SelectItem>
+                      <SelectItem value="goals">Goals</SelectItem>
+                      <SelectItem value="activity">Activity</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {teamMembers.map(member => (
-                <div key={member.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-xs">
-                          {member.initials}
-                        </AvatarFallback>
-                      </Avatar>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredTeamMembers.map(member => (
+                  <div key={member.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="relative">
+                          <Avatar className="h-10 w-10">
+                            <AvatarFallback className="bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold text-sm">
+                              {member.initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${member.isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900 text-sm">{member.name}</h4>
+                          <p className="text-xs text-gray-500">{member.role}</p>
+                        </div>
+                      </div>
+                      {member.trend === 'up' && <TrendingUp className="h-4 w-4 text-green-600" />}
+                      {member.trend === 'down' && <TrendingDown className="h-4 w-4 text-red-600" />}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm mb-3">
                       <div>
-                        <h4 className="font-semibold text-gray-900 text-sm">{member.name}</h4>
-                        <Badge className={getStatusColor(member.status)}>
+                        <div className="text-gray-600 text-xs">Revenue</div>
+                        <div className="font-semibold text-green-600">${member.revenue.toLocaleString()}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600 text-xs">Calls</div>
+                        <div className="font-semibold">{member.calls}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600 text-xs">Conversion</div>
+                        <div className="font-semibold text-blue-600">{member.conversion}%</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-600 text-xs">Status</div>
+                        <Badge className={getStatusColor(member.status)} size="sm">
                           {member.status}
                         </Badge>
                       </div>
                     </div>
-                    {member.trend === 'up' && <TrendingUp className="h-4 w-4 text-green-600" />}
-                    {member.trend === 'down' && <TrendingDown className="h-4 w-4 text-red-600" />}
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm mb-2">
-                    <div>
-                      <div className="text-gray-600">Revenue</div>
-                      <div className="font-semibold">${member.revenue.toLocaleString()}</div>
+                    
+                    <div className="mb-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span className="text-gray-600">Target Progress</span>
+                        <span className="font-medium">{Math.round(member.revenue / member.target * 100)}%</span>
+                      </div>
+                      <Progress value={member.revenue / member.target * 100} className="h-2" />
                     </div>
-                    <div>
-                      <div className="text-gray-600">Conversion</div>
-                      <div className="font-semibold">{member.conversion}%</div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <div className={`w-2 h-2 rounded-full ${getRiskColor(member.riskLevel)}`} />
+                        <span className="text-xs text-gray-500">{member.riskLevel} risk</span>
+                      </div>
+                      <span className="text-xs text-gray-500">{member.lastActivity}</span>
                     </div>
                   </div>
-                  
-                  <Progress value={member.revenue / member.target * 100} className="mb-1" />
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>${member.revenue.toLocaleString()} / ${member.target.toLocaleString()}</span>
-                    <span>{Math.round(member.revenue / member.target * 100)}%</span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Team Nudges Card */}
+        <div className="lg:col-span-1">
+          <TeamNudgesCard />
         </div>
       </div>
 
