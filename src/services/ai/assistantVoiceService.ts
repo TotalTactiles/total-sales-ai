@@ -29,12 +29,29 @@ export class AssistantVoiceService {
   private onCommandCallback: ((command: string) => void) | null = null;
   private onWakeWordDetected: (() => void) | null = null;
   private continuousListening = false;
+  private recognition: any = null;
 
   static getInstance(): AssistantVoiceService {
     if (!AssistantVoiceService.instance) {
       AssistantVoiceService.instance = new AssistantVoiceService();
     }
     return AssistantVoiceService.instance;
+  }
+
+  private initializeWebSpeechAPI(): boolean {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      logger.warn('Web Speech API not supported');
+      return false;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    this.recognition = new SpeechRecognition();
+    
+    this.recognition.continuous = true;
+    this.recognition.interimResults = true;
+    this.recognition.lang = 'en-US';
+    
+    return true;
   }
 
   setLeadContext(lead: any): void {
@@ -51,9 +68,9 @@ export class AssistantVoiceService {
 
   async startListening(wakeWordMode = false): Promise<boolean> {
     try {
-      const hasPermission = await voiceService.requestMicrophonePermission();
-      if (!hasPermission) {
-        logger.error('Microphone permission denied');
+      // Initialize Web Speech API if not already done
+      if (!this.recognition && !this.initializeWebSpeechAPI()) {
+        logger.error('Speech recognition not available');
         return false;
       }
 
@@ -61,60 +78,75 @@ export class AssistantVoiceService {
       this.isWakeWordMode = wakeWordMode;
       this.continuousListening = wakeWordMode;
       
-      const started = await voiceService.startRecording();
+      // Set up event handlers
+      this.recognition.onresult = (event: any) => {
+        let finalTranscript = '';
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        const fullTranscript = (finalTranscript + interimTranscript).toLowerCase().trim();
+        
+        if (wakeWordMode && this.checkForWakeWord(fullTranscript)) {
+          logger.info('Wake word detected:', fullTranscript);
+          if (this.onWakeWordDetected) {
+            this.onWakeWordDetected();
+          }
+          
+          // Switch to command mode
+          this.continuousListening = false;
+          this.isWakeWordMode = false;
+          
+          // Restart for actual command
+          setTimeout(() => {
+            if (this.isListening) {
+              this.recognition.start();
+            }
+          }, 500);
+        } else if (!wakeWordMode && finalTranscript) {
+          // Process the actual command
+          this.processCommand(finalTranscript);
+        }
+      };
+
+      this.recognition.onerror = (event: any) => {
+        logger.error('Speech recognition error:', event.error);
+        if (event.error !== 'no-speech' && this.continuousListening) {
+          // Restart for continuous listening
+          setTimeout(() => {
+            if (this.isListening && this.continuousListening) {
+              this.recognition.start();
+            }
+          }, 1000);
+        }
+      };
+
+      this.recognition.onend = () => {
+        if (this.continuousListening && this.isListening) {
+          // Restart for continuous listening
+          setTimeout(() => {
+            if (this.isListening) {
+              this.recognition.start();
+            }
+          }, 100);
+        }
+      };
+
+      this.recognition.start();
       logger.info(`Voice listening started${wakeWordMode ? ' (wake word mode)' : ''}`);
       
-      // If in wake word mode, start continuous listening loop
-      if (wakeWordMode) {
-        this.startContinuousListening();
-      }
-      
-      return started;
+      return true;
     } catch (error) {
       logger.error('Failed to start voice listening:', error);
       this.isListening = false;
       return false;
-    }
-  }
-
-  private async startContinuousListening(): Promise<void> {
-    while (this.continuousListening && this.isListening) {
-      try {
-        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
-        
-        if (!this.isListening) break;
-        
-        const audioBlob = await voiceService.stopRecording();
-        if (audioBlob && audioBlob.size > 0) {
-          const transcript = await voiceService.processAudioCommand(audioBlob, 'current-user');
-          
-          if (transcript && this.checkForWakeWord(transcript)) {
-            logger.info('Wake word detected:', transcript);
-            if (this.onWakeWordDetected) {
-              this.onWakeWordDetected();
-            }
-            
-            // Stop continuous listening and wait for actual command
-            this.continuousListening = false;
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // Start regular listening for the actual command
-            if (this.isListening) {
-              await voiceService.startRecording();
-            }
-            break;
-          }
-        }
-        
-        // Restart recording for continuous listening
-        if (this.continuousListening && this.isListening) {
-          await voiceService.startRecording();
-        }
-        
-      } catch (error) {
-        logger.error('Error in continuous listening:', error);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
-      }
     }
   }
 
@@ -123,24 +155,21 @@ export class AssistantVoiceService {
       this.isListening = false;
       this.continuousListening = false;
       
-      const audioBlob = await voiceService.stopRecording();
-      
-      if (!audioBlob || audioBlob.size === 0) {
-        return null;
+      if (this.recognition) {
+        this.recognition.stop();
       }
-
-      const transcript = await voiceService.processAudioCommand(audioBlob, 'current-user');
       
-      if (!transcript || transcript.trim().length === 0) {
-        return null;
-      }
-
-      const command = await this.analyzeVoiceCommand(transcript);
-      return command;
+      return null; // Command is processed in real-time via onresult
       
     } catch (error) {
-      logger.error('Error processing voice command:', error);
+      logger.error('Error stopping voice listening:', error);
       return null;
+    }
+  }
+
+  private processCommand(transcript: string): void {
+    if (this.onCommandCallback) {
+      this.onCommandCallback(transcript);
     }
   }
 

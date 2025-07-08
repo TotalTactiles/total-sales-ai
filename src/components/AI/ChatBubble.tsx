@@ -40,6 +40,7 @@ const ChatBubble: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [workspaceContext, setWorkspaceContext] = useState<string>('dashboard');
+  const [isWakeWordActive, setIsWakeWordActive] = useState(false);
 
   const { user } = useAuth();
   const location = useLocation();
@@ -74,10 +75,11 @@ const ChatBubble: React.FC = () => {
     }
   }, [location.pathname]);
 
-  // Set up voice callbacks
+  // Set up voice callbacks for "Hey TSAM" activation
   useEffect(() => {
     assistantVoiceService.setCommandCallback(handleVoiceCommand);
     assistantVoiceService.setWakeWordCallback(() => {
+      console.log('Hey TSAM detected!');
       if (!isExpanded) {
         setIsExpanded(true);
         setIsMinimized(false);
@@ -85,7 +87,29 @@ const ChatBubble: React.FC = () => {
       toast.success('Hey TSAM detected! Listening for command...');
       setIsListening(true);
     });
+
+    // Start wake word detection when component mounts
+    startWakeWordDetection();
+
+    return () => {
+      // Cleanup when component unmounts
+      if (isListening) {
+        assistantVoiceService.stopListening();
+      }
+    };
   }, [isExpanded]);
+
+  const startWakeWordDetection = async () => {
+    try {
+      const started = await assistantVoiceService.startListening(true); // true for wake word mode
+      if (started) {
+        setIsWakeWordActive(true);
+        console.log('Wake word detection started');
+      }
+    } catch (error) {
+      console.error('Failed to start wake word detection:', error);
+    }
+  };
 
   const getContextualGreeting = (context: string): string => {
     const greetings = {
@@ -196,6 +220,9 @@ const ChatBubble: React.FC = () => {
       }
       if (message.includes('compare') || message.includes('last')) {
         return "This month you're up 15% in calls made and 22% in meetings booked compared to last month. Great momentum!";
+      }
+      if (message.includes('conversion')) {
+        return "Your conversion rates are looking good! Your lead-to-qualified rate is 23%, and qualified-to-closed is 34%. The analytics show your best performing times are Tuesday-Thursday mornings.";
       }
     } else if (context === 'leads') {
       if (message.includes('priority') || message.includes('high')) {
@@ -322,6 +349,10 @@ const ChatBubble: React.FC = () => {
                   {isProcessingVoice ? 'Processing' : isListening ? 'Stop' : 'Voice'}
                 </span>
               </Button>
+              
+              <Badge variant={isWakeWordActive ? "default" : "outline"} className="text-xs">
+                Wake Word {isWakeWordActive ? 'Active' : 'Inactive'}
+              </Badge>
             </div>
             
             {isListening && (
