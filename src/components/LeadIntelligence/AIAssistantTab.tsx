@@ -115,8 +115,8 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
   const quickActions = [
     {
       icon: Target,
-      title: 'Analyze Lead Behavior',
-      description: 'Get insights into engagement patterns',
+      title: 'Analyze Behavior',
+      description: 'Get engagement insights',
       action: () => {
         trackClick('ai_quick_action', 'analyze_behavior');
         const analysis: ChatMessage = {
@@ -131,7 +131,7 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
     {
       icon: MessageSquare,
       title: 'Draft Follow-up',
-      description: 'Create personalized outreach message',
+      description: 'Create outreach message',
       action: () => {
         trackClick('ai_quick_action', 'draft_followup');
         const draft: ChatMessage = {
@@ -145,8 +145,8 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
     },
     {
       icon: TrendingUp,
-      title: 'Conversion Strategy',
-      description: 'Get closing recommendations',
+      title: 'Get Strategy',
+      description: 'Closing recommendations',
       action: () => {
         trackClick('ai_quick_action', 'conversion_strategy');
         const strategy: ChatMessage = {
@@ -161,89 +161,88 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
   ];
 
   return (
-    <div className="p-6 h-full flex flex-col">
-      {/* Header with Settings */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Brain className="h-6 w-6 text-blue-600" />
+    <div className="h-full flex flex-col p-3">
+      {/* Header */}
+      <div className="mb-3 shrink-0">
+        <div className="flex items-center gap-2 mb-2">
+          <Brain className="h-4 w-4 text-blue-600" />
           <div>
-            <h3 className="text-lg font-semibold">AI Assistant</h3>
-            <p className="text-sm text-slate-600">Specialized for {lead.name}</p>
+            <h3 className="text-sm font-semibold">AI Assistant</h3>
+            <p className="text-xs text-slate-600">Specialized for {lead.name}</p>
           </div>
         </div>
         
-        <Card className="p-3">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <label className="text-sm">Voice Mode</label>
-              <div className="flex items-center gap-1">
-                {voiceEnabled ? (
-                  <Volume2 className="h-4 w-4 text-blue-600" />
-                ) : (
-                  <VolumeX className="h-4 w-4 text-slate-400" />
-                )}
-                <Switch checked={voiceEnabled} disabled />
-              </div>
-            </div>
-            
-            <Separator orientation="vertical" className="h-6" />
-            
-            <div className="flex items-center gap-2">
-              <label className="text-sm">Show Reasoning</label>
-              <Switch 
-                checked={rationaleMode} 
-                onCheckedChange={onRationaleModeChange}
-              />
-            </div>
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1">
+            <label>Voice Mode</label>
+            {voiceEnabled ? (
+              <Volume2 className="h-3 w-3 text-blue-600" />
+            ) : (
+              <VolumeX className="h-3 w-3 text-slate-400" />
+            )}
+            <Switch checked={voiceEnabled} disabled size="sm" />
           </div>
-        </Card>
+          
+          <div className="flex items-center gap-1">
+            <label>Reasoning</label>
+            <Switch 
+              checked={rationaleMode} 
+              onCheckedChange={onRationaleModeChange}
+              size="sm"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      {/* Quick Actions - Compact Grid */}
+      <div className="grid grid-cols-1 gap-2 mb-3 shrink-0">
         {quickActions.map((action, index) => (
           <UsageTracker
             key={index}
             feature="ai_quick_action"
             context={action.title.toLowerCase().replace(' ', '_')}
           >
-            <Card className="cursor-pointer hover:shadow-sm transition-shadow" onClick={action.action}>
-              <CardContent className="p-4 text-center">
-                <action.icon className="h-6 w-6 text-blue-600 mx-auto mb-2" />
-                <h4 className="font-medium text-sm mb-1">{action.title}</h4>
-                <p className="text-xs text-slate-600">{action.description}</p>
-              </CardContent>
-            </Card>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={action.action}
+              className="h-8 text-xs justify-start px-2"
+            >
+              <action.icon className="h-3 w-3 mr-1" />
+              <div className="text-left">
+                <div className="font-medium">{action.title}</div>
+              </div>
+            </Button>
           </UsageTracker>
         ))}
       </div>
 
       {/* Chat Area */}
-      <Card className="flex-1 flex flex-col">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
+      <Card className="flex-1 flex flex-col min-h-0">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-1 text-sm">
+            <MessageSquare className="h-4 w-4" />
             AI Conversation
           </CardTitle>
         </CardHeader>
         
-        <CardContent className="flex-1 flex flex-col p-0">
+        <CardContent className="flex-1 flex flex-col p-2 min-h-0">
           {/* Chat History */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto space-y-2 mb-2">
             {chatHistory.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={`max-w-[85%] p-2 rounded text-xs ${
                     message.type === 'user'
                       ? 'bg-blue-600 text-white'
                       : 'bg-slate-100 text-slate-800'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-line">{message.message}</p>
-                  <p className={`text-xs mt-2 ${
+                  <p className="whitespace-pre-line">{message.message}</p>
+                  <p className={`text-xs mt-1 ${
                     message.type === 'user' ? 'text-blue-200' : 'text-slate-500'
                   }`}>
                     {message.timestamp}
@@ -254,11 +253,11 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-slate-100 text-slate-800 p-3 rounded-lg">
+                <div className="bg-slate-100 text-slate-800 p-2 rounded">
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce"></div>
+                    <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
@@ -266,38 +265,41 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           </div>
           
           {/* Chat Input */}
-          <div className="border-t p-4">
-            <div className="flex gap-2">
-              <Input
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                placeholder={`Ask me anything about ${lead.name}...`}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                className="flex-1"
-              />
-              <Button onClick={handleSendMessage} disabled={!chatMessage.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </div>
+          <div className="flex gap-1 shrink-0">
+            <Input
+              value={chatMessage}
+              onChange={(e) => setChatMessage(e.target.value)}
+              placeholder={`Ask about ${lead.name}...`}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              className="text-xs h-8"
+            />
+            <Button 
+              onClick={handleSendMessage} 
+              disabled={!chatMessage.trim()}
+              size="sm"
+              className="h-8 px-2"
+            >
+              <Send className="h-3 w-3" />
+            </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* AI Stats */}
-      <Card className="mt-4">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm">
-              <span className="text-slate-600">AI Confidence:</span>
-              <span className="font-medium ml-2">94%</span>
+      <Card className="mt-2 shrink-0">
+        <CardContent className="p-2">
+          <div className="flex justify-between text-xs">
+            <div>
+              <span className="text-slate-600">Confidence:</span>
+              <span className="font-medium ml-1">94%</span>
             </div>
-            <div className="text-sm">
-              <span className="text-slate-600">Suggestions Used:</span>
-              <span className="font-medium ml-2">8/12</span>
+            <div>
+              <span className="text-slate-600">Used:</span>
+              <span className="font-medium ml-1">8/12</span>
             </div>
-            <div className="text-sm">
-              <span className="text-slate-600">Success Rate:</span>
-              <span className="font-medium ml-2">87%</span>
+            <div>
+              <span className="text-slate-600">Success:</span>
+              <span className="font-medium ml-1">87%</span>
             </div>
           </div>
         </CardContent>

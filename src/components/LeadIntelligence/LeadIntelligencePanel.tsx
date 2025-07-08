@@ -7,7 +7,6 @@ import { toast } from 'sonner';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useAIBrainInsights } from '@/hooks/useAIBrainInsights';
 import LeadIntelligenceHeader from './LeadIntelligenceHeader';
-import LeadSidebar from './LeadSidebar';
 import AISummaryCard from './AISummaryCard';
 import EditableLeadDetails from './EditableLeadDetails';
 import LeadSummary from './LeadSummary';
@@ -122,8 +121,8 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] h-[95vh] p-0">
-        <DialogHeader className="p-6 pb-0">
+      <DialogContent className="max-w-[98vw] h-[96vh] p-0 overflow-hidden">
+        <DialogHeader className="p-4 pb-0 shrink-0">
           <LeadIntelligenceHeader
             lead={leadData}
             isSensitive={isSensitive}
@@ -136,80 +135,87 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
           />
         </DialogHeader>
 
-        <div className="flex-1 flex overflow-hidden">
+        {/* AI Summary - Fixed above tabs */}
+        <div className="px-4 pb-3 shrink-0">
+          <AISummaryCard 
+            lead={leadData}
+            aiDelegationMode={aiDelegationMode}
+          />
+        </div>
+
+        <div className="flex-1 flex overflow-hidden min-h-0">
           {/* Left Sidebar - Lead Details */}
-          <div className="w-80 border-r border-gray-200 bg-white">
-            <div className="p-4 space-y-4 h-full overflow-y-auto">
+          <div className="w-72 border-r border-gray-200 bg-slate-50 shrink-0">
+            <div className="p-3 h-full overflow-y-auto">
               <EditableLeadDetails 
                 lead={leadData} 
                 onUpdate={handleLeadUpdate}
               />
-              <LeadSidebar lead={leadData} isSensitive={isSensitive} />
             </div>
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col">
-            {/* AI Summary - Always visible above tabs */}
-            <div className="p-6 pb-0">
-              <AISummaryCard 
-                lead={leadData}
-                aiDelegationMode={aiDelegationMode}
-              />
-            </div>
-
-            {/* Tabs - Reduced from 5 to 4 columns (removed AI Assistant) */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Tabs */}
             <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
-              <div className="border-b px-6">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="summary">Summary</TabsTrigger>
-                  <TabsTrigger value="timeline">Timeline</TabsTrigger>
-                  <TabsTrigger value="comms">Comms</TabsTrigger>
-                  <TabsTrigger value="tasks">Tasks</TabsTrigger>
+              <div className="border-b px-4 shrink-0">
+                <TabsList className="grid w-full grid-cols-4 h-10">
+                  <TabsTrigger value="summary" className="text-sm">Summary</TabsTrigger>
+                  <TabsTrigger value="timeline" className="text-sm">Timeline</TabsTrigger>
+                  <TabsTrigger value="comms" className="text-sm">Comms</TabsTrigger>
+                  <TabsTrigger value="tasks" className="text-sm">Tasks</TabsTrigger>
                 </TabsList>
               </div>
 
               {/* Scrollable Tab Content */}
-              <div className="flex-1 overflow-hidden">
-                <TabsContent value="summary" className="h-full m-0 overflow-y-auto">
-                  <LeadSummary 
-                    lead={leadData} 
-                    rationaleMode={rationaleMode}
-                    aiDelegationMode={aiDelegationMode}
-                    isSensitive={isSensitive}
-                  />
+              <div className="flex-1 overflow-y-auto min-h-0">
+                <TabsContent value="summary" className="h-full m-0 p-4">
+                  <div className="text-sm space-y-4">
+                    <LeadSummary 
+                      lead={leadData} 
+                      rationaleMode={rationaleMode}
+                      aiDelegationMode={aiDelegationMode}
+                      isSensitive={isSensitive}
+                    />
+                  </div>
                 </TabsContent>
 
-                <TabsContent value="timeline" className="h-full m-0 overflow-y-auto">
-                  <LeadTimeline 
-                    lead={leadData}
-                    rationaleMode={rationaleMode}
-                  />
+                <TabsContent value="timeline" className="h-full m-0 p-4">
+                  <div className="text-sm">
+                    <LeadTimeline 
+                      lead={leadData}
+                      rationaleMode={rationaleMode}
+                    />
+                  </div>
                 </TabsContent>
 
-                <TabsContent value="comms" className="h-full m-0 overflow-y-auto">
-                  <LeadComms 
-                    lead={leadData}
-                    aiDelegationMode={aiDelegationMode}
-                    isSensitive={isSensitive}
-                    rationaleMode={rationaleMode}
-                  />
+                <TabsContent value="comms" className="h-full m-0 p-0">
+                  <div className="text-sm">
+                    <LeadComms 
+                      lead={leadData}
+                      aiDelegationMode={aiDelegationMode}
+                      isSensitive={isSensitive}
+                      rationaleMode={rationaleMode}
+                    />
+                  </div>
                 </TabsContent>
 
-                <TabsContent value="tasks" className="h-full m-0 overflow-y-auto">
-                  <LeadTasks 
-                    lead={leadData}
-                    aiDelegationMode={aiDelegationMode}
-                  />
+                <TabsContent value="tasks" className="h-full m-0 p-4">
+                  <div className="text-sm">
+                    <LeadTasks 
+                      lead={leadData}
+                      aiDelegationMode={aiDelegationMode}
+                    />
+                  </div>
                 </TabsContent>
               </div>
             </Tabs>
           </div>
 
           {/* Right AI Assistant Panel - Always visible */}
-          <div className={`${aiPanelVisible ? 'w-80' : 'w-12'} border-l border-gray-200 bg-white transition-all duration-300 lg:relative fixed lg:static top-0 right-0 h-full z-50`}>
+          <div className={`${aiPanelVisible ? 'w-80' : 'w-12'} border-l border-gray-200 bg-white transition-all duration-300 shrink-0 relative`}>
             {/* Mobile toggle button */}
-            <div className="lg:hidden absolute top-4 left-2">
+            <div className="lg:hidden absolute top-2 left-2 z-10">
               <Button
                 variant="ghost"
                 size="sm"
@@ -222,7 +228,7 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
             {/* AI Assistant Panel Content */}
             <div className={`h-full ${aiPanelVisible ? 'block' : 'hidden lg:block'}`}>
               {aiPanelVisible ? (
-                <div className="h-full">
+                <div className="h-full flex flex-col">
                   <AIAssistantTab 
                     lead={leadData}
                     voiceEnabled={voiceEnabled}
