@@ -100,8 +100,9 @@ const LeadSummary: React.FC<LeadSummaryProps> = ({
     reasoning: 'Similar companies in construction prioritize fast deployment'
   }];
 
-  return <div className="p-4 space-y-4 h-full overflow-y-auto">
-      {/* AI Lead Summary Card */}
+  return (
+    <div className="p-4 space-y-4 h-full">
+      {/* AI Lead Summary Card - Positioned at top of Summary tab */}
       <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-sm">
@@ -152,7 +153,8 @@ const LeadSummary: React.FC<LeadSummaryProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {aiInsights.map((insight, index) => <UsageTracker key={index} feature="ai_insight" context={`lead_summary_${insight.type}`}>
+          {aiInsights.map((insight, index) => (
+            <UsageTracker key={index} feature="ai_insight" context={`lead_summary_${insight.type}`}>
               <div className="flex items-start gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
                 <div className="p-2 rounded-full bg-slate-100">
                   <insight.icon className="h-4 w-4 text-slate-600" />
@@ -165,12 +167,15 @@ const LeadSummary: React.FC<LeadSummaryProps> = ({
                     </Badge>
                   </div>
                   <p className="text-sm text-slate-600 mt-1">{insight.description}</p>
-                  {rationaleMode && <p className="text-xs text-slate-500 mt-2 italic">
+                  {rationaleMode && (
+                    <p className="text-xs text-slate-500 mt-2 italic">
                       💡 {insight.reasoning}
-                    </p>}
+                    </p>
+                  )}
                 </div>
               </div>
-            </UsageTracker>)}
+            </UsageTracker>
+          ))}
         </CardContent>
       </Card>
 
@@ -209,7 +214,8 @@ const LeadSummary: React.FC<LeadSummaryProps> = ({
       </Card>
 
       {/* Sensitivity Notice */}
-      {isSensitive && <Card className="border-red-200 bg-red-50">
+      {isSensitive && (
+        <Card className="border-red-200 bg-red-50">
           <CardContent className="p-3">
             <div className="flex items-center gap-2 text-red-700">
               <Target className="h-4 w-4" />
@@ -219,8 +225,10 @@ const LeadSummary: React.FC<LeadSummaryProps> = ({
               AI will request your approval before taking any actions with this lead.
             </p>
           </CardContent>
-        </Card>}
-    </div>;
+        </Card>
+      )}
+    </div>
+  );
 };
 
 export default LeadSummary;

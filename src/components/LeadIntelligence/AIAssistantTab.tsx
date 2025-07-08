@@ -163,9 +163,9 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
   return (
     <div className="h-full flex flex-col p-3">
-      {/* Header */}
+      {/* Header with Controls */}
       <div className="mb-3 shrink-0">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-3">
           <Brain className="h-4 w-4 text-blue-600" />
           <div>
             <h3 className="text-sm font-semibold">AI Assistant</h3>
@@ -173,7 +173,8 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           </div>
         </div>
         
-        <div className="flex items-center justify-between text-xs">
+        {/* Controls Row */}
+        <div className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded">
           <div className="flex items-center gap-1">
             <label>Voice Mode</label>
             {voiceEnabled ? (
@@ -181,7 +182,7 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             ) : (
               <VolumeX className="h-3 w-3 text-slate-400" />
             )}
-            <Switch checked={voiceEnabled} disabled />
+            <Switch checked={voiceEnabled} disabled size="sm" />
           </div>
           
           <div className="flex items-center gap-1">
@@ -189,13 +190,14 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             <Switch 
               checked={rationaleMode} 
               onCheckedChange={onRationaleModeChange}
+              size="sm"
             />
           </div>
         </div>
       </div>
 
-      {/* Quick Actions - Compact Grid */}
-      <div className="grid grid-cols-1 gap-1 mb-3 shrink-0">
+      {/* Quick Actions - Compact 2x2 Grid */}
+      <div className="grid grid-cols-1 gap-2 mb-3 shrink-0">
         {quickActions.map((action, index) => (
           <UsageTracker
             key={index}
@@ -206,19 +208,19 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               variant="outline"
               size="sm"
               onClick={action.action}
-              className="h-7 text-xs justify-start px-2"
+              className="h-12 text-xs justify-start px-3 flex-col items-start gap-1"
             >
-              <action.icon className="h-3 w-3 mr-1" />
-              <div className="text-left">
-                <div className="font-medium">{action.title}</div>
-                <div className="text-slate-500 text-xs">{action.description}</div>
+              <div className="flex items-center gap-2 w-full">
+                <action.icon className="h-3 w-3" />
+                <span className="font-medium text-xs">{action.title}</span>
               </div>
+              <span className="text-slate-500 text-xs leading-none">{action.description}</span>
             </Button>
           </UsageTracker>
         ))}
       </div>
 
-      {/* Chat Area */}
+      {/* Chat Area - Takes remaining space */}
       <Card className="flex-1 flex flex-col min-h-0">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-1 text-sm">
@@ -228,7 +230,7 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col p-2 min-h-0">
-          {/* Chat History */}
+          {/* Chat History - Scrollable */}
           <div className="flex-1 overflow-y-auto space-y-2 mb-2">
             {chatHistory.map((message) => (
               <div
@@ -265,7 +267,7 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             )}
           </div>
           
-          {/* Chat Input */}
+          {/* Chat Input - Fixed at bottom */}
           <div className="flex gap-1 shrink-0">
             <Input
               value={chatMessage}
@@ -286,7 +288,7 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         </CardContent>
       </Card>
 
-      {/* AI Stats */}
+      {/* AI Stats - Fixed at bottom */}
       <Card className="mt-2 shrink-0">
         <CardContent className="p-2">
           <div className="flex justify-between text-xs">

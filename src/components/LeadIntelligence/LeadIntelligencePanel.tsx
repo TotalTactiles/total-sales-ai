@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -6,20 +7,22 @@ import { toast } from 'sonner';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useAIBrainInsights } from '@/hooks/useAIBrainInsights';
 import LeadIntelligenceHeader from './LeadIntelligenceHeader';
-import AISummaryCard from './AISummaryCard';
-import EditableLeadDetails from './EditableLeadDetails';
+import LeadDetailsCard from './LeadDetailsCard';
 import LeadSummary from './LeadSummary';
 import LeadTimeline from './LeadTimeline';
 import LeadComms from './LeadComms';
 import LeadTasks from './LeadTasks';
+import LeadNotes from './LeadNotes';
 import AIAssistantTab from './AIAssistantTab';
 import { Lead } from '@/types/lead';
 import { Menu, X } from 'lucide-react';
+
 interface LeadIntelligencePanelProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
 }
+
 const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
   lead,
   isOpen,
@@ -32,6 +35,7 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
   const [isSensitive, setIsSensitive] = useState(false);
   const [aiPanelVisible, setAiPanelVisible] = useState(true);
   const [leadData, setLeadData] = useState(lead);
+  
   const {
     trackEvent,
     trackClick,
@@ -119,22 +123,32 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
 
   // Don't render if dialog is not open or lead is null
   if (!isOpen || !leadData) return null;
-  return <Dialog open={isOpen} onOpenChange={onClose}>
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[98vw] h-[96vh] p-0 overflow-hidden">
         <DialogHeader className="p-4 pb-0 shrink-0 py-[18px] my-0">
-          <LeadIntelligenceHeader lead={leadData} isSensitive={isSensitive} voiceEnabled={voiceEnabled} aiDelegationMode={aiDelegationMode} onClose={onClose} onVoiceToggle={handleVoiceToggle} onSensitiveToggle={handleSensitiveToggle} onAIDelegation={handleAIDelegation} />
+          <LeadIntelligenceHeader 
+            lead={leadData} 
+            isSensitive={isSensitive} 
+            voiceEnabled={voiceEnabled} 
+            aiDelegationMode={aiDelegationMode} 
+            onClose={onClose} 
+            onVoiceToggle={handleVoiceToggle} 
+            onSensitiveToggle={handleSensitiveToggle} 
+            onAIDelegation={handleAIDelegation} 
+          />
         </DialogHeader>
 
-        {/* AI Summary - Fixed above tabs */}
-        <div className="px-4 pb-3 shrink-0">
-          <AISummaryCard lead={leadData} aiDelegationMode={aiDelegationMode} />
-        </div>
-
         <div className="flex-1 flex overflow-hidden min-h-0">
-          {/* Left Sidebar - Lead Details */}
-          <div className="w-72 border-r border-gray-200 bg-slate-50 shrink-0">
-            <div className="p-3 h-full overflow-y-auto">
-              <EditableLeadDetails lead={leadData} onUpdate={handleLeadUpdate} />
+          {/* Left Sidebar - Lead Details Card */}
+          <div className="w-80 border-r border-gray-200 bg-slate-50 shrink-0">
+            <div className="p-4 h-full overflow-y-auto">
+              <LeadDetailsCard 
+                lead={leadData} 
+                onUpdate={handleLeadUpdate}
+                isSensitive={isSensitive}
+              />
             </div>
           </div>
 
@@ -143,8 +157,9 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
               <div className="border-b px-4 shrink-0">
-                <TabsList className="grid w-full grid-cols-4 h-10">
+                <TabsList className="grid w-full grid-cols-5 h-10">
                   <TabsTrigger value="summary" className="text-sm">Summary</TabsTrigger>
+                  <TabsTrigger value="notes" className="text-sm">Notes</TabsTrigger>
                   <TabsTrigger value="timeline" className="text-sm">Timeline</TabsTrigger>
                   <TabsTrigger value="comms" className="text-sm">Comms</TabsTrigger>
                   <TabsTrigger value="tasks" className="text-sm">Tasks</TabsTrigger>
@@ -153,26 +168,45 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
 
               {/* Scrollable Tab Content */}
               <div className="flex-1 overflow-y-auto min-h-0">
-                <TabsContent value="summary" className="h-full m-0 p-4">
-                  <div className="text-sm space-y-4">
-                    <LeadSummary lead={leadData} rationaleMode={rationaleMode} aiDelegationMode={aiDelegationMode} isSensitive={isSensitive} />
+                <TabsContent value="summary" className="h-full m-0 p-0">
+                  <div className="text-sm h-full overflow-y-auto">
+                    <LeadSummary 
+                      lead={leadData} 
+                      rationaleMode={rationaleMode} 
+                      aiDelegationMode={aiDelegationMode} 
+                      isSensitive={isSensitive} 
+                    />
                   </div>
                 </TabsContent>
 
-                <TabsContent value="timeline" className="h-full m-0 p-4">
-                  <div className="text-sm">
+                <TabsContent value="notes" className="h-full m-0 p-0">
+                  <div className="text-sm h-full overflow-y-auto">
+                    <LeadNotes 
+                      lead={leadData} 
+                      aiDelegationMode={aiDelegationMode}
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="timeline" className="h-full m-0 p-0">
+                  <div className="text-sm h-full overflow-y-auto p-4">
                     <LeadTimeline lead={leadData} rationaleMode={rationaleMode} />
                   </div>
                 </TabsContent>
 
                 <TabsContent value="comms" className="h-full m-0 p-0">
-                  <div className="text-sm">
-                    <LeadComms lead={leadData} aiDelegationMode={aiDelegationMode} isSensitive={isSensitive} rationaleMode={rationaleMode} />
+                  <div className="text-sm h-full overflow-y-auto">
+                    <LeadComms 
+                      lead={leadData} 
+                      aiDelegationMode={aiDelegationMode} 
+                      isSensitive={isSensitive} 
+                      rationaleMode={rationaleMode} 
+                    />
                   </div>
                 </TabsContent>
 
-                <TabsContent value="tasks" className="h-full m-0 p-4">
-                  <div className="text-sm">
+                <TabsContent value="tasks" className="h-full m-0 p-0">
+                  <div className="text-sm h-full overflow-y-auto p-4">
                     <LeadTasks lead={leadData} aiDelegationMode={aiDelegationMode} />
                   </div>
                 </TabsContent>
@@ -180,7 +214,7 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
             </Tabs>
           </div>
 
-          {/* Right AI Assistant Panel - Always visible */}
+          {/* Right AI Assistant Panel */}
           <div className={`${aiPanelVisible ? 'w-80' : 'w-12'} border-l border-gray-200 bg-white transition-all duration-300 shrink-0 relative`}>
             {/* Mobile toggle button */}
             <div className="lg:hidden absolute top-2 left-2 z-10">
@@ -191,17 +225,28 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
 
             {/* AI Assistant Panel Content */}
             <div className={`h-full ${aiPanelVisible ? 'block' : 'hidden lg:block'}`}>
-              {aiPanelVisible ? <div className="h-full flex flex-col">
-                  <AIAssistantTab lead={leadData} voiceEnabled={voiceEnabled} rationaleMode={rationaleMode} onRationaleModeChange={setRationaleMode} />
-                </div> : <div className="p-4 text-center">
+              {aiPanelVisible ? (
+                <div className="h-full flex flex-col">
+                  <AIAssistantTab 
+                    lead={leadData} 
+                    voiceEnabled={voiceEnabled} 
+                    rationaleMode={rationaleMode} 
+                    onRationaleModeChange={setRationaleMode} 
+                  />
+                </div>
+              ) : (
+                <div className="p-4 text-center">
                   <Button variant="ghost" size="sm" onClick={() => setAiPanelVisible(true)} className="rotate-90">
                     AI
                   </Button>
-                </div>}
+                </div>
+              )}
             </div>
           </div>
         </div>
       </DialogContent>
-    </Dialog>;
+    </Dialog>
+  );
 };
+
 export default LeadIntelligencePanel;
