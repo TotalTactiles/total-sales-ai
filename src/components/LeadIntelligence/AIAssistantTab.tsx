@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -115,8 +116,8 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
   const quickActions = [
     {
       icon: Target,
-      title: 'Analyze Behavior',
-      description: 'Get engagement insights',
+      title: 'Analyze',
+      description: 'Behavior insights',
       action: () => {
         trackClick('ai_quick_action', 'analyze_behavior');
         const analysis: ChatMessage = {
@@ -130,8 +131,8 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
     },
     {
       icon: MessageSquare,
-      title: 'Draft Follow-up',
-      description: 'Create outreach message',
+      title: 'Draft',
+      description: 'Follow-up message',
       action: () => {
         trackClick('ai_quick_action', 'draft_followup');
         const draft: ChatMessage = {
@@ -145,8 +146,8 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
     },
     {
       icon: TrendingUp,
-      title: 'Get Strategy',
-      description: 'Closing recommendations',
+      title: 'Strategy',
+      description: 'Next steps',
       action: () => {
         trackClick('ai_quick_action', 'conversion_strategy');
         const strategy: ChatMessage = {
@@ -180,7 +181,7 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             ) : (
               <VolumeX className="h-3 w-3 text-slate-400" />
             )}
-            <Switch checked={voiceEnabled} disabled size="sm" />
+            <Switch checked={voiceEnabled} disabled />
           </div>
           
           <div className="flex items-center gap-1">
@@ -188,14 +189,13 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             <Switch 
               checked={rationaleMode} 
               onCheckedChange={onRationaleModeChange}
-              size="sm"
             />
           </div>
         </div>
       </div>
 
       {/* Quick Actions - Compact Grid */}
-      <div className="grid grid-cols-1 gap-2 mb-3 shrink-0">
+      <div className="grid grid-cols-1 gap-1 mb-3 shrink-0">
         {quickActions.map((action, index) => (
           <UsageTracker
             key={index}
@@ -206,11 +206,12 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               variant="outline"
               size="sm"
               onClick={action.action}
-              className="h-8 text-xs justify-start px-2"
+              className="h-7 text-xs justify-start px-2"
             >
               <action.icon className="h-3 w-3 mr-1" />
               <div className="text-left">
                 <div className="font-medium">{action.title}</div>
+                <div className="text-slate-500 text-xs">{action.description}</div>
               </div>
             </Button>
           </UsageTracker>
