@@ -44,7 +44,7 @@ const PipelinePulse: React.FC = () => {
       company: 'Enterprise Co',
       value: 65200,
       stage: 'Discovery',
-      lastContracted: 6,
+      lastContacted: 6,
       aiSummary: 'Last call 6 days ago - follow-up recommended',
       priority: 'medium'
     },
