@@ -206,6 +206,38 @@ Sam`,
     setSmsMessage('');
   };
 
+  // Email/SMS templates
+  const templates = {
+    email: [
+      { name: 'Follow-up ROI', subject: 'ROI Analysis for {company}', body: 'Hi {name}, I calculated potential savings...' },
+      { name: 'Demo Request', subject: 'Quick Demo for {company}', body: 'Hi {name}, would you like to see our solution in action?' },
+      { name: 'Case Study', subject: 'How {similar_company} Saved 40%', body: 'Hi {name}, thought you\'d find this relevant...' }
+    ],
+    sms: [
+      { name: 'Quick Check-in', message: 'Hi {name}! Quick follow-up on our conversation. Any questions?' },
+      { name: 'ROI Offer', message: 'Hi {name}! I have your ROI breakdown ready. 2-min review?' },
+      { name: 'Demo Invite', message: 'Hi {name}! Free to chat about your project this week?' }
+    ]
+  };
+
+  // Mock message history
+  const messageHistory = [
+    { type: 'email', date: '2024-01-15', sender: 'You', recipient: lead.name, subject: 'Initial Outreach', body: 'Hi James, I wanted to reach out regarding...' },
+    { type: 'email', date: '2024-01-14', sender: lead.name, recipient: 'You', subject: 'Re: Initial Outreach', body: 'Thanks for reaching out. I\'d like to learn more...' },
+    { type: 'sms', date: '2024-01-13', sender: 'You', recipient: lead.name, body: 'Quick follow-up from our call yesterday.' },
+    { type: 'sms', date: '2024-01-13', sender: lead.name, recipient: 'You', body: 'Perfect timing! Let\'s set up that demo.' }
+  ];
+
+  const insertTemplate = (template: any) => {
+    if (activeCommsType === 'email') {
+      setEmailSubject(template.subject.replace('{company}', lead.company).replace('{name}', lead.name.split(' ')[0]));
+      setEmailBody(template.body.replace('{company}', lead.company).replace('{name}', lead.name.split(' ')[0]));
+    } else {
+      setSmsMessage(template.message.replace('{name}', lead.name.split(' ')[0]));
+    }
+    toast.success('Template inserted and personalized');
+  };
+
   return (
     <div className="p-6 h-full overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
@@ -232,6 +264,28 @@ Sam`,
 
         {/* Email Tab */}
         <TabsContent value="email" className="space-y-4">
+          {/* Quick Templates */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Templates</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-2">
+                {templates.email.map((template, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => insertTemplate(template)}
+                    className="text-xs"
+                  >
+                    {template.name}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -352,6 +406,28 @@ Sam`,
 
         {/* SMS Tab */}
         <TabsContent value="sms" className="space-y-4">
+          {/* Quick SMS Templates */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick SMS Templates</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-2">
+                {templates.sms.map((template, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => insertTemplate(template)}
+                    className="text-xs"
+                  >
+                    {template.name}
+                  </Button>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -450,6 +526,35 @@ Sam`,
           </CardContent>
         </Card>
       )}
+
+      {/* Message History */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Communication History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {messageHistory.map((msg, index) => (
+              <div key={index} className="border rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={msg.type === 'email' ? 'default' : 'secondary'}>
+                      {msg.type === 'email' ? <Mail className="h-3 w-3 mr-1" /> : <MessageSquare className="h-3 w-3 mr-1" />}
+                      {msg.type.toUpperCase()}
+                    </Badge>
+                    <span className="text-sm text-slate-500">{msg.date}</span>
+                  </div>
+                  <span className="text-sm font-medium">{msg.sender} → {msg.recipient}</span>
+                </div>
+                {msg.type === 'email' && (
+                  <div className="text-sm font-medium mb-1">Subject: {(msg as any).subject}</div>
+                )}
+                <div className="text-sm text-slate-600">{msg.type === 'email' ? (msg as any).body : msg.body}</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* AI Delegation Notice */}
       {aiDelegationMode && (
