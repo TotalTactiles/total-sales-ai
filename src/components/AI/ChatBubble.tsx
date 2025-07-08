@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Brain, 
   X, 
@@ -14,53 +15,128 @@ import {
   MicOff,
   Send,
   Volume2,
-  VolumeX
+  VolumeX,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { assistantVoiceService } from '@/services/ai/assistantVoiceService';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocation } from 'react-router-dom';
 
 interface ChatMessage {
   id: string;
   type: 'user' | 'ai' | 'voice';
   message: string;
   timestamp: string;
+  workspace?: string;
 }
 
 const ChatBubble: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isMinimized, setIsMinimized] = useState(true);
   const [chatMessage, setChatMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      type: 'ai',
-      message: 'Hi! I\'m TSAM, your AI assistant. I can help you with lead management, tasks, and answer questions. You can type or speak to me - just say "Hey TSAM" to activate voice mode!',
-      timestamp: 'now'
-    }
-  ]);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
-  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [isWakeWordMode, setIsWakeWordMode] = useState(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
+  const [workspaceContext, setWorkspaceContext] = useState<string>('dashboard');
 
   const { user } = useAuth();
+  const location = useLocation();
 
+  // Detect workspace context from URL
   useEffect(() => {
-    // Set up voice callbacks
+    const path = location.pathname;
+    let context = 'dashboard';
+    
+    if (path.includes('/dialer')) {
+      context = 'dialer';
+    } else if (path.includes('/analytics')) {
+      context = 'analytics';
+    } else if (path.includes('/leads')) {
+      context = 'leads';
+    } else if (path.includes('/ai-agent')) {
+      context = 'ai_agent';
+    }
+    
+    setWorkspaceContext(context);
+    
+    // Add contextual greeting when workspace changes
+    if (chatHistory.length === 0) {
+      const greeting = getContextualGreeting(context);
+      setChatHistory([{
+        id: '1',
+        type: 'ai',
+        message: greeting,
+        timestamp: 'now',
+        workspace: context
+      }]);
+    }
+  }, [location.pathname]);
+
+  // Set up voice callbacks
+  useEffect(() => {
     assistantVoiceService.setCommandCallback(handleVoiceCommand);
     assistantVoiceService.setWakeWordCallback(() => {
-      toast.success('Wake word detected! Listening for command...');
+      if (!isExpanded) {
+        setIsExpanded(true);
+        setIsMinimized(false);
+      }
+      toast.success('Hey TSAM detected! Listening for command...');
       setIsListening(true);
     });
-  }, []);
+  }, [isExpanded]);
+
+  const getContextualGreeting = (context: string): string => {
+    const greetings = {
+      dialer: "Hi! I'm TSAM, your AI assistant. I'm here to help with your calls - I can log call summaries, update lead statuses, schedule follow-ups, or provide talk tracks. What can I help you with?",
+      analytics: "Hi! I'm TSAM, your AI assistant. I can help analyze your performance data, explain metrics, suggest improvements, or answer questions about your numbers. What would you like to explore?",
+      leads: "Hi! I'm TSAM, your AI assistant. I can help manage your leads - update statuses, add notes, schedule tasks, or provide insights about specific prospects. How can I assist?",
+      ai_agent: "Hi! I'm TSAM, your AI assistant. I can help configure your automation, review agent performance, or explain AI-driven insights. What do you need help with?",
+      dashboard: "Hi! I'm TSAM, your AI assistant. I can help with lead management, tasks, analytics, and answer questions. You can type or speak to me - just say 'Hey TSAM' to activate voice mode!"
+    };
+    
+    return greetings[context as keyof typeof greetings] || greetings.dashboard;
+  };
+
+  const getContextualSuggestions = (context: string): string[] => {
+    const suggestions = {
+      dialer: [
+        "Log call summary for last prospect",
+        "Update lead status to qualified",
+        "Schedule follow-up call in 3 days",
+        "Show me objection handling scripts"
+      ],
+      analytics: [
+        "Explain my conversion rates",
+        "Show top performing activities",
+        "Compare this month vs last month",
+        "What should I focus on improving?"
+      ],
+      leads: [
+        "Show me high-priority leads",
+        "Update lead score",
+        "Add follow-up task",
+        "Analyze lead engagement"
+      ],
+      ai_agent: [
+        "Review agent performance",
+        "Show automation metrics",
+        "Configure agent settings",
+        "Explain AI recommendations"
+      ]
+    };
+    
+    return suggestions[context as keyof typeof suggestions] || [];
+  };
 
   const handleVoiceCommand = (command: string) => {
     const voiceMessage: ChatMessage = {
       id: Date.now().toString(),
       type: 'voice',
       message: command,
-      timestamp: 'now'
+      timestamp: 'now',
+      workspace: workspaceContext
     };
 
     setChatHistory(prev => [...prev, voiceMessage]);
@@ -76,7 +152,8 @@ const ChatBubble: React.FC = () => {
         id: Date.now().toString(),
         type: 'user',
         message: textToSend,
-        timestamp: 'now'
+        timestamp: 'now',
+        workspace: workspaceContext
       };
       setChatHistory(prev => [...prev, userMessage]);
       setChatMessage('');
@@ -84,13 +161,14 @@ const ChatBubble: React.FC = () => {
     
     setIsTyping(true);
 
-    // Simulate AI response
+    // Generate contextual AI response
     setTimeout(() => {
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        message: generateAIResponse(textToSend),
-        timestamp: 'now'
+        message: generateContextualResponse(textToSend, workspaceContext),
+        timestamp: 'now',
+        workspace: workspaceContext
       };
       
       setChatHistory(prev => [...prev, aiMessage]);
@@ -98,49 +176,69 @@ const ChatBubble: React.FC = () => {
     }, 1500);
   };
 
-  const generateAIResponse = (userMessage: string): string => {
+  const generateContextualResponse = (userMessage: string, context: string): string => {
     const message = userMessage.toLowerCase();
     
+    // Context-specific responses
+    if (context === 'dialer') {
+      if (message.includes('call') || message.includes('dial')) {
+        return "I'm initiating the call now. The dialer should open shortly. Need any talk tracks or objection handling scripts?";
+      }
+      if (message.includes('log') || message.includes('summary')) {
+        return "I've logged the call summary. Would you like me to update the lead status or schedule a follow-up?";
+      }
+      if (message.includes('follow up')) {
+        return "I've scheduled the follow-up task. You'll be reminded at the appropriate time. Anything else for this lead?";
+      }
+    } else if (context === 'analytics') {
+      if (message.includes('performance') || message.includes('metrics')) {
+        return "Based on your current metrics, your call-to-meeting conversion is strong at 18%. Consider focusing on email response rates to boost overall performance.";
+      }
+      if (message.includes('compare') || message.includes('last')) {
+        return "This month you're up 15% in calls made and 22% in meetings booked compared to last month. Great momentum!";
+      }
+    } else if (context === 'leads') {
+      if (message.includes('priority') || message.includes('high')) {
+        return "I've identified 5 high-priority leads that need immediate attention. Should I prioritize them in your queue?";
+      }
+      if (message.includes('update') && message.includes('status')) {
+        return "I've updated the lead status as requested. The change has been saved to your CRM.";
+      }
+    }
+    
+    // General responses
     if (message.includes('update') && message.includes('status')) {
-      return 'I\'ve updated the lead status as requested. The change has been saved to your CRM.';
-    }
-    
-    if (message.includes('call') || message.includes('phone')) {
-      return 'I\'m initiating the call now. The dialer should open shortly.';
-    }
-    
-    if (message.includes('email')) {
-      return 'Opening the email composer with the lead\'s information pre-filled.';
+      return "I've updated the lead status as requested. The change has been saved to your CRM.";
     }
     
     if (message.includes('remind') || message.includes('follow up')) {
-      return 'I\'ve created a reminder for you. You\'ll be notified at the scheduled time.';
+      return "I've created a reminder for you. You'll be notified at the scheduled time.";
     }
     
-    return 'I understand your request. How else can I help you with your sales activities today?';
+    return `I understand your request in the ${context} workspace. How else can I help you with your sales activities?`;
   };
 
   const toggleVoice = async () => {
     if (isListening) {
-      await assistantVoiceService.stopListening();
+      setIsProcessingVoice(true);
+      const command = await assistantVoiceService.stopListening();
       setIsListening(false);
-      setIsWakeWordMode(false);
+      setIsProcessingVoice(false);
+      
+      if (command) {
+        handleVoiceCommand(command.transcript);
+      }
     } else {
-      const started = await assistantVoiceService.startListening(isWakeWordMode);
+      const started = await assistantVoiceService.startListening(false);
       if (started) {
         setIsListening(true);
-        toast.success(isWakeWordMode ? 'Say "Hey TSAM" to activate' : 'Listening for command...');
+        toast.success('Listening for voice command...');
       }
     }
   };
 
-  const toggleWakeWordMode = () => {
-    setIsWakeWordMode(!isWakeWordMode);
-    if (!isWakeWordMode) {
-      toast.info('Wake word mode enabled. Say "Hey TSAM" anytime!');
-    } else {
-      toast.info('Wake word mode disabled.');
-    }
+  const handleSuggestionClick = (suggestion: string) => {
+    setChatMessage(suggestion);
   };
 
   if (isMinimized) {
@@ -160,7 +258,7 @@ const ChatBubble: React.FC = () => {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <Card className={`shadow-2xl border-blue-200 transition-all duration-300 ${
-        isExpanded ? 'w-96 h-[600px]' : 'w-80 h-[450px]'
+        isExpanded ? 'w-96 h-[700px]' : 'w-80 h-[500px]'
       }`}>
         <CardHeader className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -170,8 +268,8 @@ const ChatBubble: React.FC = () => {
                 <div className="w-2 h-2 rounded-full bg-green-400 absolute -top-0.5 -right-0.5 animate-pulse"></div>
               </div>
               TSAM Assistant
-              <Badge className="bg-white/20 text-white text-xs">
-                AI Chat
+              <Badge className="bg-white/20 text-white text-xs capitalize">
+                {workspaceContext.replace('_', ' ')}
               </Badge>
             </CardTitle>
             <div className="flex items-center gap-1">
@@ -195,7 +293,10 @@ const ChatBubble: React.FC = () => {
           </div>
           
           <div className="text-xs text-blue-100 mt-1">
-            Type or speak your requests - I'm here to help!
+            {workspaceContext === 'dialer' && 'Ready to help with calls and lead management'}
+            {workspaceContext === 'analytics' && 'Ready to analyze your performance data'}
+            {workspaceContext === 'leads' && 'Ready to help manage your prospects'}
+            {workspaceContext !== 'dialer' && workspaceContext !== 'analytics' && workspaceContext !== 'leads' && 'Type or speak your requests - I\'m here to help!'}
           </div>
         </CardHeader>
 
@@ -207,78 +308,102 @@ const ChatBubble: React.FC = () => {
                 variant={isListening ? "destructive" : "outline"}
                 size="sm"
                 onClick={toggleVoice}
+                disabled={isProcessingVoice}
                 className="h-8 px-2"
               >
-                {isListening ? <MicOff className="h-3 w-3" /> : <Mic className="h-3 w-3" />}
+                {isProcessingVoice ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : isListening ? (
+                  <MicOff className="h-3 w-3" />
+                ) : (
+                  <Mic className="h-3 w-3" />
+                )}
                 <span className="ml-1 text-xs">
-                  {isListening ? 'Stop' : 'Voice'}
-                </span>
-              </Button>
-              
-              <Button
-                variant={isWakeWordMode ? "default" : "outline"}
-                size="sm"
-                onClick={toggleWakeWordMode}
-                className="h-8 px-2"
-              >
-                {isWakeWordMode ? <Volume2 className="h-3 w-3" /> : <VolumeX className="h-3 w-3" />}
-                <span className="ml-1 text-xs">
-                  Wake Word
+                  {isProcessingVoice ? 'Processing' : isListening ? 'Stop' : 'Voice'}
                 </span>
               </Button>
             </div>
             
             {isListening && (
               <Badge variant="outline" className="text-xs animate-pulse">
-                {isWakeWordMode ? 'Say "Hey TSAM"' : 'Listening...'}
+                Listening... Say "Hey TSAM" anytime
               </Badge>
             )}
           </div>
 
           {/* Chat History */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {chatHistory.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.type === 'user' || message.type === 'voice' ? 'justify-end' : 'justify-start'}`}
-              >
+          <ScrollArea className="flex-1 p-3">
+            <div className="space-y-3">
+              {chatHistory.map((message) => (
                 <div
-                  className={`max-w-[85%] p-2 rounded text-xs ${
-                    message.type === 'user' ? 'bg-blue-600 text-white' :
-                    message.type === 'voice' ? 'bg-purple-600 text-white' :
-                    'bg-slate-100 text-slate-800'
-                  }`}
+                  key={message.id}
+                  className={`flex ${message.type === 'user' || message.type === 'voice' ? 'justify-end' : 'justify-start'}`}
                 >
-                  {message.type === 'voice' && (
-                    <div className="flex items-center gap-1 mb-1">
-                      <Mic className="h-2 w-2" />
-                      <span className="text-xs opacity-75">Voice Command</span>
+                  <div
+                    className={`max-w-[85%] p-2 rounded text-xs ${
+                      message.type === 'user' ? 'bg-blue-600 text-white' :
+                      message.type === 'voice' ? 'bg-purple-600 text-white' :
+                      'bg-slate-100 text-slate-800'
+                    }`}
+                  >
+                    {message.type === 'voice' && (
+                      <div className="flex items-center gap-1 mb-1">
+                        <Mic className="h-2 w-2" />
+                        <span className="text-xs opacity-75">Voice Command</span>
+                      </div>
+                    )}
+                    <p className="whitespace-pre-line">{message.message}</p>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className={`text-xs ${
+                        message.type === 'user' || message.type === 'voice' ? 
+                        (message.type === 'voice' ? 'text-purple-200' : 'text-blue-200') : 
+                        'text-slate-500'
+                      }`}>
+                        {message.timestamp}
+                      </p>
+                      {message.workspace && (
+                        <Badge variant="outline" className="text-xs ml-2 opacity-75">
+                          {message.workspace}
+                        </Badge>
+                      )}
                     </div>
-                  )}
-                  <p className="whitespace-pre-line">{message.message}</p>
-                  <p className={`text-xs mt-1 ${
-                    message.type === 'user' || message.type === 'voice' ? 
-                    (message.type === 'voice' ? 'text-purple-200' : 'text-blue-200') : 
-                    'text-slate-500'
-                  }`}>
-                    {message.timestamp}
-                  </p>
-                </div>
-              </div>
-            ))}
-            
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="bg-slate-100 text-slate-800 p-2 rounded">
-                  <div className="flex items-center gap-1">
-                    <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce"></div>
-                    <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
+              ))}
+              
+              {isTyping && (
+                <div className="flex justify-start">
+                  <div className="bg-slate-100 text-slate-800 p-2 rounded">
+                    <div className="flex items-center gap-1">
+                      <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce"></div>
+                      <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+
+          {/* Quick Suggestions */}
+          {getContextualSuggestions(workspaceContext).length > 0 && (
+            <div className="p-3 border-t bg-slate-50">
+              <div className="text-xs font-medium text-slate-700 mb-2">Quick actions:</div>
+              <div className="flex flex-wrap gap-1">
+                {getContextualSuggestions(workspaceContext).slice(0, 2).map((suggestion, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="text-xs h-6 px-2"
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
           
           {/* Chat Input */}
           <div className="p-3 border-t bg-white">
@@ -286,7 +411,7 @@ const ChatBubble: React.FC = () => {
               <Input
                 value={chatMessage}
                 onChange={(e) => setChatMessage(e.target.value)}
-                placeholder="Type your message or use voice..."
+                placeholder={`Ask about ${workspaceContext} or use voice...`}
                 onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                 className="text-sm"
               />

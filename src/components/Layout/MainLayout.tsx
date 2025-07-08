@@ -12,8 +12,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { profile } = useAuth();
 
-  // Show chat bubble on all authenticated pages except auth pages
-  const showChatBubble = profile && !location.pathname.includes('/auth');
+  // Show chat bubble on key workspaces and authenticated pages
+  const isKeyWorkspace = location.pathname.includes('/dialer') || 
+                        location.pathname.includes('/analytics') || 
+                        location.pathname.includes('/leads') ||
+                        location.pathname.includes('/ai-agent') ||
+                        location.pathname.includes('/dashboard');
+  
+  const showChatBubble = profile && !location.pathname.includes('/auth') && isKeyWorkspace;
 
   return (
     <div className="min-h-screen bg-background">

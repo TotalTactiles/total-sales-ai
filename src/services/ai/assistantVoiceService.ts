@@ -28,6 +28,7 @@ export class AssistantVoiceService {
   private currentLead: any = null;
   private onCommandCallback: ((command: string) => void) | null = null;
   private onWakeWordDetected: (() => void) | null = null;
+  private continuousListening = false;
 
   static getInstance(): AssistantVoiceService {
     if (!AssistantVoiceService.instance) {
@@ -58,8 +59,16 @@ export class AssistantVoiceService {
 
       this.isListening = true;
       this.isWakeWordMode = wakeWordMode;
+      this.continuousListening = wakeWordMode;
+      
       const started = await voiceService.startRecording();
       logger.info(`Voice listening started${wakeWordMode ? ' (wake word mode)' : ''}`);
+      
+      // If in wake word mode, start continuous listening loop
+      if (wakeWordMode) {
+        this.startContinuousListening();
+      }
+      
       return started;
     } catch (error) {
       logger.error('Failed to start voice listening:', error);
@@ -68,9 +77,52 @@ export class AssistantVoiceService {
     }
   }
 
+  private async startContinuousListening(): Promise<void> {
+    while (this.continuousListening && this.isListening) {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+        
+        if (!this.isListening) break;
+        
+        const audioBlob = await voiceService.stopRecording();
+        if (audioBlob && audioBlob.size > 0) {
+          const transcript = await voiceService.processAudioCommand(audioBlob, 'current-user');
+          
+          if (transcript && this.checkForWakeWord(transcript)) {
+            logger.info('Wake word detected:', transcript);
+            if (this.onWakeWordDetected) {
+              this.onWakeWordDetected();
+            }
+            
+            // Stop continuous listening and wait for actual command
+            this.continuousListening = false;
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Start regular listening for the actual command
+            if (this.isListening) {
+              await voiceService.startRecording();
+            }
+            break;
+          }
+        }
+        
+        // Restart recording for continuous listening
+        if (this.continuousListening && this.isListening) {
+          await voiceService.startRecording();
+        }
+        
+      } catch (error) {
+        logger.error('Error in continuous listening:', error);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
+      }
+    }
+  }
+
   async stopListening(): Promise<VoiceCommand | null> {
     try {
       this.isListening = false;
+      this.continuousListening = false;
+      
       const audioBlob = await voiceService.stopRecording();
       
       if (!audioBlob || audioBlob.size === 0) {
@@ -84,17 +136,6 @@ export class AssistantVoiceService {
       }
 
       const command = await this.analyzeVoiceCommand(transcript);
-      
-      // Check for wake word in wake word mode
-      if (this.isWakeWordMode && this.checkForWakeWord(transcript)) {
-        if (this.onWakeWordDetected) {
-          this.onWakeWordDetected();
-        }
-        // Continue listening after wake word detected
-        setTimeout(() => this.startListening(false), 100);
-        return null;
-      }
-
       return command;
       
     } catch (error) {
