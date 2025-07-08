@@ -13,14 +13,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { profile } = useAuth();
 
   // Show enhanced chat bubble on key workspaces and authenticated pages
-  const isKeyWorkspace = location.pathname.includes('/dialer') || 
+  const isKeyWorkspace = location.pathname.includes('/dashboard') ||
+                        location.pathname.includes('/dialer') || 
                         location.pathname.includes('/sales/dialer') ||
                         location.pathname.includes('/analytics') || 
                         location.pathname.includes('/leads') ||
                         location.pathname.includes('/sales/leads') ||
                         location.pathname.includes('/ai-agent') ||
                         location.pathname.includes('/tasks') ||
-                        location.pathname.includes('/dashboard');
+                        location.pathname.includes('/academy') ||
+                        location.pathname.includes('/sales/dashboard');
   
   const showChatBubble = profile && !location.pathname.includes('/auth') && isKeyWorkspace;
 

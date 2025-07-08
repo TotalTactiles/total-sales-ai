@@ -52,8 +52,10 @@ export class AssistantVoiceService {
   private async initializeAlwaysListening(): Promise<void> {
     try {
       if (this.isAlwaysListening) {
-        await this.startWakeWordDetection();
-        logger.info('Always listening mode initialized');
+        const result = await this.startWakeWordDetection();
+        if (result) {
+          logger.info('Always listening mode initialized');
+        }
       }
     } catch (error) {
       logger.error('Failed to initialize always listening mode:', error);
@@ -81,6 +83,11 @@ export class AssistantVoiceService {
       if (!this.recognition && !this.initializeWebSpeechAPI()) {
         logger.error('Speech recognition not available');
         return false;
+      }
+
+      // Don't start if already listening
+      if (this.isListening && this.continuousListening) {
+        return true;
       }
 
       this.isListening = true;
@@ -113,7 +120,11 @@ export class AssistantVoiceService {
         if (event.error !== 'no-speech' && this.continuousListening) {
           setTimeout(() => {
             if (this.isListening && this.continuousListening) {
-              this.recognition.start();
+              try {
+                this.recognition.start();
+              } catch (err) {
+                logger.error('Failed to restart recognition:', err);
+              }
             }
           }, 1000);
         }
@@ -123,7 +134,11 @@ export class AssistantVoiceService {
         if (this.continuousListening && this.isListening) {
           setTimeout(() => {
             if (this.isListening) {
-              this.recognition.start();
+              try {
+                this.recognition.start();
+              } catch (err) {
+                logger.error('Failed to restart recognition on end:', err);
+              }
             }
           }, 100);
         }
@@ -246,7 +261,8 @@ export class AssistantVoiceService {
       if (wakeWordMode) {
         return await this.startWakeWordDetection();
       } else {
-        return await this.startCommandListening();
+        await this.startCommandListening();
+        return true;
       }
     } catch (error) {
       logger.error('Failed to start voice listening:', error);
@@ -517,6 +533,7 @@ export class AssistantVoiceService {
     if (path.includes('/analytics')) return 'analytics';
     if (path.includes('/leads')) return 'leads';
     if (path.includes('/tasks')) return 'tasks';
+    if (path.includes('/academy')) return 'academy';
     return 'dashboard';
   }
 
