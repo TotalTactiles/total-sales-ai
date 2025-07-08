@@ -26,7 +26,8 @@ import {
   Phone,
   Users,
   BarChart3,
-  BookOpen
+  BookOpen,
+  User
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { assistantVoiceService } from '@/services/ai/assistantVoiceService';
@@ -52,7 +53,6 @@ const ChatBubble: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
-  const [isPushToTalk, setIsPushToTalk] = useState(false);
   const [isProcessingVoice, setIsProcessingVoice] = useState(false);
   const [workspaceContext, setWorkspaceContext] = useState<string>('dashboard');
   const [isWakeWordActive, setIsWakeWordActive] = useState(true);
@@ -79,15 +79,15 @@ const ChatBubble: React.FC = () => {
     
     if (path.includes('/dialer') || path.includes('/sales/dialer')) {
       context = 'dialer';
-    } else if (path.includes('/analytics')) {
+    } else if (path.includes('/analytics') || path.includes('/sales/analytics')) {
       context = 'analytics';
     } else if (path.includes('/leads') || path.includes('/sales/leads')) {
       context = 'leads';
     } else if (path.includes('/ai-agent')) {
       context = 'ai_agent';
-    } else if (path.includes('/tasks')) {
+    } else if (path.includes('/tasks') || path.includes('/sales/tasks')) {
       context = 'tasks';
-    } else if (path.includes('/academy')) {
+    } else if (path.includes('/academy') || path.includes('/sales/academy')) {
       context = 'academy';
     }
     
@@ -100,7 +100,7 @@ const ChatBubble: React.FC = () => {
         id: '1',
         type: 'ai',
         message: greeting,
-        timestamp: 'now',
+        timestamp: new Date().toLocaleTimeString(),
         workspace: context
       }]);
     }
@@ -110,20 +110,20 @@ const ChatBubble: React.FC = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       const timeSinceLastInteraction = Date.now() - lastInteractionTime;
-      if (timeSinceLastInteraction > 120000 && !showGreeting && chatHistory.length > 0) { // 2 minutes
+      if (timeSinceLastInteraction > 120000 && !showGreeting && chatHistory.length > 0) {
         setShowGreeting(true);
         const contextualPrompt = getContextualPrompt(workspaceContext);
         const greetingMessage: ChatMessage = {
           id: Date.now().toString(),
           type: 'system',
           message: `👋 Hey there! ${contextualPrompt} Need any help?`,
-          timestamp: 'now',
+          timestamp: new Date().toLocaleTimeString(),
           workspace: workspaceContext
         };
         setChatHistory(prev => [...prev, greetingMessage]);
-        setTimeout(() => setShowGreeting(false), 10000); // Hide after 10 seconds
+        setTimeout(() => setShowGreeting(false), 10000);
       }
-    }, 30000); // Check every 30 seconds
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [lastInteractionTime, showGreeting, chatHistory.length, workspaceContext]);
@@ -132,51 +132,35 @@ const ChatBubble: React.FC = () => {
   useEffect(() => {
     const initializeVoice = async () => {
       try {
-        // Set up callbacks
         assistantVoiceService.setCommandCallback(handleVoiceCommand);
         assistantVoiceService.setWakeWordCallback(() => {
           console.log('Hey TSAM detected!');
           setShowWakeWordOverlay(true);
           
-          if (!isExpanded) {
-            setIsExpanded(true);
+          if (isMinimized) {
             setIsMinimized(false);
+            setIsExpanded(true);
           }
           
           toast.success('Hey TSAM detected! Processing your command...');
           
-          // Add system message
           const systemMessage: ChatMessage = {
             id: Date.now().toString(),
             type: 'system',
             message: '🎙️ Wake word detected - listening for command...',
-            timestamp: 'now',
+            timestamp: new Date().toLocaleTimeString(),
             workspace: workspaceContext
           };
           setChatHistory(prev => [...prev, systemMessage]);
           
-          // Hide overlay after 3 seconds
           setTimeout(() => setShowWakeWordOverlay(false), 3000);
         });
 
-        // Start always listening if enabled
         if (alwaysListening) {
           const started = await assistantVoiceService.startWakeWordDetection();
           if (started) {
             setIsWakeWordActive(true);
             console.log('Always listening mode activated');
-            
-            // Show initial system message only once
-            if (chatHistory.length === 0) {
-              const welcomeMessage: ChatMessage = {
-                id: 'welcome',
-                type: 'system',
-                message: '🤖 TSAM is now always listening. Say "Hey TSAM" followed by your command.',
-                timestamp: 'now',
-                workspace: workspaceContext
-              };
-              setChatHistory([welcomeMessage]);
-            }
           }
         }
       } catch (error) {
@@ -186,23 +170,16 @@ const ChatBubble: React.FC = () => {
     };
 
     initializeVoice();
-
-    return () => {
-      if (isListening) {
-        assistantVoiceService.stopListening();
-      }
-    };
-  }, [alwaysListening, workspaceContext]);
+  }, [alwaysListening, workspaceContext, isMinimized]);
 
   const getContextualGreeting = (context: string): string => {
     const greetings = {
-      dialer: "Hi! I'm TSAM, your AI assistant. I'm monitoring your dialing activity and ready to help with call prep, lead updates, follow-ups, or talk tracks. Say 'Hey TSAM' anytime!",
-      analytics: "Hi! I'm TSAM, your AI assistant. I'm analyzing your performance data in real-time. Ask me about metrics, trends, or insights. Say 'Hey TSAM' followed by your question!",
-      leads: "Hi! I'm TSAM, your AI assistant. I'm observing your lead management activities and ready to help with updates, notes, tasks, or insights. Say 'Hey TSAM' anytime!",
-      tasks: "Hi! I'm TSAM, your AI assistant. I'm tracking your task management and ready to help create reminders, schedule follow-ups, or analyze priorities. Say 'Hey TSAM' anytime!",
-      academy: "Hi! I'm TSAM, your AI assistant. I'm here to help with your training, answer questions, create study plans, or simulate practice scenarios. Say 'Hey TSAM' anytime!",
-      ai_agent: "Hi! I'm TSAM, your AI assistant. I'm monitoring your automation settings and ready to help configure agents, review performance, or explain AI insights. Say 'Hey TSAM' anytime!",
-      dashboard: "Hi! I'm TSAM, your always-listening AI assistant. I'm learning from your activities to provide better support. Say 'Hey TSAM' followed by your request anytime!"
+      dialer: "Hi! I'm TSAM, your AI assistant. I'm monitoring your dialing activity and ready to help with call prep, lead updates, and follow-ups. Say 'Hey TSAM' anytime!",
+      analytics: "Hi! I'm TSAM, your AI assistant. I'm analyzing your performance data in real-time. Ask me about metrics, trends, or insights. Say 'Hey TSAM' anytime!",
+      leads: "Hi! I'm TSAM, your AI assistant. I'm observing your lead management and ready to help with updates, notes, and tasks. Say 'Hey TSAM' anytime!",
+      tasks: "Hi! I'm TSAM, your AI assistant. I'm tracking your task management and ready to help with reminders and priorities. Say 'Hey TSAM' anytime!",
+      academy: "Hi! I'm TSAM, your AI assistant. I'm here to help with training, answer questions, and create study plans. Say 'Hey TSAM' anytime!",
+      dashboard: "Hi! I'm TSAM, your always-listening AI assistant. I'm learning from your activities to provide better support. Say 'Hey TSAM' anytime!"
     };
     
     return greetings[context as keyof typeof greetings] || greetings.dashboard;
@@ -211,7 +188,7 @@ const ChatBubble: React.FC = () => {
   const getContextualPrompt = (context: string): string => {
     const prompts = {
       dialer: "I noticed you're in the dialer workspace.",
-      analytics: "I see you're reviewing your analytics.",
+      analytics: "I see you're reviewing your analytics.",  
       leads: "I see you're working on lead management.",
       tasks: "I notice you're managing your tasks.",
       academy: "I see you're in the academy workspace.",
@@ -279,7 +256,7 @@ const ChatBubble: React.FC = () => {
       id: Date.now().toString(),
       type: 'voice',
       message: command,
-      timestamp: 'now',
+      timestamp: new Date().toLocaleTimeString(),
       workspace: workspaceContext,
       confidence: 0.9
     };
@@ -299,7 +276,7 @@ const ChatBubble: React.FC = () => {
         id: Date.now().toString(),
         type: 'user',
         message: textToSend,
-        timestamp: 'now',
+        timestamp: new Date().toLocaleTimeString(),
         workspace: workspaceContext
       };
       setChatHistory(prev => [...prev, userMessage]);
@@ -308,13 +285,12 @@ const ChatBubble: React.FC = () => {
     
     setIsTyping(true);
 
-    // Generate contextual AI response with delegation logic
     setTimeout(() => {
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
         message: generateContextualResponse(textToSend, workspaceContext, isVoiceCommand),
-        timestamp: 'now',
+        timestamp: new Date().toLocaleTimeString(),
         workspace: workspaceContext
       };
       
@@ -327,63 +303,36 @@ const ChatBubble: React.FC = () => {
     const message = userMessage.toLowerCase();
     const prefix = isVoice ? "Voice command processed: " : "";
     
-    // Enhanced responses with delegation awareness
-    if (context === 'dialer') {
+    if (context === 'analytics') {
+      if (message.includes('performance') || message.includes('metrics')) {
+        return `${prefix}I'm analyzing your performance data. Your call-to-meeting conversion is strong at 18%. I'll delegate to the Analytics Agent for deeper insights.`;
+      }
+      if (message.includes('compare') || message.includes('trend')) {
+        return `${prefix}I'm delegating to the Analytics Agent for trend analysis. Based on patterns, you're up 15% in calls and 22% in meetings this month!`;
+      }
+    } else if (context === 'dialer') {
       if (message.includes('call') || message.includes('dial')) {
         return `${prefix}I'm delegating to the Dialer Agent to initiate the call. The dialer should open shortly. Need any talk tracks?`;
       }
-      if (message.includes('log') || message.includes('summary')) {
-        return `${prefix}I've delegated to the Automation Agent to log your call summary and will suggest follow-up actions based on the conversation.`;
-      }
-      if (message.includes('follow up') || message.includes('remind')) {
-        return `${prefix}I've delegated to the Automation Agent to create your follow-up task. You'll be reminded at the optimal time based on your patterns.`;
-      }
       if (message.includes('prep') || message.includes('prepare')) {
-        return `${prefix}I'm preparing your call materials. Based on the lead's profile, I recommend focusing on ROI and implementation timeline. Here are 3 key talking points...`;
-      }
-    } else if (context === 'analytics') {
-      if (message.includes('performance') || message.includes('metrics')) {
-        return `${prefix}I'm delegating to the Company Brain to analyze your performance. Your call-to-meeting conversion is strong at 18%. I'll provide deeper insights momentarily.`;
-      }
-      if (message.includes('compare') || message.includes('trend')) {
-        return `${prefix}I'm delegating to the Analytics Agent for trend analysis. Based on learning patterns, you're up 15% in calls and 22% in meetings this month!`;
-      }
-    } else if (context === 'leads') {
-      if (message.includes('priority') || message.includes('high')) {
-        return `${prefix}I'm delegating to the Lead Agent to identify your high-priority leads. Based on your behavior patterns, I've found 5 leads needing immediate attention.`;
-      }
-      if (message.includes('update') && message.includes('status')) {
-        return `${prefix}I've delegated to the Lead Agent to update the status. The change has been saved and I'm analyzing the impact on your pipeline.`;
+        return `${prefix}I'm preparing your call materials. Based on the lead's profile, I recommend focusing on ROI and implementation timeline.`;
       }
     } else if (context === 'academy') {
       if (message.includes('study') || message.includes('learn')) {
-        return `${prefix}I'm creating a personalized study plan based on your current skill gaps and goals. Focus areas: objection handling, closing techniques, and industry knowledge.`;
-      }
-      if (message.includes('quiz') || message.includes('test')) {
-        return `${prefix}Starting a practice session! Here's your first scenario: A prospect says "It's too expensive." How would you respond? (I'm tracking progress for improvement insights)`;
+        return `${prefix}I'm creating a personalized study plan based on your skill gaps. Focus areas: objection handling and closing techniques.`;
       }
     }
     
-    // General responses with learning context
-    const learningNote = learningEnabled ? " (I'm learning from this interaction to improve future responses)" : "";
-    
-    if (message.includes('remind') || message.includes('schedule')) {
-      return `${prefix}I've delegated to the Automation Agent to create your reminder. Based on your patterns, I've optimized the timing for maximum effectiveness${learningNote}.`;
-    }
-    
-    return `${prefix}I understand your request in the ${context} workspace and I'm processing it through the appropriate AI agents. Learning from your behavior to provide better assistance${learningNote}.`;
+    const learningNote = learningEnabled ? " (Learning from this interaction)" : "";
+    return `${prefix}I understand your request in the ${context} workspace and I'm processing it through the appropriate AI agents${learningNote}.`;
   };
 
   const toggleVoice = async () => {
     if (isListening) {
       setIsProcessingVoice(true);
-      const command = await assistantVoiceService.stopListening();
+      await assistantVoiceService.stopListening();
       setIsListening(false);
       setIsProcessingVoice(false);
-      
-      if (command) {
-        handleVoiceCommand(command.transcript);
-      }
     } else {
       const started = await assistantVoiceService.startListening(false);
       if (started) {
@@ -397,16 +346,6 @@ const ChatBubble: React.FC = () => {
     setAlwaysListening(!alwaysListening);
     assistantVoiceService.setAlwaysListening(!alwaysListening);
     toast.success(`Always listening ${!alwaysListening ? 'enabled' : 'disabled'}`);
-  };
-
-  const toggleLearning = () => {
-    setLearningEnabled(!learningEnabled);
-    assistantVoiceService.setLearningMode(!learningEnabled);
-    toast.success(`Learning mode ${!learningEnabled ? 'enabled' : 'disabled'}`);
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    setChatMessage(suggestion);
   };
 
   const clearHistory = () => {
@@ -431,13 +370,17 @@ const ChatBubble: React.FC = () => {
     );
   };
 
+  // Minimized bubble view
   if (isMinimized) {
     return (
       <>
         <div className="fixed bottom-6 right-6 z-50">
           <div className="relative">
             <Button
-              onClick={() => setIsMinimized(false)}
+              onClick={() => {
+                setIsMinimized(false);
+                setIsExpanded(true);
+              }}
               className="rounded-full w-14 h-14 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg border-2 border-white"
             >
               <Brain className="h-7 w-7 text-white" />
@@ -446,10 +389,9 @@ const ChatBubble: React.FC = () => {
               }`}></div>
             </Button>
             
-            {/* Wake word indicator */}
             {isWakeWordActive && (
               <div className="absolute -top-8 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
-                Listening
+                Hey TSAM
               </div>
             )}
           </div>
@@ -459,6 +401,7 @@ const ChatBubble: React.FC = () => {
     );
   }
 
+  // Expanded chat interface
   return (
     <>
       <div 
@@ -466,18 +409,13 @@ const ChatBubble: React.FC = () => {
         className={`fixed z-50 transition-all duration-300 ${
           isFullScreen 
             ? 'inset-4' 
-            : isDragging 
-              ? `left-[${position.x}px] top-[${position.y}px]` 
-              : 'bottom-6 right-6'
+            : 'bottom-6 right-6'
         }`}
-        style={isDragging ? { left: position.x, top: position.y } : {}}
       >
         <Card className={`shadow-2xl border-blue-200 transition-all duration-300 ${
           isFullScreen 
             ? 'w-full h-full' 
-            : isExpanded 
-              ? 'w-96 h-[700px]' 
-              : 'w-80 h-[500px]'
+            : 'w-96 h-[600px]'
         }`}>
           <CardHeader className="p-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white flex-shrink-0">
             <div className="flex items-center justify-between">
@@ -500,40 +438,13 @@ const ChatBubble: React.FC = () => {
                 )}
               </CardTitle>
               <div className="flex items-center gap-1">
-                {!isFullScreen && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-white p-1 h-auto hover:bg-white/10 cursor-move"
-                    onMouseDown={(e) => {
-                      setIsDragging(true);
-                      const rect = dragRef.current?.getBoundingClientRect();
-                      if (rect) {
-                        setPosition({
-                          x: e.clientX - rect.left,
-                          y: e.clientY - rect.top
-                        });
-                      }
-                    }}
-                  >
-                    <Move className="h-4 w-4" />
-                  </Button>
-                )}
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="text-white p-1 h-auto hover:bg-white/10"
-                >
-                  {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setIsFullScreen(!isFullScreen)}
                   className="text-white p-1 h-auto hover:bg-white/10"
                 >
-                  <Plus className="h-4 w-4" />
+                  {isFullScreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -564,7 +475,7 @@ const ChatBubble: React.FC = () => {
           </CardHeader>
 
           <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
-            {/* Voice Controls & Settings */}
+            {/* Voice Controls */}
             <div className="p-3 border-b bg-slate-50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Button
@@ -582,7 +493,7 @@ const ChatBubble: React.FC = () => {
                     <Mic className="h-3 w-3" />
                   )}
                   <span className="ml-1 text-xs">
-                    {isProcessingVoice ? 'Processing' : isListening ? 'Stop' : 'Voice'}
+                    {isProcessingVoice ? 'Processing' : isListening ? 'Stop Voice' : 'Voice'}
                   </span>
                 </Button>
                 
@@ -600,18 +511,6 @@ const ChatBubble: React.FC = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleLearning}
-                  className="h-8 px-2"
-                >
-                  <Settings className="h-3 w-3" />
-                  <span className="ml-1 text-xs">
-                    {learningEnabled ? 'Learning' : 'Static'}
-                  </span>
-                </Button>
-                
                 {isWakeWordActive && (
                   <Badge variant="outline" className="text-xs animate-pulse">
                     Hey TSAM Active
@@ -629,7 +528,7 @@ const ChatBubble: React.FC = () => {
                     className={`flex ${message.type === 'user' || message.type === 'voice' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[85%] p-2 rounded text-xs ${
+                      className={`max-w-[85%] p-3 rounded-lg ${
                         message.type === 'user' ? 'bg-blue-600 text-white' :
                         message.type === 'voice' ? 'bg-purple-600 text-white' :
                         message.type === 'system' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
@@ -637,10 +536,10 @@ const ChatBubble: React.FC = () => {
                       }`}
                     >
                       {(message.type === 'voice' || message.type === 'system') && (
-                        <div className="flex items-center gap-1 mb-1">
+                        <div className="flex items-center gap-1 mb-2">
                           {message.type === 'voice' ? (
                             <>
-                              <Mic className="h-2 w-2" />
+                              <Mic className="h-3 w-3" />
                               <span className="text-xs opacity-75">Voice Command</span>
                               {message.confidence && (
                                 <span className="text-xs opacity-75">({Math.round(message.confidence * 100)}%)</span>
@@ -648,14 +547,14 @@ const ChatBubble: React.FC = () => {
                             </>
                           ) : (
                             <>
-                              <Brain className="h-2 w-2" />
+                              <Brain className="h-3 w-3" />
                               <span className="text-xs opacity-75">System</span>
                             </>
                           )}
                         </div>
                       )}
-                      <p className="whitespace-pre-line">{message.message}</p>
-                      <div className="flex items-center justify-between mt-1">
+                      <p className="text-sm whitespace-pre-line">{message.message}</p>
+                      <div className="flex items-center justify-between mt-2">
                         <p className={`text-xs ${
                           message.type === 'user' || message.type === 'voice' ? 
                           (message.type === 'voice' ? 'text-purple-200' : 'text-blue-200') : 
@@ -676,11 +575,11 @@ const ChatBubble: React.FC = () => {
                 
                 {isTyping && (
                   <div className="flex justify-start">
-                    <div className="bg-slate-100 text-slate-800 p-2 rounded">
+                    <div className="bg-slate-100 text-slate-800 p-3 rounded-lg">
                       <div className="flex items-center gap-1">
-                        <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce"></div>
-                        <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                        <div className="w-1 h-1 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                     </div>
                   </div>
@@ -692,14 +591,17 @@ const ChatBubble: React.FC = () => {
             {/* Quick Suggestions */}
             {getContextualSuggestions(workspaceContext).length > 0 && (
               <div className="p-3 border-t bg-slate-50">
-                <div className="text-xs font-medium text-slate-700 mb-2">Voice commands you can try:</div>
+                <div className="text-xs font-medium text-slate-700 mb-2">Quick Commands:</div>
                 <div className="flex flex-wrap gap-1">
                   {getContextualSuggestions(workspaceContext).slice(0, 2).map((suggestion, index) => (
                     <Button
                       key={index}
                       variant="outline"
                       size="sm"
-                      onClick={() => handleSuggestionClick(suggestion)}
+                      onClick={() => {
+                        setChatMessage(suggestion);
+                        handleSendMessage(suggestion);
+                      }}
                       className="text-xs h-6 px-2"
                     >
                       {suggestion.replace('Hey TSAM, ', '')}
@@ -709,7 +611,7 @@ const ChatBubble: React.FC = () => {
               </div>
             )}
             
-            {/* Chat Input */}
+            {/* Text Input */}
             <div className="p-3 border-t bg-white">
               <div className="flex gap-2">
                 <Input
@@ -723,6 +625,7 @@ const ChatBubble: React.FC = () => {
                   onClick={() => handleSendMessage()} 
                   disabled={!chatMessage.trim()}
                   size="sm"
+                  className="px-3"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
