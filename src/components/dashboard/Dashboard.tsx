@@ -100,7 +100,7 @@ const Dashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Pipeline Pulse - Left Side (spans 2 columns) */}
           <div className="lg:col-span-2">
-            <PipelinePulse />
+            <PipelinePulse leads={leads} onLeadClick={handleLeadClick} />
           </div>
 
           {/* Right Column - AI Optimized Schedule */}

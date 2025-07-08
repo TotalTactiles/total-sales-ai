@@ -25,9 +25,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         location.pathname.includes('/sales/tasks') ||
                         location.pathname.includes('/academy') ||
                         location.pathname.includes('/sales/academy') ||
-                        location.pathname.includes('/sales/dashboard') ||
-                        location.pathname.includes('/pipeline') ||
-                        location.pathname.includes('/sales/pipeline');
+                        location.pathname.includes('/sales/dashboard');
   
   // Always show ChatBubble when user is authenticated and in key workspaces
   const showChatBubble = profile && !location.pathname.includes('/auth') && isKeyWorkspace;
@@ -36,7 +34,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-background">
       {children}
       
-      {/* AI Assistant - Always visible in key workspaces with enhanced functionality */}
+      {/* AI Assistant - Always visible in key workspaces */}
       {showChatBubble && <ChatBubble />}
     </div>
   );
