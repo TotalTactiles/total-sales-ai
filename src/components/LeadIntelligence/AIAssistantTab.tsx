@@ -182,7 +182,7 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             ) : (
               <VolumeX className="h-3 w-3 text-slate-400" />
             )}
-            <Switch checked={voiceEnabled} disabled size="sm" />
+            <Switch checked={voiceEnabled} disabled />
           </div>
           
           <div className="flex items-center gap-1">
@@ -190,13 +190,12 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             <Switch 
               checked={rationaleMode} 
               onCheckedChange={onRationaleModeChange}
-              size="sm"
             />
           </div>
         </div>
       </div>
 
-      {/* Quick Actions - Compact 2x2 Grid */}
+      {/* Quick Actions - Compact Grid */}
       <div className="grid grid-cols-1 gap-2 mb-3 shrink-0">
         {quickActions.map((action, index) => (
           <UsageTracker
@@ -208,13 +207,15 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               variant="outline"
               size="sm"
               onClick={action.action}
-              className="h-12 text-xs justify-start px-3 flex-col items-start gap-1"
+              className="h-10 text-xs justify-start px-3"
             >
               <div className="flex items-center gap-2 w-full">
-                <action.icon className="h-3 w-3" />
-                <span className="font-medium text-xs">{action.title}</span>
+                <action.icon className="h-3 w-3 shrink-0" />
+                <div className="flex flex-col items-start">
+                  <span className="font-medium text-xs">{action.title}</span>
+                  <span className="text-slate-500 text-xs leading-none">{action.description}</span>
+                </div>
               </div>
-              <span className="text-slate-500 text-xs leading-none">{action.description}</span>
             </Button>
           </UsageTracker>
         ))}
