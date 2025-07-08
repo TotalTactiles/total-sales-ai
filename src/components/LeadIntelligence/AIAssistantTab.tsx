@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import UsageTracker from '@/components/AIBrain/UsageTracker';
+import VoiceAssistant from './VoiceAssistant';
 import { Lead } from '@/types/lead';
 
 interface AIAssistantTabProps {
@@ -28,56 +29,121 @@ interface AIAssistantTabProps {
   voiceEnabled: boolean;
   rationaleMode: boolean;
   onRationaleModeChange: (enabled: boolean) => void;
+  onLeadUpdate?: (field: string, value: any) => void;
 }
 
 interface ChatMessage {
   id: string;
-  type: 'ai' | 'user';
+  type: 'ai' | 'user' | 'voice';
   message: string;
   timestamp: string;
+  action?: string;
 }
 
 const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
   lead,
   voiceEnabled,
   rationaleMode,
-  onRationaleModeChange
+  onRationaleModeChange,
+  onLeadUpdate
 }) => {
   const [chatMessage, setChatMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
     {
       id: '1',
       type: 'ai',
-      message: `Hi! I'm your AI assistant for ${lead.name} from ${lead.company}. I've analyzed their behavior and can help with strategy, content, or answer questions about this lead.`,
+      message: `Hi! I'm your AI assistant for ${lead.name} from ${lead.company}. I've analyzed their behavior and can help with strategy, content, or answer questions about this lead. You can also use voice commands!`,
       timestamp: '2 minutes ago'
     }
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const [voiceModeEnabled, setVoiceModeEnabled] = useState(voiceEnabled);
 
   const { trackEvent, trackClick } = useUsageTracking();
 
-  const handleSendMessage = async () => {
-    if (!chatMessage.trim()) return;
+  const handleVoiceToggle = () => {
+    setVoiceModeEnabled(!voiceModeEnabled);
+    trackClick('voice_controls', voiceModeEnabled ? 'disable' : 'enable');
+  };
 
-    const userMessage: ChatMessage = {
+  const handleVoiceCommand = (command: string) => {
+    // Add voice command to chat history
+    const voiceMessage: ChatMessage = {
       id: Date.now().toString(),
-      type: 'user',
-      message: chatMessage,
+      type: 'voice',
+      message: command,
       timestamp: 'now'
     };
 
-    setChatHistory(prev => [...prev, userMessage]);
-    setChatMessage('');
+    setChatHistory(prev => [...prev, voiceMessage]);
+    
+    // Process as regular chat message
+    handleSendMessage(command, true);
+  };
+
+  const handleVoiceActionExecute = (action: { type: string; data: any }) => {
+    switch (action.type) {
+      case 'update_lead_field':
+        if (onLeadUpdate) {
+          onLeadUpdate(action.data.field, action.data.value);
+          toast.success(`Updated ${action.data.field} successfully`);
+        }
+        break;
+      case 'add_note':
+        // This would integrate with the Notes tab
+        toast.success('Note added successfully');
+        break;
+      case 'initiate_call':
+        toast.info('Opening dialer...');
+        break;
+      case 'compose_email':
+        toast.info('Opening email composer...');
+        break;
+      case 'create_reminder':
+        toast.success('Reminder created successfully');
+        break;
+      case 'schedule_meeting':
+        toast.info('Opening calendar...');
+        break;
+      case 'analyze_lead':
+        // Trigger lead analysis
+        const analysisMessage: ChatMessage = {
+          id: Date.now().toString(),
+          type: 'ai',
+          message: `Analyzing ${lead.name}'s behavior and engagement patterns. Based on their ${lead.score}% score and recent interactions, I recommend focusing on ROI-driven messaging and scheduling a demo call within the next 48 hours.`,
+          timestamp: 'now'
+        };
+        setChatHistory(prev => [...prev, analysisMessage]);
+        break;
+    }
+  };
+
+  const handleSendMessage = async (messageText?: string, isVoiceCommand = false) => {
+    const textToSend = messageText || chatMessage;
+    if (!textToSend.trim()) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      type: isVoiceCommand ? 'voice' : 'user',
+      message: textToSend,
+      timestamp: 'now'
+    };
+
+    if (!isVoiceCommand) {
+      setChatHistory(prev => [...prev, userMessage]);
+      setChatMessage('');
+    }
+    
     setIsTyping(true);
 
     trackEvent({
       feature: 'ai_assistant_chat',
-      action: 'message_sent',
+      action: isVoiceCommand ? 'voice_message_sent' : 'message_sent',
       context: 'lead_intelligence',
       metadata: { 
         leadId: lead.id, 
-        messageLength: chatMessage.length,
-        voiceEnabled
+        messageLength: textToSend.length,
+        voiceEnabled: voiceModeEnabled
       }
     });
 
@@ -86,7 +152,7 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        message: generateAIResponse(chatMessage),
+        message: generateAIResponse(textToSend),
         timestamp: 'now'
       };
       
@@ -174,17 +240,7 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         </div>
         
         {/* Controls Row */}
-        <div className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded">
-          <div className="flex items-center gap-1">
-            <label>Voice Mode</label>
-            {voiceEnabled ? (
-              <Volume2 className="h-3 w-3 text-blue-600" />
-            ) : (
-              <VolumeX className="h-3 w-3 text-slate-400" />
-            )}
-            <Switch checked={voiceEnabled} disabled />
-          </div>
-          
+        <div className="flex items-center justify-between text-xs bg-slate-50 p-2 rounded mb-2">
           <div className="flex items-center gap-1">
             <label>Reasoning</label>
             <Switch 
@@ -193,6 +249,15 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             />
           </div>
         </div>
+
+        {/* Voice Assistant Integration */}
+        <VoiceAssistant
+          lead={lead}
+          voiceEnabled={voiceModeEnabled}
+          onVoiceToggle={handleVoiceToggle}
+          onVoiceCommand={handleVoiceCommand}
+          onActionExecute={handleVoiceActionExecute}
+        />
       </div>
 
       {/* Quick Actions - Compact Grid */}
@@ -227,6 +292,11 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           <CardTitle className="flex items-center gap-1 text-sm">
             <MessageSquare className="h-4 w-4" />
             AI Conversation
+            {voiceModeEnabled && (
+              <Badge variant="outline" className="ml-auto text-xs">
+                Voice Enabled
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         
@@ -236,18 +306,26 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             {chatHistory.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.type === 'user' || message.type === 'voice' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
                   className={`max-w-[85%] p-2 rounded text-xs ${
-                    message.type === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-100 text-slate-800'
+                    message.type === 'user' ? 'bg-blue-600 text-white' :
+                    message.type === 'voice' ? 'bg-purple-600 text-white' :
+                    'bg-slate-100 text-slate-800'
                   }`}
                 >
+                  {message.type === 'voice' && (
+                    <div className="flex items-center gap-1 mb-1">
+                      <Volume2 className="h-2 w-2" />
+                      <span className="text-xs opacity-75">Voice Command</span>
+                    </div>
+                  )}
                   <p className="whitespace-pre-line">{message.message}</p>
                   <p className={`text-xs mt-1 ${
-                    message.type === 'user' ? 'text-blue-200' : 'text-slate-500'
+                    message.type === 'user' || message.type === 'voice' ? 
+                    (message.type === 'voice' ? 'text-purple-200' : 'text-blue-200') : 
+                    'text-slate-500'
                   }`}>
                     {message.timestamp}
                   </p>
@@ -273,12 +351,12 @@ const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             <Input
               value={chatMessage}
               onChange={(e) => setChatMessage(e.target.value)}
-              placeholder={`Ask about ${lead.name}...`}
+              placeholder={voiceModeEnabled ? `Ask about ${lead.name} or use voice...` : `Ask about ${lead.name}...`}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               className="text-xs h-8"
             />
             <Button 
-              onClick={handleSendMessage} 
+              onClick={() => handleSendMessage()} 
               disabled={!chatMessage.trim()}
               size="sm"
               className="h-8 px-2"

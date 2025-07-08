@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -61,7 +60,7 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
       setLeadData(updatedLead);
       trackEvent({
         feature: 'lead_field_update',
-        action: 'manual_edit',
+        action: field.includes('voice') ? 'voice_edit' : 'manual_edit',
         context: field,
         metadata: {
           leadId: leadData.id,
@@ -231,7 +230,8 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
                     lead={leadData} 
                     voiceEnabled={voiceEnabled} 
                     rationaleMode={rationaleMode} 
-                    onRationaleModeChange={setRationaleMode} 
+                    onRationaleModeChange={setRationaleMode}
+                    onLeadUpdate={handleLeadUpdate}
                   />
                 </div>
               ) : (
