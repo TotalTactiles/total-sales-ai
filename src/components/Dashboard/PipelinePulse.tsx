@@ -1,326 +1,170 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Phone, 
-  Mail, 
-  Calendar, 
-  Brain,
-  Clock,
-  TrendingUp,
-  ExternalLink,
-  DollarSign
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Lead } from '@/types/lead';
+import { Phone, Mail, Calendar, TrendingUp } from 'lucide-react';
 
-interface PipelinePulseProps {
-  leads: Lead[];
-  className?: string;
-  onLeadClick?: (leadId: string) => void;
+interface PipelineLead {
+  id: string;
+  name: string;
+  company: string;
+  value: number;
+  stage: string;
+  lastContacted: number; // days ago
+  aiSummary: string;
+  priority: 'high' | 'medium' | 'low';
 }
 
-const PipelinePulse: React.FC<PipelinePulseProps> = ({ 
-  leads, 
-  className = '',
-  onLeadClick 
-}) => {
-  const navigate = useNavigate();
-
-  const handleLeadClick = (leadId: string) => {
-    if (onLeadClick) {
-      onLeadClick(leadId);
+const PipelinePulse: React.FC = () => {
+  const leads: PipelineLead[] = [
+    {
+      id: '1',
+      name: 'Sarah Chen',
+      company: 'TechCorp',
+      value: 94760,
+      stage: 'Proposal',
+      lastContacted: 4,
+      aiSummary: 'No reply in 4 days - reschedule now',
+      priority: 'high'
+    },
+    {
+      id: '2',
+      name: 'Mike Rodriguez',
+      company: 'StartupX',
+      value: 78500,
+      stage: 'Demo',
+      lastContacted: 2,
+      aiSummary: 'Opened proposal twice, no reply',
+      priority: 'high'
+    },
+    {
+      id: '3',
+      name: 'Lisa Wang',
+      company: 'Enterprise Co',
+      value: 65200,
+      stage: 'Discovery',
+      lastContracted: 6,
+      aiSummary: 'Last call 6 days ago - follow-up recommended',
+      priority: 'medium'
+    },
+    {
+      id: '4',
+      name: 'David Kim',
+      company: 'GlobalSoft',
+      value: 52300,
+      stage: 'Qualified',
+      lastContacted: 1,
+      aiSummary: 'Clicked demo link, but didn\'t book',
+      priority: 'medium'
+    },
+    {
+      id: '5',
+      name: 'Jennifer Lee',
+      company: 'CloudFirst',
+      value: 41800,
+      stage: 'New Lead',
+      lastContacted: 0,
+      aiSummary: 'New lead, strong initial interest',
+      priority: 'high'
     }
-    navigate(`/sales/leads/${leadId}`);
-  };
+  ];
 
-  const handleActionClick = (e: React.MouseEvent, actionType: string, lead: Lead) => {
-    e.stopPropagation();
-    
-    switch (actionType) {
-      case 'call':
-        navigate(`/sales/leads/${lead.id}?tab=call`);
-        break;
-      case 'email':
-        navigate(`/sales/leads/${lead.id}?tab=email`);
-        break;
-      case 'calendar':
-        navigate(`/sales/leads/${lead.id}?tab=meetings`);
-        break;
-      default:
-        console.log(`${actionType} action for lead ${lead.id}`);
+  const getStageColor = (stage: string) => {
+    switch (stage.toLowerCase()) {
+      case 'new lead': return 'bg-blue-100 text-blue-800';
+      case 'qualified': return 'bg-green-100 text-green-800';
+      case 'discovery': return 'bg-yellow-100 text-yellow-800';
+      case 'demo': return 'bg-purple-100 text-purple-800';
+      case 'proposal': return 'bg-orange-100 text-orange-800';
+      case 'negotiation': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const handleViewAllLeads = () => {
-    navigate('/sales/leads');
   };
 
   const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'high': return '🔥';
-      case 'medium': return '📊';
-      case 'low': return '🧊';
-      default: return '📋';
-    }
+    return priority === 'high' ? '🔥' : priority === 'medium' ? '⚡' : '📋';
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'new': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'contacted': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'qualified': return 'bg-green-100 text-green-800 border-green-200';
-      case 'proposal': return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'negotiation': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'closed_won': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'closed_lost': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  const formatLastContacted = (days: number) => {
+    if (days === 0) return 'Today';
+    if (days === 1) return '1 day ago';
+    return `${days} days ago`;
   };
-
-  const getAIPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const formatLastActivity = (lastActivity: string) => {
-    try {
-      if (lastActivity.includes('T')) {
-        const date = new Date(lastActivity);
-        const now = new Date();
-        const diffTime = Math.abs(now.getTime() - date.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return `${diffDays} days ago`;
-      }
-      return lastActivity;
-    } catch {
-      return lastActivity;
-    }
-  };
-
-  // Show only top 5 leads
-  const displayLeads = leads.slice(0, 5);
 
   return (
-    <Card className={`border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 ${className}`}>
-      <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-t-lg pb-4">
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          Pipeline Pulse
-          <Badge className="bg-white/20 text-white text-xs">
-            AI Optimized
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        {/* Desktop View - Compact Table Layout for exactly 5 leads */}
-        <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">Contact</th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">Deal Size</th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">Status</th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">AI Summary</th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">Conversion %</th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">Last Activity</th>
-                <th className="text-left p-3 font-medium text-gray-600 text-sm">Next Step</th>
-                <th className="text-center p-3 font-medium text-gray-600 text-sm">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {displayLeads.map((lead, index) => (
-                <tr
-                  key={lead.id}
-                  className={`border-b hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer ${
-                    index === 0 ? 'bg-blue-50/50' : ''
-                  }`}
-                  onClick={() => handleLeadClick(lead.id)}
-                >
-                  <td className="p-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                        {lead.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900 text-sm">{lead.name}</div>
-                        <div className="text-xs text-gray-500">{lead.company}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3 text-green-600" />
-                      <span className="font-bold text-gray-900 text-sm">
-                        {lead.value?.toLocaleString() || '0'}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{getPriorityIcon(lead.priority)}</span>
-                      <Badge className={`${getStatusColor(lead.status)} text-xs`}>
-                        {lead.status}
-                      </Badge>
-                    </div>
-                  </td>
-                  <td className="p-3 max-w-xs">
-                    <div className="text-xs text-gray-700 italic truncate">
-                      "{lead.lastAIInsight}"
-                    </div>
-                    <Badge className={`${getAIPriorityColor(lead.aiPriority)} text-xs`}>
-                      {lead.aiPriority} Priority
-                    </Badge>
-                  </td>
-                  <td className="p-3">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600">
-                        {lead.conversionLikelihood}%
-                      </div>
-                      <div className="text-xs text-gray-500">Success Rate</div>
-                    </div>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3 text-gray-400" />
-                      <span className="text-xs text-gray-600">
-                        {formatLastActivity(lead.lastActivity)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-1">
-                      <Brain className="h-3 w-3 text-purple-500" />
-                      <span className="text-xs font-medium text-gray-700">
-                        {lead.nextAction}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 w-7 p-0 hover:bg-blue-100 hover:border-blue-300 transition-colors"
-                        onClick={(e) => handleActionClick(e, 'call', lead)}
-                        title="Call Lead"
-                      >
-                        <Phone className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 w-7 p-0 hover:bg-green-100 hover:border-green-300 transition-colors"
-                        onClick={(e) => handleActionClick(e, 'email', lead)}
-                        title="Email Lead"
-                      >
-                        <Mail className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 w-7 p-0 hover:bg-purple-100 hover:border-purple-300 transition-colors"
-                        onClick={(e) => handleActionClick(e, 'calendar', lead)}
-                        title="Schedule Meeting"
-                      >
-                        <Calendar className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-lg">
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <TrendingUp className="h-5 w-5 text-blue-600" />
+            Pipeline Pulse
+          </CardTitle>
+          <Badge className="bg-green-100 text-green-800">AI Prioritized</Badge>
         </div>
-
-        {/* Mobile View - Simplified Card Layout for exactly 5 leads */}
-        <div className="lg:hidden space-y-2 p-3">
-          {displayLeads.map((lead, index) => (
-            <div
-              key={lead.id}
-              className={`p-3 border rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer ${
-                index === 0 ? 'bg-blue-50/50' : ''
-              }`}
-              onClick={() => handleLeadClick(lead.id)}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                    {lead.name.charAt(0)}
-                  </div>
-                  <div>
-                    <div className="font-medium text-gray-900 text-sm">{lead.name}</div>
-                    <div className="text-xs text-gray-500">{lead.company}</div>
-                  </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {leads.map((lead) => (
+          <div key={lead.id} className="bg-white rounded-lg p-4 border border-gray-100 hover:shadow-md transition-shadow">
+            {/* Lead Header */}
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                  {lead.name.charAt(0)}
                 </div>
-                <div className="text-right">
-                  <div className="font-bold text-gray-900 text-sm">
-                    ${lead.value?.toLocaleString() || '0'}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-gray-900">${lead.value.toLocaleString()}</span>
+                    <span className="text-sm text-gray-500">{getPriorityIcon(lead.priority)}</span>
                   </div>
-                  <div className="text-xs font-semibold text-green-600">
-                    {lead.conversionLikelihood}%
-                  </div>
+                  <p className="text-sm text-gray-600">{lead.name} • {lead.company}</p>
                 </div>
-              </div>
-              
-              <div className="text-xs text-gray-600 italic mb-2">
-                "{lead.lastAIInsight}"
-              </div>
-              
-              <div className="flex gap-1 mb-2">
-                <Badge className={`${getStatusColor(lead.status)} text-xs`}>{lead.status}</Badge>
-                <Badge className={`${getAIPriorityColor(lead.aiPriority)} text-xs`}>{lead.aiPriority}</Badge>
-              </div>
-              
-              <div className="flex gap-1">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 hover:bg-blue-100 hover:border-blue-300 transition-colors p-1"
-                  onClick={(e) => handleActionClick(e, 'call', lead)}
-                >
-                  <Phone className="h-3 w-3 mr-1" />
-                  Call
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 hover:bg-green-100 hover:border-green-300 transition-colors p-1"
-                  onClick={(e) => handleActionClick(e, 'email', lead)}
-                >
-                  <Mail className="h-3 w-3 mr-1" />
-                  Email
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex-1 hover:bg-purple-100 hover:border-purple-300 transition-colors p-1"
-                  onClick={(e) => handleActionClick(e, 'calendar', lead)}
-                >
-                  <Calendar className="h-3 w-3 mr-1" />
-                  Book
-                </Button>
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* View All Leads Button - Compact */}
-        <div className="p-3 border-t bg-gray-50">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleViewAllLeads}
-            className="w-full flex items-center gap-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 h-8"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Go to Lead Management
+            {/* AI Summary */}
+            <div className="mb-3">
+              <p className="text-sm text-gray-700 italic">"{lead.aiSummary}"</p>
+            </div>
+
+            {/* New Columns: Stage and Last Contacted */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-500">Stage:</span>
+                <Badge className={getStageColor(lead.stage)} variant="outline">
+                  {lead.stage}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-500">Last Contacted:</span>
+                <span className="text-sm text-gray-700 font-medium">
+                  {formatLastContacted(lead.lastContacted)}
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" className="h-8">
+                <Phone className="h-3 w-3 mr-1" />
+                Call
+              </Button>
+              <Button size="sm" variant="outline" className="h-8">
+                <Mail className="h-3 w-3 mr-1" />
+                Email
+              </Button>
+              <Button size="sm" variant="outline" className="h-8">
+                <Calendar className="h-3 w-3 mr-1" />
+                Schedule
+              </Button>
+            </div>
+          </div>
+        ))}
+        
+        <div className="text-center pt-4">
+          <Button variant="ghost" className="text-blue-600 hover:text-blue-700">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            View All Leads
           </Button>
         </div>
       </CardContent>
