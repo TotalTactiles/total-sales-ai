@@ -23,9 +23,11 @@ interface VoiceResponse {
 export class AssistantVoiceService {
   private static instance: AssistantVoiceService;
   private isListening = false;
-  private wakeWords = ['hey tsam', 'hey assistant', 'hey ai'];
+  private isWakeWordMode = false;
+  private wakeWords = ['hey tsam', 'hey assistant', 'tsam'];
   private currentLead: any = null;
   private onCommandCallback: ((command: string) => void) | null = null;
+  private onWakeWordDetected: (() => void) | null = null;
 
   static getInstance(): AssistantVoiceService {
     if (!AssistantVoiceService.instance) {
@@ -42,7 +44,11 @@ export class AssistantVoiceService {
     this.onCommandCallback = callback;
   }
 
-  async startListening(): Promise<boolean> {
+  setWakeWordCallback(callback: () => void): void {
+    this.onWakeWordDetected = callback;
+  }
+
+  async startListening(wakeWordMode = false): Promise<boolean> {
     try {
       const hasPermission = await voiceService.requestMicrophonePermission();
       if (!hasPermission) {
@@ -51,8 +57,9 @@ export class AssistantVoiceService {
       }
 
       this.isListening = true;
+      this.isWakeWordMode = wakeWordMode;
       const started = await voiceService.startRecording();
-      logger.info('Voice listening started for AI assistant');
+      logger.info(`Voice listening started${wakeWordMode ? ' (wake word mode)' : ''}`);
       return started;
     } catch (error) {
       logger.error('Failed to start voice listening:', error);
@@ -77,6 +84,17 @@ export class AssistantVoiceService {
       }
 
       const command = await this.analyzeVoiceCommand(transcript);
+      
+      // Check for wake word in wake word mode
+      if (this.isWakeWordMode && this.checkForWakeWord(transcript)) {
+        if (this.onWakeWordDetected) {
+          this.onWakeWordDetected();
+        }
+        // Continue listening after wake word detected
+        setTimeout(() => this.startListening(false), 100);
+        return null;
+      }
+
       return command;
       
     } catch (error) {
@@ -85,11 +103,16 @@ export class AssistantVoiceService {
     }
   }
 
+  private checkForWakeWord(transcript: string): boolean {
+    const lowerTranscript = transcript.toLowerCase();
+    return this.wakeWords.some(wake => lowerTranscript.includes(wake));
+  }
+
   private async analyzeVoiceCommand(transcript: string): Promise<VoiceCommand> {
     const lowerTranscript = transcript.toLowerCase();
     
     // Check for wake word
-    const hasWakeWord = this.wakeWords.some(wake => lowerTranscript.includes(wake));
+    const hasWakeWord = this.checkForWakeWord(transcript);
     
     let intent = 'general_query';
     const parameters: Record<string, any> = {};
@@ -97,7 +120,6 @@ export class AssistantVoiceService {
     // Lead management commands
     if (lowerTranscript.includes('update') && lowerTranscript.includes('status')) {
       intent = 'update_lead_status';
-      // Extract status value
       const statusMatch = lowerTranscript.match(/status to (hot|warm|cold|qualified|negotiation|closed)/);
       if (statusMatch) {
         parameters.status = statusMatch[1];
@@ -122,7 +144,6 @@ export class AssistantVoiceService {
       parameters.leadId = this.currentLead?.id;
     } else if (lowerTranscript.includes('remind me') || lowerTranscript.includes('follow up')) {
       intent = 'create_reminder';
-      // Extract time frame
       const timeMatch = lowerTranscript.match(/in (\d+) (day|days|week|weeks|hour|hours)/);
       if (timeMatch) {
         parameters.timeframe = `${timeMatch[1]} ${timeMatch[2]}`;

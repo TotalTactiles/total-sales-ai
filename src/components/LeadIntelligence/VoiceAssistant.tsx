@@ -46,9 +46,12 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
   const { trackEvent } = useUsageTracking();
 
   useEffect(() => {
-    // Set lead context when component mounts or lead changes
     assistantVoiceService.setLeadContext(lead);
     assistantVoiceService.setCommandCallback(onVoiceCommand);
+    assistantVoiceService.setWakeWordCallback(() => {
+      toast.success('Hey TSAM detected! Listening for command...');
+      setIsListening(true);
+    });
   }, [lead, onVoiceCommand]);
 
   const handleVoiceToggle = () => {
@@ -78,14 +81,14 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
         metadata: { leadId: lead.id, mode: listeningMode }
       });
 
-      const started = await assistantVoiceService.startListening();
+      const started = await assistantVoiceService.startListening(listeningMode === 'passive');
       if (!started) {
         setIsListening(false);
         toast.error('Failed to start voice recording');
         return;
       }
 
-      toast.info(`Listening for voice commands${listeningMode === 'passive' ? ' (say "Hey TSAM")' : ''}...`);
+      toast.info(`${listeningMode === 'passive' ? 'Say "Hey TSAM" to activate' : 'Listening for voice commands'}...`);
     } catch (error) {
       setIsListening(false);
       toast.error('Failed to start voice recording');
@@ -184,7 +187,7 @@ const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
                 className="text-xs cursor-pointer"
                 onClick={toggleListeningMode}
               >
-                {listeningMode === 'passive' ? 'Wake Word' : 'Push-to-Talk'}
+                {listeningMode === 'passive' ? 'Hey TSAM' : 'Push-to-Talk'}
               </Badge>
             )}
           </div>
