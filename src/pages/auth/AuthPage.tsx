@@ -130,7 +130,10 @@ const AuthPage: React.FC = () => {
 
   const handleDemoLogin = async (role: 'manager' | 'sales_rep') => {
     const demoUser = demoUsers.find(u => u.role === role);
-    if (!demoUser) return;
+    if (!demoUser) {
+      setAuthError('Demo user not found');
+      return;
+    }
 
     setIsSubmitting(true);
     setAuthError('');
@@ -147,6 +150,7 @@ const AuthPage: React.FC = () => {
       }
       
       console.log('Demo login successful');
+      // Don't set isSubmitting to false here - let the useEffect handle the redirect
     } catch (error) {
       console.error('Demo login exception:', error);
       setAuthError('An unexpected error occurred during demo login.');

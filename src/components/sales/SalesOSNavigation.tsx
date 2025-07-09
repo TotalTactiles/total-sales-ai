@@ -12,7 +12,10 @@ import {
   User,
   LogOut,
   Bell,
-  Plus
+  Plus,
+  Brain,
+  GraduationCap,
+  Headphones
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -23,9 +26,11 @@ const SalesOSNavigation: React.FC = () => {
 
   const navItems = [
     { path: '/sales/dashboard', label: 'Dashboard', icon: Home },
-    { path: '/sales/leads', label: 'Leads', icon: Users },
+    { path: '/sales/leads', label: 'Lead Management', icon: Users },
+    { path: '/sales/ai-agent', label: 'AI Agent', icon: Brain },
     { path: '/sales/dialer', label: 'Dialer', icon: Phone },
     { path: '/sales/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/sales/academy', label: 'Academy', icon: GraduationCap },
     { path: '/settings/integrations', label: 'Settings', icon: Settings },
   ];
 
@@ -51,7 +56,7 @@ const SalesOSNavigation: React.FC = () => {
             <span className="text-white font-bold text-sm">T</span>
           </div>
           <span className="text-xl font-bold text-gray-900">TSAM</span>
-          <Badge variant="outline" className="text-xs">Sales OS</Badge>
+          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-600 border-blue-200">Sales OS</Badge>
         </div>
 
         {/* Navigation Links */}
@@ -65,9 +70,9 @@ const SalesOSNavigation: React.FC = () => {
                 variant={active ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => navigate(item.path)}
-                className={`flex items-center gap-2 px-3 py-2 ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${
                   active 
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
@@ -81,19 +86,19 @@ const SalesOSNavigation: React.FC = () => {
         {/* Right side controls */}
         <div className="flex items-center gap-3">
           {/* Notifications */}
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-4 w-4" />
+          <Button variant="ghost" size="sm" className="relative p-2 hover:bg-gray-100 rounded-lg">
+            <Bell className="h-4 w-4 text-gray-600" />
             <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full"></span>
           </Button>
 
           {/* Invite Button */}
-          <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
+          <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2 px-3 py-2 border-gray-300 hover:bg-gray-50 rounded-lg">
             <Plus className="h-4 w-4" />
-            Invite
+            <span className="text-sm font-medium">Invite</span>
           </Button>
 
           {/* AI Assistant Indicator */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-200 rounded-full">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             <span className="text-sm font-medium text-green-700">Hey TSAM</span>
           </div>
@@ -115,10 +120,10 @@ const SalesOSNavigation: React.FC = () => {
               variant="outline" 
               size="sm" 
               onClick={handleSignOut}
-              className="flex items-center gap-2 ml-2"
+              className="flex items-center gap-2 ml-2 px-3 py-2 border-gray-300 hover:bg-gray-50 rounded-lg"
             >
               <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
+              <span className="hidden sm:inline text-sm font-medium">Logout</span>
             </Button>
           </div>
         </div>
@@ -136,14 +141,14 @@ const SalesOSNavigation: React.FC = () => {
                 variant={active ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center gap-1 p-2 ${
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg ${
                   active 
                     ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
                 <IconComponent className="h-4 w-4" />
-                <span className="text-xs">{item.label}</span>
+                <span className="text-xs font-medium">{item.label}</span>
               </Button>
             );
           })}
