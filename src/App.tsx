@@ -7,7 +7,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import MainLayout from "@/components/Layout/MainLayout";
 
 // Auth Pages
-import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/signup";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
 
@@ -36,11 +35,10 @@ const App = () => (
           <MainLayout>
             <Routes>
               {/* Public Routes */}
-              <Route path="/auth/login" element={<LoginPage />} />
               <Route path="/auth/signup" element={<SignUpPage />} />
               <Route path="/onboarding" element={<OnboardingPage />} />
               
-              {/* Integration Callbacks */}
+              {/* Integration Callbacks - Manager Only */}
               <Route path="/integrations/zoho/callback" element={<ZohoCallback />} />
               
               {/* Sales Rep Routes */}
@@ -51,7 +49,7 @@ const App = () => (
               <Route path="/os/manager/dashboard" element={<ManagerDashboard />} />
               <Route path="/manager/crm" element={<ManagerCRMIntegrations />} />
               
-              {/* Settings Routes */}
+              {/* Settings Routes - Role-based */}
               <Route path="/settings/integrations" element={<IntegrationsPage />} />
               
               {/* Default redirect */}

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -43,14 +44,35 @@ const OnboardingFlow: React.FC = () => {
     }
   });
 
-  const steps = [
-    { title: 'Choose Your Role', key: 'role' },
-    { title: 'Select Your Industry', key: 'industry' },
-    { title: 'Connect Zoho CRM', key: 'zoho_crm' },
-    { title: 'Name Your Assistant', key: 'assistant_name' },
-    { title: 'Voice & Style', key: 'voice_style' },
-    { title: 'Final Setup', key: 'complete' }
-  ];
+  // Define steps based on role
+  const getStepsForRole = (role: string) => {
+    const baseSteps = [
+      { title: 'Choose Your Role', key: 'role' },
+      { title: 'Select Your Industry', key: 'industry' },
+    ];
+
+    // Only managers get CRM integration step
+    if (role === 'manager') {
+      baseSteps.push({ title: 'Connect Zoho CRM', key: 'zoho_crm' });
+    }
+
+    baseSteps.push(
+      { title: 'Name Your Assistant', key: 'assistant_name' },
+      { title: 'Voice & Style', key: 'voice_style' },
+      { title: 'Final Setup', key: 'complete' }
+    );
+
+    return baseSteps;
+  };
+
+  const [steps, setSteps] = useState(getStepsForRole(''));
+
+  // Update steps when role changes
+  useEffect(() => {
+    if (settings.role) {
+      setSteps(getStepsForRole(settings.role));
+    }
+  }, [settings.role]);
 
   const updateDatabase = async (stepKey: string, value: any) => {
     if (!user) return;
@@ -94,6 +116,9 @@ const OnboardingFlow: React.FC = () => {
     if (currentStepKey !== 'zoho_crm') {
       if (currentStepKey === 'role') {
         await updateDatabase('role', settings.role);
+        // Update steps based on role
+        const newSteps = getStepsForRole(settings.role);
+        setSteps(newSteps);
       } else if (currentStepKey === 'industry') {
         await updateDatabase('industry', settings.industry);
       } else if (currentStepKey === 'assistant_name') {
@@ -177,6 +202,11 @@ const OnboardingFlow: React.FC = () => {
                     <h3 className="font-semibold capitalize">
                       {role.replace('_', ' ')}
                     </h3>
+                    <p className="text-sm text-gray-500 mt-2">
+                      {role === 'manager' && 'Access CRM integrations & team management'}
+                      {role === 'sales_rep' && 'Focus on leads & personal workflow'}
+                      {role === 'admin' && 'Full system administration'}
+                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -328,6 +358,16 @@ const OnboardingFlow: React.FC = () => {
                 <p><strong>Industry:</strong> {settings.industry}</p>
                 <p><strong>Assistant:</strong> {settings.assistant_name}</p>
                 <p><strong>Style:</strong> {settings.voice_style}</p>
+                {settings.role === 'manager' && (
+                  <p className="text-sm text-blue-600 mt-4">
+                    As a manager, you'll have access to CRM integrations that will feed data to your entire team.
+                  </p>
+                )}
+                {settings.role === 'sales_rep' && (
+                  <p className="text-sm text-green-600 mt-4">
+                    As a sales rep, you'll be able to manage your leads through CSV import/export for personal workflow.
+                  </p>
+                )}
               </div>
             </div>
             <Button 
@@ -417,7 +457,7 @@ const OnboardingFlow: React.FC = () => {
                 )}
               </Button>
             ) : (
-              <Button onClick={handleNext} disabled={isLoading}>
+              <Button onClick={handleNext} disabled={!canProceed() || isLoading}>
                 Next
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
