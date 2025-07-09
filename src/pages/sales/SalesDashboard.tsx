@@ -22,6 +22,58 @@ import LeadImportExport from '@/components/Sales/LeadImportExport';
 const SalesDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('pipeline');
 
+  // Mock leads data for PipelinePulse component
+  const mockLeads = [
+    {
+      id: '1',
+      name: 'John Smith',
+      company: 'TechCorp Inc',
+      email: 'john@techcorp.com',
+      phone: '+1 (555) 123-4567',
+      status: 'qualified' as const,
+      priority: 'high' as const,
+      value: 15000,
+      conversionLikelihood: 78,
+      lastAIInsight: 'High engagement on recent email, ready for demo call',
+      aiPriority: 'High' as const,
+      lastActivity: '2 hours ago',
+      nextAction: 'Schedule demo call',
+      source: 'Website'
+    },
+    {
+      id: '2',
+      name: 'Sarah Johnson',
+      company: 'CloudFirst',
+      email: 'sarah@cloudfirst.com',
+      phone: '+1 (555) 987-6543',
+      status: 'contacted' as const,
+      priority: 'medium' as const,
+      value: 8500,
+      conversionLikelihood: 45,
+      lastAIInsight: 'Showed interest in pricing, needs follow-up',
+      aiPriority: 'Medium' as const,
+      lastActivity: '1 day ago',
+      nextAction: 'Send pricing proposal',
+      source: 'LinkedIn'
+    },
+    {
+      id: '3',
+      name: 'Mike Chen',
+      company: 'StartupXYZ',
+      email: 'mike@startupxyz.com',
+      phone: '+1 (555) 456-7890',
+      status: 'new' as const,
+      priority: 'low' as const,
+      value: 5000,
+      conversionLikelihood: 23,
+      lastAIInsight: 'New lead, requires qualification call',
+      aiPriority: 'Low' as const,
+      lastActivity: '3 days ago',
+      nextAction: 'Qualification call',
+      source: 'Referral'
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <div className="p-6 max-w-7xl mx-auto">
@@ -56,7 +108,7 @@ const SalesDashboard: React.FC = () => {
 
           {/* Pipeline Tab */}
           <TabsContent value="pipeline" className="space-y-6">
-            <PipelinePulse />
+            <PipelinePulse leads={mockLeads} />
             
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
