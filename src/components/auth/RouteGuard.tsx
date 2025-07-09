@@ -37,8 +37,8 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If user exists but no profile, redirect to auth for completion
-  if (requireAuth && user && !profile) {
+  // If user exists but no profile and we're not already on auth/onboarding, redirect to auth for completion
+  if (requireAuth && user && !profile && !location.pathname.includes('/auth') && !location.pathname.includes('/onboarding')) {
     logger.info('User found but no profile, redirecting to auth', 'auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
@@ -49,9 +49,9 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
     
     // Redirect to appropriate dashboard based on actual role
     const roleRoutes = {
-      developer: '/developer/dashboard',
-      admin: '/developer/dashboard',
-      manager: '/manager/dashboard',
+      developer: '/os/developer/dashboard',
+      admin: '/os/developer/dashboard',
+      manager: '/os/manager/dashboard',
       sales_rep: '/sales/dashboard'
     };
     
