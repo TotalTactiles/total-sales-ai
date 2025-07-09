@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import MainLayout from "@/components/Layout/MainLayout";
 
 // Auth Pages
-import SignUpPage from "./pages/signup";
+import AuthPage from "./pages/auth/AuthPage";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
 
 // Public Pages
@@ -42,38 +42,77 @@ const App = () => (
           <Routes>
             {/* Public Routes - No Auth Required */}
             <Route path="/landing" element={<NewLandingPage />} />
-            <Route path="/auth/signup" element={<SignUpPage />} />
-            <Route path="/auth" element={<SignUpPage />} />
+            <Route path="/auth" element={<AuthPage />} />
             <Route path="/onboarding" element={<OnboardingPage />} />
             
-            {/* Protected Routes with MainLayout */}
-            <Route path="/*" element={
-              <RouteGuard>
+            {/* Protected Routes with MainLayout - Sales Rep */}
+            <Route path="/sales/*" element={
+              <RouteGuard allowedRoles={['sales_rep']}>
                 <MainLayout>
                   <Routes>
-                    {/* Integration Callbacks - Manager Only */}
-                    <Route path="/integrations/zoho/callback" element={<ZohoCallback />} />
-                    
-                    {/* Sales Rep Routes */}
-                    <Route path="/os/rep/dashboard" element={<Dashboard />} />
-                    <Route path="/sales/dashboard" element={<SalesDashboard />} />
-                    <Route path="/leads" element={<LeadManagement />} />
-                    <Route path="/sales/leads" element={<LeadManagement />} />
-                    
-                    {/* Manager Routes */}
-                    <Route path="/os/manager/dashboard" element={<ManagerDashboard />} />
-                    <Route path="/manager/crm" element={<ManagerCRMIntegrations />} />
-                    
-                    {/* Settings Routes - Role-based */}
-                    <Route path="/settings/integrations" element={<IntegrationsPage />} />
-                    
-                    {/* Default redirect based on auth status */}
-                    <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
+                    <Route path="dashboard" element={<SalesDashboard />} />
+                    <Route path="leads" element={<LeadManagement />} />
                     <Route path="*" element={<Navigate to="/sales/dashboard" replace />} />
                   </Routes>
                 </MainLayout>
               </RouteGuard>
             } />
+
+            {/* Protected Routes with MainLayout - Manager */}
+            <Route path="/manager/*" element={
+              <RouteGuard allowedRoles={['manager']}>
+                <MainLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<ManagerDashboard />} />
+                    <Route path="crm" element={<ManagerCRMIntegrations />} />
+                    <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
+                  </Routes>
+                </MainLayout>
+              </RouteGuard>
+            } />
+
+            {/* Protected Routes with MainLayout - Developer */}
+            <Route path="/dev/*" element={
+              <RouteGuard allowedRoles={['developer', 'admin']}>
+                <MainLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="*" element={<Navigate to="/dev/dashboard" replace />} />
+                  </Routes>
+                </MainLayout>
+              </RouteGuard>
+            } />
+
+            {/* Protected Routes - Shared */}
+            <Route path="/leads" element={
+              <RouteGuard>
+                <MainLayout>
+                  <LeadManagement />
+                </MainLayout>
+              </RouteGuard>
+            } />
+
+            <Route path="/settings/*" element={
+              <RouteGuard>
+                <MainLayout>
+                  <Routes>
+                    <Route path="integrations" element={<IntegrationsPage />} />
+                    <Route path="*" element={<Navigate to="/settings/integrations" replace />} />
+                  </Routes>
+                </MainLayout>
+              </RouteGuard>
+            } />
+
+            {/* Integration Callbacks */}
+            <Route path="/integrations/zoho/callback" element={
+              <RouteGuard allowedRoles={['manager']}>
+                <ZohoCallback />
+              </RouteGuard>
+            } />
+            
+            {/* Default redirects */}
+            <Route path="/" element={<Navigate to="/landing" replace />} />
+            <Route path="*" element={<Navigate to="/auth" replace />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
