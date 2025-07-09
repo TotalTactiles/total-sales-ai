@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Navigation from '@/components/Navigation';
+import SalesOSNavigation from '@/components/sales/SalesOSNavigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,8 +36,10 @@ const SalesRepDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      <div className="pt-16 p-6 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+      {/* Hardcoded Sales OS Navigation - Always Present */}
+      <SalesOSNavigation />
+      
+      <div className="pt-20 p-6 min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Top Section with Performance Cards and Voice Briefing */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

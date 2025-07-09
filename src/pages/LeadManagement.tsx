@@ -2,7 +2,7 @@
 import { logger } from '@/utils/logger';
 
 import React, { useState, useMemo } from 'react';
-import Navigation from '@/components/Navigation';
+import SalesOSNavigation from '@/components/sales/SalesOSNavigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLeadData } from '@/hooks/useLeadData';
 import { useMockData } from '@/hooks/useMockData';
@@ -88,8 +88,10 @@ const LeadManagement = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
-      <div className="pt-16">
+      {/* Hardcoded Sales OS Navigation - Always Present */}
+      <SalesOSNavigation />
+      
+      <div className="pt-20">
         {/* CSV Management Tools for Sales Reps - Small buttons in header */}
         {profile?.role === 'sales_rep' && (
           <div className="bg-white border-b px-6 py-3">

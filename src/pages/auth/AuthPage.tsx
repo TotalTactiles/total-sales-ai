@@ -26,6 +26,7 @@ const AuthPage: React.FC = () => {
   const [authError, setAuthError] = useState<string>('');
   const [showDeveloperLogin, setShowDeveloperLogin] = useState(false);
   const [dotCount, setDotCount] = useState(0);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   // Ensure demo users exist
   useEffect(() => {
@@ -57,12 +58,28 @@ const AuthPage: React.FC = () => {
     return () => window.removeEventListener('keypress', handleKeyPress);
   }, []);
 
-  // Only redirect authenticated users if they're not logging out
+  // Handle logout on page load if logout flag is present
   useEffect(() => {
-    // Check if this is a logout scenario by looking at URL params or state
-    const isLogout = location.state?.logout || location.search.includes('logout');
+    const urlParams = new URLSearchParams(location.search);
+    const isLogout = location.state?.logout || urlParams.get('logout') === 'true';
     
-    if (!loading && user && profile && !isLogout) {
+    if (isLogout && user && !isLoggingOut) {
+      setIsLoggingOut(true);
+      console.log('Logout detected, signing out user');
+      signOut().then(() => {
+        setIsLoggingOut(false);
+        // Clear the logout state
+        navigate('/auth', { replace: true });
+      });
+    }
+  }, [location, user, signOut, navigate, isLoggingOut]);
+
+  // Only redirect authenticated users if they're not in a logout process
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const isLogout = location.state?.logout || urlParams.get('logout') === 'true';
+    
+    if (!loading && user && profile && !isLogout && !isLoggingOut && !isSubmitting) {
       console.log('User authenticated, redirecting based on role:', profile.role);
       
       const targetRoute = profile.role === 'manager' ? '/manager/dashboard'
@@ -71,15 +88,7 @@ const AuthPage: React.FC = () => {
       
       navigate(targetRoute, { replace: true });
     }
-  }, [user, profile, loading, navigate, location]);
-
-  // Handle logout if user is on auth page with logout flag
-  useEffect(() => {
-    const isLogout = location.state?.logout || location.search.includes('logout');
-    if (isLogout && user) {
-      signOut();
-    }
-  }, [location, user, signOut]);
+  }, [user, profile, loading, navigate, location, isLoggingOut, isSubmitting]);
 
   // Auto-fill demo credentials based on selected role
   useEffect(() => {
@@ -175,14 +184,18 @@ const AuthPage: React.FC = () => {
     }
   };
 
-  // Show loading state while auth is initializing
-  if (loading) {
+  // Show loading state while auth is initializing or logging out
+  if (loading || isLoggingOut) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#7B61FF] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Loading TSAM OS...</p>
-          <p className="text-gray-400 text-sm mt-2">Preparing your workspace</p>
+          <p className="text-gray-600 text-lg font-medium">
+            {isLoggingOut ? 'Signing you out...' : 'Loading TSAM OS...'}
+          </p>
+          <p className="text-gray-400 text-sm mt-2">
+            {isLoggingOut ? 'Please wait' : 'Preparing your workspace'}
+          </p>
         </div>
       </div>
     );

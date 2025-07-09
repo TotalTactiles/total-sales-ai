@@ -68,7 +68,7 @@ const NewLandingPage: React.FC = () => {
             </nav>
             
             <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              Sign Up
+              Get Started
             </Button>
           </div>
         </div>

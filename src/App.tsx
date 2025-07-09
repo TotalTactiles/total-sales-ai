@@ -42,16 +42,8 @@ const App = () => (
           <Routes>
             {/* Public Routes - No Auth Required */}
             <Route path="/landing" element={<NewLandingPage />} />
-            <Route path="/auth" element={
-              <RouteGuard requireAuth={false}>
-                <AuthPage />
-              </RouteGuard>
-            } />
-            <Route path="/onboarding" element={
-              <RouteGuard requireAuth={false}>
-                <OnboardingPage />
-              </RouteGuard>
-            } />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/onboarding" element={<OnboardingPage />} />
             
             {/* Protected Routes with MainLayout - Sales Rep */}
             <Route path="/sales/*" element={
