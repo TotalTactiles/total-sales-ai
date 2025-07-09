@@ -31,16 +31,26 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
     );
   }
 
+  // If auth is NOT required (for public routes like /auth), allow access
+  if (!requireAuth) {
+    return <>{children}</>;
+  }
+
   // If auth is required but no user, redirect to auth
   if (requireAuth && !user) {
     logger.info('No user found, redirecting to auth', 'auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If user exists but no profile and we're not already on auth, redirect to auth for completion
-  if (requireAuth && user && !profile && !location.pathname.includes('/auth')) {
-    logger.info('User found but no profile, redirecting to auth', 'auth');
-    return <Navigate to="/auth" state={{ from: location }} replace />;
+  // If user exists but no profile, allow access to auth for completion
+  if (requireAuth && user && !profile) {
+    // Only redirect to auth if we're not already there
+    if (!location.pathname.includes('/auth')) {
+      logger.info('User found but no profile, redirecting to auth', 'auth');
+      return <Navigate to="/auth" state={{ from: location }} replace />;
+    }
+    // If we're already on auth page, allow access
+    return <>{children}</>;
   }
 
   // Check role-based access

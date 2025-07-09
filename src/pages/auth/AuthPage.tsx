@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,9 @@ import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
 import { ensureDemoUsersExist } from '@/utils/demoSetup';
 
 const AuthPage: React.FC = () => {
-  const { user, profile, loading, signIn, signUp } = useAuth();
+  const { user, profile, loading, signIn, signUp, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [selectedRole, setSelectedRole] = useState<'manager' | 'sales_rep'>('sales_rep');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -56,9 +57,12 @@ const AuthPage: React.FC = () => {
     return () => window.removeEventListener('keypress', handleKeyPress);
   }, []);
 
-  // Redirect authenticated users based on role
+  // Only redirect authenticated users if they're not logging out
   useEffect(() => {
-    if (!loading && user && profile) {
+    // Check if this is a logout scenario by looking at URL params or state
+    const isLogout = location.state?.logout || location.search.includes('logout');
+    
+    if (!loading && user && profile && !isLogout) {
       console.log('User authenticated, redirecting based on role:', profile.role);
       
       const targetRoute = profile.role === 'manager' ? '/manager/dashboard'
@@ -67,7 +71,15 @@ const AuthPage: React.FC = () => {
       
       navigate(targetRoute, { replace: true });
     }
-  }, [user, profile, loading, navigate]);
+  }, [user, profile, loading, navigate, location]);
+
+  // Handle logout if user is on auth page with logout flag
+  useEffect(() => {
+    const isLogout = location.state?.logout || location.search.includes('logout');
+    if (isLogout && user) {
+      signOut();
+    }
+  }, [location, user, signOut]);
 
   // Auto-fill demo credentials based on selected role
   useEffect(() => {
