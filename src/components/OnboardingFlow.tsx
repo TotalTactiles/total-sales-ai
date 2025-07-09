@@ -43,28 +43,14 @@ const OnboardingFlow: React.FC = () => {
     }
   });
 
-  // Dynamic steps based on role
-  const getSteps = () => {
-    const baseSteps = [
-      { title: 'Choose Your Role', key: 'role' },
-      { title: 'Select Your Industry', key: 'industry' }
-    ];
-
-    // Only show Zoho CRM step for managers
-    if (settings.role === 'manager') {
-      baseSteps.push({ title: 'Connect Zoho CRM', key: 'zoho_crm' });
-    }
-
-    baseSteps.push(
-      { title: 'Name Your Assistant', key: 'assistant_name' },
-      { title: 'Voice & Style', key: 'voice_style' },
-      { title: 'Final Setup', key: 'complete' }
-    );
-
-    return baseSteps;
-  };
-
-  const steps = getSteps();
+  const steps = [
+    { title: 'Choose Your Role', key: 'role' },
+    { title: 'Select Your Industry', key: 'industry' },
+    { title: 'Connect Zoho CRM', key: 'zoho_crm' },
+    { title: 'Name Your Assistant', key: 'assistant_name' },
+    { title: 'Voice & Style', key: 'voice_style' },
+    { title: 'Final Setup', key: 'complete' }
+  ];
 
   const updateDatabase = async (stepKey: string, value: any) => {
     if (!user) return;
@@ -224,16 +210,12 @@ const OnboardingFlow: React.FC = () => {
         );
 
       case 'zoho_crm':
-        // Only show for managers
-        if (settings.role === 'manager') {
-          return (
-            <ZohoCRMStep 
-              onNext={handleNext}
-              onSkip={handleSkipZoho}
-            />
-          );
-        }
-        return null;
+        return (
+          <ZohoCRMStep 
+            onNext={handleNext}
+            onSkip={handleSkipZoho}
+          />
+        );
 
       case 'assistant_name':
         return (

@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import MainLayout from "@/components/Layout/MainLayout";
 
 // Auth Pages
-import LoginPage from "./pages/auth/LoginPage";
+import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/signup";
 import OnboardingPage from "./pages/onboarding/OnboardingPage";
 
