@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DeveloperSecretLogin from '@/components/Developer/DeveloperSecretLogin';
-import { isDemoMode, demoUsers } from '@/data/demo.mock.data';
+import { isDemoMode, demoUsers, logDemoLogin } from '@/data/demo.mock.data';
 import { ensureDemoUsersExist } from '@/utils/demoSetup';
 
 const AuthPage: React.FC = () => {
@@ -74,21 +74,24 @@ const AuthPage: React.FC = () => {
     }
   }, [location, user, signOut, navigate, isLoggingOut]);
 
-  // Only redirect authenticated users if they're not in a logout process
+  // Redirect authenticated users based on their role
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const isLogout = location.state?.logout || urlParams.get('logout') === 'true';
     
-    if (!loading && user && profile && !isLogout && !isLoggingOut && !isSubmitting) {
+    if (!loading && user && profile && !isLogout && !isLoggingOut) {
       console.log('User authenticated, redirecting based on role:', profile.role);
       
-      const targetRoute = profile.role === 'manager' ? '/manager/dashboard'
-        : profile.role === 'developer' ? '/dev/dashboard'
-        : '/sales/dashboard';
-      
-      navigate(targetRoute, { replace: true });
+      // Wait a moment to ensure state is fully updated
+      setTimeout(() => {
+        const targetRoute = profile.role === 'manager' ? '/manager/dashboard'
+          : profile.role === 'developer' ? '/dev/dashboard'
+          : '/sales/dashboard';
+        
+        navigate(targetRoute, { replace: true });
+      }, 100);
     }
-  }, [user, profile, loading, navigate, location, isLoggingOut, isSubmitting]);
+  }, [user, profile, loading, navigate, location, isLoggingOut]);
 
   // Auto-fill demo credentials based on selected role
   useEffect(() => {
@@ -121,6 +124,7 @@ const AuthPage: React.FC = () => {
       }
 
       console.log('Login successful');
+      // Don't set isSubmitting to false here - let the redirect handle it
     } catch (error) {
       console.error('Login exception:', error);
       setAuthError('An unexpected error occurred. Please try again.');
@@ -139,22 +143,25 @@ const AuthPage: React.FC = () => {
     setAuthError('');
     
     try {
-      console.log('Demo login attempt for:', demoUser.email);
+      console.log('Demo login attempt for:', demoUser.email, 'Role:', role);
+      logDemoLogin(demoUser.email, true);
       
       const result = await signIn(demoUser.email, demoUser.password);
       if (result?.error) {
         console.error('Demo login error:', result.error);
         setAuthError(result.error.message || 'Demo login failed. Please try again.');
         setIsSubmitting(false);
+        logDemoLogin(demoUser.email, false);
         return;
       }
       
-      console.log('Demo login successful');
-      // Don't set isSubmitting to false here - let the useEffect handle the redirect
+      console.log('Demo login successful for role:', role);
+      // Don't set isSubmitting to false here - let the redirect handle it
     } catch (error) {
       console.error('Demo login exception:', error);
       setAuthError('An unexpected error occurred during demo login.');
       setIsSubmitting(false);
+      logDemoLogin(demoUser.email, false);
     }
   };
 
