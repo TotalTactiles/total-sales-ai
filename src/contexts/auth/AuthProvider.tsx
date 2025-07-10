@@ -131,6 +131,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signUpWithOAuth = async (provider: 'google' | 'github') => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth`
+        }
+      });
+
+      if (error) {
+        logger.error(`${provider} OAuth error:`, error, 'auth');
+        return { error };
+      }
+
+      logger.info(`${provider} OAuth successful`, {}, 'auth');
+      return { data, error: null };
+    } catch (error: any) {
+      logger.error(`${provider} OAuth exception:`, error, 'auth');
+      return { error: error as AuthError };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     try {
       setLoading(true);
@@ -164,7 +190,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     signIn,
     signUp,
-    signOut
+    signUpWithOAuth,
+    signOut,
+    fetchProfile
   };
 
   return (
