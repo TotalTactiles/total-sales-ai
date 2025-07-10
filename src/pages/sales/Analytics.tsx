@@ -16,10 +16,6 @@ import {
   Award
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { TooltipInfo } from '@/components/ui/tooltip-info';
-import { PerformanceComparison } from '@/components/analytics/PerformanceComparison';
-import { AIBriefingCard } from '@/components/analytics/AIBriefingCard';
-import { EnhancedGoalsSection } from '@/components/analytics/EnhancedGoalsSection';
 
 const SalesRepAnalytics: React.FC = () => {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter'>('month');
@@ -46,8 +42,7 @@ const SalesRepAnalytics: React.FC = () => {
       change: '+12%', 
       trend: 'up', 
       icon: Phone,
-      color: 'text-blue-600',
-      tooltip: 'Total outbound calls made this month. More calls typically lead to more opportunities and higher revenue.'
+      color: 'text-blue-600'
     },
     { 
       title: 'Email Responses', 
@@ -55,8 +50,7 @@ const SalesRepAnalytics: React.FC = () => {
       change: '+8%', 
       trend: 'up', 
       icon: Mail,
-      color: 'text-green-600',
-      tooltip: 'Number of email responses received from prospects. Higher response rates indicate effective messaging and timing.'
+      color: 'text-green-600'
     },
     { 
       title: 'Meetings Booked', 
@@ -64,8 +58,7 @@ const SalesRepAnalytics: React.FC = () => {
       change: '+25%', 
       trend: 'up', 
       icon: Calendar,
-      color: 'text-purple-600',
-      tooltip: 'Qualified meetings scheduled with prospects. Higher meeting rates indicate better lead qualification and follow-up skills.'
+      color: 'text-purple-600'
     },
     { 
       title: 'Revenue Generated', 
@@ -73,8 +66,7 @@ const SalesRepAnalytics: React.FC = () => {
       change: '+18%', 
       trend: 'up', 
       icon: DollarSign,
-      color: 'text-green-600',
-      tooltip: 'Total revenue closed this month. This directly impacts your commission and contributes to team targets.'
+      color: 'text-green-600'
     }
   ];
 
@@ -109,10 +101,7 @@ const SalesRepAnalytics: React.FC = () => {
           return (
             <Card key={index}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  {kpi.title}
-                  <TooltipInfo content={kpi.tooltip} />
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
                 <Icon className={`h-4 w-4 ${kpi.color}`} />
               </CardHeader>
               <CardContent>
@@ -134,24 +123,11 @@ const SalesRepAnalytics: React.FC = () => {
         })}
       </div>
 
-      {/* Performance Comparison Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <PerformanceComparison />
-        </div>
-        <div>
-          <AIBriefingCard />
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Performance Trends */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Performance Trends
-              <TooltipInfo content="Track your activity trends over time. Consistent patterns help identify what works best for your sales process." />
-            </CardTitle>
+            <CardTitle>Performance Trends</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -170,10 +146,7 @@ const SalesRepAnalytics: React.FC = () => {
         {/* Revenue Chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              Weekly Revenue
-              <TooltipInfo content="Weekly revenue performance shows your closing patterns. Consistent revenue generation is key to hitting monthly targets." />
-            </CardTitle>
+            <CardTitle>Weekly Revenue</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -192,10 +165,7 @@ const SalesRepAnalytics: React.FC = () => {
       {/* Conversion Funnel */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Sales Funnel Conversion
-            <TooltipInfo content="Shows how prospects move through your sales process. Focus on stages with low conversion rates to improve overall performance." />
-          </CardTitle>
+          <CardTitle>Sales Funnel Conversion</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -206,9 +176,6 @@ const SalesRepAnalytics: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">{stage.count} leads</span>
                     <Badge variant="outline">{stage.percentage}%</Badge>
-                    <TooltipInfo 
-                      content={`${stage.stage}: ${stage.count} prospects at this stage (${stage.percentage}% of original prospects)`}
-                    />
                   </div>
                 </div>
                 <Progress value={stage.percentage} className="h-2" />
@@ -218,16 +185,45 @@ const SalesRepAnalytics: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Enhanced Goals & Achievements */}
+      {/* Goals & Achievements */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <EnhancedGoalsSection />
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-600" />
+              Monthly Goals
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Calls Target</span>
+                <span>196/200</span>
+              </div>
+              <Progress value={98} className="h-2" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Revenue Target</span>
+                <span>$63.5K/$80K</span>
+              </div>
+              <Progress value={79} className="h-2" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span>Meetings Target</span>
+                <span>41/50</span>
+              </div>
+              <Progress value={82} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Award className="h-5 w-5 text-yellow-600" />
               Recent Achievements
-              <TooltipInfo content="Celebrate your wins! Achievements boost motivation and show areas where you excel. Share these with your manager during reviews." />
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">

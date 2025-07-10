@@ -1,40 +1,36 @@
 
 import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-import ManagerAIBubble from '@/components/ManagerAI/ManagerAIBubble';
-import { AIErrorBoundary } from '@/ai/utils/AIErrorBoundary';
-import ManagerDashboard from '@/pages/ManagerDashboard';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import UnifiedLayout from '@/components/layout/UnifiedLayout';
+
+// Manager Pages
+import ManagerDashboard from '@/pages/manager/ManagerDashboard';
+import BusinessOps from '@/pages/manager/BusinessOps';
+import EnhancedTeamManagement from '@/pages/manager/EnhancedTeamManagement';
+import LeadManagement from '@/pages/manager/LeadManagement';
+import AIAssistant from '@/pages/manager/AIAssistant';
+import CompanyBrain from '@/pages/manager/CompanyBrain';
+import Security from '@/pages/manager/Security';
+import Reports from '@/pages/manager/Reports';
+import Settings from '@/pages/manager/Settings';
 
 const ManagerOS: React.FC = () => {
-  const location = useLocation();
-  
-  // Don't show AI bubble on the AI Assistant page
-  const showAIBubble = !location.pathname.includes('/ai-assistant');
-
   return (
-    <div className="min-h-screen bg-slate-50">
-      <ManagerNavigation />
-      <main className="pt-16">
-        <Routes>
-          <Route index element={<Navigate to="/manager/dashboard" replace />} />
-          <Route path="dashboard" element={<ManagerDashboard />} />
-          <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
-        </Routes>
-        
-        {showAIBubble && (
-          <AIErrorBoundary feature="Manager AI Assistant">
-            <ManagerAIBubble 
-              workspace="manager" 
-              context={{ 
-                currentPath: location.pathname,
-                workspace: 'manager_os'
-              }} 
-            />
-          </AIErrorBoundary>
-        )}
-      </main>
-    </div>
+    <UnifiedLayout>
+      <Routes>
+        <Route index element={<Navigate to="/manager/dashboard" replace />} />
+        <Route path="dashboard" element={<ManagerDashboard />} />
+        <Route path="business-ops" element={<BusinessOps />} />
+        <Route path="team" element={<EnhancedTeamManagement />} />
+        <Route path="leads" element={<LeadManagement />} />
+        <Route path="ai" element={<AIAssistant />} />
+        <Route path="company-brain" element={<CompanyBrain />} />
+        <Route path="security" element={<Security />} />
+        <Route path="reports" element={<Reports />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
+      </Routes>
+    </UnifiedLayout>
   );
 };
 

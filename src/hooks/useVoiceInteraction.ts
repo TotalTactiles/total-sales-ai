@@ -1,210 +1,151 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { voiceAssistantService } from '@/ai/functions/voiceAssistant';
-import { isAIEnabled } from '@/ai/config/AIConfig';
+import { useState, useCallback, useRef } from 'react';
+import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
+import { VoiceInteractionState, VoiceInteractionOptions } from '@/hooks/voice/types';
 
-interface UseVoiceInteractionOptions {
-  context: string;
-  workspaceData?: any;
-  wakeWords?: string[];
-}
+export const useVoiceInteraction = (options: VoiceInteractionOptions = {}) => {
+  const [state, setState] = useState<VoiceInteractionState>({
+    isListening: false,
+    isProcessing: false,
+    isSpeaking: false,
+    isWakeWordActive: false,
+    isDetecting: false,
+    transcript: '',
+    response: '',
+    error: null,
+    permissionState: 'unknown',
+    microphoneSupported: true
+  });
 
-interface UseVoiceInteractionReturn {
-  isListening: boolean;
-  isProcessing: boolean;
-  isSpeaking: boolean;
-  isWakeWordActive: boolean;
-  isDetecting: boolean;
-  transcript: string;
-  response: string;
-  error: string | null;
-  permissionState: PermissionState | null;
-  microphoneSupported: boolean;
-  startListening: () => Promise<void>;
-  stopListening: () => void;
-  toggleWakeWord: () => void;
-  clearError: () => void;
-  requestMicrophonePermission: () => Promise<void>;
-}
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
 
-export const useVoiceInteraction = (options: UseVoiceInteractionOptions): UseVoiceInteractionReturn => {
-  const [isListening, setIsListening] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const [isWakeWordActive, setIsWakeWordActive] = useState(false);
-  const [isDetecting, setIsDetecting] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [response, setResponse] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
-  const [microphoneSupported, setMicrophoneSupported] = useState(false);
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
-
-  useEffect(() => {
-    // Check if speech recognition is supported
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    setMicrophoneSupported(!!SpeechRecognition);
-
-    if (SpeechRecognition) {
-      const recognitionInstance = new SpeechRecognition();
-      recognitionInstance.continuous = true;
-      recognitionInstance.interimResults = true;
-      recognitionInstance.lang = 'en-US';
-      
-      // Check if maxAlternatives property exists
-      if ('maxAlternatives' in recognitionInstance) {
-        recognitionInstance.maxAlternatives = 1;
-      }
-
-      setRecognition(recognitionInstance);
-    }
-
-    // Check microphone permission
-    checkMicrophonePermission();
-  }, []);
-
-  const checkMicrophonePermission = useCallback(async () => {
-    try {
-      const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-      setPermissionState(result.state);
-      
-      result.addEventListener('change', () => {
-        setPermissionState(result.state);
-      });
-    } catch (error) {
-      logger.warn('Could not check microphone permission:', error);
-    }
+  const checkMicrophoneSupport = useCallback(() => {
+    const supported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) &&
+                     (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window));
+    
+    setState(prev => ({ ...prev, microphoneSupported: supported }));
+    return supported;
   }, []);
 
   const requestMicrophonePermission = useCallback(async () => {
     try {
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-      await checkMicrophonePermission();
+      if (!checkMicrophoneSupport()) {
+        setState(prev => ({ ...prev, permissionState: 'denied' }));
+        return false;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(track => track.stop());
+      setState(prev => ({ ...prev, permissionState: 'granted' }));
+      return true;
     } catch (error) {
-      setError('Microphone permission denied');
-      logger.error('Microphone permission request failed:', error);
+      setState(prev => ({ ...prev, permissionState: 'denied' }));
+      return false;
     }
-  }, [checkMicrophonePermission]);
+  }, [checkMicrophoneSupport]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+    }
+    setState(prev => ({ ...prev, isListening: false }));
+  }, []);
 
   const startListening = useCallback(async () => {
-    if (!isAIEnabled('VOICE_ASSISTANT')) {
-      setError('Voice assistant temporarily disabled');
-      return;
-    }
-
-    if (!recognition || !microphoneSupported) {
-      setError('Speech recognition not supported');
-      return;
-    }
-
-    if (permissionState === 'denied') {
-      setError('Microphone permission required');
-      return;
-    }
-
     try {
-      setIsListening(true);
-      setError(null);
-      setTranscript('');
-      
+      if (!checkMicrophoneSupport()) {
+        throw new Error('Speech recognition not supported in this browser');
+      }
+
+      const hasPermission = await requestMicrophonePermission();
+      if (!hasPermission) {
+        throw new Error('Microphone permission denied');
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStreamRef.current = stream;
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognitionRef.current = recognition;
+
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setState(prev => ({ ...prev, isListening: true, error: null }));
+        logger.info('Voice recognition started');
+      };
+
       recognition.onresult = (event) => {
-        const current = event.resultIndex;
-        const transcript = event.results[current][0].transcript;
-        
-        if (event.results[current].isFinal) {
-          setTranscript(transcript);
-          handleVoiceCommand(transcript);
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
         }
+        setState(prev => ({ ...prev, transcript }));
       };
 
       recognition.onerror = (event) => {
-        setError(`Speech recognition error: ${event.error}`);
-        setIsListening(false);
+        const errorMessage = `Speech recognition error: ${event.error}`;
+        setState(prev => ({ ...prev, error: errorMessage, isListening: false }));
+        logger.error(errorMessage);
+        toast.error(errorMessage);
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        setState(prev => ({ ...prev, isListening: false }));
+        if (mediaStreamRef.current) {
+          mediaStreamRef.current.getTracks().forEach(track => track.stop());
+        }
       };
 
       recognition.start();
-      logger.info('Voice recognition started');
       
     } catch (error) {
-      setError('Failed to start listening');
-      setIsListening(false);
-      logger.error('Voice recognition start failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start voice recognition';
+      setState(prev => ({ ...prev, error: errorMessage }));
+      logger.error('Failed to start voice recognition:', error);
+      toast.error(errorMessage);
     }
-  }, [recognition, microphoneSupported, permissionState]);
+  }, [checkMicrophoneSupport, requestMicrophonePermission]);
 
-  const stopListening = useCallback(() => {
-    if (recognition && isListening) {
-      recognition.stop();
-      setIsListening(false);
-      logger.info('Voice recognition stopped');
-    }
-  }, [recognition, isListening]);
-
-  const handleVoiceCommand = useCallback(async (transcript: string) => {
-    if (!isAIEnabled('VOICE_ASSISTANT')) {
-      setResponse('Voice assistant temporarily disabled');
-      return;
-    }
-
-    setIsProcessing(true);
+  const processVoiceCommand = useCallback(async (command: string) => {
+    setState(prev => ({ ...prev, isProcessing: true }));
     
     try {
-      const voiceResponse = await voiceAssistantService.processVoiceCommand(
-        {
-          transcript,
-          confidence: 0.9,
-          intent: 'general_query',
-          parameters: {}
-        },
-        {
-          workspace: options.context,
-          userId: 'current-user',
-          companyId: 'current-company'
-        }
-      );
+      logger.info('Processing voice command:', command);
       
-      setResponse(voiceResponse.text);
-      
-      // Handle any actions
-      if (voiceResponse.action) {
-        logger.info('Voice command action:', voiceResponse.action);
-      }
+      // Simulate AI response
+      const response = `Processed command: ${command}`;
+      setState(prev => ({ ...prev, response, isProcessing: false }));
       
     } catch (error) {
-      setError('Failed to process voice command');
-      logger.error('Voice command processing failed:', error);
-    } finally {
-      setIsProcessing(false);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to process voice command';
+      setState(prev => ({ ...prev, error: errorMessage, isProcessing: false }));
+      logger.error('Failed to process voice command:', error);
+      toast.error(errorMessage);
     }
-  }, [options.context]);
+  }, []);
 
   const toggleWakeWord = useCallback(() => {
-    setIsWakeWordActive(!isWakeWordActive);
-    logger.info('Wake word detection toggled:', !isWakeWordActive);
-  }, [isWakeWordActive]);
+    setState(prev => ({ ...prev, isWakeWordActive: !prev.isWakeWordActive }));
+  }, []);
 
   const clearError = useCallback(() => {
-    setError(null);
+    setState(prev => ({ ...prev, error: null }));
   }, []);
 
   return {
-    isListening,
-    isProcessing,
-    isSpeaking,
-    isWakeWordActive,
-    isDetecting,
-    transcript,
-    response,
-    error,
-    permissionState,
-    microphoneSupported,
+    ...state,
     startListening,
     stopListening,
+    processVoiceCommand,
     toggleWakeWord,
     clearError,
     requestMicrophonePermission
