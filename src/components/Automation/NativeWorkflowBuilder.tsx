@@ -1,6 +1,7 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
-import { useNodesState, useEdgesState, addEdge, applyNodeChanges, applyEdgeChanges, Node, Edge } from '@xyflow/react';
+import { useNodesState, useEdgesState, addEdge, Node, Edge, Connection, BackgroundVariant } from '@xyflow/react';
 import { ReactFlow, Controls, Background, MiniMap } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { v4 as uuidv4 } from 'uuid';
@@ -28,12 +29,16 @@ const initialEdges: Edge[] = [];
 
 const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSave: (workflow: Workflow) => void }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange, onConnect] = useEdgesState(initialEdges);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [workflowName, setWorkflowName] = useState('Untitled Workflow');
   const [workflowDescription, setWorkflowDescription] = useState('');
   const [selectedStep, setSelectedStep] = useState<WorkflowStep | null>(null);
   const [userRole, setUserRole] = useState('sales_rep'); // Default role
   const [isValid, setIsValid] = useState(false);
+
+  const onConnect = useCallback((params: Connection) => {
+    setEdges((eds) => addEdge(params, eds));
+  }, [setEdges]);
 
   useEffect(() => {
     // Simulate fetching user role
@@ -44,7 +49,7 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
 
   useEffect(() => {
     setIsValid(nodes.every(node => {
-      const step = node.data as WorkflowStep;
+      const step = node.data as any;
       return step?.isConfigured;
     }));
   }, [nodes]);
@@ -65,7 +70,7 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
       name: workflowName,
       description: workflowDescription,
       isActive: false,
-      steps: nodes.map(node => node.data) as WorkflowStep[],
+      steps: nodes.map(node => node.data as WorkflowStep),
       connections: edges.map(edge => ({
         id: edge.id,
         fromNode: edge.source,
@@ -105,9 +110,10 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
     setNodes(nds =>
       nds.map(node => {
         if (node.id === stepId) {
-          const updatedData = {
-            ...node.data,
-            config: { ...node.data.config, ...config },
+          const currentData = node.data as WorkflowStep;
+          const updatedData: WorkflowStep = {
+            ...currentData,
+            config: { ...currentData.config, ...config },
             isConfigured: true
           };
           return {
@@ -586,7 +592,7 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
             >
               <Controls />
               <MiniMap />
-              <Background variant="dots" gap={12} size={1} />
+              <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
             </ReactFlow>
           </CardContent>
           <div className="p-4 flex justify-end gap-2">
@@ -618,3 +624,4 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
 };
 
 export default NativeWorkflowBuilder;
+
