@@ -4,7 +4,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerAIBubble from '@/components/ManagerAI/ManagerAIBubble';
 import { AIErrorBoundary } from '@/ai/utils/AIErrorBoundary';
-import Dashboard from '@/pages/manager/Dashboard';
+import ManagerDashboard from '@/pages/ManagerDashboard';
 
 const ManagerOS: React.FC = () => {
   const location = useLocation();
@@ -18,7 +18,7 @@ const ManagerOS: React.FC = () => {
       <main className="pt-16">
         <Routes>
           <Route index element={<Navigate to="/manager/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="dashboard" element={<ManagerDashboard />} />
           <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
         </Routes>
         
