@@ -1,43 +1,35 @@
 
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import UnifiedLayout from '@/components/layout/UnifiedLayout';
+import { Outlet, useLocation } from 'react-router-dom';
+import ManagerNavbar from '@/components/ManagerNavbar';
 import ManagerAIBubble from '@/components/ManagerAI/ManagerAIBubble';
-import { ManagerAIProvider } from '@/components/ManagerAI/ManagerAIContext';
-
-// Manager Pages
-import ManagerDashboard from '@/pages/manager/ManagerDashboard';
-import BusinessOps from '@/pages/manager/BusinessOps';
-import EnhancedTeamManagement from '@/pages/manager/EnhancedTeamManagement';
-import LeadManagement from '@/pages/manager/LeadManagement';
-import AIAssistant from '@/pages/manager/AIAssistant';
-import CompanyBrain from '@/pages/manager/CompanyBrain';
-import Security from '@/pages/manager/Security';
-import Reports from '@/pages/manager/Reports';
-import Settings from '@/pages/manager/Settings';
+import { AIErrorBoundary } from '@/ai/utils/AIErrorBoundary';
 
 const ManagerOS: React.FC = () => {
+  const location = useLocation();
+  
+  // Don't show AI bubble on the AI Assistant page
+  const showAIBubble = !location.pathname.includes('/ai-assistant');
+
   return (
-    <ManagerAIProvider>
-      <UnifiedLayout>
-        <Routes>
-          <Route index element={<Navigate to="/manager/dashboard" replace />} />
-          <Route path="dashboard" element={<ManagerDashboard />} />
-          <Route path="business-ops" element={<BusinessOps />} />
-          <Route path="team" element={<EnhancedTeamManagement />} />
-          <Route path="leads" element={<LeadManagement />} />
-          <Route path="ai" element={<AIAssistant />} />
-          <Route path="company-brain" element={<CompanyBrain />} />
-          <Route path="security" element={<Security />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
-        </Routes>
+    <div className="min-h-screen bg-slate-50">
+      <ManagerNavbar />
+      <main className="pt-16">
+        <Outlet />
         
-        {/* Manager AI Bubble - Available on all pages except AI Assistant */}
-        <ManagerAIBubble />
-      </UnifiedLayout>
-    </ManagerAIProvider>
+        {showAIBubble && (
+          <AIErrorBoundary feature="Manager AI Assistant">
+            <ManagerAIBubble 
+              workspace="manager" 
+              context={{ 
+                currentPath: location.pathname,
+                workspace: 'manager_os'
+              }} 
+            />
+          </AIErrorBoundary>
+        )}
+      </main>
+    </div>
   );
 };
 

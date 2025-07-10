@@ -1,283 +1,208 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { toast } from 'sonner';
+import { useState, useEffect, useCallback } from 'react';
+import { voiceAssistantService } from '@/ai/functions/voiceAssistant';
+import { isAIEnabled } from '@/ai/config/AIConfig';
 import { logger } from '@/utils/logger';
 
-interface VoiceInteractionConfig {
+interface UseVoiceInteractionOptions {
   context: string;
   workspaceData?: any;
   wakeWords?: string[];
-  autoListen?: boolean;
-  onCommand?: (command: string) => void;
 }
 
-interface VoiceInteractionState {
+interface UseVoiceInteractionReturn {
   isListening: boolean;
   isProcessing: boolean;
   isSpeaking: boolean;
   isWakeWordActive: boolean;
   isDetecting: boolean;
-  transcript: string | null;
-  response: string | null;
+  transcript: string;
+  response: string;
   error: string | null;
   permissionState: PermissionState | null;
   microphoneSupported: boolean;
+  startListening: () => Promise<void>;
+  stopListening: () => void;
+  toggleWakeWord: () => void;
+  clearError: () => void;
+  requestMicrophonePermission: () => Promise<void>;
 }
 
-export const useVoiceInteraction = (config: VoiceInteractionConfig) => {
-  const [state, setState] = useState<VoiceInteractionState>({
-    isListening: false,
-    isProcessing: false,
-    isSpeaking: false,
-    isWakeWordActive: false,
-    isDetecting: false,
-    transcript: null,
-    response: null,
-    error: null,
-    permissionState: null,
-    microphoneSupported: false
-  });
+export const useVoiceInteraction = (options: UseVoiceInteractionOptions): UseVoiceInteractionReturn => {
+  const [isListening, setIsListening] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isWakeWordActive, setIsWakeWordActive] = useState(false);
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [transcript, setTranscript] = useState('');
+  const [response, setResponse] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [permissionState, setPermissionState] = useState<PermissionState | null>(null);
+  const [microphoneSupported, setMicrophoneSupported] = useState(false);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
 
-  const recognitionRef = useRef<any>(null);
-  const wakeWordTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const continuousListeningRef = useRef<boolean>(false);
-
-  const wakeWords = config.wakeWords || ['hey tsam', 'hey assistant', 'tsam'];
-
-  // Check microphone support
   useEffect(() => {
-    const checkSupport = () => {
-      const supported = !!(
-        navigator.mediaDevices?.getUserMedia &&
-        (window.webkitSpeechRecognition || window.SpeechRecognition)
-      );
-      
-      setState(prev => ({ ...prev, microphoneSupported: supported }));
-      
-      if (!supported) {
-        logger.warn('Voice features not supported in this browser');
-      }
-    };
+    // Check if speech recognition is supported
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    setMicrophoneSupported(!!SpeechRecognition);
 
-    checkSupport();
+    if (SpeechRecognition) {
+      const recognitionInstance = new SpeechRecognition();
+      recognitionInstance.continuous = true;
+      recognitionInstance.interimResults = true;
+      recognitionInstance.lang = 'en-US';
+      
+      // Check if maxAlternatives property exists
+      if ('maxAlternatives' in recognitionInstance) {
+        recognitionInstance.maxAlternatives = 1;
+      }
+
+      setRecognition(recognitionInstance);
+    }
+
+    // Check microphone permission
+    checkMicrophonePermission();
   }, []);
 
-  // Request microphone permission
+  const checkMicrophonePermission = useCallback(async () => {
+    try {
+      const result = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+      setPermissionState(result.state);
+      
+      result.addEventListener('change', () => {
+        setPermissionState(result.state);
+      });
+    } catch (error) {
+      logger.warn('Could not check microphone permission:', error);
+    }
+  }, []);
+
   const requestMicrophonePermission = useCallback(async () => {
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
-      setState(prev => ({ ...prev, permissionState: 'granted' }));
-      return true;
+      await checkMicrophonePermission();
     } catch (error) {
-      logger.error('Microphone permission denied:', error);
-      setState(prev => ({ ...prev, permissionState: 'denied' }));
-      return false;
+      setError('Microphone permission denied');
+      logger.error('Microphone permission request failed:', error);
     }
-  }, []);
+  }, [checkMicrophonePermission]);
 
-  // Initialize speech recognition
-  const initializeSpeechRecognition = useCallback(() => {
-    if (!state.microphoneSupported) return null;
-
-    const SpeechRecognition = window.webkitSpeechRecognition || window.SpeechRecognition;
-    const recognition = new SpeechRecognition();
-    
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => {
-      logger.info('Speech recognition started');
-      setState(prev => ({ ...prev, isListening: true, error: null }));
-    };
-
-    recognition.onend = () => {
-      logger.info('Speech recognition ended');
-      setState(prev => ({ ...prev, isListening: false }));
-      
-      // Restart if in continuous mode
-      if (continuousListeningRef.current && state.isWakeWordActive) {
-        setTimeout(() => {
-          if (continuousListeningRef.current) {
-            recognition.start();
-          }
-        }, 100);
-      }
-    };
-
-    recognition.onerror = (event: any) => {
-      logger.error('Speech recognition error:', event.error);
-      setState(prev => ({ 
-        ...prev, 
-        error: `Speech recognition error: ${event.error}`,
-        isListening: false 
-      }));
-    };
-
-    recognition.onresult = async (event: any) => {
-      const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
-      logger.info('Speech recognition result:', transcript);
-
-      setState(prev => ({ ...prev, transcript }));
-
-      // Check for wake words
-      const hasWakeWord = wakeWords.some(wake => transcript.includes(wake));
-      
-      if (hasWakeWord) {
-        logger.info('Wake word detected:', transcript);
-        setState(prev => ({ ...prev, isDetecting: true }));
-        
-        // Extract command after wake word
-        let command = transcript;
-        for (const wake of wakeWords) {
-          if (transcript.includes(wake)) {
-            command = transcript.replace(wake, '').trim();
-            break;
-          }
-        }
-
-        if (command && command.length > 0) {
-          await processVoiceCommand(command);
-        } else {
-          // Just wake word, wait for actual command
-          toast.info('I\'m listening. What can I help you with?');
-          setState(prev => ({ ...prev, isDetecting: false }));
-        }
-      } else if (!state.isWakeWordActive) {
-        // Direct command mode
-        await processVoiceCommand(transcript);
-      }
-    };
-
-    return recognition;
-  }, [state.microphoneSupported, state.isWakeWordActive, wakeWords]);
-
-  // Process voice command
-  const processVoiceCommand = useCallback(async (command: string) => {
-    setState(prev => ({ ...prev, isProcessing: true, isDetecting: false }));
-    
-    try {
-      logger.info('Processing voice command:', command);
-      
-      // Call the onCommand callback if provided
-      if (config.onCommand) {
-        config.onCommand(command);
-      }
-
-      // Mock AI response for now - replace with actual AI service
-      const response = `Processing command: "${command}" in ${config.context} context`;
-      
-      setState(prev => ({ 
-        ...prev, 
-        response,
-        isProcessing: false 
-      }));
-
-      // Generate voice response
-      if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(response);
-        utterance.onstart = () => setState(prev => ({ ...prev, isSpeaking: true }));
-        utterance.onend = () => setState(prev => ({ ...prev, isSpeaking: false }));
-        window.speechSynthesis.speak(utterance);
-      }
-
-      toast.success('Voice command processed');
-      
-    } catch (error) {
-      logger.error('Error processing voice command:', error);
-      setState(prev => ({ 
-        ...prev, 
-        error: 'Failed to process voice command',
-        isProcessing: false 
-      }));
-      toast.error('Failed to process voice command');
-    }
-  }, [config]);
-
-  // Start listening
   const startListening = useCallback(async () => {
-    if (!state.microphoneSupported) {
-      toast.error('Voice features not supported in this browser');
-      return false;
+    if (!isAIEnabled('VOICE_ASSISTANT')) {
+      setError('Voice assistant temporarily disabled');
+      return;
     }
 
-    const hasPermission = await requestMicrophonePermission();
-    if (!hasPermission) {
-      toast.error('Microphone permission required');
-      return false;
+    if (!recognition || !microphoneSupported) {
+      setError('Speech recognition not supported');
+      return;
+    }
+
+    if (permissionState === 'denied') {
+      setError('Microphone permission required');
+      return;
     }
 
     try {
-      if (!recognitionRef.current) {
-        recognitionRef.current = initializeSpeechRecognition();
-      }
+      setIsListening(true);
+      setError(null);
+      setTranscript('');
+      
+      recognition.onresult = (event) => {
+        const current = event.resultIndex;
+        const transcript = event.results[current][0].transcript;
+        
+        if (event.results[current].isFinal) {
+          setTranscript(transcript);
+          handleVoiceCommand(transcript);
+        }
+      };
 
-      if (recognitionRef.current) {
-        recognitionRef.current.start();
-        return true;
-      }
+      recognition.onerror = (event) => {
+        setError(`Speech recognition error: ${event.error}`);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.start();
+      logger.info('Voice recognition started');
+      
     } catch (error) {
-      logger.error('Failed to start voice recognition:', error);
-      setState(prev => ({ ...prev, error: 'Failed to start voice recognition' }));
-      return false;
+      setError('Failed to start listening');
+      setIsListening(false);
+      logger.error('Voice recognition start failed:', error);
     }
+  }, [recognition, microphoneSupported, permissionState]);
 
-    return false;
-  }, [state.microphoneSupported, requestMicrophonePermission, initializeSpeechRecognition]);
-
-  // Stop listening
   const stopListening = useCallback(() => {
-    if (recognitionRef.current) {
-      continuousListeningRef.current = false;
-      recognitionRef.current.stop();
+    if (recognition && isListening) {
+      recognition.stop();
+      setIsListening(false);
+      logger.info('Voice recognition stopped');
     }
-    setState(prev => ({ ...prev, isListening: false }));
-  }, []);
+  }, [recognition, isListening]);
 
-  // Toggle wake word mode
-  const toggleWakeWord = useCallback(async () => {
-    const newState = !state.isWakeWordActive;
-    setState(prev => ({ ...prev, isWakeWordActive: newState }));
+  const handleVoiceCommand = useCallback(async (transcript: string) => {
+    if (!isAIEnabled('VOICE_ASSISTANT')) {
+      setResponse('Voice assistant temporarily disabled');
+      return;
+    }
+
+    setIsProcessing(true);
     
-    if (newState) {
-      continuousListeningRef.current = true;
-      await startListening();
-      toast.info('Wake word detection active. Say "Hey TSAM" to give commands.');
-    } else {
-      continuousListeningRef.current = false;
-      stopListening();
-      toast.info('Wake word detection disabled.');
+    try {
+      const voiceResponse = await voiceAssistantService.processVoiceCommand(
+        {
+          transcript,
+          confidence: 0.9,
+          intent: 'general_query',
+          parameters: {}
+        },
+        {
+          workspace: options.context,
+          userId: 'current-user',
+          companyId: 'current-company'
+        }
+      );
+      
+      setResponse(voiceResponse.text);
+      
+      // Handle any actions
+      if (voiceResponse.action) {
+        logger.info('Voice command action:', voiceResponse.action);
+      }
+      
+    } catch (error) {
+      setError('Failed to process voice command');
+      logger.error('Voice command processing failed:', error);
+    } finally {
+      setIsProcessing(false);
     }
-  }, [state.isWakeWordActive, startListening, stopListening]);
+  }, [options.context]);
 
-  // Clear error
+  const toggleWakeWord = useCallback(() => {
+    setIsWakeWordActive(!isWakeWordActive);
+    logger.info('Wake word detection toggled:', !isWakeWordActive);
+  }, [isWakeWordActive]);
+
   const clearError = useCallback(() => {
-    setState(prev => ({ ...prev, error: null }));
-  }, []);
-
-  // Auto-start if configured
-  useEffect(() => {
-    if (config.autoListen && state.microphoneSupported && !state.isWakeWordActive) {
-      toggleWakeWord();
-    }
-  }, [config.autoListen, state.microphoneSupported, state.isWakeWordActive, toggleWakeWord]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      if (wakeWordTimeoutRef.current) {
-        clearTimeout(wakeWordTimeoutRef.current);
-      }
-      continuousListeningRef.current = false;
-    };
+    setError(null);
   }, []);
 
   return {
-    ...state,
+    isListening,
+    isProcessing,
+    isSpeaking,
+    isWakeWordActive,
+    isDetecting,
+    transcript,
+    response,
+    error,
+    permissionState,
+    microphoneSupported,
     startListening,
     stopListening,
     toggleWakeWord,
