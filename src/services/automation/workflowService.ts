@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 export interface WorkflowStep {
   id: string;
-  type: 'trigger' | 'action' | 'condition' | 'delay';
+  type: 'trigger' | 'action' | 'condition' | 'delay' | 'ai_action';
   name: string;
   config: Record<string, any>;
   position: { x: number; y: number };
@@ -389,7 +389,7 @@ class WorkflowService {
         return await this.sendNotification(step, data, context.userId);
       
       case 'ai_auto_reply':
-        return await this.generateAIReply(step, data);
+        return await this.generateAIDraftReply(data);
       
       case 'schedule_call':
         return await this.scheduleCall(step, data);
@@ -533,6 +533,38 @@ class WorkflowService {
     };
   }
 
+  private async handleObjectionWithAI(data: any): Promise<any> {
+    // Mock AI objection handling
+    const objection = data.messageContent || 'Price is too high';
+    const response = `Here's how to handle the objection "${objection}": Acknowledge their concern, provide value justification, and offer alternatives.`;
+    
+    return {
+      success: true,
+      message: 'AI objection handling complete',
+      response,
+      objection
+    };
+  }
+
+  private async suggestNextBestAction(data: any): Promise<any> {
+    // Mock next best action suggestion
+    const suggestions = [
+      'Send follow-up email with case study',
+      'Schedule demo call',
+      'Provide pricing breakdown',
+      'Connect with decision maker'
+    ];
+    
+    const suggestion = suggestions[Math.floor(Math.random() * suggestions.length)];
+    
+    return {
+      success: true,
+      message: 'Next best action suggested',
+      suggestion,
+      confidence: 85
+    };
+  }
+
   // OS Integration Methods
   private async sendEmail(step: WorkflowStep, data: any): Promise<any> {
     if (!data.email) {
@@ -604,6 +636,61 @@ class WorkflowService {
       message: 'Notification sent',
       notificationId: `notif-${Date.now()}`,
       text: notificationText
+    };
+  }
+
+  private async scheduleCall(step: WorkflowStep, data: any): Promise<any> {
+    const scheduledTime = step.config.scheduledTime || 'Tomorrow 2:00 PM';
+    
+    // This would integrate with calendar system
+    return {
+      success: true,
+      message: `Call scheduled for ${scheduledTime}`,
+      scheduledTime,
+      callId: `call-${Date.now()}`
+    };
+  }
+
+  private async sendSMS(step: WorkflowStep, data: any): Promise<any> {
+    if (!data.phone) {
+      return { success: false, message: 'No phone number provided' };
+    }
+    
+    const message = step.config.smsMessage || 'Thank you for your interest!';
+    
+    // This would integrate with SMS service
+    return {
+      success: true,
+      message: `SMS sent to ${data.phone}`,
+      smsId: `sms-${Date.now()}`,
+      content: message
+    };
+  }
+
+  private async callWebhook(step: WorkflowStep, data: any): Promise<any> {
+    const webhookUrl = step.config.webhookUrl;
+    
+    if (!webhookUrl) {
+      return { success: false, message: 'No webhook URL configured' };
+    }
+    
+    // This would make actual webhook call
+    return {
+      success: true,
+      message: `Webhook called: ${webhookUrl}`,
+      webhookId: `webhook-${Date.now()}`
+    };
+  }
+
+  private async syncToCRM(step: WorkflowStep, data: any): Promise<any> {
+    const crmType = step.config.crmType || 'Salesforce';
+    
+    // This would sync with actual CRM
+    return {
+      success: true,
+      message: `Data synced to ${crmType}`,
+      syncId: `sync-${Date.now()}`,
+      recordId: data.id
     };
   }
 
