@@ -77,7 +77,7 @@ const AIAgentDashboard = () => {
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center">
             <Headphones className="h-5 w-5 mr-2 text-salesCyan" />
-            AI Agent Status
+            AI Outbound Agent Status
           </CardTitle>
         </CardHeader>
         <CardContent>
