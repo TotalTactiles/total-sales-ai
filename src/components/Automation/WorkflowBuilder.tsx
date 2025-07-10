@@ -100,7 +100,8 @@ const WorkflowBuilder = () => {
         type: 'trigger',
         name: 'Lead Created',
         config: { event: 'lead_created' },
-        position: { x: 100, y: 100 }
+        position: { x: 100, y: 100 },
+        isConfigured: true
       }
     ];
 
@@ -113,14 +114,16 @@ const WorkflowBuilder = () => {
             type: 'action',
             name: 'Send Welcome Email',
             config: { template: 'welcome_email', delay: 0 },
-            position: { x: 300, y: 100 }
+            position: { x: 300, y: 100 },
+            isConfigured: true
           },
           {
             id: '3',
             type: 'action',
             name: 'Send Follow-up Email',
             config: { template: 'followup_email', delay: 24 },
-            position: { x: 500, y: 100 }
+            position: { x: 500, y: 100 },
+            isConfigured: true
           }
         ];
       default:
