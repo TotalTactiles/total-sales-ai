@@ -1,23 +1,24 @@
 
-export function encodeBase64(input: string | Uint8Array): string {
-  if (typeof input === 'string') {
-    // Use browser's btoa for strings
-    return btoa(unescape(encodeURIComponent(input)));
-  } else {
-    // Convert Uint8Array to string and then encode
-    const binaryString = Array.from(input)
-      .map(byte => String.fromCharCode(byte))
-      .join('');
-    return btoa(binaryString);
+// Simple base64 encoding/decoding service
+export class Base64Service {
+  static encode(data: string): string {
+    try {
+      return btoa(data);
+    } catch (error) {
+      console.error('Base64 encoding failed:', error);
+      return '';
+    }
+  }
+
+  static decode(encodedData: string): string {
+    try {
+      return atob(encodedData);
+    } catch (error) {
+      console.error('Base64 decoding failed:', error);
+      return '';
+    }
   }
 }
 
-export function decodeBase64(base64: string): string {
-  try {
-    // Use browser's atob for decoding
-    return decodeURIComponent(escape(atob(base64)));
-  } catch (error) {
-    // Fallback for invalid base64
-    return base64;
-  }
-}
+export const encodeBase64 = Base64Service.encode;
+export const decodeBase64 = Base64Service.decode;
