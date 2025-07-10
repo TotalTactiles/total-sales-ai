@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import ManagerNavbar from '@/components/ManagerNavbar';
+import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerAIBubble from '@/components/ManagerAI/ManagerAIBubble';
 import { AIErrorBoundary } from '@/ai/utils/AIErrorBoundary';
 
@@ -13,7 +13,7 @@ const ManagerOS: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <ManagerNavbar />
+      <ManagerNavigation />
       <main className="pt-16">
         <Outlet />
         
