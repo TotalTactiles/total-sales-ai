@@ -2,7 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { toast } from 'sonner';
-import { zohoCRMIntegration } from '@/services/integrations/zohoCRM';
 
 export interface CRMIntegration {
   id: string;
@@ -31,30 +30,22 @@ export class CRMIntegrationService {
 
   async getConnectedIntegrations(): Promise<CRMIntegration[]> {
     try {
-      const integrations: CRMIntegration[] = [];
-
-      // Check Zoho integration status
-      try {
-        const zohoStatus = await zohoCRMIntegration.getStatus();
-        integrations.push({
+      // For now, return mock data since we're using enhanced mock structure
+      const mockIntegrations: CRMIntegration[] = [
+        {
           id: 'zoho-1',
           name: 'Zoho CRM',
           type: 'zoho',
-          isConnected: zohoStatus.connected,
-          lastSync: zohoStatus.lastSync?.toISOString()
-        });
-      } catch (error) {
-        logger.warn('Failed to get Zoho status:', error);
-        integrations.push({
-          id: 'zoho-1',
-          name: 'Zoho CRM',
-          type: 'zoho',
-          isConnected: false
-        });
-      }
-
-      // Add other integrations
-      integrations.push(
+          isConnected: true,
+          lastSync: '2024-01-16T10:00:00Z'
+        },
+        {
+          id: 'clickup-1',
+          name: 'ClickUp',
+          type: 'clickup',
+          isConnected: true,
+          lastSync: '2024-01-16T09:30:00Z'
+        },
         {
           id: 'salesforce-1',
           name: 'Salesforce',
@@ -67,30 +58,28 @@ export class CRMIntegrationService {
           type: 'hubspot',
           isConnected: false
         }
-      );
+      ];
 
-      return integrations;
+      return mockIntegrations;
     } catch (error) {
       logger.error('Failed to fetch CRM integrations', error, 'crm');
       return [];
     }
   }
 
-  async connectIntegration(type: CRMIntegration['type'], credentials?: any): Promise<boolean> {
+  async connectIntegration(type: CRMIntegration['type'], credentials: any): Promise<boolean> {
     try {
+      // Simulate connection process
       logger.info(`Connecting to ${type} CRM`, undefined, 'crm');
       
-      if (type === 'zoho') {
-        const result = await zohoCRMIntegration.connect();
-        if (result.success && result.authUrl) {
-          window.open(result.authUrl, 'zoho-auth', 'width=600,height=700');
-          return true;
-        }
-        return false;
-      }
+      // In a real implementation, this would:
+      // 1. Validate credentials
+      // 2. Test connection
+      // 3. Store encrypted credentials
+      // 4. Perform initial sync
       
-      // Simulate connection for other CRMs
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      
       toast.success(`${type.toUpperCase()} CRM connected successfully`);
       return true;
     } catch (error) {
@@ -104,16 +93,13 @@ export class CRMIntegrationService {
     try {
       logger.info(`Disconnecting CRM integration ${integrationId}`, undefined, 'crm');
       
-      if (integrationId === 'zoho-1') {
-        const result = await zohoCRMIntegration.disconnect();
-        if (result.success) {
-          toast.success('Zoho CRM disconnected');
-          return true;
-        }
-        return false;
-      }
+      // In a real implementation, this would:
+      // 1. Revoke API tokens
+      // 2. Delete stored credentials
+      // 3. Archive synced data
       
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
       toast.success('CRM integration disconnected');
       return true;
     } catch (error) {
@@ -127,16 +113,7 @@ export class CRMIntegrationService {
     try {
       logger.info(`Starting sync for integration ${integrationId}`, undefined, 'crm');
       
-      if (integrationId === 'zoho-1') {
-        const result = await zohoCRMIntegration.syncLeads(false);
-        return {
-          success: result.success,
-          recordsImported: result.synced,
-          errors: result.errors > 0 ? [`${result.errors} sync errors`] : undefined
-        };
-      }
-      
-      // Simulate sync for other integrations
+      // Simulate sync process
       await new Promise(resolve => setTimeout(resolve, 3000));
       
       const mockResult: CRMSyncResult = {
@@ -156,16 +133,14 @@ export class CRMIntegrationService {
     }
   }
 
-  async testConnection(type: CRMIntegration['type'], credentials?: any): Promise<boolean> {
+  async testConnection(type: CRMIntegration['type'], credentials: any): Promise<boolean> {
     try {
       logger.info(`Testing connection to ${type} CRM`, undefined, 'crm');
       
-      if (type === 'zoho') {
-        return await zohoCRMIntegration.testConnection();
-      }
-      
-      // Simulate connection test for others
+      // Simulate connection test
       await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // 90% success rate for demo purposes
       const success = Math.random() > 0.1;
       
       if (success) {
@@ -197,6 +172,11 @@ export class CRMIntegrationService {
         type: 'hubspot',
         name: 'HubSpot',
         description: 'Inbound marketing and sales platform'
+      },
+      {
+        type: 'clickup',
+        name: 'ClickUp',
+        description: 'Project management with CRM capabilities'
       }
     ];
   }
@@ -209,19 +189,11 @@ export class CRMIntegrationService {
     try {
       logger.info(`Importing leads from integration ${integrationId}`, options, 'crm');
       
-      if (integrationId === 'zoho-1') {
-        const result = await zohoCRMIntegration.syncLeads(true);
-        return {
-          success: result.success,
-          recordsImported: result.synced,
-          errors: result.errors > 0 ? [`${result.errors} import errors`] : undefined
-        };
-      }
-      
-      // Simulate lead import for other integrations
+      // Simulate lead import
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const recordsImported = Math.floor(Math.random() * 25) + 5;
+      
       toast.success(`Successfully imported ${recordsImported} leads`);
       
       return {

@@ -31,20 +31,15 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
     );
   }
 
-  // If auth is NOT required (for public routes like /auth, /landing), ALWAYS allow access
-  if (!requireAuth) {
-    return <>{children}</>;
-  }
-
   // If auth is required but no user, redirect to auth
   if (requireAuth && !user) {
     logger.info('No user found, redirecting to auth', 'auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // If user exists but no profile, redirect to auth for profile completion
+  // If user exists but no profile, redirect to auth for completion
   if (requireAuth && user && !profile) {
-    logger.info('User found but no profile, redirecting to auth for completion', 'auth');
+    logger.info('User found but no profile, redirecting to auth', 'auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
@@ -54,8 +49,8 @@ const RouteGuard: React.FC<RouteGuardProps> = ({
     
     // Redirect to appropriate dashboard based on actual role
     const roleRoutes = {
-      developer: '/dev/dashboard',
-      admin: '/dev/dashboard',
+      developer: '/developer/dashboard',
+      admin: '/developer/dashboard',
       manager: '/manager/dashboard',
       sales_rep: '/sales/dashboard'
     };

@@ -1,5 +1,5 @@
-
 import { logger } from '@/utils/logger';
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ZohoAuthConfig {
@@ -31,15 +31,16 @@ export class ZohoAuth {
       clientId: '', // Will be set from Supabase secrets
       clientSecret: '', // Will be set from Supabase secrets
       redirectUri: `${window.location.origin}/integrations/zoho/callback`,
-      scope: 'ZohoCRM.modules.ALL,ZohoCRM.settings.ALL,ZohoCRM.users.READ'
+      scope: 'ZohoCRM.modules.ALL,ZohoCRM.settings.ALL'
     };
   }
 
   async initializeConfig(): Promise<void> {
     try {
-      // These should be set in Supabase secrets for production
-      this.authConfig.clientId = 'your_zoho_client_id'; // Replace with actual client ID
-      this.authConfig.clientSecret = 'your_zoho_client_secret'; // Replace with actual client secret
+      // In a real implementation, these would come from Supabase secrets
+      // For now, we'll use placeholder values to prevent the error
+      this.authConfig.clientId = 'placeholder_client_id';
+      this.authConfig.clientSecret = 'placeholder_client_secret';
     } catch (error) {
       logger.warn('Failed to load Zoho configuration:', error);
     }
@@ -47,12 +48,12 @@ export class ZohoAuth {
 
   generateAuthUrl(): string {
     if (!this.authConfig.clientId) {
-      this.initializeConfig();
+      throw new Error('Zoho client ID not configured. Please set up your Zoho integration first.');
     }
 
     const params = new URLSearchParams({
       response_type: 'code',
-      client_id: this.authConfig.clientId || 'demo_client_id',
+      client_id: this.authConfig.clientId,
       scope: this.authConfig.scope,
       redirect_uri: this.authConfig.redirectUri,
       access_type: 'offline'
@@ -65,12 +66,30 @@ export class ZohoAuth {
     await this.initializeConfig();
     
     try {
-      // For demo purposes, we'll simulate successful token exchange
-      // In production, this would make actual API calls to Zoho
+      const response = await fetch('https://accounts.zoho.com/oauth/v2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'authorization_code',
+          client_id: this.authConfig.clientId,
+          client_secret: this.authConfig.clientSecret,
+          redirect_uri: this.authConfig.redirectUri,
+          code: code
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`Zoho OAuth error: ${data.error_description || data.error}`);
+      }
+
       const tokens: ZohoTokens = {
-        accessToken: `demo_access_token_${Date.now()}`,
-        refreshToken: `demo_refresh_token_${Date.now()}`,
-        expiresAt: Date.now() + (3600 * 1000) // 1 hour
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresAt: Date.now() + (data.expires_in * 1000)
       };
 
       await this.storeTokens(tokens);
@@ -90,11 +109,29 @@ export class ZohoAuth {
         throw new Error('No refresh token available');
       }
 
-      // For demo purposes, we'll simulate token refresh
+      const response = await fetch('https://accounts.zoho.com/oauth/v2/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          client_id: this.authConfig.clientId,
+          client_secret: this.authConfig.clientSecret,
+          refresh_token: storedTokens.refreshToken
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(`Zoho token refresh error: ${data.error_description || data.error}`);
+      }
+
       const tokens: ZohoTokens = {
-        accessToken: `demo_access_token_${Date.now()}`,
-        refreshToken: storedTokens.refreshToken,
-        expiresAt: Date.now() + (3600 * 1000)
+        accessToken: data.access_token,
+        refreshToken: storedTokens.refreshToken, // Keep existing refresh token
+        expiresAt: Date.now() + (data.expires_in * 1000)
       };
 
       await this.storeTokens(tokens);
@@ -106,6 +143,8 @@ export class ZohoAuth {
   }
 
   async getValidAccessToken(): Promise<string> {
+    await this.initializeConfig();
+    
     try {
       const tokens = await this.getStoredTokens();
       
@@ -131,7 +170,8 @@ export class ZohoAuth {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      await supabase
+      // Use type assertion for the new table
+      await (supabase as any)
         .from('crm_integrations')
         .upsert({
           user_id: user.id,
@@ -152,7 +192,8 @@ export class ZohoAuth {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return null;
 
-      const { data, error } = await supabase
+      // Use type assertion for the new table
+      const { data, error } = await (supabase as any)
         .from('crm_integrations')
         .select('*')
         .eq('user_id', user.id)
@@ -187,7 +228,8 @@ export class ZohoAuth {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase
+      // Use type assertion for the new table
+      await (supabase as any)
         .from('crm_integrations')
         .update({ is_active: false })
         .eq('user_id', user.id)

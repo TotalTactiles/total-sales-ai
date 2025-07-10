@@ -2,6 +2,7 @@
 const CACHE_NAME = 'salesos-v1';
 const STATIC_CACHE_URLS = [
   '/',
+  '/auth',
   '/manifest.json'
 ];
 

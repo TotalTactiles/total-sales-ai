@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +12,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
-import ZohoCRMStep from './Onboarding/ZohoCRMStep';
 
 interface OnboardingState {
   role: string;
@@ -44,36 +42,15 @@ const OnboardingFlow: React.FC = () => {
     }
   });
 
-  // Define steps based on role
-  const getStepsForRole = (role: string) => {
-    const baseSteps = [
-      { title: 'Choose Your Role', key: 'role' },
-      { title: 'Select Your Industry', key: 'industry' },
-    ];
+  const steps = [
+    { title: 'Choose Your Role', key: 'role' },
+    { title: 'Select Your Industry', key: 'industry' },
+    { title: 'Name Your Assistant', key: 'assistant_name' },
+    { title: 'Voice & Style', key: 'voice_style' },
+    { title: 'Final Setup', key: 'complete' }
+  ];
 
-    // Only managers get CRM integration step
-    if (role === 'manager') {
-      baseSteps.push({ title: 'Connect Zoho CRM', key: 'zoho_crm' });
-    }
-
-    baseSteps.push(
-      { title: 'Name Your Assistant', key: 'assistant_name' },
-      { title: 'Voice & Style', key: 'voice_style' },
-      { title: 'Final Setup', key: 'complete' }
-    );
-
-    return baseSteps;
-  };
-
-  const [steps, setSteps] = useState(getStepsForRole(''));
-
-  // Update steps when role changes
-  useEffect(() => {
-    if (settings.role) {
-      setSteps(getStepsForRole(settings.role));
-    }
-  }, [settings.role]);
-
+  // Update database for current step
   const updateDatabase = async (stepKey: string, value: any) => {
     if (!user) return;
 
@@ -112,20 +89,15 @@ const OnboardingFlow: React.FC = () => {
   const handleNext = async () => {
     const currentStepKey = steps[currentStep].key;
     
-    // Skip database update for Zoho CRM step
-    if (currentStepKey !== 'zoho_crm') {
-      if (currentStepKey === 'role') {
-        await updateDatabase('role', settings.role);
-        // Update steps based on role
-        const newSteps = getStepsForRole(settings.role);
-        setSteps(newSteps);
-      } else if (currentStepKey === 'industry') {
-        await updateDatabase('industry', settings.industry);
-      } else if (currentStepKey === 'assistant_name') {
-        await updateDatabase('assistant_name', settings.assistant_name);
-      } else if (currentStepKey === 'voice_style') {
-        await updateDatabase('voice_style', settings.voice_style);
-      }
+    // Update database with current step's data
+    if (currentStepKey === 'role') {
+      await updateDatabase('role', settings.role);
+    } else if (currentStepKey === 'industry') {
+      await updateDatabase('industry', settings.industry);
+    } else if (currentStepKey === 'assistant_name') {
+      await updateDatabase('assistant_name', settings.assistant_name);
+    } else if (currentStepKey === 'voice_style') {
+      await updateDatabase('voice_style', settings.voice_style);
     }
 
     if (currentStep < steps.length - 1) {
@@ -133,20 +105,18 @@ const OnboardingFlow: React.FC = () => {
     }
   };
 
-  const handleSkipZoho = () => {
-    setCurrentStep(currentStep + 1);
-  };
-
   const handleLaunchOS = async () => {
     if (!user) return;
 
     setIsLoading(true);
     try {
+      // Final database update - mark onboarding complete
       const { error } = await supabase
         .from('profiles')
         .update({
           onboarding_complete: true,
           launched_at: new Date().toISOString(),
+          // Save tone settings as JSON in user_metadata field
           user_metadata: {
             tone_settings: settings.tone_settings
           }
@@ -160,6 +130,7 @@ const OnboardingFlow: React.FC = () => {
       
       toast.success('Welcome to your personalized SalesOS!');
       
+      // Redirect based on role
       setTimeout(() => {
         if (settings.role === 'manager') {
           navigate('/os/manager/dashboard');
@@ -202,11 +173,6 @@ const OnboardingFlow: React.FC = () => {
                     <h3 className="font-semibold capitalize">
                       {role.replace('_', ' ')}
                     </h3>
-                    <p className="text-sm text-gray-500 mt-2">
-                      {role === 'manager' && 'Access CRM integrations & team management'}
-                      {role === 'sales_rep' && 'Focus on leads & personal workflow'}
-                      {role === 'admin' && 'Full system administration'}
-                    </p>
                   </CardContent>
                 </Card>
               ))}
@@ -239,14 +205,6 @@ const OnboardingFlow: React.FC = () => {
           </div>
         );
 
-      case 'zoho_crm':
-        return (
-          <ZohoCRMStep 
-            onNext={handleNext}
-            onSkip={handleSkipZoho}
-          />
-        );
-
       case 'assistant_name':
         return (
           <div className="space-y-4">
@@ -262,8 +220,12 @@ const OnboardingFlow: React.FC = () => {
                     ...prev, 
                     assistant_name: e.target.value 
                   }))}
+                  placeholder="e.g., Nova, Alex, Assistant"
                 />
               </div>
+              <p className="text-sm text-gray-500">
+                You'll use this name with voice commands like "Hey {settings.assistant_name}"
+              </p>
             </div>
           </div>
         );
@@ -358,16 +320,6 @@ const OnboardingFlow: React.FC = () => {
                 <p><strong>Industry:</strong> {settings.industry}</p>
                 <p><strong>Assistant:</strong> {settings.assistant_name}</p>
                 <p><strong>Style:</strong> {settings.voice_style}</p>
-                {settings.role === 'manager' && (
-                  <p className="text-sm text-blue-600 mt-4">
-                    As a manager, you'll have access to CRM integrations that will feed data to your entire team.
-                  </p>
-                )}
-                {settings.role === 'sales_rep' && (
-                  <p className="text-sm text-green-600 mt-4">
-                    As a sales rep, you'll be able to manage your leads through CSV import/export for personal workflow.
-                  </p>
-                )}
               </div>
             </div>
             <Button 
@@ -383,7 +335,7 @@ const OnboardingFlow: React.FC = () => {
         );
 
       default:
-        return <div>Step not found</div>;
+        return null;
     }
   };
 
@@ -400,68 +352,59 @@ const OnboardingFlow: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white p-4">
-      <div className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
+      <div className="max-w-2xl mx-auto">
         {/* Progress Bar */}
         <div className="mb-8">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
+          <div className="flex justify-between text-sm text-gray-500 mb-2">
             <span>Step {currentStep + 1} of {steps.length}</span>
-            <span>{Math.round(((currentStep + 1) / steps.length) * 100)}% Complete</span>
+            <span>{Math.round(((currentStep + 1) / steps.length) * 100)}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-              style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+            <motion.div
+              className="bg-blue-500 h-2 rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
+              transition={{ duration: 0.3 }}
             />
           </div>
         </div>
 
         {/* Step Content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card>
-              <CardContent className="p-8">
+        <Card className="mb-8">
+          <CardContent className="p-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentStep}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+              >
                 {renderStepContent()}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </AnimatePresence>
+              </motion.div>
+            </AnimatePresence>
+          </CardContent>
+        </Card>
 
         {/* Navigation */}
-        {steps[currentStep].key !== 'zoho_crm' && (
-          <div className="flex justify-between mt-6">
+        {currentStep < steps.length - 1 && (
+          <div className="flex justify-between">
             <Button
               variant="outline"
               onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
-              disabled={currentStep === 0 || isLoading}
+              disabled={currentStep === 0}
             >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Previous
             </Button>
-
-            {currentStep === steps.length - 1 ? (
-              <Button onClick={handleLaunchOS} disabled={isLoading}>
-                {isLoading ? (
-                  'Launching...'
-                ) : (
-                  <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Launch Sales OS
-                  </>
-                )}
-              </Button>
-            ) : (
-              <Button onClick={handleNext} disabled={!canProceed() || isLoading}>
-                Next
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            )}
+            <Button
+              onClick={handleNext}
+              disabled={!canProceed() || isLoading}
+            >
+              {isLoading ? 'Saving...' : 'Next'}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         )}
       </div>

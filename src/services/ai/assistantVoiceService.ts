@@ -1,3 +1,4 @@
+
 import { logger } from '@/utils/logger';
 import { voiceService } from './voiceService';
 import { enhancedVoiceService } from './enhancedVoiceService';
@@ -28,211 +29,12 @@ export class AssistantVoiceService {
   private onCommandCallback: ((command: string) => void) | null = null;
   private onWakeWordDetected: (() => void) | null = null;
   private continuousListening = false;
-  private recognition: any = null;
-  private isAlwaysListening = true;
-  private learningMode = true;
-  private userBehaviorLog: Array<{
-    action: string;
-    context: string;
-    timestamp: Date;
-    workspace: string;
-  }> = [];
 
   static getInstance(): AssistantVoiceService {
     if (!AssistantVoiceService.instance) {
       AssistantVoiceService.instance = new AssistantVoiceService();
     }
     return AssistantVoiceService.instance;
-  }
-
-  constructor() {
-    this.initializeAlwaysListening();
-  }
-
-  private async initializeAlwaysListening(): Promise<void> {
-    try {
-      if (this.isAlwaysListening) {
-        const result = await this.startWakeWordDetection();
-        if (result) {
-          logger.info('Always listening mode initialized');
-        }
-      }
-    } catch (error) {
-      logger.error('Failed to initialize always listening mode:', error);
-    }
-  }
-
-  private initializeWebSpeechAPI(): boolean {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      logger.warn('Web Speech API not supported');
-      return false;
-    }
-
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    this.recognition = new SpeechRecognition();
-    
-    this.recognition.continuous = true;
-    this.recognition.interimResults = true;
-    this.recognition.lang = 'en-US';
-    
-    return true;
-  }
-
-  async startWakeWordDetection(): Promise<boolean> {
-    try {
-      if (!this.recognition && !this.initializeWebSpeechAPI()) {
-        logger.error('Speech recognition not available');
-        return false;
-      }
-
-      // Don't start if already listening
-      if (this.isListening && this.continuousListening) {
-        return true;
-      }
-
-      this.isListening = true;
-      this.isWakeWordMode = true;
-      this.continuousListening = true;
-      
-      this.recognition.onresult = (event: any) => {
-        let finalTranscript = '';
-        let interimTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-
-        const fullTranscript = (finalTranscript + interimTranscript).toLowerCase().trim();
-        
-        if (this.checkForWakeWord(fullTranscript)) {
-          logger.info('Wake word detected:', fullTranscript);
-          this.handleWakeWordDetection(fullTranscript);
-        }
-      };
-
-      this.recognition.onerror = (event: any) => {
-        logger.error('Speech recognition error:', event.error);
-        if (event.error !== 'no-speech' && this.continuousListening) {
-          setTimeout(() => {
-            if (this.isListening && this.continuousListening) {
-              try {
-                this.recognition.start();
-              } catch (err) {
-                logger.error('Failed to restart recognition:', err);
-              }
-            }
-          }, 1000);
-        }
-      };
-
-      this.recognition.onend = () => {
-        if (this.continuousListening && this.isListening) {
-          setTimeout(() => {
-            if (this.isListening) {
-              try {
-                this.recognition.start();
-              } catch (err) {
-                logger.error('Failed to restart recognition on end:', err);
-              }
-            }
-          }, 100);
-        }
-      };
-
-      this.recognition.start();
-      logger.info('Wake word detection started');
-      
-      return true;
-    } catch (error) {
-      logger.error('Failed to start wake word detection:', error);
-      return false;
-    }
-  }
-
-  private handleWakeWordDetection(transcript: string): void {
-    // Extract command after wake word
-    const command = this.extractCommandFromTranscript(transcript);
-    
-    if (this.onWakeWordDetected) {
-      this.onWakeWordDetected();
-    }
-
-    if (command) {
-      this.processVoiceCommand(command);
-    } else {
-      // Switch to command listening mode
-      this.isWakeWordMode = false;
-      setTimeout(() => {
-        this.startCommandListening();
-      }, 500);
-    }
-  }
-
-  private extractCommandFromTranscript(transcript: string): string | null {
-    const lowerTranscript = transcript.toLowerCase();
-    
-    for (const wakeWord of this.wakeWords) {
-      const wakeWordIndex = lowerTranscript.indexOf(wakeWord);
-      if (wakeWordIndex !== -1) {
-        const commandStart = wakeWordIndex + wakeWord.length;
-        const command = transcript.substring(commandStart).trim();
-        return command.length > 0 ? command : null;
-      }
-    }
-    
-    return null;
-  }
-
-  private async startCommandListening(): Promise<void> {
-    try {
-      this.recognition.onresult = (event: any) => {
-        let finalTranscript = '';
-
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
-          }
-        }
-
-        if (finalTranscript.trim()) {
-          this.processVoiceCommand(finalTranscript.trim());
-          // Return to wake word mode
-          setTimeout(() => {
-            this.isWakeWordMode = true;
-            this.startWakeWordDetection();
-          }, 1000);
-        }
-      };
-
-      this.recognition.start();
-    } catch (error) {
-      logger.error('Failed to start command listening:', error);
-    }
-  }
-
-  private async processVoiceCommand(command: string): Promise<void> {
-    try {
-      logger.info('Processing voice command:', command);
-      
-      const voiceCommand = await this.analyzeVoiceCommand(command);
-      const response = await this.executeVoiceCommand(voiceCommand);
-      
-      if (this.onCommandCallback) {
-        this.onCommandCallback(command);
-      }
-
-      // Log user behavior for learning
-      this.logUserBehavior('voice_command', command, this.getCurrentWorkspace());
-      
-      logger.info('Voice command processed successfully');
-    } catch (error) {
-      logger.error('Failed to process voice command:', error);
-    }
   }
 
   setLeadContext(lead: any): void {
@@ -249,8 +51,9 @@ export class AssistantVoiceService {
 
   async startListening(wakeWordMode = false): Promise<boolean> {
     try {
-      if (!this.recognition && !this.initializeWebSpeechAPI()) {
-        logger.error('Speech recognition not available');
+      const hasPermission = await voiceService.requestMicrophonePermission();
+      if (!hasPermission) {
+        logger.error('Microphone permission denied');
         return false;
       }
 
@@ -258,16 +61,60 @@ export class AssistantVoiceService {
       this.isWakeWordMode = wakeWordMode;
       this.continuousListening = wakeWordMode;
       
+      const started = await voiceService.startRecording();
+      logger.info(`Voice listening started${wakeWordMode ? ' (wake word mode)' : ''}`);
+      
+      // If in wake word mode, start continuous listening loop
       if (wakeWordMode) {
-        return await this.startWakeWordDetection();
-      } else {
-        await this.startCommandListening();
-        return true;
+        this.startContinuousListening();
       }
+      
+      return started;
     } catch (error) {
       logger.error('Failed to start voice listening:', error);
       this.isListening = false;
       return false;
+    }
+  }
+
+  private async startContinuousListening(): Promise<void> {
+    while (this.continuousListening && this.isListening) {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 100)); // Small delay
+        
+        if (!this.isListening) break;
+        
+        const audioBlob = await voiceService.stopRecording();
+        if (audioBlob && audioBlob.size > 0) {
+          const transcript = await voiceService.processAudioCommand(audioBlob, 'current-user');
+          
+          if (transcript && this.checkForWakeWord(transcript)) {
+            logger.info('Wake word detected:', transcript);
+            if (this.onWakeWordDetected) {
+              this.onWakeWordDetected();
+            }
+            
+            // Stop continuous listening and wait for actual command
+            this.continuousListening = false;
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Start regular listening for the actual command
+            if (this.isListening) {
+              await voiceService.startRecording();
+            }
+            break;
+          }
+        }
+        
+        // Restart recording for continuous listening
+        if (this.continuousListening && this.isListening) {
+          await voiceService.startRecording();
+        }
+        
+      } catch (error) {
+        logger.error('Error in continuous listening:', error);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait before retrying
+      }
     }
   }
 
@@ -276,14 +123,23 @@ export class AssistantVoiceService {
       this.isListening = false;
       this.continuousListening = false;
       
-      if (this.recognition) {
-        this.recognition.stop();
-      }
+      const audioBlob = await voiceService.stopRecording();
       
-      return null;
+      if (!audioBlob || audioBlob.size === 0) {
+        return null;
+      }
+
+      const transcript = await voiceService.processAudioCommand(audioBlob, 'current-user');
+      
+      if (!transcript || transcript.trim().length === 0) {
+        return null;
+      }
+
+      const command = await this.analyzeVoiceCommand(transcript);
+      return command;
       
     } catch (error) {
-      logger.error('Error stopping voice listening:', error);
+      logger.error('Error processing voice command:', error);
       return null;
     }
   }
@@ -296,33 +152,54 @@ export class AssistantVoiceService {
   private async analyzeVoiceCommand(transcript: string): Promise<VoiceCommand> {
     const lowerTranscript = transcript.toLowerCase();
     
+    // Check for wake word
+    const hasWakeWord = this.checkForWakeWord(transcript);
+    
     let intent = 'general_query';
     const parameters: Record<string, any> = {};
     
-    // Enhanced intent detection with delegation logic
-    if (lowerTranscript.includes('remind me') || lowerTranscript.includes('schedule')) {
-      intent = 'create_reminder';
-      parameters.delegateTo = 'automation_agent';
-    } else if (lowerTranscript.includes('follow up')) {
-      intent = 'create_followup';
-      parameters.delegateTo = 'automation_agent';
-    } else if (lowerTranscript.includes('update') && lowerTranscript.includes('status')) {
+    // Lead management commands
+    if (lowerTranscript.includes('update') && lowerTranscript.includes('status')) {
       intent = 'update_lead_status';
-      parameters.delegateTo = 'lead_agent';
-    } else if (lowerTranscript.includes('analyze') || lowerTranscript.includes('insights')) {
-      intent = 'analyze_data';
-      parameters.delegateTo = 'company_brain';
+      const statusMatch = lowerTranscript.match(/status to (hot|warm|cold|qualified|negotiation|closed)/);
+      if (statusMatch) {
+        parameters.status = statusMatch[1];
+      }
+    } else if (lowerTranscript.includes('update') && lowerTranscript.includes('score')) {
+      intent = 'update_lead_score';
+      const scoreMatch = lowerTranscript.match(/score to (\d+)/);
+      if (scoreMatch) {
+        parameters.score = parseInt(scoreMatch[1]);
+      }
+    } else if (lowerTranscript.includes('add note') || lowerTranscript.includes('create note')) {
+      intent = 'add_note';
+      const noteMatch = lowerTranscript.match(/note[:\s]+(.*)/);
+      if (noteMatch) {
+        parameters.note = noteMatch[1];
+      }
     } else if (lowerTranscript.includes('call') || lowerTranscript.includes('phone')) {
       intent = 'initiate_call';
-      parameters.delegateTo = 'dialer_agent';
+      parameters.leadId = this.currentLead?.id;
     } else if (lowerTranscript.includes('email') || lowerTranscript.includes('send')) {
       intent = 'compose_email';
-      parameters.delegateTo = 'automation_agent';
+      parameters.leadId = this.currentLead?.id;
+    } else if (lowerTranscript.includes('remind me') || lowerTranscript.includes('follow up')) {
+      intent = 'create_reminder';
+      const timeMatch = lowerTranscript.match(/in (\d+) (day|days|week|weeks|hour|hours)/);
+      if (timeMatch) {
+        parameters.timeframe = `${timeMatch[1]} ${timeMatch[2]}`;
+      }
+    } else if (lowerTranscript.includes('schedule') || lowerTranscript.includes('meeting')) {
+      intent = 'schedule_meeting';
+      parameters.leadId = this.currentLead?.id;
+    } else if (lowerTranscript.includes('analyze') || lowerTranscript.includes('insights')) {
+      intent = 'analyze_lead';
+      parameters.leadId = this.currentLead?.id;
     }
 
     return {
       transcript,
-      confidence: 0.8,
+      confidence: hasWakeWord ? 0.9 : 0.7,
       intent,
       parameters,
       leadContext: this.currentLead
@@ -332,16 +209,132 @@ export class AssistantVoiceService {
   async executeVoiceCommand(command: VoiceCommand): Promise<VoiceResponse> {
     try {
       let response: VoiceResponse = {
-        text: "I understood your command and I'm processing it now.",
+        text: "I understood your command but couldn't execute it.",
         success: false
       };
 
-      // Delegate to appropriate agent if specified
-      if (command.parameters.delegateTo) {
-        response = await this.delegateToAgent(command);
-      } else {
-        // Execute directly
-        response = await this.executeDirectCommand(command);
+      switch (command.intent) {
+        case 'update_lead_status':
+          if (command.parameters.status && this.currentLead) {
+            response = {
+              text: `Updated ${this.currentLead.name}'s status to ${command.parameters.status}`,
+              action: {
+                type: 'update_lead_field',
+                data: { field: 'status', value: command.parameters.status }
+              },
+              success: true
+            };
+          }
+          break;
+
+        case 'update_lead_score':
+          if (command.parameters.score && this.currentLead) {
+            response = {
+              text: `Updated ${this.currentLead.name}'s score to ${command.parameters.score}`,
+              action: {
+                type: 'update_lead_field',
+                data: { field: 'score', value: command.parameters.score }
+              },
+              success: true
+            };
+          }
+          break;
+
+        case 'add_note':
+          if (command.parameters.note && this.currentLead) {
+            response = {
+              text: `Added note: "${command.parameters.note}" to ${this.currentLead.name}`,
+              action: {
+                type: 'add_note',
+                data: { 
+                  note: command.parameters.note,
+                  source: 'voice_command',
+                  leadId: this.currentLead.id
+                }
+              },
+              success: true
+            };
+          }
+          break;
+
+        case 'initiate_call':
+          if (this.currentLead) {
+            response = {
+              text: `Initiating call with ${this.currentLead.name}`,
+              action: {
+                type: 'initiate_call',
+                data: { leadId: this.currentLead.id }
+              },
+              success: true
+            };
+          }
+          break;
+
+        case 'compose_email':
+          if (this.currentLead) {
+            response = {
+              text: `Opening email composer for ${this.currentLead.name}`,
+              action: {
+                type: 'compose_email',
+                data: { leadId: this.currentLead.id }
+              },
+              success: true
+            };
+          }
+          break;
+
+        case 'create_reminder':
+          if (command.parameters.timeframe && this.currentLead) {
+            response = {
+              text: `Created reminder to follow up with ${this.currentLead.name} in ${command.parameters.timeframe}`,
+              action: {
+                type: 'create_reminder',
+                data: { 
+                  leadId: this.currentLead.id,
+                  timeframe: command.parameters.timeframe,
+                  message: `Follow up with ${this.currentLead.name}`
+                }
+              },
+              success: true
+            };
+          }
+          break;
+
+        case 'schedule_meeting':
+          if (this.currentLead) {
+            response = {
+              text: `Opening calendar to schedule meeting with ${this.currentLead.name}`,
+              action: {
+                type: 'schedule_meeting',
+                data: { leadId: this.currentLead.id }
+              },
+              success: true
+            };
+          }
+          break;
+
+        case 'analyze_lead':
+          if (this.currentLead) {
+            response = {
+              text: `Analyzing ${this.currentLead.name}'s behavior and generating insights`,
+              action: {
+                type: 'analyze_lead',
+                data: { leadId: this.currentLead.id }
+              },
+              success: true
+            };
+          }
+          break;
+
+        default:
+          // Send to chat for general queries
+          if (this.onCommandCallback) {
+            this.onCommandCallback(command.transcript);
+          }
+          response = {
+            text: `Processing your request: "${command.transcript}"`,
+            success: true
+          };
       }
 
       // Generate voice response
@@ -367,200 +360,12 @@ export class AssistantVoiceService {
     }
   }
 
-  private async delegateToAgent(command: VoiceCommand): Promise<VoiceResponse> {
-    try {
-      const agentType = command.parameters.delegateTo;
-      
-      // This would integrate with your existing Relevance AI agents
-      switch (agentType) {
-        case 'automation_agent':
-          return await this.delegateToAutomationAgent(command);
-        case 'lead_agent':
-          return await this.delegateToLeadAgent(command);
-        case 'company_brain':
-          return await this.delegateToCompanyBrain(command);
-        case 'dialer_agent':
-          return await this.delegateToDialerAgent(command);
-        default:
-          return await this.executeDirectCommand(command);
-      }
-    } catch (error) {
-      logger.error('Agent delegation failed:', error);
-      return {
-        text: "I encountered an issue while processing your request. Let me handle it directly.",
-        success: false
-      };
-    }
-  }
-
-  private async delegateToAutomationAgent(command: VoiceCommand): Promise<VoiceResponse> {
-    // Integration with automation agent
-    return {
-      text: `I've created the automation for: "${command.transcript}"`,
-      action: {
-        type: 'automation_created',
-        data: { command: command.transcript }
-      },
-      success: true
-    };
-  }
-
-  private async delegateToLeadAgent(command: VoiceCommand): Promise<VoiceResponse> {
-    // Integration with lead management agent
-    return {
-      text: `I've updated the lead information based on: "${command.transcript}"`,
-      action: {
-        type: 'lead_updated',
-        data: { command: command.transcript }
-      },
-      success: true
-    };
-  }
-
-  private async delegateToCompanyBrain(command: VoiceCommand): Promise<VoiceResponse> {
-    // Integration with company brain for analytics
-    return {
-      text: `I've analyzed the data for: "${command.transcript}"`,
-      action: {
-        type: 'analysis_complete',
-        data: { command: command.transcript }
-      },
-      success: true
-    };
-  }
-
-  private async delegateToDialerAgent(command: VoiceCommand): Promise<VoiceResponse> {
-    // Integration with dialer functionality
-    return {
-      text: `I'm initiating the call based on: "${command.transcript}"`,
-      action: {
-        type: 'call_initiated',
-        data: { command: command.transcript }
-      },
-      success: true
-    };
-  }
-
-  private async executeDirectCommand(command: VoiceCommand): Promise<VoiceResponse> {
-    switch (command.intent) {
-      case 'update_lead_status':
-        if (command.parameters.status && this.currentLead) {
-          return {
-            text: `Updated ${this.currentLead.name}'s status to ${command.parameters.status}`,
-            action: {
-              type: 'update_lead_field',
-              data: { field: 'status', value: command.parameters.status }
-            },
-            success: true
-          };
-        }
-        break;
-
-      case 'add_note':
-        if (command.parameters.note && this.currentLead) {
-          return {
-            text: `Added note: "${command.parameters.note}" to ${this.currentLead.name}`,
-            action: {
-              type: 'add_note',
-              data: { 
-                note: command.parameters.note,
-                source: 'voice_command',
-                leadId: this.currentLead.id
-              }
-            },
-            success: true
-          };
-        }
-        break;
-
-      default:
-        return {
-          text: `Processing your request: "${command.transcript}"`,
-          success: true
-        };
-    }
-
-    return {
-      text: "I understood your command but couldn't execute it.",
-      success: false
-    };
-  }
-
-  // Learning and behavior tracking
-  private logUserBehavior(action: string, context: string, workspace: string): void {
-    if (!this.learningMode) return;
-
-    this.userBehaviorLog.push({
-      action,
-      context,
-      timestamp: new Date(),
-      workspace
-    });
-
-    // Keep only last 100 entries
-    if (this.userBehaviorLog.length > 100) {
-      this.userBehaviorLog.shift();
-    }
-
-    // Analyze patterns for suggestions
-    this.analyzeUserPatterns();
-  }
-
-  private analyzeUserPatterns(): void {
-    // Analyze recent behavior for suggestions
-    const recentActions = this.userBehaviorLog.slice(-10);
-    
-    // Example: If user frequently logs notes after calls, suggest automation
-    const callFollowedByNotes = recentActions.filter((action, index) => {
-      if (index === 0) return false;
-      const prevAction = recentActions[index - 1];
-      return prevAction.action === 'call_ended' && action.action === 'add_note';
-    });
-
-    if (callFollowedByNotes.length >= 3) {
-      this.suggestAutomation('call_note_automation');
-    }
-  }
-
-  private suggestAutomation(type: string): void {
-    // This would trigger a suggestion in the UI
-    logger.info('Suggesting automation:', type);
-  }
-
-  private getCurrentWorkspace(): string {
-    const path = window.location.pathname;
-    if (path.includes('/dialer')) return 'dialer';
-    if (path.includes('/analytics')) return 'analytics';
-    if (path.includes('/leads')) return 'leads';
-    if (path.includes('/tasks')) return 'tasks';
-    if (path.includes('/academy')) return 'academy';
-    return 'dashboard';
-  }
-
-  // Settings management
-  setAlwaysListening(enabled: boolean): void {
-    this.isAlwaysListening = enabled;
-    if (enabled) {
-      this.initializeAlwaysListening();
-    } else {
-      this.stopListening();
-    }
-  }
-
-  setLearningMode(enabled: boolean): void {
-    this.learningMode = enabled;
-  }
-
   getListeningStatus(): boolean {
     return this.isListening;
   }
 
   getWakeWords(): string[] {
     return [...this.wakeWords];
-  }
-
-  getUserBehaviorLog(): Array<{action: string; context: string; timestamp: Date; workspace: string}> {
-    return [...this.userBehaviorLog];
   }
 }
 

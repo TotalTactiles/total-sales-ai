@@ -6,13 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowRight, 
+  Users, 
+  Target, 
   Brain, 
-  BarChart3,
-  Zap,
-  Star,
+  Zap, 
   TrendingUp,
-  Target,
-  Users
+  Shield,
+  Clock,
+  CheckCircle,
+  Star,
+  BarChart3,
+  Phone,
+  Mail,
+  Calendar
 } from 'lucide-react';
 
 const NewLandingPage: React.FC = () => {
@@ -46,6 +52,29 @@ const NewLandingPage: React.FC = () => {
     "Salesforce", "HubSpot", "Pipedrive", "Zoom", "Slack", "Microsoft"
   ];
 
+  const features = [
+    {
+      icon: Brain,
+      title: "AI-Powered Sales Coaching",
+      description: "Real-time AI analysis of calls, emails, and interactions with personalized coaching recommendations."
+    },
+    {
+      icon: Users,
+      title: "Team Performance Analytics",
+      description: "Comprehensive dashboards for managers to track team performance, identify bottlenecks, and optimize workflows."
+    },
+    {
+      icon: Target,
+      title: "Lead Intelligence System",
+      description: "Advanced lead scoring and prioritization with AI-driven insights to focus on highest-converting prospects."
+    },
+    {
+      icon: Zap,
+      title: "Automated Workflows",
+      description: "Smart automation for follow-ups, scheduling, and task management to maximize productivity."
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100 overflow-hidden">
       {/* Header */}
@@ -60,7 +89,7 @@ const NewLandingPage: React.FC = () => {
             </div>
             
             <nav className="hidden md:flex items-center gap-8">
-              <a href="#product" className="text-gray-600 hover:text-gray-900 transition-colors">Product</a>
+              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">Product</a>
               <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">Pricing</a>
               <a href="#resources" className="text-gray-600 hover:text-gray-900 transition-colors">Resources</a>
               <a href="#blog" className="text-gray-600 hover:text-gray-900 transition-colors">Blog</a>
@@ -68,7 +97,7 @@ const NewLandingPage: React.FC = () => {
             </nav>
             
             <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-              Get Started
+              Sign Up
             </Button>
           </div>
         </div>
@@ -91,8 +120,7 @@ const NewLandingPage: React.FC = () => {
             </h1>
             
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Empower your business with AI-driven teams that execute tasks with human-level 
-              precision, efficiency, and reliability. Transform every sales interaction into a revenue opportunity.
+              Empower your business with AI-driven teams that execute tasks with human-level precision, efficiency, and reliability. Transform every sales interaction into a revenue opportunity.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
@@ -117,12 +145,12 @@ const NewLandingPage: React.FC = () => {
 
         {/* Floating Dashboard Elements */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Sales Performance Card */}
+          {/* Sales Dashboard Card */}
           <div className="absolute top-20 left-10 transform rotate-12 animate-float">
             <Card className="w-80 bg-white/90 backdrop-blur-sm shadow-xl">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4 text-green-600" />
+                  <BarChart3 className="h-4 w-4 text-blue-600" />
                   Sales Performance
                 </CardTitle>
               </CardHeader>
@@ -161,7 +189,7 @@ const NewLandingPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Hot Lead Card */}
+          {/* Lead Scoring Card */}
           <div className="absolute bottom-40 left-20 transform rotate-6 animate-float">
             <Card className="w-64 bg-white/90 backdrop-blur-sm shadow-xl">
               <CardContent className="p-4">
@@ -234,7 +262,7 @@ const NewLandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section id="product" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section id="features" className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -246,37 +274,15 @@ const NewLandingPage: React.FC = () => {
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            <Card className="text-center hover:shadow-lg transition-all bg-white/90 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <Brain className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-2">AI-Powered Sales Coaching</h3>
-                <p className="text-sm text-gray-600">Real-time AI analysis of calls, emails, and interactions with personalized coaching recommendations.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center hover:shadow-lg transition-all bg-white/90 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <Users className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-2">Team Performance Analytics</h3>
-                <p className="text-sm text-gray-600">Comprehensive dashboards for managers to track team performance, identify bottlenecks, and optimize workflows.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center hover:shadow-lg transition-all bg-white/90 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <Target className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-2">Lead Intelligence System</h3>
-                <p className="text-sm text-gray-600">Advanced lead scoring and prioritization with AI-driven insights to focus on highest-converting prospects.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center hover:shadow-lg transition-all bg-white/90 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <Zap className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-                <h3 className="font-semibold text-gray-900 mb-2">Automated Workflows</h3>
-                <p className="text-sm text-gray-600">Smart automation for follow-ups, scheduling, and task management to maximize productivity.</p>
-              </CardContent>
-            </Card>
+            {features.map((feature, index) => (
+              <Card key={index} className="text-center hover:shadow-lg transition-all bg-white/90 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <feature.icon className="h-12 w-12 text-blue-600 mx-auto mb-4" />
+                  <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                  <p className="text-sm text-gray-600">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           {/* Dashboard Preview */}
