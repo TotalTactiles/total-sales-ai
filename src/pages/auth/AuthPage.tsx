@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import DeveloperSecretLogin from '@/components/Developer/DeveloperSecretLogin';
 import { isDemoMode, demoUsers, logDemoLogin } from '@/data/demo.mock.data';
 import { ensureDemoUsersExist } from '@/utils/demoSetup';
+import { supabase } from '@/integrations/supabase/client';
 
 const AuthPage: React.FC = () => {
   const { user, profile, loading, signIn, signUp, signOut } = useAuth();
@@ -145,7 +146,7 @@ const AuthPage: React.FC = () => {
     try {
       console.log('Demo login attempt for:', demoUser.email, 'Role:', role);
       logDemoLogin(demoUser.email, true);
-      
+
       const result = await signIn(demoUser.email, demoUser.password);
       if (result?.error) {
         console.error('Demo login error:', result.error);
@@ -154,8 +155,25 @@ const AuthPage: React.FC = () => {
         logDemoLogin(demoUser.email, false);
         return;
       }
-      
+
+      if (result?.data?.user) {
+        await supabase
+          .from('profiles')
+          .upsert({
+            id: result.data.user.id,
+            email: demoUser.email,
+            full_name: demoUser.name,
+            role: demoUser.role,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'id' });
+      }
+
       console.log('Demo login successful for role:', role);
+
+      const destination = role === 'manager'
+        ? '/manager/dashboard'
+        : '/sales/dashboard';
+      navigate(destination, { replace: true });
       // Don't set isSubmitting to false here - let the redirect handle it
     } catch (error) {
       console.error('Demo login exception:', error);
