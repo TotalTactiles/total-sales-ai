@@ -177,12 +177,6 @@ const AuthPage: React.FC = () => {
         : '/sales/dashboard';
       navigate(destination, { replace: true });
       // Don't set isSubmitting to false here - let the redirect handle it
-      
-      console.log('Demo login successful for role:', role);
-
-      // Explicitly route based on the demo user's role
-      const destination = role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
-      navigate(destination, { replace: true });
     } catch (error) {
       console.error('Demo login exception:', error);
       setAuthError('An unexpected error occurred during demo login.');
