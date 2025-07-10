@@ -1,7 +1,8 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
-import { useNodesState, useEdgesState, addEdge, applyNodeChanges, applyEdgeChanges, Node, Edge } from 'reactflow';
-import ReactFlow, { Controls, Background, MiniMap } from 'reactflow';
-import 'reactflow/dist/style.css';
+import { useNodesState, useEdgesState, addEdge, applyNodeChanges, applyEdgeChanges, Node, Edge } from '@xyflow/react';
+import { ReactFlow, Controls, Background, MiniMap } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import { v4 as uuidv4 } from 'uuid';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
