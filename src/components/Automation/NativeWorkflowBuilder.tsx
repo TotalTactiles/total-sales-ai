@@ -1,5 +1,3 @@
-
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNodesState, useEdgesState, addEdge, Node, Edge, Connection, BackgroundVariant } from '@xyflow/react';
 import { ReactFlow, Controls, Background, MiniMap } from '@xyflow/react';
@@ -70,7 +68,7 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
       name: workflowName,
       description: workflowDescription,
       isActive: false,
-      steps: nodes.map(node => node.data as WorkflowStep),
+      steps: nodes.map(node => node.data as unknown as WorkflowStep),
       connections: edges.map(edge => ({
         id: edge.id,
         fromNode: edge.source,
@@ -90,17 +88,19 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
 
   const addNode = useCallback((type: string) => {
     const id = uuidv4();
+    const stepData: WorkflowStep = {
+      id,
+      type: type as any,
+      name: `New ${type}`,
+      config: {},
+      position: { x: 200, y: 200 },
+      isConfigured: false
+    };
+    
     const newNode: Node = {
       id,
       position: { x: 200, y: 200 },
-      data: {
-        id,
-        type,
-        name: `New ${type}`,
-        config: {},
-        position: { x: 200, y: 200 },
-        isConfigured: false
-      } as WorkflowStep,
+      data: stepData as unknown as Record<string, unknown>,
       type: 'default'
     };
     setNodes((nds) => [...nds, newNode]);
@@ -110,7 +110,7 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
     setNodes(nds =>
       nds.map(node => {
         if (node.id === stepId) {
-          const currentData = node.data as WorkflowStep;
+          const currentData = node.data as unknown as WorkflowStep;
           const updatedData: WorkflowStep = {
             ...currentData,
             config: { ...currentData.config, ...config },
@@ -118,7 +118,7 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
           };
           return {
             ...node,
-            data: updatedData,
+            data: updatedData as unknown as Record<string, unknown>,
           };
         }
         return node;
@@ -127,7 +127,7 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
   }, [setNodes]);
 
   const handleNodeClick = useCallback((event: any, node: Node) => {
-    setSelectedStep(node.data as WorkflowStep);
+    setSelectedStep(node.data as unknown as WorkflowStep);
   }, []);
 
   const getTriggerOptions = () => {
@@ -624,4 +624,3 @@ const NativeWorkflowBuilder = ({ onClose, onSave }: { onClose: () => void, onSav
 };
 
 export default NativeWorkflowBuilder;
-
