@@ -4,7 +4,11 @@ import { Outlet } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { useAutomationNotifications } from '@/hooks/useAutomationNotifications';
 
-const UnifiedLayout: React.FC = () => {
+interface UnifiedLayoutProps {
+  children?: React.ReactNode;
+}
+
+const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({ children }) => {
   const { hasNewNotifications, notificationCount } = useAutomationNotifications();
 
   return (
@@ -14,7 +18,7 @@ const UnifiedLayout: React.FC = () => {
         notificationCount={notificationCount} 
       />
       <main className="flex-1">
-        <Outlet />
+        {children || <Outlet />}
       </main>
     </div>
   );
