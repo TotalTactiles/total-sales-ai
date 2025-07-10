@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { AIDisabledState } from '@/components/ai/AIDisabledState';
 import { 
   Brain, 
   Send, 
@@ -11,73 +12,122 @@ import {
   Users, 
   Target,
   Lightbulb,
-  BarChart3
+  BarChart3,
+  FileText
 } from 'lucide-react';
-import { useAgentIntegration } from '@/hooks/useAgentIntegration';
-import AgentFeedbackButton from '@/components/AI/AgentFeedbackButton';
 
-const ManagerAIAssistant: React.FC = () => {
-  const { executeAgentTask, isExecuting } = useAgentIntegration();
+interface ManagerAIAssistantProps {
+  mockFunctions?: {
+    generateTeamSummary: () => Promise<string>;
+    analyzeTeamRisks: () => Promise<any>;
+    getOptimizationSuggestions: () => Promise<string[]>;
+    generateReport: (type: string) => Promise<any>;
+  };
+}
+
+const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ mockFunctions }) => {
   const [query, setQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [conversation, setConversation] = useState<Array<{
     role: 'user' | 'ai';
     content: string;
     timestamp: string;
-    taskId?: string;
   }>>([
     {
       role: 'ai',
-      content: 'Hello! I\'m your AI Manager Assistant powered by managerAgent_v1. I can help you analyze team performance, predict risks, optimize workflows, and provide strategic insights.',
+      content: 'Hello! I\'m your AI Manager Assistant. I can help you analyze team performance, predict risks, optimize workflows, and provide strategic insights. Try one of the quick actions below or ask me anything about your team.',
       timestamp: new Date().toLocaleTimeString()
     }
   ]);
 
   const quickActions = [
     {
-      label: 'Summarize Team Performance',
-      taskType: 'team_summary',
-      icon: <Users className="h-4 w-4" />
+      label: 'Team Performance Summary',
+      action: 'team_summary',
+      icon: <Users className="h-4 w-4" />,
+      description: 'Get overview of team metrics'
     },
     {
-      label: 'Top 3 Agent Improvements',
-      taskType: 'agent_improvements',
-      icon: <TrendingUp className="h-4 w-4" />
+      label: 'Risk Analysis',
+      action: 'risk_analysis', 
+      icon: <Target className="h-4 w-4" />,
+      description: 'Identify potential issues'
     },
     {
-      label: 'Risk Prediction Analysis',
-      taskType: 'risk_prediction',
-      icon: <Target className="h-4 w-4" />
+      label: 'Optimization Tips',
+      action: 'optimization',
+      icon: <TrendingUp className="h-4 w-4" />,
+      description: 'Improve team performance'
     },
     {
-      label: 'Workflow Optimization',
-      taskType: 'workflow_optimization',
-      icon: <BarChart3 className="h-4 w-4" />
+      label: 'Generate Report',
+      action: 'generate_report',
+      icon: <FileText className="h-4 w-4" />,
+      description: 'Create detailed analytics'
     }
   ];
 
-  const handleQuickAction = async (taskType: string) => {
+  const handleQuickAction = async (action: string) => {
+    if (!mockFunctions) {
+      // Show disabled state
+      const aiMessage = {
+        role: 'ai' as const,
+        content: 'AI functionality is temporarily paused for system optimization. Please try again later.',
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setConversation(prev => [...prev, aiMessage]);
+      return;
+    }
+
+    setIsLoading(true);
+    
     const userMessage = {
       role: 'user' as const,
-      content: `Execute: ${taskType.replace('_', ' ')}`,
+      content: `Execute: ${action.replace('_', ' ')}`,
       timestamp: new Date().toLocaleTimeString()
     };
 
     setConversation(prev => [...prev, userMessage]);
 
-    const result = await executeAgentTask(
-      'managerAgent_v1',
-      taskType,
-      { workspace: 'manager_dashboard' }
-    );
+    try {
+      let response = '';
+      
+      switch (action) {
+        case 'team_summary':
+          response = await mockFunctions.generateTeamSummary();
+          break;
+        case 'risk_analysis':
+          const riskData = await mockFunctions.analyzeTeamRisks();
+          response = `Risk Analysis Complete:\n\nHigh Risk: ${riskData.highRisk.join(', ')}\nMedium Risk: ${riskData.mediumRisk.join(', ')}\n\nRecommendations:\n${riskData.recommendations.map((r: string, i: number) => `${i + 1}. ${r}`).join('\n')}`;
+          break;
+        case 'optimization':
+          const suggestions = await mockFunctions.getOptimizationSuggestions();
+          response = `Optimization Suggestions:\n\n${suggestions.map((s: string, i: number) => `${i + 1}. ${s}`).join('\n')}`;
+          break;
+        case 'generate_report':
+          const report = await mockFunctions.generateReport('Team Performance');
+          response = `Report Generated Successfully!\n\nType: ${report.type}\nGenerated: ${new Date(report.generatedAt).toLocaleString()}\n\n${report.summary}`;
+          break;
+        default:
+          response = 'Action completed successfully.';
+      }
 
-    if (result?.output_payload?.response) {
       const aiMessage = {
         role: 'ai' as const,
-        content: result.output_payload.response,
-        timestamp: new Date().toLocaleTimeString(),
-        taskId: result.id
+        content: response,
+        timestamp: new Date().toLocaleTimeString()
       };
+      
       setConversation(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const errorMessage = {
+        role: 'ai' as const,
+        content: 'I encountered an issue processing your request. Please try again.',
+        timestamp: new Date().toLocaleTimeString()
+      };
+      setConversation(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -92,26 +142,47 @@ const ManagerAIAssistant: React.FC = () => {
 
     setConversation(prev => [...prev, userMessage]);
     setQuery('');
+    setIsLoading(true);
 
-    const result = await executeAgentTask(
-      'managerAgent_v1',
-      'general_query',
-      { 
-        query,
-        workspace: 'manager_dashboard'
-      }
-    );
-
-    if (result?.output_payload?.response) {
+    // Mock AI response for demo
+    setTimeout(() => {
+      const responses = [
+        "Based on your team's current performance metrics, I recommend focusing on lead nurturing and follow-up processes.",
+        "Your team is performing well overall. Consider implementing additional training for the reps showing higher burnout risk.",
+        "I've analyzed the data and suggest adjusting territory assignments to optimize workload distribution.",
+        "The conversion rates are trending positively. Would you like me to generate a detailed performance report?"
+      ];
+      
       const aiMessage = {
         role: 'ai' as const,
-        content: result.output_payload.response,
-        timestamp: new Date().toLocaleTimeString(),
-        taskId: result.id
+        content: responses[Math.floor(Math.random() * responses.length)],
+        timestamp: new Date().toLocaleTimeString()
       };
+      
       setConversation(prev => [...prev, aiMessage]);
-    }
+      setIsLoading(false);
+    }, 1000 + Math.random() * 1000);
   };
+
+  // Show disabled state if no mock functions
+  if (!mockFunctions) {
+    return (
+      <Card className="h-[600px] flex flex-col">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-purple-600" />
+            Manager AI Assistant
+            <Badge variant="outline" className="ml-auto">
+              v2.0
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center">
+          <AIDisabledState message="AI Manager Assistant is temporarily paused for system optimization." />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="h-[600px] flex flex-col">
@@ -119,8 +190,8 @@ const ManagerAIAssistant: React.FC = () => {
         <CardTitle className="flex items-center gap-2">
           <Brain className="h-5 w-5 text-purple-600" />
           Manager AI Assistant
-          <Badge variant="outline" className="ml-auto">
-            managerAgent_v1
+          <Badge variant="outline" className="ml-auto bg-green-50 text-green-700">
+            Active
           </Badge>
         </CardTitle>
       </CardHeader>
@@ -133,12 +204,17 @@ const ManagerAIAssistant: React.FC = () => {
               key={index}
               variant="outline"
               size="sm"
-              onClick={() => handleQuickAction(action.taskType)}
-              disabled={isExecuting}
-              className="justify-start text-xs h-8"
+              onClick={() => handleQuickAction(action.action)}
+              disabled={isLoading}
+              className="justify-start text-xs h-auto p-2 flex-col items-start"
             >
-              {action.icon}
-              <span className="ml-1 truncate">{action.label}</span>
+              <div className="flex items-center gap-1 w-full">
+                {action.icon}
+                <span className="truncate">{action.label}</span>
+              </div>
+              <span className="text-xs text-muted-foreground mt-1">
+                {action.description}
+              </span>
             </Button>
           ))}
         </div>
@@ -157,16 +233,23 @@ const ManagerAIAssistant: React.FC = () => {
                     : 'bg-muted'
                 }`}
               >
-                <div className="text-sm leading-relaxed">{message.content}</div>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="text-xs opacity-70">{message.timestamp}</div>
-                  {message.role === 'ai' && message.taskId && (
-                    <AgentFeedbackButton taskId={message.taskId} size="sm" />
-                  )}
+                <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {message.content}
                 </div>
+                <div className="text-xs opacity-70 mt-2">{message.timestamp}</div>
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-muted p-3 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                  <span className="text-sm">Analyzing...</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Input */}
@@ -185,7 +268,7 @@ const ManagerAIAssistant: React.FC = () => {
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!query.trim() || isExecuting}
+            disabled={!query.trim() || isLoading}
             size="icon"
           >
             <Send className="h-4 w-4" />

@@ -27,6 +27,21 @@ export const useDemoMode = () => {
       }
     }
 
+    // For managers, always provide enhanced data (even if not demo mode)
+    if (user && profile?.role === 'manager') {
+      const managerUser = {
+        id: user.id,
+        email: user.email,
+        name: profile.full_name || 'Manager',
+        role: 'manager'
+      };
+      
+      setIsDemo(true); // Treat as demo for enhanced features
+      setDemoUser(managerUser);
+      console.log('👨‍💼 Manager OS mode activated for:', managerUser.name);
+      return;
+    }
+
     // For sales reps, always provide enhanced data (even if not demo mode)
     if (user && profile?.role === 'sales_rep') {
       const salesRepUser = {
@@ -42,7 +57,7 @@ export const useDemoMode = () => {
       return;
     }
 
-    // If not demo mode and not sales rep, clear demo state
+    // If not demo mode and not manager/sales rep, clear demo state
     setIsDemo(false);
     setDemoUser(null);
   }, [user, profile]);
