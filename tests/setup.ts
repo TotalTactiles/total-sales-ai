@@ -1,3 +1,4 @@
+import React from 'react'
 import { vi } from 'vitest'
 
 // Prevent real network calls to Supabase
@@ -29,5 +30,6 @@ vi.mock('@/integrations/supabase/client', () => {
 
 // Basic auth context mock so pages can render
 vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: () => ({ profile: { id: '1', role: 'developer' } })
+  useAuth: () => ({ profile: { id: '1', role: 'developer' } }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children)
 }))
