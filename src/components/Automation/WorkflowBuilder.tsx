@@ -16,19 +16,24 @@ import {
   Clock,
   Filter,
   Send,
-  Bell
+  Bell,
+  Wrench
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { workflowService, Workflow, WorkflowStep } from '@/services/automation/workflowService';
+import NativeWorkflowBuilder from './NativeWorkflowBuilder';
 
 const WorkflowBuilder = () => {
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
+  const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [newWorkflowName, setNewWorkflowName] = useState('');
+  const [showNativeBuilder, setShowNativeBuilder] = useState(false);
 
   const workflowTemplates = [
     {
+      id: 'lead-followup',
       name: 'Lead Follow-up Sequence',
       description: 'Automated email sequence for new leads',
       icon: <Mail className="h-5 w-5" />,
@@ -36,6 +41,7 @@ const WorkflowBuilder = () => {
       category: 'Email'
     },
     {
+      id: 'call-reminder',
       name: 'Call Reminder System',
       description: 'Automated reminders for scheduled calls',
       icon: <Phone className="h-5 w-5" />,
@@ -43,6 +49,7 @@ const WorkflowBuilder = () => {
       category: 'Calls'
     },
     {
+      id: 'lead-scoring',
       name: 'Lead Scoring Automation',
       description: 'Automatically score leads based on behavior',
       icon: <Database className="h-5 w-5" />,
@@ -50,6 +57,7 @@ const WorkflowBuilder = () => {
       category: 'Data'
     },
     {
+      id: 'nurture-campaign',
       name: 'Nurture Campaign',
       description: 'Long-term nurturing for warm leads',
       icon: <Zap className="h-5 w-5" />,
@@ -122,7 +130,6 @@ const WorkflowBuilder = () => {
 
   const toggleWorkflow = async (workflow: Workflow) => {
     try {
-      // In a real implementation, this would update the workflow status
       setWorkflows(prev => 
         prev.map(w => 
           w.id === workflow.id 
@@ -137,6 +144,34 @@ const WorkflowBuilder = () => {
     }
   };
 
+  const handleSendToReps = () => {
+    const templatesToSend = selectedTemplates.length > 0 
+      ? workflowTemplates.filter(t => selectedTemplates.includes(t.id))
+      : workflowTemplates;
+
+    // Send templates to Sales OS
+    localStorage.setItem('newAutomationTemplates', JSON.stringify({
+      templates: templatesToSend,
+      timestamp: new Date().toISOString()
+    }));
+
+    // Trigger notification
+    window.dispatchEvent(new CustomEvent('newAutomationTemplates', {
+      detail: { templates: templatesToSend }
+    }));
+
+    toast.success(`Sent ${templatesToSend.length} templates to sales reps`);
+    setSelectedTemplates([]);
+  };
+
+  const handleTemplateSelect = (templateId: string) => {
+    setSelectedTemplates(prev => 
+      prev.includes(templateId) 
+        ? prev.filter(id => id !== templateId)
+        : [...prev, templateId]
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -145,49 +180,22 @@ const WorkflowBuilder = () => {
           <h1 className="text-2xl font-bold text-gray-900">Workflow Builder</h1>
           <p className="text-gray-600 mt-1">Create and manage automated workflows</p>
         </div>
-        <Button onClick={() => setIsCreating(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Workflow
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setShowNativeBuilder(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Wrench className="h-4 w-4 mr-2" />
+            Create Workflow
+          </Button>
+          <Button onClick={handleSendToReps}>
+            <Send className="h-4 w-4 mr-2" />
+            Send to Reps
+          </Button>
+        </div>
       </div>
 
-      {/* Templates */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Workflow Templates</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {workflowTemplates.map((template, index) => (
-              <div
-                key={index}
-                className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                onClick={() => handleCreateWorkflow(template)}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    {template.icon}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{template.name}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{template.description}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="outline" className="text-xs">
-                        {template.steps} steps
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {template.category}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Active Workflows */}
+      {/* Active Workflows - Now First */}
       <Card>
         <CardHeader>
           <CardTitle>Active Workflows</CardTitle>
@@ -197,7 +205,7 @@ const WorkflowBuilder = () => {
             <div className="text-center py-8 text-gray-500">
               <Zap className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <p>No workflows created yet</p>
-              <p className="text-sm">Start by creating a workflow from a template above</p>
+              <p className="text-sm">Start by creating a workflow from a template below</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -236,6 +244,56 @@ const WorkflowBuilder = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Workflow Templates - Now Second */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Workflow Templates</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {workflowTemplates.map((template, index) => (
+              <div
+                key={index}
+                className={`p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
+                  selectedTemplates.includes(template.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                }`}
+                onClick={() => handleTemplateSelect(template.id)}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    {template.icon}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-medium text-gray-900">{template.name}</h3>
+                    <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline" className="text-xs">
+                        {template.steps} steps
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
+                        {template.category}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Native Workflow Builder Modal */}
+      {showNativeBuilder && (
+        <NativeWorkflowBuilder
+          onClose={() => setShowNativeBuilder(false)}
+          onSave={(workflow) => {
+            setWorkflows(prev => [...prev, workflow]);
+            setShowNativeBuilder(false);
+            toast.success('Workflow created successfully');
+          }}
+        />
+      )}
 
       {/* Create Workflow Modal */}
       {isCreating && (

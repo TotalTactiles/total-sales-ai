@@ -1,16 +1,71 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, Play, Pause, Settings, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, Filter, Search } from 'lucide-react';
+import { Zap, Play, Pause, Settings, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, Filter, Search, Sparkles } from 'lucide-react';
 import AutomationDashboard from './AutomationDashboard';
 import AutomationTemplates from './AutomationTemplates';
 import AutomationWorkflowBuilder from './AutomationWorkflowBuilder';
 import AutomationAnalytics from './AutomationAnalytics';
+import { toast } from 'sonner';
+
 const AIAgentAutomation = () => {
   const [activeSubTab, setActiveSubTab] = useState('dashboard');
-  return <div className="space-y-4">
+  const [hasNewTemplates, setHasNewTemplates] = useState(false);
+  const [newTemplatesCount, setNewTemplatesCount] = useState(0);
+
+  useEffect(() => {
+    // Check for new templates from Manager OS
+    const checkNewTemplates = () => {
+      const storedTemplates = localStorage.getItem('newAutomationTemplates');
+      if (storedTemplates) {
+        const templateData = JSON.parse(storedTemplates);
+        const timestamp = new Date(templateData.timestamp);
+        const now = new Date();
+        const timeDiff = now.getTime() - timestamp.getTime();
+        
+        // Show notification for templates added in the last 5 minutes
+        if (timeDiff < 5 * 60 * 1000) {
+          setHasNewTemplates(true);
+          setNewTemplatesCount(templateData.templates.length);
+        }
+      }
+    };
+
+    // Listen for new template events
+    const handleNewTemplates = (event: CustomEvent) => {
+      setHasNewTemplates(true);
+      setNewTemplatesCount(event.detail.templates.length);
+      
+      // Show AI Assistant notification
+      setTimeout(() => {
+        toast.success("New automation templates available – tap to view and deploy", {
+          duration: 10000,
+          action: {
+            label: 'View Templates',
+            onClick: () => setActiveSubTab('templates')
+          }
+        });
+      }, 1000);
+    };
+
+    checkNewTemplates();
+    window.addEventListener('newAutomationTemplates', handleNewTemplates as EventListener);
+    
+    return () => {
+      window.removeEventListener('newAutomationTemplates', handleNewTemplates as EventListener);
+    };
+  }, []);
+
+  const clearNewTemplatesNotification = () => {
+    setHasNewTemplates(false);
+    setNewTemplatesCount(0);
+  };
+
+  return (
+    <div className="space-y-4">
       {/* Compact Header */}
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 p-4 text-white">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -46,9 +101,18 @@ const AIAgentAutomation = () => {
             <TrendingUp className="h-3 w-3" />
             <span className="text-xs">Dashboard</span>
           </TabsTrigger>
-          <TabsTrigger value="templates" className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+          <TabsTrigger 
+            value="templates" 
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white relative"
+            onClick={clearNewTemplatesNotification}
+          >
             <Settings className="h-3 w-3" />
             <span className="text-xs">Templates</span>
+            {hasNewTemplates && (
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                <span className="text-[8px] text-white font-bold">{newTemplatesCount}</span>
+              </div>
+            )}
           </TabsTrigger>
           <TabsTrigger value="builder" className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
             <Zap className="h-3 w-3" />
@@ -66,7 +130,7 @@ const AIAgentAutomation = () => {
           </TabsContent>
 
           <TabsContent value="templates" className="space-y-4 m-0">
-            <AutomationTemplates />
+            <AutomationTemplates hasNewTemplates={hasNewTemplates} />
           </TabsContent>
 
           <TabsContent value="builder" className="space-y-4 m-0">
@@ -78,6 +142,8 @@ const AIAgentAutomation = () => {
           </TabsContent>
         </div>
       </Tabs>
-    </div>;
+    </div>
+  );
 };
+
 export default AIAgentAutomation;

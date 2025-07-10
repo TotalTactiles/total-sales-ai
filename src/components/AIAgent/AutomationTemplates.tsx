@@ -1,281 +1,271 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { 
-  Search, 
-  Filter, 
-  Mail, 
-  Phone, 
-  MessageSquare, 
-  Calendar, 
-  Users,
-  Clock,
+  Search,
   Star,
-  TrendingUp,
+  Clock,
+  Zap,
+  Mail,
+  Phone,
+  Database,
+  Sparkles,
   Play,
-  Eye
+  Settings,
+  Download
 } from 'lucide-react';
 
-const AutomationTemplates = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+interface AutomationTemplatesProps {
+  hasNewTemplates?: boolean;
+}
+
+const AutomationTemplates: React.FC<AutomationTemplatesProps> = ({ hasNewTemplates }) => {
+  const [selectedCategory, setSelectedCategory] = useState('All Templates');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [newTemplates, setNewTemplates] = useState<any[]>([]);
 
   const categories = [
-    { id: 'all', name: 'All Templates', count: 24 },
-    { id: 'lead-nurturing', name: 'Lead Nurturing', count: 8 },
-    { id: 'follow-ups', name: 'Follow-ups', count: 6 },
-    { id: 'meeting-scheduling', name: 'Meeting Scheduling', count: 4 },
-    { id: 'proposal', name: 'Proposal Management', count: 3 },
-    { id: 'onboarding', name: 'Client Onboarding', count: 3 }
+    { name: 'All Templates', count: 24, icon: <Star className="h-4 w-4" /> },
+    { name: 'NEW Templates 🆕', count: newTemplates.length, icon: <Sparkles className="h-4 w-4" />, isNew: true },
+    { name: 'Lead Nurturing', count: 8, icon: <Zap className="h-4 w-4" /> },
+    { name: 'Follow-ups', count: 6, icon: <Mail className="h-4 w-4" /> },
+    { name: 'Meeting Scheduling', count: 4, icon: <Clock className="h-4 w-4" /> },
+    { name: 'Proposal Management', count: 3, icon: <Database className="h-4 w-4" /> },
+    { name: 'Client Onboarding', count: 3, icon: <Phone className="h-4 w-4" /> }
   ];
 
-  const templates = [
+  const defaultTemplates = [
     {
-      id: 1,
+      id: 'new-lead-welcome',
       name: 'New Lead Welcome Series',
       description: 'Automated email sequence to welcome and nurture new leads',
-      category: 'lead-nurturing',
-      type: 'Email',
-      icon: Mail,
       rating: 4.8,
-      usageCount: 1247,
-      estimatedTime: '3-5 days',
+      uses: 1247,
+      duration: '3-5 days',
       difficulty: 'Easy',
       tags: ['email', 'nurturing', 'welcome'],
-      isPopular: true
+      category: 'Lead Nurturing'
     },
     {
-      id: 2,
+      id: 'demo-followup',
       name: 'Demo Follow-up Sequence',
       description: 'Follow up with prospects after product demonstrations',
-      category: 'follow-ups',
-      type: 'Mixed',
-      icon: Calendar,
       rating: 4.9,
-      usageCount: 892,
-      estimatedTime: '1-2 weeks',
+      uses: 892,
+      duration: '1-2 weeks',
       difficulty: 'Medium',
       tags: ['demo', 'follow-up', 'conversion'],
-      isPopular: true
+      category: 'Follow-ups'
     },
     {
-      id: 3,
+      id: 'cold-outreach-sms',
       name: 'Cold Outreach SMS',
       description: 'Initial contact SMS for cold leads with high response rates',
-      category: 'lead-nurturing',
-      type: 'SMS',
-      icon: MessageSquare,
       rating: 4.6,
-      usageCount: 634,
-      estimatedTime: 'Immediate',
+      uses: 634,
+      duration: 'Immediate',
       difficulty: 'Easy',
-      tags: ['sms', 'cold-outreach', 'initial-contact']
+      tags: ['sms', 'cold-outreach', 'initial-contact'],
+      category: 'Lead Nurturing'
     },
     {
-      id: 4,
+      id: 'meeting-scheduler',
       name: 'Meeting Scheduler',
       description: 'Automated meeting scheduling with calendar integration',
-      category: 'meeting-scheduling',
-      type: 'Calendar',
-      icon: Calendar,
       rating: 4.7,
-      usageCount: 456,
-      estimatedTime: '30 minutes',
+      uses: 456,
+      duration: '30 minutes',
       difficulty: 'Medium',
-      tags: ['calendar', 'scheduling', 'automation']
-    },
-    {
-      id: 5,
-      name: 'Proposal Follow-up',
-      description: 'Systematic follow-up after sending proposals',
-      category: 'proposal',
-      type: 'Email',
-      icon: Mail,
-      rating: 4.5,
-      usageCount: 321,
-      estimatedTime: '1 week',
-      difficulty: 'Easy',
-      tags: ['proposal', 'follow-up', 'closing']
-    },
-    {
-      id: 6,
-      name: 'LinkedIn Connection Sequence',
-      description: 'Multi-touch sequence for LinkedIn connections',
-      category: 'lead-nurturing',
-      type: 'Social',
-      icon: Users,
-      rating: 4.4,
-      usageCount: 567,
-      estimatedTime: '2-3 days',
-      difficulty: 'Medium',
-      tags: ['linkedin', 'social', 'networking']
+      tags: ['calendar', 'scheduling', 'automation'],
+      category: 'Meeting Scheduling'
     }
   ];
 
+  const [templates, setTemplates] = useState(defaultTemplates);
+
+  useEffect(() => {
+    // Load new templates from Manager OS
+    const storedTemplates = localStorage.getItem('newAutomationTemplates');
+    if (storedTemplates) {
+      const templateData = JSON.parse(storedTemplates);
+      setNewTemplates(templateData.templates || []);
+    }
+  }, [hasNewTemplates]);
+
   const filteredTemplates = templates.filter(template => {
-    const matchesSearch = template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    if (selectedCategory === 'All Templates') return true;
+    if (selectedCategory === 'NEW Templates 🆕') {
+      return newTemplates.some(nt => nt.id === template.id);
+    }
+    return template.category === selectedCategory;
   });
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'Easy': return 'text-green-600 bg-green-50';
-      case 'Medium': return 'text-orange-600 bg-orange-50';
-      case 'Hard': return 'text-red-600 bg-red-50';
-      default: return 'text-gray-600 bg-gray-50';
-    }
+  const handleUseTemplate = (templateId: string) => {
+    console.log('Using template:', templateId);
+    // Implement template deployment logic
   };
 
   return (
     <div className="space-y-6">
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search templates..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Automation Templates</h2>
+          <p className="text-gray-600 mt-1">Pre-built workflows to accelerate your sales process</p>
         </div>
-        <Button variant="outline" size="sm">
-          <Filter className="h-4 w-4 mr-2" />
-          Advanced Filters
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <Input
+              placeholder="Search templates..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
+          <Button variant="outline" size="sm">
+            Advanced Filters
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="flex gap-6">
         {/* Categories Sidebar */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Categories</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`w-full text-left p-3 rounded-lg transition-colors ${
-                    selectedCategory === category.id
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{category.name}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {category.count}
-                    </Badge>
-                  </div>
-                </button>
-              ))}
-            </CardContent>
-          </Card>
+        <div className="w-64 space-y-2">
+          <h3 className="font-medium text-gray-900 mb-3">Categories</h3>
+          {categories.map((category) => (
+            <button
+              key={category.name}
+              onClick={() => setSelectedCategory(category.name)}
+              className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${
+                selectedCategory === category.name
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                  : 'hover:bg-gray-50'
+              } ${category.isNew ? 'animate-pulse' : ''}`}
+            >
+              <div className="flex items-center gap-2">
+                {category.icon}
+                <span className="text-sm font-medium">{category.name}</span>
+                {category.isNew && hasNewTemplates && (
+                  <Sparkles className="h-3 w-3 text-yellow-500" />
+                )}
+              </div>
+              <Badge variant="outline" className="text-xs">
+                {category.count}
+              </Badge>
+            </button>
+          ))}
         </div>
 
         {/* Templates Grid */}
-        <div className="lg:col-span-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredTemplates.map((template) => (
-              <Card key={template.id} className="relative hover:shadow-lg transition-shadow">
-                {template.isPopular && (
-                  <div className="absolute top-3 right-3">
-                    <Badge className="bg-orange-100 text-orange-800">
-                      <Star className="h-3 w-3 mr-1" />
-                      Popular
-                    </Badge>
-                  </div>
-                )}
-                
+        <div className="flex-1">
+          {selectedCategory === 'NEW Templates 🆕' && newTemplates.length > 0 && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-5 w-5 text-yellow-500" />
+                <h3 className="font-medium text-gray-900">New Templates from Manager</h3>
+              </div>
+              <p className="text-sm text-gray-600">
+                Your manager has sent {newTemplates.length} new automation templates for you to use.
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Show new templates first if viewing NEW category */}
+            {selectedCategory === 'NEW Templates 🆕' && newTemplates.map((template) => (
+              <Card key={template.id} className="border-2 border-yellow-300 bg-yellow-50">
                 <CardHeader className="pb-3">
-                  <div className="flex items-start space-x-3">
-                    <div className="p-2 bg-blue-50 rounded-lg">
-                      <template.icon className="h-5 w-5 text-blue-600" />
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      {template.icon}
+                      <div>
+                        <CardTitle className="text-lg">{template.name}</CardTitle>
+                        <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-lg leading-tight">
-                        {template.name}
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {template.description}
-                      </p>
-                    </div>
+                    <Badge className="bg-yellow-500 text-white">NEW</Badge>
                   </div>
                 </CardHeader>
-
-                <CardContent className="space-y-4">
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center space-x-1">
+                <CardContent className="pt-0">
+                  <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 text-yellow-500" />
-                      <span className="font-medium">{template.rating}</span>
+                      <span>New</span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <Users className="h-4 w-4 text-gray-400" />
-                      <span>{template.usageCount} uses</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-4 w-4 text-gray-400" />
-                      <span>{template.estimatedTime}</span>
-                    </div>
-                    <div>
-                      <Badge 
-                        variant="secondary" 
-                        className={`text-xs ${getDifficultyColor(template.difficulty)}`}
-                      >
-                        {template.difficulty}
-                      </Badge>
-                    </div>
+                    <span>{template.steps} steps</span>
+                    <span>{template.category}</span>
                   </div>
-
-                  {/* Tags */}
-                  <div className="flex flex-wrap gap-1">
-                    {template.tags.slice(0, 3).map((tag, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                    {template.tags.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{template.tags.length - 3}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex space-x-2 pt-2">
-                    <Button size="sm" className="flex-1">
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1"
+                      onClick={() => handleUseTemplate(template.id)}
+                    >
                       <Play className="h-4 w-4 mr-2" />
                       Use Template
                     </Button>
-                    <Button size="sm" variant="outline">
-                      <Eye className="h-4 w-4" />
+                    <Button variant="outline" size="sm">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+
+            {/* Regular templates */}
+            {filteredTemplates.map((template) => (
+              <Card key={template.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-lg">{template.name}</CardTitle>
+                      <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <Star className="h-4 w-4 text-yellow-500" />
+                      <span>{template.rating}</span>
+                    </div>
+                    <span>{template.uses} uses</span>
+                    <span>{template.duration}</span>
+                    <Badge variant="outline" className="text-xs">
+                      {template.difficulty}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex flex-wrap gap-1 mb-4">
+                    {template.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      className="flex-1"
+                      onClick={() => handleUseTemplate(template.id)}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Use Template
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Settings className="h-4 w-4" />
                     </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
-
-          {filteredTemplates.length === 0 && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <div className="text-muted-foreground">
-                  <Search className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium mb-2">No templates found</h3>
-                  <p>Try adjusting your search or filter criteria</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>
