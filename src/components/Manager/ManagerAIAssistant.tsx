@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -178,7 +177,10 @@ const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ mockFunctions }
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1 flex items-center justify-center">
-          <AIDisabledState message="AI Manager Assistant is temporarily paused for system optimization." />
+          <AIDisabledState 
+            feature="Manager AI Assistant"
+            message="AI Manager Assistant is temporarily paused for system optimization." 
+          />
         </CardContent>
       </Card>
     );
