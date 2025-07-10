@@ -156,6 +156,48 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
   // Show top 5 AI-prioritized leads
   const displayLeads = (leads.length > 0 ? leads : mockHighPriorityLeads).slice(0, 5);
 
+  // Helper function to format last contact date
+  const formatLastContact = (lastContact: string) => {
+    const date = new Date(lastContact);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 24) {
+      return `${diffInHours}h ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays}d ago`;
+    }
+  };
+
+  // Helper function to get stage display name
+  const getStageDisplay = (status: string) => {
+    const stageMap: Record<string, string> = {
+      'new': 'New Lead',
+      'contacted': 'Contacted',
+      'qualified': 'Qualified',
+      'proposal': 'Proposal',
+      'negotiation': 'Negotiation',
+      'closed_won': 'Won',
+      'closed_lost': 'Lost'
+    };
+    return stageMap[status] || status;
+  };
+
+  // Helper function to get stage color
+  const getStageColor = (status: string) => {
+    const colorMap: Record<string, string> = {
+      'new': 'bg-blue-100 text-blue-800',
+      'contacted': 'bg-yellow-100 text-yellow-800',
+      'qualified': 'bg-green-100 text-green-800',
+      'proposal': 'bg-purple-100 text-purple-800',
+      'negotiation': 'bg-orange-100 text-orange-800',
+      'closed_won': 'bg-emerald-100 text-emerald-800',
+      'closed_lost': 'bg-red-100 text-red-800'
+    };
+    return colorMap[status] || 'bg-gray-100 text-gray-800';
+  };
+
   const handleCallClick = (e: React.MouseEvent, lead: Lead) => {
     e.stopPropagation();
     setSelectedLead(lead);
@@ -213,13 +255,13 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
             {displayLeads.map((lead, index) => (
               <div
                 key={lead.id}
-                className={`flex items-center justify-between p-4 border-b hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer ${
+                className={`grid grid-cols-6 gap-4 items-center p-4 border-b hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer ${
                   index === 0 ? 'bg-blue-50/50' : ''
                 }`}
                 onClick={() => handleLeadClick(lead)}
               >
-                {/* Lead Value */}
-                <div className="flex items-center gap-3 min-w-[120px]">
+                {/* Lead Info & Value */}
+                <div className="flex items-center gap-3 col-span-2">
                   <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xs">
                     {lead.name.charAt(0)}
                   </div>
@@ -231,15 +273,25 @@ const OptimizedPipelinePulse: React.FC<OptimizedPipelinePulseProps> = ({
                   </div>
                 </div>
 
+                {/* Last Contacted */}
+                <div className="text-sm text-gray-600">
+                  {formatLastContact(lead.lastContact)}
+                </div>
+
+                {/* Stage */}
+                <div>
+                  <Badge className={`text-xs ${getStageColor(lead.status)}`}>
+                    {getStageDisplay(lead.status)}
+                  </Badge>
+                </div>
+
                 {/* AI Insight Summary */}
-                <div className="flex-1 mx-4">
-                  <div className="text-sm text-gray-700 italic">
-                    "{lead.lastAIInsight}"
-                  </div>
+                <div className="text-sm text-gray-700 italic">
+                  "{lead.lastAIInsight}"
                 </div>
 
                 {/* Quick Action Icons */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 justify-end">
                   <Button
                     size="sm"
                     variant="outline"
