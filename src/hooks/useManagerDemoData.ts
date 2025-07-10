@@ -2,7 +2,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
-  isDemoMode, 
   mockManagerTeamMembers, 
   mockManagerRecommendations, 
   mockManagerAIInsights,
@@ -13,7 +12,7 @@ import { logger } from '@/utils/logger';
 
 export const useManagerDemoData = () => {
   const { user, profile } = useAuth();
-  const [isDemo, setIsDemo] = useState(false);
+  const [isDemo, setIsDemo] = useState(true); // Always true for full experience
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [aiInsights, setAIInsights] = useState<any[]>([]);
@@ -24,34 +23,24 @@ export const useManagerDemoData = () => {
   useEffect(() => {
     const initializeDemoData = () => {
       console.log('🎭 useManagerDemoData: Initializing demo data', { 
-        isDemoMode, 
         userRole: profile?.role,
         userEmail: user?.email 
       });
 
-      if (isDemoMode || profile?.role === 'manager') {
-        setIsDemo(true);
-        setTeamMembers(mockManagerTeamMembers);
-        setRecommendations(mockManagerRecommendations);
-        setAIInsights(mockManagerAIInsights);
-        setLeads(mockManagerLeads);
-        setBusinessOpsData(mockBusinessOpsData);
-        
-        console.log('✅ Manager demo data loaded:', {
-          teamMembers: mockManagerTeamMembers.length,
-          recommendations: mockManagerRecommendations.length,
-          insights: mockManagerAIInsights.length,
-          leads: mockManagerLeads.length
-        });
-      } else {
-        setIsDemo(false);
-        // In production, would fetch real data here
-        setTeamMembers([]);
-        setRecommendations([]);
-        setAIInsights([]);
-        setLeads([]);
-        setBusinessOpsData(null);
-      }
+      // Always provide full demo experience for managers and enhanced experience for all users
+      setIsDemo(true);
+      setTeamMembers(mockManagerTeamMembers);
+      setRecommendations(mockManagerRecommendations);
+      setAIInsights(mockManagerAIInsights);
+      setLeads(mockManagerLeads);
+      setBusinessOpsData(mockBusinessOpsData);
+      
+      console.log('✅ Manager demo data loaded:', {
+        teamMembers: mockManagerTeamMembers.length,
+        recommendations: mockManagerRecommendations.length,
+        insights: mockManagerAIInsights.length,
+        leads: mockManagerLeads.length
+      });
       
       setLoading(false);
     };

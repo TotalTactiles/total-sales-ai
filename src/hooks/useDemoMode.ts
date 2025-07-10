@@ -16,50 +16,63 @@ export const useDemoMode = () => {
       profileRole: profile?.role
     });
 
-    if (isDemoMode && user) {
-      // First check if user email matches a demo user
+    // Always enable demo mode - this gives full experience to all users
+    if (user) {
+      // Check if user email matches a specific demo user first
       const foundDemoUser = demoUsers.find(du => du.email === user.email);
       if (foundDemoUser) {
         setIsDemo(true);
         setDemoUser(foundDemoUser);
-        console.log('🎭 Demo mode activated for:', foundDemoUser.name, foundDemoUser.role);
+        console.log('🎭 Specific demo user activated:', foundDemoUser.name, foundDemoUser.role);
         return;
       }
-    }
 
-    // For managers, always provide enhanced data (even if not demo mode)
-    if (user && profile?.role === 'manager') {
-      const managerUser = {
+      // For managers, always provide enhanced Manager OS experience
+      if (profile?.role === 'manager') {
+        const managerUser = {
+          id: user.id,
+          email: user.email,
+          name: profile.full_name || 'Manager',
+          role: 'manager'
+        };
+        
+        setIsDemo(true);
+        setDemoUser(managerUser);
+        console.log('👨‍💼 Manager OS mode activated for:', managerUser.name);
+        return;
+      }
+
+      // For sales reps, always provide enhanced Sales Rep OS experience
+      if (profile?.role === 'sales_rep') {
+        const salesRepUser = {
+          id: user.id,
+          email: user.email,
+          name: profile.full_name || 'Sales Rep',
+          role: 'sales_rep'
+        };
+        
+        setIsDemo(true);
+        setDemoUser(salesRepUser);
+        console.log('🎯 Sales Rep OS mode activated for:', salesRepUser.name);
+        return;
+      }
+
+      // For any other authenticated user, provide basic demo experience
+      const genericUser = {
         id: user.id,
         email: user.email,
-        name: profile.full_name || 'Manager',
-        role: 'manager'
+        name: profile?.full_name || 'User',
+        role: profile?.role || 'user'
       };
       
-      setIsDemo(true); // Treat as demo for enhanced features
-      setDemoUser(managerUser);
-      console.log('👨‍💼 Manager OS mode activated for:', managerUser.name);
-      return;
+      setIsDemo(true);
+      setDemoUser(genericUser);
+      console.log('🌟 Generic demo mode activated for:', genericUser.name);
+    } else {
+      // If not authenticated, clear demo state
+      setIsDemo(false);
+      setDemoUser(null);
     }
-
-    // For sales reps, always provide enhanced data (even if not demo mode)
-    if (user && profile?.role === 'sales_rep') {
-      const salesRepUser = {
-        id: user.id,
-        email: user.email,
-        name: profile.full_name || 'Sales Rep',
-        role: 'sales_rep'
-      };
-      
-      setIsDemo(true); // Treat as demo for enhanced features
-      setDemoUser(salesRepUser);
-      console.log('🎯 Sales Rep OS mode activated for:', salesRepUser.name);
-      return;
-    }
-
-    // If not demo mode and not manager/sales rep, clear demo state
-    setIsDemo(false);
-    setDemoUser(null);
   }, [user, profile]);
 
   const getDemoData = (dataType: string) => {
