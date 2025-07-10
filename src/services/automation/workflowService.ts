@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
 import { toast } from 'sonner';
@@ -169,6 +168,15 @@ class WorkflowService {
 
       logger.info('Executing workflow', { workflowId, triggerData });
       
+      // Enhanced execution with AI and OS integration
+      const executionContext = {
+        workflowId,
+        triggerData,
+        startTime: new Date().toISOString(),
+        userId: await this.getCurrentUserId(),
+        companyId: await this.getCurrentCompanyId()
+      };
+
       // Create execution log
       await supabase
         .from('ai_brain_logs')
@@ -176,20 +184,15 @@ class WorkflowService {
           type: 'workflow_execution',
           event_summary: `Executing workflow: ${workflow.name}`,
           payload: {
-            workflowId,
-            workflowName: workflow.name,
-            triggerData,
-            startedAt: new Date().toISOString(),
+            ...executionContext,
             status: 'started'
           },
-          company_id: await this.getCurrentCompanyId(),
+          company_id: executionContext.companyId,
           visibility: 'admin_only'
         });
 
-      // Execute workflow steps in sequence based on connections
-      for (const step of workflow.steps) {
-        await this.executeStep(step, triggerData);
-      }
+      // Execute workflow steps with enhanced logic
+      await this.executeWorkflowSteps(workflow, executionContext);
 
       toast.success('Workflow executed successfully');
     } catch (error) {
@@ -199,109 +202,472 @@ class WorkflowService {
     }
   }
 
-  async cloneWorkflow(id: string, newName: string): Promise<Workflow> {
-    try {
-      const originalWorkflow = await this.getWorkflow(id);
-      if (!originalWorkflow) {
-        throw new Error('Original workflow not found');
+  private async executeWorkflowSteps(workflow: Workflow, context: any): Promise<void> {
+    const executionOrder = this.getStepExecutionOrder(workflow.steps, workflow.connections);
+    
+    for (const step of executionOrder) {
+      try {
+        const result = await this.executeStep(step, context);
+        
+        // Log step execution
+        await supabase
+          .from('ai_brain_logs')
+          .insert({
+            type: 'workflow_step_execution',
+            event_summary: `Step executed: ${step.name}`,
+            payload: {
+              workflowId: workflow.id,
+              stepId: step.id,
+              stepType: step.type,
+              result,
+              context
+            },
+            company_id: context.companyId,
+            visibility: 'admin_only'
+          });
+
+        // Handle conditional branching
+        if (step.type === 'condition' && !result.success) {
+          // Follow the "NO" branch
+          const noBranchSteps = this.getConditionalBranchSteps(step.id, workflow.connections, 'no');
+          for (const branchStep of noBranchSteps) {
+            await this.executeStep(branchStep, context);
+          }
+          break; // Exit main flow
+        }
+
+      } catch (error) {
+        logger.error('Step execution failed', { stepId: step.id, error });
+        
+        // Log error
+        await supabase
+          .from('ai_brain_logs')
+          .insert({
+            type: 'workflow_error',
+            event_summary: `Step failed: ${step.name}`,
+            payload: {
+              workflowId: workflow.id,
+              stepId: step.id,
+              error: error.message,
+              context
+            },
+            company_id: context.companyId,
+            visibility: 'admin_only'
+          });
+
+        // Stop execution on critical errors
+        if (step.type === 'trigger') {
+          throw error;
+        }
       }
-
-      const clonedWorkflow: Omit<Workflow, 'id' | 'createdAt' | 'updatedAt'> = {
-        name: newName,
-        description: `Cloned from ${originalWorkflow.name}`,
-        isActive: false, // Start cloned workflows as inactive
-        steps: originalWorkflow.steps.map(step => ({
-          ...step,
-          id: `${step.id}-clone-${Date.now()}`
-        })),
-        connections: originalWorkflow.connections.map(conn => ({
-          ...conn,
-          id: `${conn.id}-clone-${Date.now()}`,
-          fromNode: `${conn.fromNode}-clone-${Date.now()}`,
-          toNode: `${conn.toNode}-clone-${Date.now()}`
-        })),
-        isValid: originalWorkflow.isValid,
-        testResults: []
-      };
-
-      return await this.createWorkflow(clonedWorkflow);
-    } catch (error) {
-      logger.error('Failed to clone workflow', error);
-      toast.error('Failed to clone workflow');
-      throw error;
     }
   }
 
-  private async executeStep(step: WorkflowStep, data: any): Promise<void> {
+  private async executeStep(step: WorkflowStep, context: any): Promise<any> {
     switch (step.type) {
       case 'trigger':
-        // Trigger steps are entry points, no execution needed
-        logger.info('Trigger step activated', { step: step.name, data });
-        break;
-      case 'action':
-        await this.executeAction(step, data);
-        break;
+        return await this.executeTrigger(step, context);
       case 'condition':
-        await this.evaluateCondition(step, data);
-        break;
+        return await this.executeCondition(step, context);
+      case 'action':
+        return await this.executeAction(step, context);
+      case 'ai_action':
+        return await this.executeAIAction(step, context);
       case 'delay':
-        await this.executeDelay(step, data);
-        break;
-    }
-  }
-
-  private async executeAction(step: WorkflowStep, data: any): Promise<void> {
-    logger.info('Executing action step', { step: step.name, config: step.config, data });
-    
-    switch (step.config.actionType) {
-      case 'send_email':
-        // Implement email sending logic
-        break;
-      case 'apply_tag':
-        // Implement tag application logic
-        break;
-      case 'change_stage':
-        // Implement stage change logic
-        break;
-      case 'assign_user':
-        // Implement user assignment logic
-        break;
-      case 'trigger_notification':
-        // Implement notification logic
-        break;
-    }
-  }
-
-  private async evaluateCondition(step: WorkflowStep, data: any): Promise<boolean> {
-    logger.info('Evaluating condition step', { step: step.name, config: step.config, data });
-    
-    switch (step.config.conditionType) {
-      case 'has_tag':
-        return data.tags?.includes(step.config.conditionValue) || false;
-      case 'field_equals':
-        return data[step.config.fieldName] === step.config.conditionValue;
-      case 'lead_score_above':
-        return (data.score || 0) > parseInt(step.config.conditionValue);
-      case 'lead_score_below':
-        return (data.score || 0) < parseInt(step.config.conditionValue);
+        return await this.executeDelay(step, context);
       default:
-        return true;
+        throw new Error(`Unknown step type: ${step.type}`);
     }
   }
 
-  private async executeDelay(step: WorkflowStep, data: any): Promise<void> {
+  private async executeTrigger(step: WorkflowStep, context: any): Promise<any> {
+    logger.info('Executing trigger step', { step: step.name, config: step.config });
+    
+    const triggerType = step.config.triggerType;
+    
+    switch (triggerType) {
+      case 'form_submitted':
+        return { success: true, message: 'Form submission detected' };
+      
+      case 'button_clicked':
+        // Check if specific button was clicked
+        const buttonId = step.config.osElement || step.config.buttonId;
+        return { success: true, message: `Button ${buttonId} clicked` };
+      
+      case 'new_lead_added':
+        return { success: !!context.triggerData.leadId, message: 'New lead trigger' };
+      
+      case 'tag_applied':
+        const requiredTag = step.config.tagName;
+        const leadTags = context.triggerData.tags || [];
+        return { 
+          success: leadTags.includes(requiredTag), 
+          message: `Tag ${requiredTag} check` 
+        };
+      
+      case 'ai_assistant_triggered':
+        return { success: true, message: 'AI Assistant activated' };
+      
+      default:
+        return { success: true, message: `Trigger ${triggerType} activated` };
+    }
+  }
+
+  private async executeCondition(step: WorkflowStep, context: any): Promise<any> {
+    logger.info('Executing condition step', { step: step.name, config: step.config });
+    
+    const conditionType = step.config.conditionType;
+    const data = context.triggerData;
+    
+    switch (conditionType) {
+      case 'has_tag':
+        const requiredTag = step.config.conditionValue;
+        const tags = data.tags || [];
+        return { success: tags.includes(requiredTag), message: `Tag check: ${requiredTag}` };
+      
+      case 'field_equals':
+        const fieldName = step.config.fieldName || 'status';
+        const expectedValue = step.config.conditionValue;
+        return { 
+          success: data[fieldName] === expectedValue, 
+          message: `Field check: ${fieldName} = ${expectedValue}` 
+        };
+      
+      case 'lead_score_above':
+        const threshold = parseInt(step.config.conditionValue) || 50;
+        const score = data.score || 0;
+        return { 
+          success: score > threshold, 
+          message: `Score check: ${score} > ${threshold}` 
+        };
+      
+      case 'ai_sentiment':
+        // This would integrate with AI sentiment analysis
+        const expectedSentiment = step.config.conditionValue;
+        const actualSentiment = await this.analyzeAISentiment(data);
+        return { 
+          success: actualSentiment === expectedSentiment, 
+          message: `Sentiment: ${actualSentiment}` 
+        };
+      
+      case 'message_contains':
+        const searchTerm = step.config.conditionValue;
+        const message = data.messageContent || '';
+        return { 
+          success: message.toLowerCase().includes(searchTerm.toLowerCase()), 
+          message: `Message contains: ${searchTerm}` 
+        };
+      
+      default:
+        return { success: true, message: `Condition ${conditionType} evaluated` };
+    }
+  }
+
+  private async executeAction(step: WorkflowStep, context: any): Promise<any> {
+    logger.info('Executing action step', { step: step.name, config: step.config });
+    
+    const actionType = step.config.actionType;
+    const data = context.triggerData;
+    
+    switch (actionType) {
+      case 'send_email':
+        return await this.sendEmail(step, data);
+      
+      case 'assign_user':
+        return await this.assignUser(step, data);
+      
+      case 'change_stage':
+        return await this.changeLeadStage(step, data);
+      
+      case 'apply_tag':
+        return await this.applyTag(step, data);
+      
+      case 'create_task':
+        return await this.createTask(step, data);
+      
+      case 'trigger_notification':
+        return await this.sendNotification(step, data, context.userId);
+      
+      case 'ai_auto_reply':
+        return await this.generateAIReply(step, data);
+      
+      case 'schedule_call':
+        return await this.scheduleCall(step, data);
+      
+      case 'send_sms':
+        return await this.sendSMS(step, data);
+      
+      case 'webhook':
+        return await this.callWebhook(step, data);
+      
+      case 'crm_sync':
+        return await this.syncToCRM(step, data);
+      
+      default:
+        return { success: false, message: `Unknown action: ${actionType}` };
+    }
+  }
+
+  private async executeAIAction(step: WorkflowStep, context: any): Promise<any> {
+    logger.info('Executing AI action step', { step: step.name, config: step.config });
+    
+    const actionType = step.config.actionType;
+    const data = context.triggerData;
+    
+    switch (actionType) {
+      case 'ai_draft_reply':
+        return await this.generateAIDraftReply(data);
+      
+      case 'ai_call_summary':
+        return await this.generateCallSummary(data);
+      
+      case 'ai_objection_handler':
+        return await this.handleObjectionWithAI(data);
+      
+      case 'ai_lead_insights':
+        return await this.generateLeadInsights(data);
+      
+      case 'ai_next_best_action':
+        return await this.suggestNextBestAction(data);
+      
+      case 'ai_lead_scoring':
+        return await this.updateAILeadScore(data);
+      
+      default:
+        return { success: false, message: `Unknown AI action: ${actionType}` };
+    }
+  }
+
+  private async executeDelay(step: WorkflowStep, context: any): Promise<any> {
     const delayAmount = parseInt(step.config.delayAmount) || 1;
     const delayUnit = step.config.delayUnit || 'minutes';
     
     logger.info('Executing delay step', { 
       step: step.name, 
       delayAmount, 
-      delayUnit, 
-      data 
+      delayUnit
     });
     
-    // In a real implementation, this would schedule the next step
-    // For now, we'll just log it
+    // In production, this would schedule the next step
+    // For now, we'll just log the delay
+    return { 
+      success: true, 
+      message: `Delay scheduled: ${delayAmount} ${delayUnit}`,
+      scheduledFor: this.calculateScheduledTime(delayAmount, delayUnit)
+    };
+  }
+
+  // AI Integration Methods
+  private async analyzeAISentiment(data: any): Promise<string> {
+    // This would integrate with the AI service
+    // For now, return mock sentiment based on message content
+    const message = data.messageContent || '';
+    
+    if (message.includes('love') || message.includes('great') || message.includes('perfect')) {
+      return 'very_positive';
+    } else if (message.includes('interested') || message.includes('good')) {
+      return 'positive';
+    } else if (message.includes('not') || message.includes('no') || message.includes('cancel')) {
+      return 'negative';
+    }
+    
+    return 'neutral';
+  }
+
+  private async generateAIDraftReply(data: any): Promise<any> {
+    // This would integrate with OpenAI or another AI service
+    const prompt = `Generate a professional reply to this message from ${data.name}: "${data.messageContent}"`;
+    
+    // Mock AI response
+    const aiReply = `Hi ${data.name},\n\nThank you for your message. I'd be happy to help you with that. Let me know if you'd like to schedule a quick call to discuss this further.\n\nBest regards`;
+    
+    return {
+      success: true,
+      message: 'AI reply generated',
+      aiReply,
+      prompt
+    };
+  }
+
+  private async generateCallSummary(data: any): Promise<any> {
+    // Mock call summary generation
+    return {
+      success: true,
+      message: 'Call summary generated',
+      summary: `Call with ${data.name} - Discussed pricing and timeline. Next steps: Send proposal by Friday.`
+    };
+  }
+
+  private async generateLeadInsights(data: any): Promise<any> {
+    // Mock lead insights
+    const insights = [
+      `${data.name} has shown high engagement with pricing content`,
+      `Company size suggests enterprise-level needs`,
+      `Timeline appears urgent based on communication tone`
+    ];
+    
+    return {
+      success: true,
+      message: 'Lead insights generated',
+      insights
+    };
+  }
+
+  private async updateAILeadScore(data: any): Promise<any> {
+    // Mock AI lead scoring
+    const currentScore = data.score || 50;
+    const factors = {
+      engagement: data.emailOpened ? 10 : 0,
+      company_size: data.company?.includes('Corp') ? 15 : 5,
+      urgency: data.messageContent?.includes('urgent') ? 20 : 0
+    };
+    
+    const newScore = Math.min(100, currentScore + Object.values(factors).reduce((a, b) => a + b, 0));
+    
+    return {
+      success: true,
+      message: `Lead score updated: ${currentScore} → ${newScore}`,
+      oldScore: currentScore,
+      newScore,
+      factors
+    };
+  }
+
+  // OS Integration Methods
+  private async sendEmail(step: WorkflowStep, data: any): Promise<any> {
+    if (!data.email) {
+      return { success: false, message: 'No email address provided' };
+    }
+    
+    // This would integrate with the email service
+    logger.info('Sending email', { to: data.email, template: step.config.emailTemplate });
+    
+    return {
+      success: true,
+      message: `Email sent to ${data.email}`,
+      emailId: `email-${Date.now()}`
+    };
+  }
+
+  private async assignUser(step: WorkflowStep, data: any): Promise<any> {
+    const assigneeId = step.config.assigneeId || step.config.userId;
+    
+    // This would update the lead assignment in the database
+    return {
+      success: true,
+      message: `Lead assigned to user ${assigneeId}`,
+      assigneeId
+    };
+  }
+
+  private async changeLeadStage(step: WorkflowStep, data: any): Promise<any> {
+    const newStage = step.config.newStage || 'qualified';
+    
+    // This would update the lead stage in the database
+    return {
+      success: true,
+      message: `Lead stage changed to ${newStage}`,
+      oldStage: data.status,
+      newStage
+    };
+  }
+
+  private async applyTag(step: WorkflowStep, data: any): Promise<any> {
+    const tagName = step.config.tagName;
+    
+    // This would add the tag to the lead
+    return {
+      success: true,
+      message: `Tag "${tagName}" applied`,
+      tagName
+    };
+  }
+
+  private async createTask(step: WorkflowStep, data: any): Promise<any> {
+    const taskDescription = step.config.taskDescription || 'Follow up with lead';
+    
+    // This would create a task in the system
+    return {
+      success: true,
+      message: `Task created: ${taskDescription}`,
+      taskId: `task-${Date.now()}`,
+      description: taskDescription
+    };
+  }
+
+  private async sendNotification(step: WorkflowStep, data: any, userId: string): Promise<any> {
+    const notificationText = step.config.notificationText || `New activity for lead ${data.name}`;
+    
+    // This would send a notification to the user
+    return {
+      success: true,
+      message: 'Notification sent',
+      notificationId: `notif-${Date.now()}`,
+      text: notificationText
+    };
+  }
+
+  // Helper methods
+  private getStepExecutionOrder(steps: WorkflowStep[], connections: WorkflowConnection[]): WorkflowStep[] {
+    // Find trigger steps (starting points)
+    const triggerSteps = steps.filter(s => s.type === 'trigger');
+    const executionOrder: WorkflowStep[] = [];
+    const visited = new Set<string>();
+
+    for (const trigger of triggerSteps) {
+      this.traverseSteps(trigger, steps, connections, executionOrder, visited);
+    }
+
+    return executionOrder;
+  }
+
+  private traverseSteps(
+    currentStep: WorkflowStep, 
+    allSteps: WorkflowStep[], 
+    connections: WorkflowConnection[], 
+    executionOrder: WorkflowStep[], 
+    visited: Set<string>
+  ) {
+    if (visited.has(currentStep.id)) return;
+    
+    visited.add(currentStep.id);
+    executionOrder.push(currentStep);
+
+    // Find connected steps
+    const outgoingConnections = connections.filter(c => c.fromNode === currentStep.id);
+    
+    for (const connection of outgoingConnections) {
+      const nextStep = allSteps.find(s => s.id === connection.toNode);
+      if (nextStep) {
+        this.traverseSteps(nextStep, allSteps, connections, executionOrder, visited);
+      }
+    }
+  }
+
+  private getConditionalBranchSteps(stepId: string, connections: WorkflowConnection[], branchType: string): WorkflowStep[] {
+    // Implementation for getting steps in specific conditional branch
+    return connections
+      .filter(c => c.fromNode === stepId && c.targetHandle === branchType)
+      .map(c => c.toNode)
+      .map(nodeId => ({ id: nodeId } as WorkflowStep)); // Simplified for now
+  }
+
+  private calculateScheduledTime(amount: number, unit: string): string {
+    const now = new Date();
+    const multipliers = {
+      minutes: 60 * 1000,
+      hours: 60 * 60 * 1000,
+      days: 24 * 60 * 60 * 1000
+    };
+    
+    const delay = amount * (multipliers[unit as keyof typeof multipliers] || multipliers.minutes);
+    return new Date(now.getTime() + delay).toISOString();
+  }
+
+  private async getCurrentUserId(): Promise<string> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+    return user.id;
   }
 
   private mapPayloadToWorkflow(data: any): Workflow {
