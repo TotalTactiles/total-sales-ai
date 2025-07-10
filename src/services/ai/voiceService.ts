@@ -1,7 +1,8 @@
+
 import { logger } from '@/utils/logger';
 
 import { toast } from 'sonner';
-import { encodeBase64 } from '@/services/security/base64Service';
+import { encodeBase64FromArrayBuffer } from '@/services/security/base64Service';
 import { supabase } from '@/integrations/supabase/client';
 import { withRetry } from '@/utils/withRetry';
 
@@ -80,7 +81,7 @@ class VoiceService {
     try {
       // Convert audio to base64 for API
       const arrayBuffer = await audioBlob.arrayBuffer();
-      const base64Audio = encodeBase64(new Uint8Array(arrayBuffer));
+      const base64Audio = encodeBase64FromArrayBuffer(arrayBuffer);
 
       const { data, error } = await withRetry(
         () =>

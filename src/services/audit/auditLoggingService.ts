@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { encryptionService } from '@/services/security/encryptionService';
-import { accessControlService } from '@/services/security/accessControlService';
+import { EncryptionService } from '@/services/security/encryptionService';
+import { AccessControlService } from '@/services/security/accessControlService';
 import { AuditPayload } from '@/hooks/audit/types';
 
 // Simple logger for client-side
@@ -30,7 +30,7 @@ export class AuditLoggingService {
   ): Promise<void> {
     try {
       // Encrypt sensitive details
-      const encryptedDetails = await encryptionService.encryptSensitiveData(details);
+      const encryptedDetails = await EncryptionService.encryptSensitiveData(details);
       
       const auditEntryForStorage = {
         timestamp: new Date().toISOString(),
@@ -64,7 +64,7 @@ export class AuditLoggingService {
 
       // Log security event if high risk
       if (riskLevel === 'high' || riskLevel === 'critical') {
-        accessControlService.logSecurityEvent(
+        AccessControlService.logSecurityEvent(
           `High-risk AI action: ${action}`,
           { resource, userId, riskLevel },
           riskLevel
@@ -73,7 +73,7 @@ export class AuditLoggingService {
 
     } catch (error) {
       logger.error('Failed to log audit event:', error);
-      accessControlService.logSecurityEvent(
+      AccessControlService.logSecurityEvent(
         'Audit logging failure',
         { action, resource, error: error instanceof Error ? error.message : 'Unknown error' },
         'critical'

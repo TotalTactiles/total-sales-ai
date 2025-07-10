@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { encryptionService } from '@/services/security/encryptionService';
-import { accessControlService } from '@/services/security/accessControlService';
+import { EncryptionService } from '@/services/security/encryptionService';
+import { AccessControlService } from '@/services/security/accessControlService';
 import { AuditEntry, AuditPayload, AuditFilters } from '@/hooks/audit/types';
 
 // Simple logger for client-side
@@ -22,7 +22,7 @@ export class AuditRetrievalService {
     userRole: string,
     filters?: AuditFilters
   ): Promise<AuditEntry[]> {
-    if (!accessControlService.checkAccess('ai_audit_trail', 'read', userRole)) {
+    if (!await AccessControlService.checkAccess('ai_audit_trail', 'read', userRole)) {
       logger.warn('Insufficient permissions to access audit trail');
       return [];
     }
@@ -51,7 +51,7 @@ export class AuditRetrievalService {
         (data || []).map(async (entry) => {
           try {
             const payload = entry.payload as unknown as AuditPayload;
-            const decryptedDetails = await encryptionService.decryptSensitiveData(
+            const decryptedDetails = await EncryptionService.decryptSensitiveData(
               payload.auditEntry.details
             );
             
@@ -79,7 +79,7 @@ export class AuditRetrievalService {
 
     } catch (error) {
       logger.error('Failed to fetch audit trail:', error);
-      accessControlService.logSecurityEvent(
+      AccessControlService.logSecurityEvent(
         'Audit trail access failure',
         { error: error instanceof Error ? error.message : 'Unknown error' },
         'medium'

@@ -1,24 +1,17 @@
 
-// Simple base64 encoding/decoding service
-export class Base64Service {
-  static encode(data: string): string {
-    try {
-      return btoa(data);
-    } catch (error) {
-      console.error('Base64 encoding failed:', error);
-      return '';
-    }
-  }
+// Base64 encoding/decoding utilities
 
-  static decode(encodedData: string): string {
-    try {
-      return atob(encodedData);
-    } catch (error) {
-      console.error('Base64 decoding failed:', error);
-      return '';
-    }
-  }
+export function encodeBase64(data: Uint8Array): string {
+  // Convert Uint8Array to string first
+  const binaryString = Array.from(data, byte => String.fromCharCode(byte)).join('');
+  return btoa(binaryString);
 }
 
-export const encodeBase64 = Base64Service.encode;
-export const decodeBase64 = Base64Service.decode;
+export function decodeBase64(base64String: string): string {
+  return atob(base64String);
+}
+
+export function encodeBase64FromArrayBuffer(buffer: ArrayBuffer): string {
+  const uint8Array = new Uint8Array(buffer);
+  return encodeBase64(uint8Array);
+}

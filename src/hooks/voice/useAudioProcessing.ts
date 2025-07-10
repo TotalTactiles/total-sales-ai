@@ -1,9 +1,10 @@
+
 import { logger } from '@/utils/logger';
 
 import { useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { encodeBase64 } from '@/services/security/base64Service';
+import { encodeBase64FromArrayBuffer } from '@/services/security/base64Service';
 
 export const useAudioProcessing = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -63,7 +64,7 @@ export const useAudioProcessing = () => {
     try {
       // Convert audio to base64 for API
       const arrayBuffer = await audioBlob.arrayBuffer();
-      const base64Audio = encodeBase64(new Uint8Array(arrayBuffer));
+      const base64Audio = encodeBase64FromArrayBuffer(arrayBuffer);
 
       // Transcribe audio using Whisper API
       const { data: transcriptionData, error: transcriptionError } = await supabase.functions.invoke('voice-to-text', {

@@ -53,7 +53,9 @@ export class DataEncryptionService {
       logger.error('Encryption failed:', error);
       try {
         const jsonString = JSON.stringify(data);
-        return encodeBase64(jsonString); // Fallback to basic encoding
+        const encoder = new TextEncoder();
+        const encoded = encoder.encode(jsonString);
+        return encodeBase64(encoded); // Fallback to basic encoding
       } catch {
         return JSON.stringify(data);
       }

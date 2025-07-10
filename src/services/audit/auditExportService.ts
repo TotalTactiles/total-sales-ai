@@ -1,6 +1,5 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { accessControlService } from '@/services/security/accessControlService';
+import { AccessControlService } from '@/services/security/accessControlService';
 import { logger } from '@/utils/logger';
 import { AuditEntry } from '@/hooks/audit/types';
 
@@ -14,12 +13,12 @@ export class AuditExportService {
   ): Promise<void> {
     try {
       // Check permissions
-      if (!accessControlService.checkAccess('audit_export', 'read', userRole)) {
+      if (!await AccessControlService.checkAccess('audit_export', 'read', userRole)) {
         throw new Error('Insufficient permissions to export audit trail');
       }
 
       // Log export activity
-      await accessControlService.logSecurityEvent(
+      await AccessControlService.logSecurityEvent(
         'Audit trail export initiated',
         { userId, companyId, format, entryCount: auditEntries.length },
         'medium',
@@ -81,7 +80,7 @@ export class AuditExportService {
       URL.revokeObjectURL(url);
 
       // Log successful export
-      await accessControlService.logSecurityEvent(
+      await AccessControlService.logSecurityEvent(
         'Audit trail export completed',
         { userId, companyId, format, filename, entryCount: auditEntries.length },
         'low',
@@ -97,7 +96,7 @@ export class AuditExportService {
     } catch (error) {
       logger.error('Audit trail export failed:', error);
       
-      await accessControlService.logSecurityEvent(
+      await AccessControlService.logSecurityEvent(
         'Audit trail export failed',
         { userId, companyId, format, error: error instanceof Error ? error.message : 'Unknown error' },
         'high',

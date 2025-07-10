@@ -1,7 +1,7 @@
 
 import { logger } from '@/utils/logger';
-import { encryptionService } from '@/services/security/encryptionService';
-import { accessControlService } from '@/services/security/accessControlService';
+import { EncryptionService } from '@/services/security/encryptionService';
+import { AccessControlService } from '@/services/security/accessControlService';
 
 interface InteractionLog {
   repId: string;
@@ -133,13 +133,13 @@ export class AIUtils {
   /**
    * Validate user permissions for AI actions
    */
-  validatePermissions(repId: string, action: string, context?: any): boolean {
+  async validatePermissions(repId: string, action: string, context?: any): Promise<boolean> {
     try {
       // Get user role and company context
       const userRole = context?.userRole || 'sales_rep';
       const resource = this.mapActionToResource(action);
       
-      return accessControlService.checkAccess(resource, 'read', userRole, context);
+      return await AccessControlService.checkAccess(resource, 'read', userRole);
     } catch (error) {
       logger.error('Permission validation failed:', error);
       return false;
@@ -151,7 +151,7 @@ export class AIUtils {
    */
   async encryptMemory(data: any): Promise<string> {
     try {
-      return await encryptionService.encryptSensitiveData(data);
+      return await EncryptionService.encryptSensitiveData(data);
     } catch (error) {
       logger.error('Memory encryption failed:', error);
       throw new Error('Failed to encrypt memory data');
@@ -163,7 +163,7 @@ export class AIUtils {
    */
   async decryptMemory(encryptedData: string): Promise<any> {
     try {
-      return await encryptionService.decryptSensitiveData(encryptedData);
+      return await EncryptionService.decryptSensitiveData(encryptedData);
     } catch (error) {
       logger.error('Memory decryption failed:', error);
       throw new Error('Failed to decrypt memory data');
@@ -218,7 +218,7 @@ export class AIUtils {
    * Generate secure session token for AI interactions
    */
   generateSessionToken(): string {
-    return encryptionService.generateSecureToken();
+    return EncryptionService.generateSecureToken();
   }
 
   /**

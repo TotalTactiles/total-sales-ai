@@ -1,7 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/utils/logger';
-import { accessControlService } from '@/services/security/accessControlService';
+import { AccessControlService } from '@/services/security/accessControlService';
 
 interface ModuleHealth {
   moduleId: string;
@@ -117,7 +116,7 @@ export class AIHealthMonitor {
 
       // Log critical issues
       if (!isHealthy || responseTime > 5000) {
-        await accessControlService.logSecurityEvent(
+        await AccessControlService.logSecurityEvent(
           `AI Module ${moduleId} health issue detected`,
           { moduleId, isHealthy, responseTime, errorCount, successCount },
           'high',

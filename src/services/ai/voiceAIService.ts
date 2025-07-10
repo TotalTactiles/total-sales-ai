@@ -6,7 +6,7 @@ import { elevenLabsService } from './elevenLabsService';
 import { retellAIService } from './retellAIService';
 import { toast } from 'sonner';
 import { logger } from '@/utils/logger';
-import { encodeBase64 } from '@/services/security/base64Service';
+import { encodeBase64FromArrayBuffer } from '@/services/security/base64Service';
 
 export interface VoiceAIConfig {
   workspace: 'sales' | 'manager' | 'developer';
@@ -176,7 +176,7 @@ export class VoiceAIService {
 
   private async blobToBase64(blob: Blob): Promise<string> {
     const arrayBuffer = await blob.arrayBuffer();
-    const base64 = encodeBase64(new Uint8Array(arrayBuffer));
+    const base64 = encodeBase64FromArrayBuffer(arrayBuffer);
     return base64;
   }
 
