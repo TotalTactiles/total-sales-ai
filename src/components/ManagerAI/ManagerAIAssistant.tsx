@@ -21,7 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'react-router-dom';
 import ManagerAIPanel from './ManagerAIPanel';
 import ManagerAIInsights from './ManagerAIInsights';
-import { useManagerAI } from '@/hooks/useManagerAI';
+import { useManagerAIContext } from './ManagerAIContext';
 
 interface ManagerAIAssistantProps {
   className?: string;
@@ -33,13 +33,17 @@ const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ className = '' 
   const [isListening, setIsListening] = useState(false);
   const { profile } = useAuth();
   const location = useLocation();
+  
   const { 
     contextualInsights, 
     isGenerating, 
     getContextualInsights,
     generateManagerReport,
-    askJarvis
-  } = useManagerAI();
+    askJarvis,
+    companyKnowledge,
+    salesRepInsights,
+    syncWithCompanyBrain
+  } = useManagerAIContext();
 
   // Only show for managers
   if (profile?.role !== 'manager' && profile?.role !== 'admin') {
@@ -52,6 +56,15 @@ const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ className = '' 
       getContextualInsights(location.pathname);
     }
   }, [isOpen, location.pathname, getContextualInsights]);
+
+  // Sync with company brain periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      syncWithCompanyBrain();
+    }, 300000); // Every 5 minutes
+
+    return () => clearInterval(interval);
+  }, [syncWithCompanyBrain]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -72,6 +85,8 @@ const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ className = '' 
     if (path.includes('leads')) return 'Lead Management Intelligence';
     if (path.includes('company-brain')) return 'Knowledge Strategy';
     if (path.includes('reports')) return 'Performance Analysis';
+    if (path.includes('team')) return 'Team Management Insights';
+    if (path.includes('business-ops')) return 'Operations Intelligence';
     return 'Strategic Overview';
   };
 
@@ -116,6 +131,13 @@ const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ className = '' 
               </Badge>
             </div>
           )}
+
+          {/* Company Integration Status */}
+          <div className="absolute -bottom-1 -left-1">
+            <Badge className="bg-blue-500 text-xs px-1">
+              {companyKnowledge.length + salesRepInsights.length}
+            </Badge>
+          </div>
         </div>
       </div>
 
@@ -169,6 +191,10 @@ const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ className = '' 
                     <p className="text-blue-800 dark:text-blue-200 font-medium">
                       {getGreeting()}
                     </p>
+                    <div className="mt-2 flex items-center gap-4 text-xs text-blue-600">
+                      <span>📚 {companyKnowledge.length} Knowledge Items</span>
+                      <span>👥 {salesRepInsights.length} Rep Insights</span>
+                    </div>
                   </CardContent>
                 </Card>
 
