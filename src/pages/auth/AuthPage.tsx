@@ -78,16 +78,19 @@ const AuthPage: React.FC = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const isLogout = location.state?.logout || urlParams.get('logout') === 'true';
-    
+
+    // Prevent redirect loops by ensuring we're on the /auth page
+    if (location.pathname !== '/auth') return;
+
     if (!loading && user && profile && !isLogout && !isLoggingOut) {
       console.log('User authenticated, redirecting based on role:', profile.role);
-      
+
       // Wait a moment to ensure state is fully updated
       setTimeout(() => {
         const targetRoute = profile.role === 'manager' ? '/manager/dashboard'
           : profile.role === 'developer' ? '/dev/dashboard'
           : '/sales/dashboard';
-        
+
         navigate(targetRoute, { replace: true });
       }, 100);
     }
@@ -145,7 +148,7 @@ const AuthPage: React.FC = () => {
     try {
       console.log('Demo login attempt for:', demoUser.email, 'Role:', role);
       logDemoLogin(demoUser.email, true);
-      
+
       const result = await signIn(demoUser.email, demoUser.password);
       if (result?.error) {
         console.error('Demo login error:', result.error);
@@ -154,9 +157,12 @@ const AuthPage: React.FC = () => {
         logDemoLogin(demoUser.email, false);
         return;
       }
-      
+
       console.log('Demo login successful for role:', role);
-      // Don't set isSubmitting to false here - let the redirect handle it
+
+      // Explicitly route based on the demo user's role
+      const destination = role === 'manager' ? '/manager/dashboard' : '/sales/dashboard';
+      navigate(destination, { replace: true });
     } catch (error) {
       console.error('Demo login exception:', error);
       setAuthError('An unexpected error occurred during demo login.');
