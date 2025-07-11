@@ -1,201 +1,130 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { AccessControlService } from '@/services/security/accessControlService';
-import { EncryptionService } from '@/services/security/encryptionService';
-import { encodeBase64FromArrayBuffer, decodeBase64 } from '@/services/security/base64Service';
-import { supabase } from '@/integrations/supabase/client';
 import { SecurityEvent, SecurityIssue, SecurityPosture, WorkflowLimits } from '@/types/security';
+import { AccessControlService } from '@/services/security/accessControlService';
+import { encryptSensitiveData, decryptSensitiveData } from '@/services/security/base64Service';
 
 export const useAISecurityPosture = () => {
-  const { user, profile } = useAuth();
   const [securityPosture, setSecurityPosture] = useState<SecurityPosture>({
-    score: 85,
-    level: 'secure',
-    issues: [],
-    lastScan: null,
-    isScanning: false
-  });
-  const [securityIssues, setSecurityIssues] = useState<SecurityIssue[]>([]);
-  const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
-  const [workflowLimits] = useState<WorkflowLimits>({
-    maxWorkflows: 50,
-    currentWorkflows: 12,
-    maxExecutionTime: 30000,
-    maxMemoryUsage: 1024
-  });
-
-  useEffect(() => {
-    if (user?.id && profile?.company_id) {
-      refreshSecurityScore();
-      loadSecurityEvents();
+    overallScore: 85,
+    riskLevel: 'medium',
+    activeThreats: 3,
+    resolvedThreats: 12,
+    lastAssessment: new Date().toISOString(),
+    complianceStatus: {
+      gdpr: true,
+      soc2: true,
+      hipaa: false,
+      iso27001: true
+    },
+    vulnerabilities: {
+      critical: 0,
+      high: 2,
+      medium: 5,
+      low: 8
     }
-  }, [user?.id, profile?.company_id]);
+  });
 
-  const loadSecurityEvents = () => {
-    const mockEvents: SecurityEvent[] = [
-      {
-        id: '1',
-        type: 'unusual_pattern',
-        severity: 'medium',
-        message: 'Unusual access pattern detected from new IP address',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        resolved: false,
-        source: '192.168.1.100',
-        affectedResource: 'user_authentication'
-      },
-      {
-        id: '2',
-        type: 'rate_limit',
-        severity: 'low',
-        message: 'API rate limit approached for workflow automation',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-        resolved: true,
-        source: 'workflow_engine',
-        affectedResource: 'api_gateway'
+  const [securityIssues, setSecurityIssues] = useState<SecurityIssue[]>([
+    {
+      id: '1',
+      title: 'Suspicious API Access Pattern',
+      severity: 'high',
+      status: 'open',
+      description: 'Unusual API access pattern detected from multiple IP addresses',
+      detectedAt: new Date().toISOString(),
+      category: 'access_control'
+    }
+  ]);
+
+  const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([
+    {
+      id: '1',
+      timestamp: new Date().toISOString(),
+      type: 'authentication',
+      severity: 'medium',
+      description: 'Multiple failed login attempts detected',
+      source: 'auth_system',
+      resolved: false,
+      metadata: {
+        ip_address: '192.168.1.100',
+        user_agent: 'Mozilla/5.0',
+        attempts: 5
       }
-    ];
-    setSecurityEvents(mockEvents);
-  };
+    }
+  ]);
+
+  const [workflowLimits, setWorkflowLimits] = useState<WorkflowLimits>({
+    maxConcurrentTasks: 10,
+    maxApiCallsPerMinute: 100,
+    maxDataProcessingSize: 1000000,
+    maxUserSessions: 50,
+    rateLimitWindow: 60000
+  });
 
   const refreshSecurityScore = async () => {
-    setSecurityPosture(prev => ({ ...prev, isScanning: true }));
-    
-    try {
-      let score = 100;
-      const issues: SecurityIssue[] = [];
-      
-      // Simulate security checks
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Check access control
-      try {
-        const accessControl = AccessControlService.getInstance();
-        const hasProperAccess = await accessControl.checkPermission(user?.id || '', 'read', 'security_dashboard');
-        
-        if (!hasProperAccess) {
-          score -= 15;
-          issues.push({
-            type: 'access_control',
-            severity: 'high',
-            message: 'Access control configuration needs review',
-            description: 'Some security permissions may not be properly configured',
-            recommendation: 'Review and update access control policies'
-          });
-        }
-      } catch (error) {
-        score -= 10;
-        issues.push({
-          type: 'access_control',
-          severity: 'medium',
-          message: 'Access control system unavailable',
-          description: 'Unable to verify access control status',
-          recommendation: 'Check access control service connectivity'
-        });
-      }
-      
-      // Check encryption
-      try {
-        const encryption = EncryptionService.getInstance();
-        const testData = 'security-test';
-        const encrypted = await encryption.encrypt(testData);
-        const decrypted = await encryption.decrypt(encrypted);
-        
-        if (decrypted !== testData) {
-          score -= 20;
-          issues.push({
-            type: 'encryption',
-            severity: 'critical',
-            message: 'Encryption system integrity compromised',
-            description: 'Data encryption/decryption is not working correctly',
-            recommendation: 'Immediate review of encryption implementation required'
-          });
-        }
-      } catch (error) {
-        score -= 15;
-        issues.push({
-          type: 'encryption',
-          severity: 'high',
-          message: 'Encryption service error',
-          description: 'Unable to verify encryption functionality',
-          recommendation: 'Check encryption service configuration'
-        });
-      }
-      
-      // Check data integrity
-      try {
-        const testBuffer = new TextEncoder().encode('integrity-test');
-        const encoded = encodeBase64FromArrayBuffer(testBuffer.buffer);
-        const decoded = decodeBase64(encoded);
-        
-        if (!decoded || decoded.length !== testBuffer.length) {
-          score -= 10;
-          issues.push({
-            type: 'data_integrity',
-            severity: 'medium',
-            message: 'Data integrity check failed',
-            description: 'Base64 encoding/decoding may have issues',
-            recommendation: 'Review data processing pipeline'
-          });
-        }
-      } catch (error) {
-        score -= 5;
-        issues.push({
-          type: 'data_integrity',
-          severity: 'low',
-          message: 'Data integrity check inconclusive',
-          description: 'Unable to complete data integrity verification',
-          recommendation: 'Monitor data processing for anomalies'
-        });
-      }
-      
-      const level: SecurityPosture['level'] = score >= 90 ? 'secure' : score >= 70 ? 'warning' : 'critical';
-      
-      setSecurityPosture({
-        score: Math.max(0, score),
-        level,
-        issues,
-        lastScan: new Date(),
-        isScanning: false
-      });
-      
-      setSecurityIssues(issues);
-      
-    } catch (error) {
-      console.error('Security scan error:', error);
-      setSecurityPosture(prev => ({
-        ...prev,
-        isScanning: false,
-        score: 0,
-        level: 'critical',
-        issues: [{
-          type: 'authentication',
-          severity: 'critical',
-          message: 'Security scan failed',
-          description: 'Unable to complete security assessment',
-          recommendation: 'Contact system administrator'
-        }]
-      }));
-    }
+    // Simulate security score refresh
+    const newScore = Math.floor(Math.random() * 20) + 80;
+    setSecurityPosture(prev => ({
+      ...prev,
+      overallScore: newScore,
+      lastAssessment: new Date().toISOString()
+    }));
   };
 
-  const getSecurityStatus = (): string => {
-    if (securityPosture.score >= 90) return 'secure';
-    if (securityPosture.score >= 70) return 'warning';
-    return 'critical';
+  const getSecurityStatus = async () => {
+    return {
+      status: 'active',
+      lastCheck: new Date().toISOString(),
+      threatsDetected: securityIssues.length,
+      systemHealth: 'good'
+    };
   };
 
-  const resolveSecurityEvent = (eventId: string) => {
+  const resolveSecurityEvent = async (eventId: string) => {
     setSecurityEvents(prev => 
       prev.map(event => 
-        event.id === eventId ? { ...event, resolved: true } : event
+        event.id === eventId 
+          ? { ...event, resolved: true }
+          : event
       )
     );
   };
 
-  const validateWorkflowLimits = () => {
-    return workflowLimits.currentWorkflows < workflowLimits.maxWorkflows;
+  const validateWorkflowLimits = async (workflowType: string, currentUsage: number) => {
+    const limits = workflowLimits;
+    
+    switch (workflowType) {
+      case 'concurrent_tasks':
+        return currentUsage < limits.maxConcurrentTasks;
+      case 'api_calls':
+        return currentUsage < limits.maxApiCallsPerMinute;
+      case 'data_processing':
+        return currentUsage < limits.maxDataProcessingSize;
+      case 'user_sessions':
+        return currentUsage < limits.maxUserSessions;
+      default:
+        return true;
+    }
   };
+
+  // Check access permissions using the service
+  const checkAccess = async (resource: string, action: string, userRole: string) => {
+    return await AccessControlService.checkAccess(resource, action, userRole);
+  };
+
+  // Encrypt/decrypt sensitive data
+  const handleSensitiveData = async (data: string, encrypt: boolean = true) => {
+    if (encrypt) {
+      return await encryptSensitiveData(data);
+    } else {
+      return await decryptSensitiveData(data);
+    }
+  };
+
+  useEffect(() => {
+    refreshSecurityScore();
+  }, []);
 
   return {
     securityPosture,
@@ -205,6 +134,8 @@ export const useAISecurityPosture = () => {
     refreshSecurityScore,
     getSecurityStatus,
     resolveSecurityEvent,
-    validateWorkflowLimits
+    validateWorkflowLimits,
+    checkAccess,
+    handleSensitiveData
   };
 };
