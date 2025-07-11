@@ -3,9 +3,9 @@ import React from 'react';
 import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import ChatBubble from '@/components/AI/ChatBubble';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import { 
   DollarSign, 
   Users, 
