@@ -1,6 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useOptimizedLogout } from '@/utils/logoutOptimizer';
+import { useAuth } from '@/contexts/AuthContext';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from '@/components/ui/dropdown-menu';
+import { LogOut, User } from 'lucide-react';
 
 // Manager Pages
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
@@ -16,6 +26,8 @@ import Settings from '@/pages/manager/Settings';
 const ManagerOS: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useOptimizedLogout();
+  const { profile } = useAuth();
 
   // Extract current tab from URL
   const getCurrentTab = () => {
@@ -28,6 +40,16 @@ const ManagerOS: React.FC = () => {
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
     navigate(`/manager/${tab}`);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Force redirect even if logout fails
+      navigate('/auth');
+    }
   };
 
   // Update tab when URL changes
@@ -108,6 +130,14 @@ const ManagerOS: React.FC = () => {
     }
   };
 
+  const displayName = profile?.full_name || 'Manager';
+  const initials = displayName
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Unified Navigation Bar */}
@@ -137,15 +167,47 @@ const ManagerOS: React.FC = () => {
           </div>
         </div>
 
-        {/* User Info */}
+        {/* User Info with Dropdown */}
         <div className="flex items-center gap-3">
           <div className="text-right hidden md:block">
             <p className="text-sm font-medium text-slate-900">Manager</p>
             <p className="text-xs text-slate-500">Executive Dashboard</p>
           </div>
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-            <span className="text-white font-semibold text-sm">M</span>
-          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center hover:ring-2 hover:ring-blue-200 transition-all cursor-pointer">
+                <span className="text-white font-semibold text-sm">{initials}</span>
+              </button>
+            </DropdownMenuTrigger>
+            
+            <DropdownMenuContent 
+              className="w-56 bg-white shadow-lg border rounded-lg p-2" 
+              align="end"
+              sideOffset={5}
+            >
+              {/* User Info Header */}
+              <div className="flex items-center gap-3 p-2 mb-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-semibold text-xs">{initials}</span>
+                </div>
+                <div className="flex flex-col">
+                  <p className="font-medium text-sm text-gray-900">{displayName}</p>
+                  <p className="text-xs text-gray-500">Manager</p>
+                </div>
+              </div>
+
+              <DropdownMenuSeparator />
+
+              <DropdownMenuItem 
+                onClick={handleLogout}
+                className="flex items-center gap-2 py-2 px-3 hover:bg-red-50 rounded cursor-pointer text-red-600"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="text-sm">Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </nav>
 
