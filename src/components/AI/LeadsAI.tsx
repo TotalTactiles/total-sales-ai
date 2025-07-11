@@ -3,15 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  Target, 
-  TrendingUp, 
   Users, 
-  ArrowRight,
-  Brain,
-  AlertTriangle,
-  Zap
+  TrendingUp, 
+  AlertTriangle, 
+  Search,
+  UserPlus,
+  Clock,
+  Target
 } from 'lucide-react';
 import { useManagerAI } from '@/hooks/useManagerAI';
 import ChatBubble from './ChatBubble';
@@ -21,151 +20,177 @@ interface Lead {
   id: string;
   name: string;
   company: string;
+  email: string;
+  phone: string;
+  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'closed';
+  assignedTo: string;
   score: number;
   likelihood: number;
-  status: 'new' | 'contacted' | 'qualified' | 'stalled';
-  assignedTo: string;
-  priority: 'low' | 'medium' | 'high';
-  daysStalled?: number;
+  daysSinceContact: number;
 }
 
-interface ReassignmentSuggestion {
-  leadId: string;
-  leadName: string;
-  currentAgent: string;
-  suggestedAgent: string;
-  reason: string;
-  confidenceScore: number;
-  expectedImprovement: number;
+interface LeadInsight {
+  type: 'stalled' | 'hot' | 'reassignment' | 'scoring';
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  affectedLeads: number;
 }
 
 const LeadsAI: React.FC = () => {
   const { askJarvis, isGenerating } = useManagerAI();
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [reassignments, setReassignments] = useState<ReassignmentSuggestion[]>([]);
-  const [leadChart, setLeadChart] = useState<any>(null);
-  const [stalledLeads, setStalledLeads] = useState<Lead[]>([]);
+  const [insights, setInsights] = useState<LeadInsight[]>([]);
+  const [pipelineChart, setPipelineChart] = useState<any>(null);
 
   useEffect(() => {
     // Load leads data
-    const leadsData: Lead[] = [
+    setLeads([
       {
         id: '1',
         name: 'John Smith',
         company: 'Tech Corp',
+        email: 'john@techcorp.com',
+        phone: '+1234567890',
+        status: 'new',
+        assignedTo: 'Sarah Johnson',
         score: 85,
         likelihood: 78,
-        status: 'qualified',
-        assignedTo: 'Sarah Johnson',
-        priority: 'high'
+        daysSinceContact: 1
       },
       {
         id: '2',
         name: 'Jane Doe',
         company: 'StartupXYZ',
+        email: 'jane@startup.com',
+        phone: '+1234567891',
+        status: 'contacted',
+        assignedTo: 'Mike Chen',
         score: 72,
         likelihood: 65,
-        status: 'stalled',
-        assignedTo: 'Mike Chen',
-        priority: 'medium',
-        daysStalled: 8
+        daysSinceContact: 3
       },
       {
         id: '3',
         name: 'Bob Wilson',
         company: 'Enterprise Inc',
+        email: 'bob@enterprise.com',
+        phone: '+1234567892',
+        status: 'qualified',
+        assignedTo: 'Lisa Park',
         score: 91,
         likelihood: 88,
-        status: 'contacted',
-        assignedTo: 'Lisa Park',
-        priority: 'high'
-      }
-    ];
-
-    setLeads(leadsData);
-    setStalledLeads(leadsData.filter(lead => lead.status === 'stalled'));
-
-    // Load reassignment suggestions
-    setReassignments([
+        daysSinceContact: 2
+      },
       {
-        leadId: '2',
-        leadName: 'Jane Doe',
-        currentAgent: 'Mike Chen',
-        suggestedAgent: 'Sarah Johnson',
-        reason: 'Sarah has 87% close rate with similar leads',
-        confidenceScore: 82,
-        expectedImprovement: 23
+        id: '4',
+        name: 'Alice Brown',
+        company: 'Growth Co',
+        email: 'alice@growth.com',
+        phone: '+1234567893',
+        status: 'proposal',
+        assignedTo: 'Sarah Johnson',
+        score: 89,
+        likelihood: 82,
+        daysSinceContact: 7
       }
     ]);
 
-    // Set lead distribution chart
-    setLeadChart({
-      type: 'bar',
-      data: {
-        labels: ['New', 'Contacted', 'Qualified', 'Stalled'],
-        datasets: [{
-          label: 'Lead Count',
-          data: [12, 8, 15, 3],
-          backgroundColor: [
-            '#3b82f6', // blue
-            '#10b981', // green
-            '#f59e0b', // yellow
-            '#ef4444'  // red
-          ]
-        }]
+    // Load insights
+    setInsights([
+      {
+        type: 'stalled',
+        title: 'Stalled Leads Alert',
+        description: '3 high-value leads have been inactive for 5+ days',
+        priority: 'high',
+        affectedLeads: 3
+      },
+      {
+        type: 'reassignment',
+        title: 'Optimal Reassignment',
+        description: 'Sarah Johnson has 67% higher close rate for enterprise leads',
+        priority: 'medium',
+        affectedLeads: 5
+      },
+      {
+        type: 'scoring',
+        title: 'Lead Scoring Update',
+        description: 'AI detected new patterns - 24 leads need rescoring',
+        priority: 'medium',
+        affectedLeads: 24
       }
+    ]);
+
+    // Set pipeline chart
+    setPipelineChart({
+      type: 'bar' as const,
+      data: [
+        { stage: 'New', count: 45, value: 2250000 },
+        { stage: 'Contacted', count: 32, value: 1600000 },
+        { stage: 'Qualified', count: 18, value: 900000 },
+        { stage: 'Proposal', count: 12, value: 600000 },
+        { stage: 'Closed', count: 8, value: 400000 }
+      ]
     });
   }, []);
 
-  const runLeadScoring = async () => {
+  const analyzeLeadDistribution = async () => {
     try {
-      const response = await askJarvis('Analyze lead scoring and provide predictions', {
+      const response = await askJarvis('Analyze lead distribution and suggest reassignments', {
         includeChart: true,
-        leadData: leads
+        context: 'lead_distribution',
+        leads: leads
       });
 
       if (response.chartData) {
-        setLeadChart(response.chartData);
+        setPipelineChart(response.chartData);
       }
     } catch (error) {
-      console.error('Lead scoring failed:', error);
+      console.error('Lead distribution analysis failed:', error);
     }
   };
 
-  const executeReassignment = async (suggestionId: string) => {
-    const suggestion = reassignments.find(r => r.leadId === suggestionId);
-    if (!suggestion) return;
+  const identifyStalledLeads = async () => {
+    try {
+      const response = await askJarvis('Identify and prioritize stalled leads for follow-up', {
+        context: 'stalled_leads',
+        threshold: 5
+      });
 
-    // Update lead assignment
-    setLeads(prev => 
-      prev.map(lead => 
-        lead.id === suggestion.leadId 
-          ? { ...lead, assignedTo: suggestion.suggestedAgent }
-          : lead
-      )
-    );
-
-    // Remove from suggestions
-    setReassignments(prev => 
-      prev.filter(r => r.leadId !== suggestionId)
-    );
+      console.log('Stalled leads identified:', response);
+    } catch (error) {
+      console.error('Stalled leads identification failed:', error);
+    }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new': return 'bg-blue-100 text-blue-800';
-      case 'contacted': return 'bg-green-100 text-green-800';
-      case 'qualified': return 'bg-yellow-100 text-yellow-800';
-      case 'stalled': return 'bg-red-100 text-red-800';
+      case 'contacted': return 'bg-yellow-100 text-yellow-800';
+      case 'qualified': return 'bg-green-100 text-green-800';
+      case 'proposal': return 'bg-purple-100 text-purple-800';
+      case 'closed': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'border-red-300 bg-red-50';
-      case 'medium': return 'border-yellow-300 bg-yellow-50';
-      default: return 'border-gray-300 bg-gray-50';
+      case 'critical': return 'bg-red-100 text-red-800 border-red-300';
+      case 'high': return 'bg-orange-100 text-orange-800 border-orange-300';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+      case 'low': return 'bg-blue-100 text-blue-800 border-blue-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getInsightIcon = (type: string) => {
+    switch (type) {
+      case 'stalled': return <Clock className="h-5 w-5 text-red-600" />;
+      case 'hot': return <TrendingUp className="h-5 w-5 text-green-600" />;
+      case 'reassignment': return <UserPlus className="h-5 w-5 text-blue-600" />;
+      case 'scoring': return <Target className="h-5 w-5 text-purple-600" />;
+      default: return <Search className="h-5 w-5 text-gray-600" />;
     }
   };
 
@@ -176,152 +201,164 @@ const LeadsAI: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-blue-600" />
+              <Users className="h-5 w-5 text-blue-600" />
               Lead Pipeline Analysis
             </CardTitle>
             <Button 
-              onClick={runLeadScoring}
+              onClick={analyzeLeadDistribution}
               disabled={isGenerating}
               size="sm"
             >
-              <Brain className="h-4 w-4 mr-1" />
-              Analyze Scoring
+              <TrendingUp className="h-4 w-4 mr-1" />
+              Analyze Distribution
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          {leadChart && (
+          {pipelineChart && (
             <AIChartRenderer 
-              data={leadChart.data} 
-              type={leadChart.type}
-              title="Lead Distribution by Status"
+              chartData={pipelineChart.data}
+              chartType={pipelineChart.type}
+              config={{ title: 'Lead Pipeline Distribution' }}
             />
           )}
         </CardContent>
       </Card>
 
-      {/* Stalled Leads Alert */}
-      {stalledLeads.length > 0 && (
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-800">
-              <AlertTriangle className="h-5 w-5" />
-              Stalled Leads Alert
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {stalledLeads.map((lead) => (
-                <div key={lead.id} className="flex items-center justify-between p-3 bg-white rounded border">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        {lead.name.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">{lead.name}</div>
-                      <div className="text-sm text-gray-500">
-                        {lead.company} • Stalled {lead.daysStalled} days
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-red-100 text-red-800">
-                      {lead.score}% score
-                    </Badge>
-                    <Button size="sm" variant="outline">
-                      Follow Up
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Smart Reassignments */}
+      {/* AI Lead Insights */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Zap className="h-5 w-5 text-purple-600" />
-            Smart Reassignment Suggestions
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-600" />
+              AI Lead Insights
+            </CardTitle>
+            <Button 
+              onClick={identifyStalledLeads}
+              disabled={isGenerating}
+              size="sm"
+              variant="outline"
+            >
+              <Clock className="h-4 w-4 mr-1" />
+              Check Stalled
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          {reassignments.map((suggestion) => (
-            <div key={suggestion.leadId} className="p-4 border rounded-lg bg-purple-50">
-              <div className="flex items-start justify-between mb-3">
+          {insights.map((insight, index) => (
+            <div key={index} className={`p-4 rounded-lg border ${getPriorityColor(insight.priority)}`}>
+              <div className="flex items-start gap-3">
+                {getInsightIcon(insight.type)}
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-medium">{suggestion.leadName}</span>
-                    <ArrowRight className="h-4 w-4 text-gray-400" />
-                    <span className="font-medium text-purple-600">
-                      {suggestion.suggestedAgent}
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-700 mb-2">{suggestion.reason}</p>
-                  <div className="flex items-center gap-4">
-                    <Badge className="bg-purple-100 text-purple-800">
-                      {suggestion.confidenceScore}% confidence
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-medium">{insight.title}</h4>
+                    <Badge variant="outline" className="text-xs">
+                      {insight.affectedLeads} leads
                     </Badge>
-                    <span className="text-sm text-green-600">
-                      +{suggestion.expectedImprovement}% improvement expected
-                    </span>
                   </div>
+                  <p className="text-sm text-gray-700">{insight.description}</p>
+                  <Badge className={`mt-2 text-xs ${getPriorityColor(insight.priority)}`}>
+                    {insight.priority} priority
+                  </Badge>
                 </div>
-                <Button 
-                  size="sm" 
-                  onClick={() => executeReassignment(suggestion.leadId)}
-                >
-                  Execute
-                </Button>
               </div>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      {/* Lead Performance Grid */}
+      {/* Lead Performance Stats */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-green-600" />
-            Lead Performance Grid
-          </CardTitle>
+          <CardTitle>Lead Performance Metrics</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {leads.map((lead) => (
-              <div 
-                key={lead.id} 
-                className={`p-4 border rounded-lg ${getPriorityColor(lead.priority)}`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="font-medium">{lead.name}</div>
-                  <Badge className={getStatusColor(lead.status)}>
-                    {lead.status}
-                  </Badge>
-                </div>
-                <div className="text-sm text-gray-600 mb-3">{lead.company}</div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Score:</span>
-                    <span className="font-medium">{lead.score}%</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Likelihood:</span>
-                    <span className="font-medium text-green-600">{lead.likelihood}%</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Assigned to:</span>
-                    <span className="font-medium">{lead.assignedTo}</span>
-                  </div>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">{leads.length}</div>
+              <div className="text-sm text-gray-600">Total Active Leads</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {Math.round(leads.reduce((acc, lead) => acc + lead.likelihood, 0) / leads.length)}%
               </div>
-            ))}
+              <div className="text-sm text-gray-600">Avg Conversion Likelihood</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">
+                {leads.filter(lead => lead.daysSinceContact > 5).length}
+              </div>
+              <div className="text-sm text-gray-600">Stalled Leads (5+ days)</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">
+                {Math.round(leads.reduce((acc, lead) => acc + lead.score, 0) / leads.length)}
+              </div>
+              <div className="text-sm text-gray-600">Avg Lead Score</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Top Leads Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>High-Priority Leads</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-3 px-4">Lead</th>
+                  <th className="text-left py-3 px-4">Company</th>
+                  <th className="text-left py-3 px-4">Status</th>
+                  <th className="text-left py-3 px-4">Assigned To</th>
+                  <th className="text-left py-3 px-4">Score</th>
+                  <th className="text-left py-3 px-4">Likelihood</th>
+                </tr>
+              </thead>
+              <tbody>
+                {leads
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, 4)
+                  .map((lead) => (
+                    <tr key={lead.id} className="border-b hover:bg-gray-50">
+                      <td className="py-3 px-4">
+                        <div>
+                          <p className="font-medium">{lead.name}</p>
+                          <p className="text-sm text-gray-600">{lead.email}</p>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">{lead.company}</td>
+                      <td className="py-3 px-4">
+                        <Badge className={getStatusColor(lead.status)}>
+                          {lead.status}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-4">{lead.assignedTo}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span className="text-xs font-medium text-blue-800">{lead.score}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div 
+                              className="bg-green-500 h-2 rounded-full"
+                              style={{ width: `${lead.likelihood}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-medium">{lead.likelihood}%</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
         </CardContent>
       </Card>
@@ -330,7 +367,7 @@ const LeadsAI: React.FC = () => {
       <ChatBubble 
         assistantType="leads"
         enabled={true}
-        position="bottom-right"
+        className="leads-ai-chat"
       />
     </div>
   );

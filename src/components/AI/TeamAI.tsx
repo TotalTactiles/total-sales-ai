@@ -103,15 +103,12 @@ const TeamAI: React.FC = () => {
 
     // Set performance chart
     setPerformanceChart({
-      type: 'bar',
-      data: {
-        labels: ['Sarah Johnson', 'Mike Chen', 'Lisa Park'],
-        datasets: [{
-          label: 'Quota Achievement %',
-          data: [115, 88, 72],
-          backgroundColor: ['#22c55e', '#f59e0b', '#ef4444']
-        }]
-      }
+      type: 'bar' as const,
+      data: [
+        { name: 'Sarah Johnson', performance: 115, quota: 100 },
+        { name: 'Mike Chen', performance: 88, quota: 100 },
+        { name: 'Lisa Park', performance: 72, quota: 100 }
+      ]
     });
   }, []);
 
@@ -181,9 +178,9 @@ const TeamAI: React.FC = () => {
         <CardContent>
           {performanceChart && (
             <AIChartRenderer 
-              data={performanceChart.data} 
-              type={performanceChart.type}
-              title="Team Quota Achievement"
+              chartData={performanceChart.data} 
+              chartType={performanceChart.type}
+              config={{ title: 'Team Quota Achievement' }}
             />
           )}
         </CardContent>
@@ -287,7 +284,7 @@ const TeamAI: React.FC = () => {
       <ChatBubble 
         assistantType="team"
         enabled={true}
-        position="bottom-right"
+        className="team-ai-chat"
       />
     </div>
   );
