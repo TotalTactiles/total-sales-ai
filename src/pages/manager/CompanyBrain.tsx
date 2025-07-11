@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -25,11 +24,11 @@ import SocialMediaIntegrations from '@/components/Manager/SocialMediaIntegration
 import WebsiteParser from '@/components/Manager/WebsiteParser';
 import BusinessGoalsTab from '@/components/Manager/BusinessGoalsTab';
 
-const ManagerCompanyBrain = () => {
+const CompanyBrain = () => {
   const [selectedTab, setSelectedTab] = useState('overview');
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -382,4 +381,4 @@ const ManagerCompanyBrain = () => {
   );
 };
 
-export default ManagerCompanyBrain;
+export default CompanyBrain;

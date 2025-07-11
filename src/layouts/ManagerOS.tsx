@@ -8,10 +8,7 @@ import BusinessOps from '@/pages/manager/BusinessOps';
 import EnhancedTeamManagement from '@/pages/manager/EnhancedTeamManagement';
 import LeadManagement from '@/pages/manager/LeadManagement';
 import AIAssistant from '@/pages/manager/AIAssistant';
-import AIOrchestration from '@/pages/manager/AIOrchestration';
 import CompanyBrain from '@/pages/manager/CompanyBrain';
-import EnterpriseIntegration from '@/pages/manager/EnterpriseIntegration';
-import DeploymentCenter from '@/pages/manager/DeploymentCenter';
 import Security from '@/pages/manager/Security';
 import Reports from '@/pages/manager/Reports';
 import Settings from '@/pages/manager/Settings';
@@ -44,10 +41,7 @@ const ManagerOS: React.FC = () => {
     { key: 'team', label: 'Team', icon: '👥' },
     { key: 'leads', label: 'Leads', icon: '🎯' },
     { key: 'ai', label: 'AI Assistant', icon: '🤖' },
-    { key: 'ai-orchestration', label: 'AI Orchestration', icon: '⚡' },
     { key: 'company-brain', label: 'Company Brain', icon: '🧠' },
-    { key: 'enterprise-integration', label: 'Enterprise', icon: '🏗️' },
-    { key: 'deployment-center', label: 'Deployment', icon: '🚀' },
     { key: 'security', label: 'Security', icon: '🛡️' },
     { key: 'reports', label: 'Reports', icon: '📈' },
     { key: 'settings', label: 'Settings', icon: '⚙️' }
@@ -65,14 +59,8 @@ const ManagerOS: React.FC = () => {
         return <LeadManagement />;
       case 'ai':
         return <AIAssistant />;
-      case 'ai-orchestration':
-        return <AIOrchestration />;
       case 'company-brain':
         return <CompanyBrain />;
-      case 'enterprise-integration':
-        return <EnterpriseIntegration />;
-      case 'deployment-center':
-        return <DeploymentCenter />;
       case 'security':
         return <Security />;
       case 'reports':
