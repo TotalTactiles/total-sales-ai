@@ -24,19 +24,23 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="manager/dashboard" element={<ManagerDashboard />} />
-            <Route path="manager/business-ops" element={<ManagerBusinessOps />} />
-            <Route path="manager/team" element={<ManagerTeam />} />
-            <Route path="manager/leads" element={<ManagerLeadManagement />} />
-            <Route path="manager/company-brain" element={<ManagerCompanyBrain />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="business-ops" element={<BusinessOps />} />
-            <Route path="team" element={<TeamManagement />} />
-            <Route path="leads" element={<LeadManagement />} />
-            <Route path="company-brain" element={<CompanyBrain />} />
-          </Route>
+          <Route path="/" element={
+            <MainLayout>
+              <Routes>
+                <Route index element={<Dashboard />} />
+                <Route path="manager/dashboard" element={<ManagerDashboard />} />
+                <Route path="manager/business-ops" element={<ManagerBusinessOps />} />
+                <Route path="manager/team" element={<ManagerTeam />} />
+                <Route path="manager/leads" element={<ManagerLeadManagement />} />
+                <Route path="manager/company-brain" element={<ManagerCompanyBrain />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="business-ops" element={<BusinessOps />} />
+                <Route path="team" element={<TeamManagement />} />
+                <Route path="leads" element={<LeadManagement />} />
+                <Route path="company-brain" element={<CompanyBrain />} />
+              </Routes>
+            </MainLayout>
+          } />
         </Routes>
       </Router>
       <Toaster />
