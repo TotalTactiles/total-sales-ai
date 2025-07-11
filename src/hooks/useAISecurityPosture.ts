@@ -5,40 +5,13 @@ import { AccessControlService } from '@/services/security/accessControlService';
 import { EncryptionService } from '@/services/security/encryptionService';
 import { encodeBase64FromArrayBuffer, decodeBase64 } from '@/services/security/base64Service';
 import { supabase } from '@/integrations/supabase/client';
-
-interface SecurityIssue {
-  type: string;
-  severity: 'high' | 'medium' | 'low' | 'critical';
-  description: string;
-  recommendation: string;
-}
-
-interface SecurityPosture {
-  score: number;
-  issues: SecurityIssue[];
-  lastScan: Date | null;
-  isScanning: boolean;
-}
-
-interface SecurityEvent {
-  id: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  message: string;
-  timestamp: Date;
-  resolved: boolean;
-}
-
-interface WorkflowLimits {
-  maxWorkflows: number;
-  currentWorkflows: number;
-  maxExecutionTime: number;
-  maxMemoryUsage: number;
-}
+import { SecurityEvent, SecurityIssue, SecurityPosture, WorkflowLimits } from '@/types/security';
 
 export const useAISecurityPosture = () => {
   const { user, profile } = useAuth();
   const [securityPosture, setSecurityPosture] = useState<SecurityPosture>({
-    score: 100,
+    score: 85,
+    level: 'secure',
     issues: [],
     lastScan: null,
     isScanning: false
@@ -60,21 +33,26 @@ export const useAISecurityPosture = () => {
   }, [user?.id, profile?.company_id]);
 
   const loadSecurityEvents = () => {
-    // Mock security events for demo
     const mockEvents: SecurityEvent[] = [
       {
         id: '1',
+        type: 'unusual_pattern',
         severity: 'medium',
         message: 'Unusual access pattern detected from new IP address',
         timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        resolved: false
+        resolved: false,
+        source: '192.168.1.100',
+        affectedResource: 'user_authentication'
       },
       {
         id: '2',
+        type: 'rate_limit',
         severity: 'low',
         message: 'API rate limit approached for workflow automation',
         timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
-        resolved: true
+        resolved: true,
+        source: 'workflow_engine',
+        affectedResource: 'api_gateway'
       }
     ];
     setSecurityEvents(mockEvents);
@@ -82,72 +60,68 @@ export const useAISecurityPosture = () => {
 
   const refreshSecurityScore = async () => {
     setSecurityPosture(prev => ({ ...prev, isScanning: true }));
-    try {
-      const score = await calculateSecurityScore();
-      setSecurityPosture(prev => ({
-        ...prev,
-        score,
-        lastScan: new Date(),
-        isScanning: false
-      }));
-    } catch (error) {
-      console.error('Failed to refresh security score:', error);
-      setSecurityPosture(prev => ({ ...prev, isScanning: false }));
-    }
-  };
-
-  const calculateSecurityScore = async (): Promise<number> => {
+    
     try {
       let score = 100;
       const issues: SecurityIssue[] = [];
-
-      // Check encryption status
+      
+      // Simulate security checks
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Check access control
       try {
-        const testData = 'security-test-data';
-        const encrypted = await EncryptionService.encryptSensitiveData(testData);
-        const decrypted = await EncryptionService.decryptSensitiveData(encrypted);
+        const accessControl = AccessControlService.getInstance();
+        const hasProperAccess = await accessControl.checkPermission(user?.id || '', 'read', 'security_dashboard');
+        
+        if (!hasProperAccess) {
+          score -= 15;
+          issues.push({
+            type: 'access_control',
+            severity: 'high',
+            message: 'Access control configuration needs review',
+            description: 'Some security permissions may not be properly configured',
+            recommendation: 'Review and update access control policies'
+          });
+        }
+      } catch (error) {
+        score -= 10;
+        issues.push({
+          type: 'access_control',
+          severity: 'medium',
+          message: 'Access control system unavailable',
+          description: 'Unable to verify access control status',
+          recommendation: 'Check access control service connectivity'
+        });
+      }
+      
+      // Check encryption
+      try {
+        const encryption = EncryptionService.getInstance();
+        const testData = 'security-test';
+        const encrypted = await encryption.encrypt(testData);
+        const decrypted = await encryption.decrypt(encrypted);
         
         if (decrypted !== testData) {
           score -= 20;
           issues.push({
             type: 'encryption',
-            severity: 'high',
-            description: 'Encryption/decryption cycle failed',
-            recommendation: 'Review encryption service configuration'
+            severity: 'critical',
+            message: 'Encryption system integrity compromised',
+            description: 'Data encryption/decryption is not working correctly',
+            recommendation: 'Immediate review of encryption implementation required'
           });
         }
       } catch (error) {
-        score -= 25;
+        score -= 15;
         issues.push({
           type: 'encryption',
-          severity: 'critical',
-          description: 'Encryption service unavailable',
-          recommendation: 'Restart encryption service and verify keys'
-        });
-      }
-
-      // Check access control
-      try {
-        const hasAccess = await AccessControlService.checkAccess('test_resource', 'read', 'sales_rep');
-        if (typeof hasAccess !== 'boolean') {
-          score -= 15;
-          issues.push({
-            type: 'access_control',
-            severity: 'medium',
-            description: 'Access control service returning invalid responses',
-            recommendation: 'Review access control service implementation'
-          });
-        }
-      } catch (error) {
-        score -= 20;
-        issues.push({
-          type: 'access_control',
           severity: 'high',
-          description: 'Access control service error',
-          recommendation: 'Check access control service configuration'
+          message: 'Encryption service error',
+          description: 'Unable to verify encryption functionality',
+          recommendation: 'Check encryption service configuration'
         });
       }
-
+      
       // Check data integrity
       try {
         const testBuffer = new TextEncoder().encode('integrity-test');
@@ -159,26 +133,49 @@ export const useAISecurityPosture = () => {
           issues.push({
             type: 'data_integrity',
             severity: 'medium',
-            description: 'Data encoding/decoding inconsistency',
-            recommendation: 'Verify base64 service implementation'
+            message: 'Data integrity check failed',
+            description: 'Base64 encoding/decoding may have issues',
+            recommendation: 'Review data processing pipeline'
           });
         }
       } catch (error) {
-        score -= 15;
+        score -= 5;
         issues.push({
           type: 'data_integrity',
-          severity: 'high',
-          description: 'Data integrity check failed',
-          recommendation: 'Review data processing pipeline'
+          severity: 'low',
+          message: 'Data integrity check inconclusive',
+          description: 'Unable to complete data integrity verification',
+          recommendation: 'Monitor data processing for anomalies'
         });
       }
-
+      
+      const level: SecurityPosture['level'] = score >= 90 ? 'secure' : score >= 70 ? 'warning' : 'critical';
+      
+      setSecurityPosture({
+        score: Math.max(0, score),
+        level,
+        issues,
+        lastScan: new Date(),
+        isScanning: false
+      });
+      
       setSecurityIssues(issues);
-      return Math.max(0, score);
-
+      
     } catch (error) {
-      console.error('Security score calculation failed:', error);
-      return 0;
+      console.error('Security scan error:', error);
+      setSecurityPosture(prev => ({
+        ...prev,
+        isScanning: false,
+        score: 0,
+        level: 'critical',
+        issues: [{
+          type: 'authentication',
+          severity: 'critical',
+          message: 'Security scan failed',
+          description: 'Unable to complete security assessment',
+          recommendation: 'Contact system administrator'
+        }]
+      }));
     }
   };
 
