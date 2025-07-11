@@ -5,7 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import MainLayout from '@/layouts/MainLayout';
-import Login from '@/pages/Login';
+import NewLandingPage from '@/pages/NewLandingPage';
+import AuthPage from '@/pages/auth/AuthPage';
 
 const queryClient = new QueryClient();
 
@@ -15,8 +16,10 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/auth" element={<Login />} />
+            <Route path="/" element={<NewLandingPage />} />
+            <Route path="/landing" element={<NewLandingPage />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/login" element={<AuthPage />} />
             <Route path="/*" element={<MainLayout />} />
           </Routes>
         </Router>

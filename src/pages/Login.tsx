@@ -25,9 +25,9 @@ const Login: React.FC = () => {
           </p>
           <button 
             className="w-full mt-4 bg-[#7B61FF] text-white py-2 px-4 rounded-lg hover:bg-[#6B51E5] transition-colors"
-            onClick={() => window.location.href = '/'}
+            onClick={() => window.location.href = '/auth'}
           >
-            Continue to Dashboard
+            Continue to Auth Page
           </button>
         </div>
       </div>
