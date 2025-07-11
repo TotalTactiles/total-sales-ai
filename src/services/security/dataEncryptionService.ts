@@ -1,6 +1,5 @@
 
 import { logger } from '@/utils/logger';
-import { encodeBase64, decodeBase64 } from './base64Service';
 
 export class DataEncryptionService {
   private static instance: DataEncryptionService;
@@ -48,14 +47,25 @@ export class DataEncryptionService {
       combined.set(iv);
       combined.set(new Uint8Array(cipher), iv.byteLength);
 
-      return encodeBase64(combined);
+      // Convert to base64 string properly
+      let binaryString = '';
+      for (let i = 0; i < combined.byteLength; i++) {
+        binaryString += String.fromCharCode(combined[i]);
+      }
+      return btoa(binaryString);
     } catch (error) {
       logger.error('Encryption failed:', error);
       try {
         const jsonString = JSON.stringify(data);
         const encoder = new TextEncoder();
         const encoded = encoder.encode(jsonString);
-        return encodeBase64(encoded); // Fallback to basic encoding
+        
+        // Convert encoded data to base64 for fallback
+        let binaryString = '';
+        for (let i = 0; i < encoded.byteLength; i++) {
+          binaryString += String.fromCharCode(encoded[i]);
+        }
+        return btoa(binaryString);
       } catch {
         return JSON.stringify(data);
       }
@@ -82,8 +92,8 @@ export class DataEncryptionService {
     } catch (error) {
       logger.error('Decryption failed:', error);
       try {
-        const jsonString = decodeBase64(encryptedData);
-        return JSON.parse(jsonString);
+        const binaryString = atob(encryptedData);
+        return JSON.parse(binaryString);
       } catch {
         try {
           return JSON.parse(encryptedData); // Try parsing as unencrypted JSON

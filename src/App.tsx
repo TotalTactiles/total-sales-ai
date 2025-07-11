@@ -1,67 +1,73 @@
-
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
-import { DemoDataProvider } from '@/contexts/DemoDataContext';
-import AuthPage from '@/pages/auth/AuthPage';
-import MainLayout from '@/layouts/MainLayout';
-import LogoutHandler from '@/components/LogoutHandler';
-import NewLandingPage from '@/pages/NewLandingPage';
-import GlobalFeedback from '@/components/feedback/GlobalFeedback';
-import { useAuth } from '@/contexts/AuthContext';
-import { useSessionRefresh } from '@/hooks/useSessionRefresh';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient } from 'react-query';
+import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
+import Navigation from '@/components/Navigation';
+import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
+import LeadManagement from '@/pages/LeadManagement';
+import AnalyticsDashboard from '@/pages/AnalyticsDashboard';
+import ReportsDashboard from '@/pages/ReportsDashboard';
+import SecurityDashboard from '@/pages/SecurityDashboard';
+import AgentManagement from '@/pages/AgentManagement';
+import AutomationDashboard from '@/pages/AutomationDashboard';
+import DeveloperDashboard from '@/pages/DeveloperDashboard';
+import CompanyBrain from '@/pages/CompanyBrain';
+import SalesRepDashboard from '@/pages/SalesRepDashboard';
+import ManagerDashboard from '@/pages/manager/ManagerDashboard';
+import ManagerBusinessOps from '@/pages/manager/ManagerBusinessOps';
+import ManagerTeam from '@/pages/manager/ManagerTeam';
+import ManagerLeadManagement from '@/pages/manager/ManagerLeadManagement';
+import ManagerCompanyBrain from '@/pages/manager/ManagerCompanyBrain';
 
-const AppRoutes: React.FC = () => {
-  const { user, loading } = useAuth();
-  
-  // Initialize session refresh for authenticated users
-  useSessionRefresh();
-
-  // Show loading spinner while determining auth state
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-[#7B61FF] border-t-transparent mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Loading TSAM OS...</p>
-          <p className="text-gray-400 text-sm mt-2">Preparing your workspace</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If user is authenticated, show main app
-  if (user) {
-    return (
-      <Routes>
-        <Route path="/logout" element={<LogoutHandler />} />
-        <Route path="/*" element={<MainLayout />} />
-      </Routes>
-    );
-  }
-
-  // If not authenticated, show auth page or landing page
+function App() {
   return (
-    <Routes>
-      <Route path="/" element={<NewLandingPage />} />
-      <Route path="/auth" element={<AuthPage />} />
-      <Route path="/logout" element={<LogoutHandler />} />
-      <Route path="/*" element={<Navigate to="/auth" replace />} />
-    </Routes>
-  );
-};
+    <QueryClient>
+      <UnifiedAIProvider>
+        <Router>
+          <div className="min-h-screen bg-background">
+            <Routes>
+              {/* Core routes */}
+              <Route path="/" element={<Navigation />} />
+              <Route path="/lead-management" element={<LeadManagement />} />
+              <Route path="/analytics" element={<AnalyticsDashboard />} />
+              <Route path="/reports" element={<ReportsDashboard />} />
+              
+              {/* Security routes */}
+              <Route path="/security" element={<SecurityDashboard />} />
 
-const App: React.FC = () => {
-  return (
-    <Router>
-      <AuthProvider>
-        <DemoDataProvider>
-          <AppRoutes />
-          <GlobalFeedback />
-        </DemoDataProvider>
-      </AuthProvider>
-    </Router>
+              {/* Agent routes */}
+              <Route path="/agents" element={<AgentManagement />} />
+
+              {/* Automation routes */}
+              <Route path="/automation" element={<AutomationDashboard />} />
+
+              {/* Developer routes */}
+              <Route path="/developer" element={<DeveloperNavigation />} />
+              <Route path="/developer/dashboard" element={<DeveloperDashboard />} />
+
+              {/* Company Brain route */}
+              <Route path="/company-brain" element={<CompanyBrain />} />
+
+              {/* Sales Rep routes */}
+              <Route path="/sales-rep" element={<SalesRepNavigation />} />
+              <Route path="/sales-rep/dashboard" element={<SalesRepDashboard />} />
+              
+              {/* Manager routes */}
+              <Route path="/manager/dashboard" element={<ManagerDashboard />} />
+              <Route path="/manager/business-ops" element={<ManagerBusinessOps />} />
+              <Route path="/manager/team" element={<ManagerTeam />} />
+              <Route path="/manager/lead-management" element={<ManagerLeadManagement />} />
+              <Route path="/manager/company-brain" element={<ManagerCompanyBrain />} />
+              
+              {/* Default route */}
+              <Route path="*" element={<div>Page not found</div>} />
+            </Routes>
+          </div>
+        </Router>
+      </UnifiedAIProvider>
+    </QueryClient>
   );
-};
+}
 
 export default App;
