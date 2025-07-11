@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 const MarketingPerformance = () => {
@@ -9,8 +9,8 @@ const MarketingPerformance = () => {
       name: 'Google Ads',
       leads: '157',
       conversion: '34.2%',
-      roas: '$43,000',
-      cost: '$6,500',
+      roas: '$45,000',
+      cost: '$8,500',
       trend: 'up',
       trendIcon: TrendingUp,
       bgColor: 'bg-green-50'

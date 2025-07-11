@@ -8,7 +8,7 @@ const ManagerDashboardMetrics = () => {
     {
       title: 'Team Revenue',
       value: '$340,320',
-      subtitle: '+12% from last month',
+      subtitle: '+13% from last month',
       icon: DollarSign,
       bgColor: 'bg-green-50',
       textColor: 'text-green-700',
@@ -17,7 +17,7 @@ const ManagerDashboardMetrics = () => {
     {
       title: 'AI Risk',
       value: '2',
-      subtitle: 'Rep needs attention',
+      subtitle: 'Requires attention',
       icon: AlertTriangle,
       bgColor: 'bg-red-50',
       textColor: 'text-red-700',
@@ -26,7 +26,7 @@ const ManagerDashboardMetrics = () => {
     {
       title: 'Pipeline Data',
       value: '+$137,700',
-      subtitle: 'Expected this quarter',
+      subtitle: 'Expected to close',
       icon: TrendingUp,
       bgColor: 'bg-blue-50',
       textColor: 'text-blue-700',
@@ -35,7 +35,7 @@ const ManagerDashboardMetrics = () => {
     {
       title: 'Active Rewards',
       value: '3',
-      subtitle: 'Team incentives running',
+      subtitle: 'New incentive running',
       icon: Trophy,
       bgColor: 'bg-yellow-50',
       textColor: 'text-yellow-700',
@@ -44,7 +44,7 @@ const ManagerDashboardMetrics = () => {
     {
       title: 'Month Complete',
       value: '68%',
-      subtitle: '21 days remaining',
+      subtitle: '3 days remaining',
       icon: Calendar,
       bgColor: 'bg-purple-50',
       textColor: 'text-purple-700',

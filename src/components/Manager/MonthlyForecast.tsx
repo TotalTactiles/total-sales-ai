@@ -25,10 +25,10 @@ const MonthlyForecast = () => {
               <span>68% Month Complete</span>
               <span>100% Goal Progress</span>
             </div>
-            <Progress value={68} className="h-2" />
+            <Progress value={100} className="h-2" />
             <div className="flex justify-between text-xs text-gray-500">
               <span>$425,000 Achieved</span>
-              <span>$600,000 Target</span>
+              <span>$400,000 Target</span>
             </div>
           </div>
           
