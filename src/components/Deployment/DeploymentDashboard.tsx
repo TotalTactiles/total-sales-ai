@@ -85,7 +85,7 @@ const DeploymentDashboard: React.FC = () => {
 
   const totalEnvironments = environments.length;
   const activeEnvironments = environments.filter(e => e.status === 'active').length;
-  const healthyenvironments = environments.filter(e => e.healthCheck.status === 'healthy').length;
+  const healthyEnvironments = environments.filter(e => e.healthCheck.status === 'healthy').length;
 
   if (loading) {
     return (

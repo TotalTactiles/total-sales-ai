@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AccessControlService } from '@/services/security/accessControlService';
 import { EncryptionService } from '@/services/security/encryptionService';
-import { base64Service } from '@/services/security/base64Service';
+import { encodeBase64FromArrayBuffer, decodeBase64 } from '@/services/security/base64Service';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SecurityIssue {
@@ -19,6 +20,21 @@ interface SecurityPosture {
   isScanning: boolean;
 }
 
+interface SecurityEvent {
+  id: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  message: string;
+  timestamp: Date;
+  resolved: boolean;
+}
+
+interface WorkflowLimits {
+  maxWorkflows: number;
+  currentWorkflows: number;
+  maxExecutionTime: number;
+  maxMemoryUsage: number;
+}
+
 export const useAISecurityPosture = () => {
   const { user, profile } = useAuth();
   const [securityPosture, setSecurityPosture] = useState<SecurityPosture>({
@@ -28,12 +44,41 @@ export const useAISecurityPosture = () => {
     isScanning: false
   });
   const [securityIssues, setSecurityIssues] = useState<SecurityIssue[]>([]);
+  const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([]);
+  const [workflowLimits] = useState<WorkflowLimits>({
+    maxWorkflows: 50,
+    currentWorkflows: 12,
+    maxExecutionTime: 30000,
+    maxMemoryUsage: 1024
+  });
 
   useEffect(() => {
     if (user?.id && profile?.company_id) {
       refreshSecurityScore();
+      loadSecurityEvents();
     }
   }, [user?.id, profile?.company_id]);
+
+  const loadSecurityEvents = () => {
+    // Mock security events for demo
+    const mockEvents: SecurityEvent[] = [
+      {
+        id: '1',
+        severity: 'medium',
+        message: 'Unusual access pattern detected from new IP address',
+        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+        resolved: false
+      },
+      {
+        id: '2',
+        severity: 'low',
+        message: 'API rate limit approached for workflow automation',
+        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+        resolved: true
+      }
+    ];
+    setSecurityEvents(mockEvents);
+  };
 
   const refreshSecurityScore = async () => {
     setSecurityPosture(prev => ({ ...prev, isScanning: true }));
@@ -106,10 +151,10 @@ export const useAISecurityPosture = () => {
       // Check data integrity
       try {
         const testBuffer = new TextEncoder().encode('integrity-test');
-        const encoded = base64Service.encodeBase64FromArrayBuffer(testBuffer.buffer);
-        const decoded = base64Service.decodeBase64(encoded);
+        const encoded = encodeBase64FromArrayBuffer(testBuffer.buffer);
+        const decoded = decodeBase64(encoded);
         
-        if (!decoded || decoded.byteLength !== testBuffer.length) {
+        if (!decoded || decoded.length !== testBuffer.length) {
           score -= 10;
           issues.push({
             type: 'data_integrity',
@@ -137,9 +182,32 @@ export const useAISecurityPosture = () => {
     }
   };
 
+  const getSecurityStatus = (): string => {
+    if (securityPosture.score >= 90) return 'secure';
+    if (securityPosture.score >= 70) return 'warning';
+    return 'critical';
+  };
+
+  const resolveSecurityEvent = (eventId: string) => {
+    setSecurityEvents(prev => 
+      prev.map(event => 
+        event.id === eventId ? { ...event, resolved: true } : event
+      )
+    );
+  };
+
+  const validateWorkflowLimits = () => {
+    return workflowLimits.currentWorkflows < workflowLimits.maxWorkflows;
+  };
+
   return {
     securityPosture,
     securityIssues,
-    refreshSecurityScore
+    securityEvents,
+    workflowLimits,
+    refreshSecurityScore,
+    getSecurityStatus,
+    resolveSecurityEvent,
+    validateWorkflowLimits
   };
 };
