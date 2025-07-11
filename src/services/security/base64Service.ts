@@ -13,7 +13,20 @@ export const decryptSensitiveData = (encryptedData: string): string => {
   }
 };
 
+export const encodeBase64FromArrayBuffer = (buffer: ArrayBuffer): string => {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+};
+
+export const encodeBase64 = encryptSensitiveData;
+export const decodeBase64 = decryptSensitiveData;
+
 export const base64Service = {
   encode: encryptSensitiveData,
-  decode: decryptSensitiveData
+  decode: decryptSensitiveData,
+  encodeFromArrayBuffer: encodeBase64FromArrayBuffer
 };

@@ -1,32 +1,27 @@
-import { logger } from '@/utils/logger';
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { 
-  Send, 
   Mic, 
   MicOff, 
+  Send, 
   FileText, 
-  Zap, 
-  BarChart3,
-  Users,
-  Calendar,
-  Settings,
-  Lightbulb
+  BarChart3, 
+  Users, 
+  Target,
+  Brain,
+  Loader2
 } from 'lucide-react';
-import { useUnifiedAI } from '@/contexts/UnifiedAIContext';
-import { toast } from 'sonner';
 
 interface ManagerAIPanelProps {
   voiceEnabled: boolean;
   onVoiceToggle: () => void;
   isListening: boolean;
-  onGenerateReport: () => Promise<string | null>;
-  onAskJarvis: (question: string) => Promise<string | null>;
+  onGenerateReport: () => Promise<void>;
+  onAskJarvis: (question: string, context?: any) => Promise<any>;
 }
 
 const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
@@ -36,236 +31,176 @@ const ManagerAIPanel: React.FC<ManagerAIPanelProps> = ({
   onGenerateReport,
   onAskJarvis
 }) => {
-  const [question, setQuestion] = useState('');
+  const [query, setQuery] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [responses, setResponses] = useState<Array<{id: string, question: string, answer: string, timestamp: Date}>>([]);
-  const { logAIInteraction } = useUnifiedAI();
-
-  const handleAskJarvis = async () => {
-    if (!question.trim() || isProcessing) return;
-
-    setIsProcessing(true);
-    const currentQuestion = question;
-    setQuestion('');
-
-    try {
-      const response = await onAskJarvis(currentQuestion);
-      
-      if (response) {
-        const newResponse = {
-          id: crypto.randomUUID(),
-          question: currentQuestion,
-          answer: response,
-          timestamp: new Date()
-        };
-        
-        setResponses(prev => [newResponse, ...prev]);
-        
-        // Log the interaction
-        await logAIInteraction('jarvis_interaction', {
-          question: currentQuestion,
-          response_length: response.length,
-          success: true
-        });
-        
-        toast.success('Jarvis response generated');
-      }
-    } catch (error) {
-      logger.error('Error asking Jarvis:', error);
-      toast.error('Failed to get response from Jarvis');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleGenerateReport = async () => {
-    setIsProcessing(true);
-    
-    try {
-      const report = await onGenerateReport();
-      
-      if (report) {
-        const reportResponse = {
-          id: crypto.randomUUID(),
-          question: 'Generate Executive Report',
-          answer: report,
-          timestamp: new Date()
-        };
-        
-        setResponses(prev => [reportResponse, ...prev]);
-        
-        await logAIInteraction('executive_report', {
-          report_length: report.length,
-          success: true
-        });
-        
-        toast.success('Executive report generated');
-      }
-    } catch (error) {
-      logger.error('Error generating report:', error);
-      toast.error('Failed to generate report');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
+  const [conversation, setConversation] = useState<Array<{
+    role: 'user' | 'ai';
+    content: string;
+    timestamp: string;
+  }>>([]);
 
   const quickActions = [
     {
-      id: 'team-performance',
+      icon: <BarChart3 className="h-4 w-4" />,
       label: 'Team Performance',
-      icon: Users,
-      question: 'Analyze current team performance and identify top performers and areas for improvement'
+      action: () => askJarvis('Analyze current team performance metrics')
     },
     {
-      id: 'lead-optimization',
-      label: 'Lead Optimization',
-      icon: BarChart3,
-      question: 'Review lead distribution and suggest optimization strategies for better conversion'
+      icon: <Users className="h-4 w-4" />,
+      label: 'Resource Planning',
+      action: () => askJarvis('Provide resource allocation recommendations')
     },
     {
-      id: 'automation-opportunities',
-      label: 'Automation Ideas',
-      icon: Zap,
-      question: 'Identify processes that can be automated to improve efficiency'
+      icon: <Target className="h-4 w-4" />,
+      label: 'Goal Progress',
+      action: () => askJarvis('Review progress toward quarterly goals')
     },
     {
-      id: 'strategic-insights',
-      label: 'Strategic Insights',
-      icon: Lightbulb,
-      question: 'Provide strategic insights based on current metrics and market trends'
+      icon: <FileText className="h-4 w-4" />,
+      label: 'Generate Report',
+      action: onGenerateReport
     }
   ];
 
-  const handleQuickAction = async (action: typeof quickActions[0]) => {
-    setQuestion(action.question);
-    await handleAskJarvis();
+  const askJarvis = async (question: string) => {
+    if (!question.trim()) return;
+
+    setIsProcessing(true);
+    
+    const userMessage = {
+      role: 'user' as const,
+      content: question,
+      timestamp: new Date().toLocaleTimeString()
+    };
+
+    setConversation(prev => [...prev, userMessage]);
+
+    try {
+      const response = await onAskJarvis(question);
+      
+      const aiMessage = {
+        role: 'ai' as const,
+        content: response?.response || 'I understand your request and am processing it.',
+        timestamp: new Date().toLocaleTimeString()
+      };
+
+      setConversation(prev => [...prev, aiMessage]);
+    } catch (error) {
+      const errorMessage = {
+        role: 'ai' as const,
+        content: 'I apologize, but I encountered an error processing your request. Please try again.',
+        timestamp: new Date().toLocaleTimeString()
+      };
+      
+      setConversation(prev => [...prev, errorMessage]);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSendQuery = async () => {
+    if (!query.trim()) return;
+    
+    await askJarvis(query);
+    setQuery('');
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Zap className="h-5 w-5 text-blue-600" />
-            Quick Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            {quickActions.map((action) => (
-              <Button
-                key={action.id}
-                variant="outline"
-                className="flex items-center gap-2 h-auto p-3 text-left"
-                onClick={() => handleQuickAction(action)}
-                disabled={isProcessing}
-              >
-                <action.icon className="h-4 w-4 text-blue-600" />
-                <span className="text-sm">{action.label}</span>
-              </Button>
-            ))}
-          </div>
-          
-          <div className="mt-4 pt-4 border-t">
-            <Button
-              onClick={handleGenerateReport}
-              disabled={isProcessing}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              {isProcessing ? 'Generating...' : 'Generate Executive Report'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-2 gap-2">
+        {quickActions.map((action, index) => (
+          <Button
+            key={index}
+            variant="outline"
+            size="sm"
+            onClick={action.action}
+            disabled={isProcessing}
+            className="flex items-center gap-2 h-auto p-3 text-xs"
+          >
+            {action.icon}
+            <span className="truncate">{action.label}</span>
+          </Button>
+        ))}
+      </div>
 
-      {/* Chat Interface */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Mic className="h-5 w-5 text-purple-600" />
-            Ask Jarvis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Textarea
-                placeholder="Ask Jarvis anything about your business, team, or strategy..."
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleAskJarvis();
-                  }
-                }}
-                className="flex-1 min-h-[80px]"
-                disabled={isProcessing}
-              />
-            </div>
-            
+      {/* Voice Controls */}
+      <Card className="bg-muted/20">
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button
-                onClick={handleAskJarvis}
-                disabled={!question.trim() || isProcessing}
-                className="flex-1"
-              >
-                <Send className="h-4 w-4 mr-2" />
-                {isProcessing ? 'Processing...' : 'Ask Jarvis'}
-              </Button>
-              
-              <Button
-                variant="outline"
+                variant={voiceEnabled ? "default" : "outline"}
+                size="sm"
                 onClick={onVoiceToggle}
-                className={`${voiceEnabled ? 'bg-red-50 border-red-200' : ''}`}
+                className="flex items-center gap-1"
               >
-                {voiceEnabled ? (
-                  <MicOff className="h-4 w-4 text-red-600" />
-                ) : (
-                  <Mic className="h-4 w-4" />
-                )}
+                {voiceEnabled ? <Mic className="h-3 w-3" /> : <MicOff className="h-3 w-3" />}
+                Voice
               </Button>
+              {isListening && (
+                <Badge variant="outline" className="animate-pulse">
+                  Listening...
+                </Badge>
+              )}
             </div>
-            
-            {isListening && (
-              <div className="flex items-center gap-2 text-red-600 text-sm">
-                <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
-                Listening...
-              </div>
-            )}
+            <div className="text-xs text-muted-foreground">
+              {voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Recent Responses */}
-      {responses.length > 0 && (
+      {/* Conversation History */}
+      {conversation.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Recent Responses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {responses.map((response) => (
-                <div key={response.id} className="border-l-4 border-blue-500 pl-4 py-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Badge variant="outline" className="text-xs">
-                      {response.timestamp.toLocaleTimeString()}
-                    </Badge>
+          <CardContent className="p-3 max-h-40 overflow-y-auto">
+            <div className="space-y-2">
+              {conversation.map((message, index) => (
+                <div
+                  key={index}
+                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] p-2 rounded text-xs ${
+                      message.role === 'user'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted'
+                    }`}
+                  >
+                    <div className="flex items-start gap-1">
+                      {message.role === 'ai' && <Brain className="h-3 w-3 mt-0.5 flex-shrink-0" />}
+                      <div>
+                        <p>{message.content}</p>
+                        <p className="text-xs opacity-70 mt-1">{message.timestamp}</p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">
-                    Q: {response.question}
-                  </p>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
-                    {response.answer}
-                  </p>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Query Input */}
+      <div className="flex gap-2">
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Ask Jarvis about your business..."
+          className="flex-1 text-sm"
+          onKeyPress={(e) => e.key === 'Enter' && handleSendQuery()}
+          disabled={isProcessing}
+        />
+        <Button
+          onClick={handleSendQuery}
+          disabled={!query.trim() || isProcessing}
+          size="sm"
+        >
+          {isProcessing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+        </Button>
+      </div>
     </div>
   );
 };

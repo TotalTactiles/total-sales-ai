@@ -12,20 +12,31 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { profile } = useAuth();
 
-  // Show chat bubble on key workspaces and authenticated pages
-  const isKeyWorkspace = location.pathname.includes('/dialer') || 
-                        location.pathname.includes('/analytics') || 
-                        location.pathname.includes('/leads') ||
-                        location.pathname.includes('/ai-agent') ||
-                        location.pathname.includes('/dashboard');
-  
-  const showChatBubble = profile && !location.pathname.includes('/auth') && isKeyWorkspace;
+  // Determine assistant type based on current route
+  const getAssistantType = () => {
+    if (location.pathname.includes('/manager/dashboard')) return 'dashboard';
+    if (location.pathname.includes('/manager/business-ops')) return 'business-ops';
+    if (location.pathname.includes('/manager/team')) return 'team';
+    if (location.pathname.includes('/manager/leads')) return 'leads';
+    if (location.pathname.includes('/manager/company-brain')) return 'company-brain';
+    return null;
+  };
+
+  // Show chat bubble on manager pages only
+  const assistantType = getAssistantType();
+  const showChatBubble = profile?.role === 'manager' && assistantType;
 
   return (
     <div className="min-h-screen bg-background">
       {children}
       
-      {showChatBubble && <ChatBubble />}
+      {showChatBubble && (
+        <ChatBubble 
+          assistantType={assistantType as 'dashboard' | 'business-ops' | 'team' | 'leads' | 'company-brain'}
+          enabled={true}
+          context={{}}
+        />
+      )}
     </div>
   );
 };

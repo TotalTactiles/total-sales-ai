@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,20 @@ import { useLocation } from 'react-router-dom';
 import ManagerAIPanel from './ManagerAIPanel';
 import ManagerAIInsights from './ManagerAIInsights';
 import { useManagerAI } from '@/hooks/useManagerAI';
+
+interface ManagerInsight {
+  id: string;
+  type: 'alert' | 'insight' | 'recommendation';
+  title: string;
+  description: string;
+  value: string | number;
+  trend: 'up' | 'down' | 'stable';
+  impact: 'low' | 'medium' | 'high';
+  actionRequired?: boolean;
+  priority: 'low' | 'medium' | 'high' | 'critical';
+  timestamp: string;
+  assistantType: 'dashboard' | 'business-ops' | 'team' | 'leads' | 'company-brain';
+}
 
 interface ManagerAIAssistantProps {
   className?: string;
@@ -82,6 +95,25 @@ const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ className = '' 
       setIsListening(true);
     } else {
       setIsListening(false);
+    }
+  };
+
+  // Convert AIInsight to ManagerInsight
+  const convertToManagerInsights = (insights: typeof contextualInsights): ManagerInsight[] => {
+    return insights.map(insight => ({
+      ...insight,
+      description: insight.message,
+      value: insight.type === 'alert' ? 'Attention Required' : 'Review Recommended',
+      trend: 'stable' as const,
+      impact: insight.priority === 'critical' ? 'high' : insight.priority as 'low' | 'medium' | 'high'
+    }));
+  };
+
+  const handleGenerateReport = async () => {
+    try {
+      await generateManagerReport('weekly');
+    } catch (error) {
+      console.error('Failed to generate report:', error);
     }
   };
 
@@ -179,7 +211,7 @@ const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ className = '' 
                     {getContextualTitle()}
                   </h3>
                   <ManagerAIInsights 
-                    insights={contextualInsights}
+                    insights={convertToManagerInsights(contextualInsights)}
                     isGenerating={isGenerating}
                     currentPage={location.pathname}
                   />
@@ -190,7 +222,7 @@ const ManagerAIAssistant: React.FC<ManagerAIAssistantProps> = ({ className = '' 
                   voiceEnabled={voiceEnabled}
                   onVoiceToggle={handleVoiceToggle}
                   isListening={isListening}
-                  onGenerateReport={generateManagerReport}
+                  onGenerateReport={handleGenerateReport}
                   onAskJarvis={askJarvis}
                 />
               </div>
