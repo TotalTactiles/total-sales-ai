@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
+import { AuthProvider } from '@/contexts/AuthContext';
 import MainLayout from '@/components/Layout/MainLayout';
 import Login from '@/pages/Login';
 import Dashboard from '@/pages/manager/Dashboard';
@@ -21,29 +22,31 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={
-            <MainLayout>
-              <Routes>
-                <Route index element={<Dashboard />} />
-                <Route path="manager/dashboard" element={<ManagerDashboard />} />
-                <Route path="manager/business-ops" element={<ManagerBusinessOps />} />
-                <Route path="manager/team" element={<ManagerTeam />} />
-                <Route path="manager/leads" element={<ManagerLeadManagement />} />
-                <Route path="manager/company-brain" element={<ManagerCompanyBrain />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="business-ops" element={<BusinessOps />} />
-                <Route path="team" element={<TeamManagement />} />
-                <Route path="leads" element={<LeadManagement />} />
-                <Route path="company-brain" element={<CompanyBrain />} />
-              </Routes>
-            </MainLayout>
-          } />
-        </Routes>
-      </Router>
-      <Toaster />
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={
+              <MainLayout>
+                <Routes>
+                  <Route index element={<Dashboard />} />
+                  <Route path="manager/dashboard" element={<ManagerDashboard />} />
+                  <Route path="manager/business-ops" element={<ManagerBusinessOps />} />
+                  <Route path="manager/team" element={<ManagerTeam />} />
+                  <Route path="manager/leads" element={<ManagerLeadManagement />} />
+                  <Route path="manager/company-brain" element={<ManagerCompanyBrain />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="business-ops" element={<BusinessOps />} />
+                  <Route path="team" element={<TeamManagement />} />
+                  <Route path="leads" element={<LeadManagement />} />
+                  <Route path="company-brain" element={<CompanyBrain />} />
+                </Routes>
+              </MainLayout>
+            } />
+          </Routes>
+        </Router>
+        <Toaster />
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
