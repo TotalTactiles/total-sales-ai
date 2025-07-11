@@ -1,6 +1,5 @@
 
 import React from 'react';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import AIDailySummary from '@/components/Dashboard/AIDailySummary';
 import ChatBubble from '@/components/AI/ChatBubble';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -134,10 +133,9 @@ const ManagerDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <ManagerNavigation />
-      
-      <div className="p-6 pt-20">
+    <div className="h-full overflow-y-auto">
+      <div className="p-6">
+        {/* Page Header - NO NAVIGATION HERE */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
             Manager Dashboard
@@ -387,7 +385,7 @@ const ManagerDashboard = () => {
           
           {/* Right Sidebar - AI Daily Summary */}
           <div className="lg:col-span-1">
-            <div className="sticky top-24">
+            <div className="sticky top-6">
               <AIDailySummary summary={aiSummary} isFullUser={true} />
             </div>
           </div>
