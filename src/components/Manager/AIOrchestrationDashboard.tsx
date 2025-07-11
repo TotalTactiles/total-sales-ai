@@ -1,397 +1,409 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Brain, 
   Zap, 
   Activity, 
   Clock, 
   CheckCircle, 
-  AlertCircle,
-  Play,
-  Pause,
-  RotateCcw,
-  TrendingUp
+  AlertTriangle,
+  RefreshCw,
+  Cpu,
+  Eye,
+  Mic,
+  BarChart3
 } from 'lucide-react';
 import { aiOrchestrator } from '@/services/ai/orchestration/AIOrchestrator';
 import { agentCoordinator } from '@/services/ai/coordination/AgentCoordinator';
+import { multiModalProcessor } from '@/services/ai/multimodal/MultiModalProcessor';
 
-const AIOrchestrationDashboard = () => {
+const AIOrchestrationDashboard: React.FC = () => {
   const [agents, setAgents] = useState<any[]>([]);
-  const [taskQueue, setTaskQueue] = useState<any[]>([]);
   const [activeTasks, setActiveTasks] = useState<any[]>([]);
-  const [activeCoordinations, setActiveCoordinations] = useState<any[]>([]);
-  const [orchestratorStats, setOrchestratorStats] = useState({
-    totalTasks: 0,
-    completedTasks: 0,
-    failedTasks: 0,
-    avgResponseTime: 0,
-    activeAgents: 0
-  });
+  const [taskQueue, setTaskQueue] = useState<any[]>([]);
+  const [coordinations, setCoordinations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadDashboardData();
-    const interval = setInterval(loadDashboardData, 5000);
+    const interval = setInterval(loadDashboardData, 10000); // Refresh every 10 seconds
     return () => clearInterval(interval);
   }, []);
 
   const loadDashboardData = async () => {
     try {
-      const [agentStatus, queueStatus, activeStatus, coordinations] = await Promise.all([
+      const [agentsData, activeTasksData, queueData, coordinationsData] = await Promise.all([
         aiOrchestrator.getAgentStatus(),
-        aiOrchestrator.getTaskQueue(),
         aiOrchestrator.getActiveTasks(),
+        aiOrchestrator.getTaskQueue(),
         agentCoordinator.getActiveCoordinations()
       ]);
 
-      setAgents(agentStatus);
-      setTaskQueue(queueStatus);
-      setActiveTasks(activeStatus);
-      setActiveCoordinations(coordinations);
-
-      // Calculate stats
-      const activeAgents = agentStatus.filter(agent => agent.status === 'active' || agent.status === 'busy').length;
-      const totalTasks = queueStatus.length + activeStatus.length;
-      const avgResponseTime = agentStatus.reduce((sum, agent) => sum + agent.performance.avgResponseTime, 0) / agentStatus.length;
-
-      setOrchestratorStats({
-        totalTasks,
-        completedTasks: Math.floor(Math.random() * 100), // Mock data
-        failedTasks: Math.floor(Math.random() * 10),
-        avgResponseTime: Math.round(avgResponseTime || 0),
-        activeAgents
-      });
-
+      setAgents(agentsData);
+      setActiveTasks(activeTasksData);
+      setTaskQueue(queueData);
+      setCoordinations(coordinationsData);
     } catch (error) {
-      console.error('Failed to load orchestration data:', error);
+      console.error('Failed to load AI orchestration data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getAgentStatusColor = (status: string) => {
+  const getAgentIcon = (type: string) => {
+    switch (type) {
+      case 'voice': return <Mic className="h-4 w-4" />;
+      case 'visual': return <Eye className="h-4 w-4" />;
+      case 'analytics': return <BarChart3 className="h-4 w-4" />;
+      case 'text': return <Brain className="h-4 w-4" />;
+      default: return <Cpu className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-500';
-      case 'busy': return 'bg-yellow-500';
       case 'idle': return 'bg-blue-500';
-      case 'offline': return 'bg-gray-500';
+      case 'busy': return 'bg-yellow-500';
+      case 'offline': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
 
-  const getAgentTypeIcon = (type: string) => {
-    switch (type) {
-      case 'voice': return '🎤';
-      case 'text': return '📝';
-      case 'analytics': return '📊';
-      case 'visual': return '👁️';
-      default: return '🤖';
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+      case 'idle':
+        return <CheckCircle className="h-4 w-4" />;
+      case 'busy':
+        return <RefreshCw className="h-4 w-4 animate-spin" />;
+      case 'offline':
+        return <AlertTriangle className="h-4 w-4" />;
+      default:
+        return <Clock className="h-4 w-4" />;
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'critical': return 'bg-red-100 text-red-800 border-red-200';
-      case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'medium': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'low': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  const totalAgents = agents.length;
+  const activeAgents = agents.filter(a => a.status === 'active' || a.status === 'busy').length;
+  const avgResponseTime = agents.length > 0 ? 
+    Math.round(agents.reduce((sum, a) => sum + a.performance.avgResponseTime, 0) / agents.length) : 0;
+  const avgSuccessRate = agents.length > 0 ?
+    Math.round(agents.reduce((sum, a) => sum + a.performance.successRate, 0) / agents.length * 100) : 0;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <RefreshCw className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-l-4 border-l-blue-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Brain className="h-5 w-5 text-blue-600" />
-              Active Agents
-            </CardTitle>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">AI Agents</CardTitle>
+            <Cpu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-blue-700">{orchestratorStats.activeAgents}</div>
-            <p className="text-sm text-gray-600">of {agents.length} total</p>
+            <div className="text-2xl font-bold">{totalAgents}</div>
+            <p className="text-xs text-muted-foreground">
+              {activeAgents} active
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Tasks Completed
-            </CardTitle>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Tasks</CardTitle>
+            <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-700">{orchestratorStats.completedTasks}</div>
-            <p className="text-sm text-gray-600">+12% from yesterday</p>
+            <div className="text-2xl font-bold">{activeTasks.length}</div>
+            <p className="text-xs text-muted-foreground">
+              {taskQueue.length} queued
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-orange-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Clock className="h-5 w-5 text-orange-600" />
-              Avg Response Time
-            </CardTitle>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Avg Response Time</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-orange-700">{orchestratorStats.avgResponseTime}ms</div>
-            <p className="text-sm text-gray-600">-5ms improvement</p>
+            <div className="text-2xl font-bold">{avgResponseTime}ms</div>
+            <p className="text-xs text-muted-foreground">
+              Across all agents
+            </p>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-purple-500">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Activity className="h-5 w-5 text-purple-600" />
-              Queue Size
-            </CardTitle>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-purple-700">{taskQueue.length}</div>
-            <p className="text-sm text-gray-600">{activeTasks.length} processing</p>
+            <div className="text-2xl font-bold">{avgSuccessRate}%</div>
+            <p className="text-xs text-muted-foreground">
+              Overall performance
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Agent Status Grid */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5" />
-            AI Agent Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Tabs defaultValue="agents" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="agents">AI Agents</TabsTrigger>
+          <TabsTrigger value="tasks">Active Tasks</TabsTrigger>
+          <TabsTrigger value="queue">Task Queue</TabsTrigger>
+          <TabsTrigger value="coordination">Coordination</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="agents" className="space-y-4">
+          <div className="grid gap-4">
             {agents.map((agent) => (
-              <div key={agent.id} className="border rounded-lg p-4 bg-white hover:shadow-md transition-shadow">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{getAgentTypeIcon(agent.type)}</span>
-                    <div>
-                      <h3 className="font-semibold text-sm">{agent.name}</h3>
-                      <p className="text-xs text-gray-500 capitalize">{agent.type}</p>
+              <Card key={agent.id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-2 h-2 rounded-full ${getStatusColor(agent.status)}`} />
+                      {getAgentIcon(agent.type)}
+                      <CardTitle className="text-lg">{agent.name}</CardTitle>
+                      <Badge variant="outline">{agent.type}</Badge>
                     </div>
-                  </div>
-                  <div className={`w-3 h-3 rounded-full ${getAgentStatusColor(agent.status)}`}></div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Success Rate:</span>
-                    <span className="font-medium">{Math.round(agent.performance.successRate * 100)}%</span>
-                  </div>
-                  
-                  <Progress 
-                    value={agent.performance.successRate * 100} 
-                    className="h-2"
-                  />
-                  
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Avg: {agent.performance.avgResponseTime}ms</span>
-                    <span>Errors: {agent.performance.errorCount}</span>
-                  </div>
-                </div>
-                
-                <div className="mt-3 flex flex-wrap gap-1">
-                  {agent.capabilities.slice(0, 2).map((capability: string) => (
-                    <Badge key={capability} variant="outline" className="text-xs">
-                      {capability.replace('-', ' ')}
-                    </Badge>
-                  ))}
-                  {agent.capabilities.length > 2 && (
-                    <Badge variant="outline" className="text-xs">
-                      +{agent.capabilities.length - 2}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Task Queue and Active Tasks */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Task Queue */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Task Queue ({taskQueue.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-80 overflow-y-auto">
-              {taskQueue.slice(0, 10).map((task) => (
-                <div key={task.id} className="border rounded-lg p-3 bg-gray-50">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Badge className={getPriorityColor(task.priority)}>
-                        {task.priority}
+                    <div className="flex items-center space-x-2">
+                      <Badge 
+                        variant={agent.status === 'active' || agent.status === 'idle' ? 'default' : 'destructive'}
+                        className="flex items-center space-x-1"
+                      >
+                        {getStatusIcon(agent.status)}
+                        <span>{agent.status}</span>
                       </Badge>
-                      <span className="font-medium text-sm">{task.type}</span>
+                      <Badge variant="secondary">Priority {agent.priority}</Badge>
                     </div>
-                    <span className="text-xs text-gray-500">
-                      {new Date(task.createdAt || Date.now()).toLocaleTimeString()}
-                    </span>
                   </div>
-                  
-                  <div className="text-sm text-gray-600">
-                    Requires: {task.requiredCapabilities?.join(', ') || 'General AI'}
-                  </div>
-                  
-                  {task.deadline && (
-                    <div className="text-xs text-orange-600 mt-1">
-                      Deadline: {new Date(task.deadline).toLocaleString()}
+                  <CardDescription>
+                    Last heartbeat: {agent.lastHeartbeat.toLocaleString()}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Response Time</p>
+                        <p className="font-medium">{agent.performance.avgResponseTime}ms</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Success Rate</p>
+                        <p className="font-medium">{Math.round(agent.performance.successRate * 100)}%</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Error Count</p>
+                        <p className="font-medium text-red-600">{agent.performance.errorCount}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Capabilities</p>
+                        <p className="font-medium">{agent.capabilities.length}</p>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
-              
-              {taskQueue.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No tasks in queue</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Active Tasks */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5" />
-              Active Tasks ({activeTasks.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3 max-h-80 overflow-y-auto">
-              {activeTasks.map((task) => (
-                <div key={task.id} className="border rounded-lg p-3 bg-blue-50">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                      <span className="font-medium text-sm">{task.type}</span>
-                    </div>
-                    <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                      Processing
-                    </Badge>
-                  </div>
-                  
-                  <div className="text-sm text-gray-600">
-                    Agent: {task.assignedAgent || 'Assigning...'}
-                  </div>
-                  
-                  <div className="mt-2">
-                    <div className="flex justify-between text-xs text-gray-500 mb-1">
-                      <span>Progress</span>
-                      <span>{Math.floor(Math.random() * 80 + 10)}%</span>
-                    </div>
-                    <Progress value={Math.floor(Math.random() * 80 + 10)} className="h-1" />
-                  </div>
-                </div>
-              ))}
-              
-              {activeTasks.length === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <Zap className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No active tasks</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Coordination Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Active Coordinations ({activeCoordinations.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {activeCoordinations.length > 0 ? (
-            <div className="space-y-4">
-              {activeCoordinations.map((coordination) => (
-                <div key={coordination.id} className="border rounded-lg p-4 bg-gradient-to-r from-purple-50 to-blue-50">
-                  <div className="flex items-center justify-between mb-3">
+                    
                     <div>
-                      <h3 className="font-semibold">{coordination.type.toUpperCase()} Coordination</h3>
-                      <p className="text-sm text-gray-600">
-                        {coordination.tasks.length} tasks across {coordination.agents.length} agents
-                      </p>
-                    </div>
-                    <Badge className="bg-purple-100 text-purple-800">
-                      In Progress
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Type:</span>
-                      <div className="font-medium capitalize">{coordination.type}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Tasks:</span>
-                      <div className="font-medium">{coordination.tasks.length}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Agents:</span>
-                      <div className="font-medium">{coordination.agents.length}</div>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Started:</span>
-                      <div className="font-medium">
-                        {new Date().toLocaleTimeString()}
+                      <p className="text-sm font-medium mb-2">Capabilities:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {agent.capabilities.map((capability: string, index: number) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {capability}
+                          </Badge>
+                        ))}
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No active coordinations</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Control Panel */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Orchestrator Controls</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-4">
-            <Button variant="outline" className="flex items-center gap-2">
-              <Play className="h-4 w-4" />
-              Start All Agents
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Pause className="h-4 w-4" />
-              Pause Processing
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <RotateCcw className="h-4 w-4" />
-              Restart Orchestrator
-            </Button>
-            <Button variant="outline" onClick={loadDashboardData}>
-              Refresh Status
-            </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="tasks" className="space-y-4">
+          <div className="grid gap-4">
+            {activeTasks.length > 0 ? (
+              activeTasks.map((task) => (
+                <Card key={task.id}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Task {task.id}</CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="default" className="flex items-center space-x-1">
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                          <span>Processing</span>
+                        </Badge>
+                        <Badge variant="outline">{task.priority}</Badge>
+                      </div>
+                    </div>
+                    <CardDescription>
+                      Type: {task.type} • Deadline: {task.deadline ? task.deadline.toLocaleString() : 'None'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Required Capabilities</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {task.requiredCapabilities.map((cap: string, index: number) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {cap}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Context</p>
+                          <p className="font-medium">User: {task.context.userId}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <Zap className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No active tasks</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="queue" className="space-y-4">
+          <div className="grid gap-4">
+            {taskQueue.length > 0 ? (
+              taskQueue.map((task) => (
+                <Card key={task.id}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Queued Task {task.id}</CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="secondary" className="flex items-center space-x-1">
+                          <Clock className="h-3 w-3" />
+                          <span>Queued</span>
+                        </Badge>
+                        <Badge 
+                          variant={task.priority === 'critical' ? 'destructive' : 
+                                 task.priority === 'high' ? 'default' : 'outline'}
+                        >
+                          {task.priority}
+                        </Badge>
+                      </div>
+                    </div>
+                    <CardDescription>
+                      Type: {task.type} • Dependencies: {task.dependencies?.length || 0}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Required Capabilities</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {task.requiredCapabilities.map((cap: string, index: number) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {cap}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Estimated Wait</p>
+                        <p className="font-medium">~2 minutes</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <Clock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Task queue is empty</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="coordination" className="space-y-4">
+          <div className="grid gap-4">
+            {coordinations.length > 0 ? (
+              coordinations.map((coordination) => (
+                <Card key={coordination.id}>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">Coordination {coordination.id}</CardTitle>
+                      <div className="flex items-center space-x-2">
+                        <Badge className="flex items-center space-x-1">
+                          <RefreshCw className="h-3 w-3 animate-spin" />
+                          <span>Active</span>
+                        </Badge>
+                        <Badge variant="outline">{coordination.type}</Badge>
+                      </div>
+                    </div>
+                    <CardDescription>
+                      Agents: {coordination.agents.length} • Tasks: {coordination.tasks.length}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Coordination Type</p>
+                          <p className="font-medium capitalize">{coordination.type}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Timeout</p>
+                          <p className="font-medium">{coordination.timeout ? `${coordination.timeout}ms` : 'None'}</p>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <p className="text-sm font-medium mb-2">Involved Agents:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {coordination.agents.map((agentId: string, index: number) => {
+                            const agent = agents.find(a => a.id === agentId);
+                            return (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {agent ? agent.name : agentId}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <Brain className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">No active coordinations</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

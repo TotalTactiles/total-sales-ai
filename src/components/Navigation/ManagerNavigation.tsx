@@ -23,7 +23,10 @@ const ManagerNavigation: React.FC = () => {
     { name: 'Team', href: '/manager/team' },
     { name: 'Leads', href: '/manager/leads' },
     { name: 'AI Assistant', href: '/manager/ai' },
+    { name: 'AI Orchestration', href: '/manager/ai-orchestration' },
     { name: 'Company Brain', href: '/manager/company-brain' },
+    { name: 'Enterprise', href: '/manager/enterprise-integration' },
+    { name: 'Deployment', href: '/manager/deployment-center' },
     { name: 'Security', href: '/manager/security' },
     { name: 'Reports', href: '/manager/reports' },
     { name: 'Settings', href: '/manager/settings' }
@@ -57,7 +60,7 @@ const ManagerNavigation: React.FC = () => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer hover:bg-gray-100 ${
+                  className={`flex items-center justify-center px-3 py-2 rounded-lg text-xs font-medium transition-colors cursor-pointer hover:bg-gray-100 ${
                     isActive(item.href)
                       ? 'bg-purple-100 text-purple-700'
                       : 'text-gray-600 hover:text-gray-900'
