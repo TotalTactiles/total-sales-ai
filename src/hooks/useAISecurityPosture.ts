@@ -1,130 +1,96 @@
 
 import { useState, useEffect } from 'react';
-import { SecurityEvent, SecurityIssue, SecurityPosture, WorkflowLimits } from '@/types/security';
-import { AccessControlService } from '@/services/security/accessControlService';
+import { SecurityPosture, SecurityIssue, SecurityEvent, WorkflowLimits, SecurityStatus } from '@/types/security';
 import { encryptSensitiveData, decryptSensitiveData } from '@/services/security/base64Service';
 
 export const useAISecurityPosture = () => {
   const [securityPosture, setSecurityPosture] = useState<SecurityPosture>({
     overallScore: 85,
-    riskLevel: 'medium',
-    activeThreats: 3,
-    resolvedThreats: 12,
-    lastAssessment: new Date().toISOString(),
-    complianceStatus: {
-      gdpr: true,
-      soc2: true,
-      hipaa: false,
-      iso27001: true
-    },
-    vulnerabilities: {
-      critical: 0,
-      high: 2,
-      medium: 5,
-      low: 8
-    }
+    lastAssessment: new Date(),
+    riskLevel: 'low',
+    vulnerabilities: 2,
+    complianceScore: 92,
+    threatLevel: 'low'
   });
 
   const [securityIssues, setSecurityIssues] = useState<SecurityIssue[]>([
     {
       id: '1',
-      title: 'Suspicious API Access Pattern',
-      severity: 'high',
-      status: 'open',
-      description: 'Unusual API access pattern detected from multiple IP addresses',
-      detectedAt: new Date().toISOString(),
-      category: 'access_control'
+      title: 'Weak Password Policy',
+      severity: 'medium',
+      description: 'Some users have weak passwords',
+      resolved: false,
+      timestamp: new Date(),
+      category: 'Authentication'
     }
   ]);
 
   const [securityEvents, setSecurityEvents] = useState<SecurityEvent[]>([
     {
       id: '1',
-      timestamp: new Date().toISOString(),
-      type: 'authentication',
+      timestamp: new Date(),
+      type: 'authentication_failure',
       severity: 'medium',
       description: 'Multiple failed login attempts detected',
-      source: 'auth_system',
-      resolved: false,
-      metadata: {
-        ip_address: '192.168.1.100',
-        user_agent: 'Mozilla/5.0',
-        attempts: 5
-      }
+      resolved: false
     }
   ]);
 
   const [workflowLimits, setWorkflowLimits] = useState<WorkflowLimits>({
-    maxConcurrentTasks: 10,
-    maxApiCallsPerMinute: 100,
-    maxDataProcessingSize: 1000000,
-    maxUserSessions: 50,
-    rateLimitWindow: 60000
+    maxConcurrentTasks: 100,
+    maxApiCallsPerMinute: 1000,
+    maxDataProcessingSize: 10000000,
+    maxUserSessions: 500,
+    currentTaskCount: 23,
+    currentApiCalls: 145,
+    currentDataSize: 2500000,
+    currentSessions: 67
   });
 
   const refreshSecurityScore = async () => {
     // Simulate security score refresh
-    const newScore = Math.floor(Math.random() * 20) + 80;
     setSecurityPosture(prev => ({
       ...prev,
-      overallScore: newScore,
-      lastAssessment: new Date().toISOString()
+      lastAssessment: new Date(),
+      overallScore: Math.floor(Math.random() * 20) + 80
     }));
   };
 
-  const getSecurityStatus = async () => {
+  const getSecurityStatus = async (): Promise<SecurityStatus> => {
     return {
-      status: 'active',
+      status: 'healthy',
       lastCheck: new Date().toISOString(),
-      threatsDetected: securityIssues.length,
-      systemHealth: 'good'
+      threatsDetected: securityEvents.filter(e => !e.resolved).length,
+      systemHealth: 'optimal'
     };
   };
 
-  const resolveSecurityEvent = async (eventId: string) => {
+  const resolveSecurityEvent = async (eventId: string, resolution: string) => {
     setSecurityEvents(prev => 
       prev.map(event => 
-        event.id === eventId 
-          ? { ...event, resolved: true }
-          : event
+        event.id === eventId ? { ...event, resolved: true } : event
       )
     );
   };
 
-  const validateWorkflowLimits = async (workflowType: string, currentUsage: number) => {
-    const limits = workflowLimits;
+  const validateWorkflowLimits = async () => {
+    const violations = [];
     
-    switch (workflowType) {
-      case 'concurrent_tasks':
-        return currentUsage < limits.maxConcurrentTasks;
-      case 'api_calls':
-        return currentUsage < limits.maxApiCallsPerMinute;
-      case 'data_processing':
-        return currentUsage < limits.maxDataProcessingSize;
-      case 'user_sessions':
-        return currentUsage < limits.maxUserSessions;
-      default:
-        return true;
+    if (workflowLimits.currentTaskCount > workflowLimits.maxConcurrentTasks) {
+      violations.push('Task limit exceeded');
     }
-  };
-
-  // Check access permissions using the service
-  const checkAccess = async (resource: string, action: string, userRole: string) => {
-    return await AccessControlService.checkAccess(resource, action, userRole);
-  };
-
-  // Encrypt/decrypt sensitive data
-  const handleSensitiveData = async (data: string, encrypt: boolean = true) => {
-    if (encrypt) {
-      return await encryptSensitiveData(data);
-    } else {
-      return await decryptSensitiveData(data);
+    if (workflowLimits.currentApiCalls > workflowLimits.maxApiCallsPerMinute) {
+      violations.push('API rate limit exceeded');
     }
-  };
+    if (workflowLimits.currentDataSize > workflowLimits.maxDataProcessingSize) {
+      violations.push('Data processing limit exceeded');
+    }
+    if (workflowLimits.currentSessions > workflowLimits.maxUserSessions) {
+      violations.push('User session limit exceeded');
+    }
 
-  useEffect(() => {
-    refreshSecurityScore();
-  }, []);
+    return violations;
+  };
 
   return {
     securityPosture,
@@ -134,8 +100,6 @@ export const useAISecurityPosture = () => {
     refreshSecurityScore,
     getSecurityStatus,
     resolveSecurityEvent,
-    validateWorkflowLimits,
-    checkAccess,
-    handleSensitiveData
+    validateWorkflowLimits
   };
 };

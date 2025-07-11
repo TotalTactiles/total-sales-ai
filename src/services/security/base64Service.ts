@@ -1,17 +1,19 @@
 
-// Base64 encoding/decoding utilities
+export const encryptSensitiveData = (data: string): string => {
+  // Simple base64 encoding for demo purposes
+  return btoa(data);
+};
 
-export function encodeBase64(data: Uint8Array): string {
-  // Convert Uint8Array to string first
-  const binaryString = Array.from(data, byte => String.fromCharCode(byte)).join('');
-  return btoa(binaryString);
-}
+export const decryptSensitiveData = (encryptedData: string): string => {
+  // Simple base64 decoding for demo purposes
+  try {
+    return atob(encryptedData);
+  } catch {
+    return encryptedData;
+  }
+};
 
-export function decodeBase64(base64String: string): string {
-  return atob(base64String);
-}
-
-export function encodeBase64FromArrayBuffer(buffer: ArrayBuffer): string {
-  const uint8Array = new Uint8Array(buffer);
-  return encodeBase64(uint8Array);
-}
+export const base64Service = {
+  encode: encryptSensitiveData,
+  decode: decryptSensitiveData
+};

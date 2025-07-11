@@ -1,44 +1,47 @@
 
 export interface SecurityEvent {
   id: string;
-  type: 'threat_detection' | 'access_violation' | 'data_breach' | 'authentication_failure' | 'rate_limit' | 'unusual_pattern';
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  message: string;
   timestamp: Date;
+  type: 'threat_detection' | 'access_violation' | 'data_breach' | 'authentication_failure' | 'rate_limit' | 'unusual_pattern';
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  description: string;
   resolved: boolean;
-  source?: string;
-  affectedResource?: string;
+  metadata?: any;
 }
 
 export interface SecurityIssue {
-  type: 'access_control' | 'encryption' | 'data_integrity' | 'authentication' | 'network_security';
-  severity: 'critical' | 'high' | 'medium' | 'low';
-  message: string;
+  id: string;
+  title: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
-  recommendation: string;
+  resolved: boolean;
+  timestamp: Date;
+  category: string;
 }
 
 export interface SecurityPosture {
-  score: number;
-  level: 'critical' | 'warning' | 'secure';
-  issues: SecurityIssue[];
-  lastScan: Date | null;
-  isScanning: boolean;
+  overallScore: number;
+  lastAssessment: Date;
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  vulnerabilities: number;
+  complianceScore: number;
+  threatLevel: 'low' | 'medium' | 'high' | 'critical';
 }
 
 export interface WorkflowLimits {
-  maxWorkflows: number;
-  currentWorkflows: number;
-  maxExecutionTime: number;
-  maxMemoryUsage: number;
+  maxConcurrentTasks: number;
+  maxApiCallsPerMinute: number;
+  maxDataProcessingSize: number;
+  maxUserSessions: number;
+  currentTaskCount: number;
+  currentApiCalls: number;
+  currentDataSize: number;
+  currentSessions: number;
 }
 
-export interface ThreatIntelligence {
-  id: string;
-  source: string;
-  threatType: string;
-  confidence: number;
-  description: string;
-  mitigationSteps: string[];
-  timestamp: Date;
+export interface SecurityStatus {
+  status: string;
+  lastCheck: string;
+  threatsDetected: number;
+  systemHealth: string;
 }
