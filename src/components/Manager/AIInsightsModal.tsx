@@ -36,7 +36,9 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
   };
 
   const renderChart = () => {
-    if (!data.chartData) return null;
+    if (!data.chartData || !Array.isArray(data.chartData) || data.chartData.length === 0) {
+      return null;
+    }
 
     switch (data.chartType) {
       case 'line':
@@ -114,7 +116,7 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
 
         <div className="space-y-6">
           {/* Chart Section */}
-          {data.chartData && (
+          {data.chartData && data.chartData.length > 0 && (
             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4">
               <h4 className="font-medium text-gray-900 mb-3">Performance Trend</h4>
               {renderChart()}
@@ -125,12 +127,16 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">🤖 AI Insights</h4>
             <div className="space-y-2">
-              {data.insights.map((insight, index) => (
-                <div key={index} className="flex items-start gap-2 text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
-                  {insight}
-                </div>
-              ))}
+              {data.insights && data.insights.length > 0 ? (
+                data.insights.map((insight, index) => (
+                  <div key={index} className="flex items-start gap-2 text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                    {insight}
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-gray-500 italic">No insights available</div>
+              )}
             </div>
           </div>
 
@@ -138,12 +144,16 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">💡 AI Recommendations</h4>
             <div className="space-y-2">
-              {data.recommendations.map((rec, index) => (
-                <div key={index} className="flex items-start gap-2 text-sm text-gray-700 bg-green-50 p-3 rounded-lg">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 flex-shrink-0" />
-                  {rec}
-                </div>
-              ))}
+              {data.recommendations && data.recommendations.length > 0 ? (
+                data.recommendations.map((rec, index) => (
+                  <div key={index} className="flex items-start gap-2 text-sm text-gray-700 bg-green-50 p-3 rounded-lg">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 flex-shrink-0" />
+                    {rec}
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-gray-500 italic">No recommendations available</div>
+              )}
             </div>
           </div>
 
