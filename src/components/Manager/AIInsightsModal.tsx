@@ -19,7 +19,7 @@ interface AIInsightsModalProps {
     chartData?: any[];
     chartType?: 'line' | 'bar' | 'pie';
     trend?: 'up' | 'down' | 'neutral';
-  };
+  } | null;
 }
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
@@ -29,6 +29,11 @@ const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
   onClose,
   data
 }) => {
+  // Don't render anything if data is null
+  if (!data) {
+    return null;
+  }
+
   const getTrendIcon = () => {
     if (data.trend === 'up') return <TrendingUp className="h-4 w-4 text-green-600" />;
     if (data.trend === 'down') return <TrendingDown className="h-4 w-4 text-red-600" />;
@@ -125,7 +130,7 @@ const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">🤖 AI Insights</h4>
             <div className="space-y-2">
-              {data.insights.map((insight, index) => (
+              {data.insights?.map((insight, index) => (
                 <div key={index} className="flex items-start gap-2 text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
                   {insight}
@@ -138,7 +143,7 @@ const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
           <div className="space-y-3">
             <h4 className="font-medium text-gray-900">💡 AI Recommendations</h4>
             <div className="space-y-2">
-              {data.recommendations.map((rec, index) => (
+              {data.recommendations?.map((rec, index) => (
                 <div key={index} className="flex items-start gap-2 text-sm text-gray-700 bg-green-50 p-3 rounded-lg">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 flex-shrink-0" />
                   {rec}
