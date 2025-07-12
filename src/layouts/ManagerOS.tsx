@@ -132,7 +132,7 @@ const ManagerOS: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Unified Navigation Bar */}
-      <nav className="flex items-center justify-between px-6 py-2 bg-white border-b border-slate-200 shadow-sm">
+      <nav className="flex items-center justify-between px-6 py-2 bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-8">
           {/* TSAM Brand */}
           <div className="flex items-center gap-3">
@@ -202,7 +202,7 @@ const ManagerOS: React.FC = () => {
       </nav>
 
       {/* Mobile Navigation */}
-      <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-2">
+      <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-2 flex-shrink-0">
         <div className="flex gap-1 overflow-x-auto">
           {navTabs.map(tab => (
             <button
@@ -220,9 +220,11 @@ const ManagerOS: React.FC = () => {
         </div>
       </div>
 
-      {/* Content Area */}
-      <main className="flex-1 overflow-hidden">
-        {renderContent()}
+      {/* Content Area - Fixed height with proper scrolling */}
+      <main className="flex-1 min-h-0 overflow-hidden">
+        <div className="h-full overflow-y-auto">
+          {renderContent()}
+        </div>
       </main>
     </div>
   );
