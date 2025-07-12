@@ -4,9 +4,50 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, Target } from 'lucide-react';
 
-const MonthlyForecast = () => {
+interface MonthlyForecastProps {
+  onCardClick?: (data: any) => void;
+}
+
+const MonthlyForecast: React.FC<MonthlyForecastProps> = ({ onCardClick }) => {
+  const handleClick = () => {
+    if (onCardClick) {
+      const forecastData = {
+        id: 'monthly_forecast',
+        title: 'Monthly Forecast Analysis',
+        value: '$425,000',
+        subtitle: '106% of monthly target achieved',
+        trend: 'up' as const,
+        insights: [
+          'Team exceeded monthly target by 6% with 3 days remaining',
+          'Revenue acceleration driven by enterprise deal closures',
+          'Q4 forecast trending 12% above annual projections',
+          'Pipeline velocity increased 18% compared to last quarter',
+          'Top 3 reps contributing 65% of overperformance'
+        ],
+        recommendations: [
+          'Maintain current momentum through end of quarter',
+          'Document winning strategies for knowledge sharing',
+          'Increase Q1 targets based on current performance trends',
+          'Invest in additional enterprise sales resources',
+          'Implement performance bonus structure for sustained growth'
+        ],
+        chartData: [
+          { name: 'Week 1', target: 100000, actual: 110000 },
+          { name: 'Week 2', target: 200000, actual: 225000 },
+          { name: 'Week 3', target: 300000, actual: 335000 },
+          { name: 'Week 4', target: 400000, actual: 425000 }
+        ],
+        chartType: 'line' as const
+      };
+      onCardClick(forecastData);
+    }
+  };
+
   return (
-    <Card className="bg-gradient-to-r from-white to-slate-50 border-2 border-slate-200 shadow-lg">
+    <Card 
+      className={`bg-gradient-to-r from-white to-slate-50 border-2 border-slate-200 shadow-lg ${onCardClick ? 'cursor-pointer hover:shadow-xl transition-all duration-200' : ''}`}
+      onClick={handleClick}
+    >
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

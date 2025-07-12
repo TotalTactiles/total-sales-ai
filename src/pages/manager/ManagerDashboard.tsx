@@ -41,7 +41,7 @@ const ManagerDashboard: React.FC = () => {
           <CustomizableManagerCards onCardClick={handleCardClick} />
 
           {/* Monthly Forecast */}
-          <MonthlyForecast />
+          <MonthlyForecast onCardClick={handleCardClick} />
 
           {/* Manager Pulse - AI Recommended Actions */}
           <ManagerPulse />
