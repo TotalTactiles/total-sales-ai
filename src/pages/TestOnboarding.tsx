@@ -3,589 +3,464 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Slider } from '@/components/ui/slider';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Sparkles, TestTube, User, Building, Bot } from 'lucide-react';
-import { toast } from 'sonner';
-import { logger } from '@/utils/logger';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { ArrowRight, ArrowLeft, CheckCircle2, Building, Users, Target, Mic, Bot, Settings, BarChart } from 'lucide-react';
+import Logo from '@/components/Logo';
 
-interface OnboardingState {
-  // User Info
-  full_name: string;
-  role: 'sales_rep' | 'manager' | 'admin' | 'developer';
-  
-  // Company/Industry
+interface OnboardingData {
   industry: string;
   customIndustry?: string;
-  sales_model: string[];
-  team_roles: string[];
-  
-  // AI Configuration
-  agent_name: string;
+  salesModel: string[];
+  teamRoles: string[];
   tone: {
-    humor: number;
-    formality: number;
-    pushiness: number;
-    detail: number;
+    formality: string;
+    energy: string;
+    approach: string;
   };
-  
-  // Goals and Pain Points
-  pain_points: string[];
-  original_goal: string;
-  
-  // Module Selection
-  enabled_modules: {
-    dialer: boolean;
-    brain: boolean;
-    leads: boolean;
-    analytics: boolean;
-    missions: boolean;
-    tools: boolean;
-    aiAgent: boolean;
-  };
+  painPoints: string[];
+  agentName: string;
+  modules: string[];
+  goals: string;
+  role: 'sales_rep' | 'manager' | 'admin' | 'developer';
 }
 
 const TestOnboarding: React.FC = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [settings, setSettings] = useState<OnboardingState>({
-    full_name: '',
-    role: 'sales_rep',
+  const [currentStep, setCurrentStep] = useState(1);
+  const [data, setData] = useState<OnboardingData>({
     industry: '',
-    sales_model: [],
-    team_roles: [],
-    agent_name: 'SalesOS Assistant',
-    tone: {
-      humor: 50,
-      formality: 50,
-      pushiness: 30,
-      detail: 60,
-    },
-    pain_points: [],
-    original_goal: '',
-    enabled_modules: {
-      dialer: true,
-      brain: true,
-      leads: true,
-      analytics: true,
-      missions: false,
-      tools: false,
-      aiAgent: true,
-    },
+    salesModel: [],
+    teamRoles: [],
+    tone: { formality: '', energy: '', approach: '' },
+    painPoints: [],
+    agentName: '',
+    modules: [],
+    goals: '',
+    role: 'sales_rep'
   });
 
-  const steps = [
-    { title: 'Personal Info', key: 'personal' },
-    { title: 'Role Selection', key: 'role' },
-    { title: 'Industry', key: 'industry' },
-    { title: 'Sales Model', key: 'sales_model' },
-    { title: 'Team Structure', key: 'team_roles' },
-    { title: 'AI Assistant', key: 'agent_name' },
-    { title: 'Communication Style', key: 'tone' },
-    { title: 'Pain Points', key: 'pain_points' },
-    { title: 'Goals', key: 'goals' },
-    { title: 'Features', key: 'modules' },
-    { title: 'Complete', key: 'complete' }
+  const totalSteps = 8;
+  const progress = (currentStep / totalSteps) * 100;
+
+  const industries = [
+    'Technology', 'Healthcare', 'Finance', 'Real Estate', 'Manufacturing',
+    'Retail', 'Education', 'Professional Services', 'Other'
   ];
 
-  const updateSettings = (data: Partial<OnboardingState>) => {
-    setSettings(prev => ({ ...prev, ...data }));
-  };
+  const salesModels = [
+    'Inbound Sales', 'Outbound Sales', 'Account-Based Sales', 'Channel Sales',
+    'Inside Sales', 'Field Sales', 'E-commerce', 'Consultative Sales'
+  ];
+
+  const teamRoles = [
+    'Sales Development Rep (SDR)', 'Account Executive (AE)', 'Sales Manager',
+    'Customer Success Manager', 'Business Development Rep (BDR)', 'Sales Engineer'
+  ];
+
+  const painPoints = [
+    'Low conversion rates', 'Long sales cycles', 'Difficulty qualifying leads',
+    'Inconsistent follow-up', 'Poor lead quality', 'Objection handling',
+    'Time management', 'CRM adoption', 'Pipeline visibility', 'Team collaboration'
+  ];
+
+  const modules = [
+    { id: 'dialer', name: 'Smart Dialer', icon: '📞' },
+    { id: 'scripts', name: 'AI Call Scripts', icon: '📝' },
+    { id: 'analytics', name: 'Performance Analytics', icon: '📊' },
+    { id: 'leads', name: 'Lead Management', icon: '👥' },
+    { id: 'email', name: 'Email Automation', icon: '✉️' },
+    { id: 'coaching', name: 'AI Coaching', icon: '🎯' }
+  ];
 
   const handleNext = () => {
-    if (currentStep < steps.length - 1) {
+    if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
   };
 
-  const handlePrev = () => {
-    if (currentStep > 0) {
+  const handlePrevious = () => {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
 
-  const handleComplete = async () => {
-    setIsSubmitting(true);
-    try {
-      // Log the test completion with role-based OS routing
-      const targetOS = getTargetOS(settings.role);
-      
-      console.log('🧪 Test Onboarding Completed:', {
-        settings,
-        targetOS,
-        timestamp: new Date().toISOString()
-      });
-      
-      logger.info('Test onboarding completed', { 
-        settings, 
-        targetOS,
-        testMode: true 
-      });
-      
-      toast.success(`Test Complete! Would redirect to: ${targetOS}`);
-      
-      // In real implementation, this would redirect to the appropriate OS
-      // For testing, just show a success message
-      setTimeout(() => {
-        toast.info(`Target OS for ${settings.role}: ${targetOS}`);
-      }, 1000);
-      
-    } catch (error) {
-      console.error('❌ Test onboarding error:', error);
-      toast.error('Test completion failed');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleComplete = () => {
+    console.log('Onboarding completed with data:', data);
+    alert('Test onboarding completed! Check console for data.');
+    navigate('/auth');
   };
 
-  const getTargetOS = (role: string): string => {
-    switch (role) {
-      case 'manager':
-        return '/os/manager/dashboard';
-      case 'developer':
-      case 'admin':
-        return '/os/dev/dashboard';
-      case 'sales_rep':
+  const updateData = (field: keyof OnboardingData, value: any) => {
+    setData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const toggleArrayItem = (field: 'salesModel' | 'teamRoles' | 'painPoints' | 'modules', item: string) => {
+    setData(prev => ({
+      ...prev,
+      [field]: prev[field].includes(item)
+        ? prev[field].filter(i => i !== item)
+        : [...prev[field], item]
+    }));
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <Building className="h-12 w-12 text-[#7B61FF] mx-auto mb-4" />
+              <CardTitle className="text-2xl">What's your industry?</CardTitle>
+              <p className="text-gray-600">Help us customize TSAM for your business</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <RadioGroup 
+                value={data.industry} 
+                onValueChange={(value) => updateData('industry', value)}
+                className="grid grid-cols-2 gap-4"
+              >
+                {industries.map((industry) => (
+                  <div key={industry} className="flex items-center space-x-2">
+                    <RadioGroupItem value={industry} id={industry} />
+                    <Label htmlFor={industry}>{industry}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+              {data.industry === 'Other' && (
+                <div className="mt-4">
+                  <Label htmlFor="customIndustry">Please specify your industry</Label>
+                  <Input
+                    id="customIndustry"
+                    value={data.customIndustry || ''}
+                    onChange={(e) => updateData('customIndustry', e.target.value)}
+                    placeholder="Enter your industry"
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+
+      case 2:
+        return (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <Target className="h-12 w-12 text-[#7B61FF] mx-auto mb-4" />
+              <CardTitle className="text-2xl">What's your sales model?</CardTitle>
+              <p className="text-gray-600">Select all that apply to your business</p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {salesModels.map((model) => (
+                  <div key={model} className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={data.salesModel.includes(model)}
+                      onCheckedChange={() => toggleArrayItem('salesModel', model)}
+                    />
+                    <Label>{model}</Label>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 3:
+        return (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <Users className="h-12 w-12 text-[#7B61FF] mx-auto mb-4" />
+              <CardTitle className="text-2xl">What roles are on your team?</CardTitle>
+              <p className="text-gray-600">Help us understand your team structure</p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4">
+                {teamRoles.map((role) => (
+                  <div key={role} className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={data.teamRoles.includes(role)}
+                      onCheckedChange={() => toggleArrayItem('teamRoles', role)}
+                    />
+                    <Label>{role}</Label>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 4:
+        return (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <Mic className="h-12 w-12 text-[#7B61FF] mx-auto mb-4" />
+              <CardTitle className="text-2xl">Set your AI tone</CardTitle>
+              <p className="text-gray-600">Customize how your AI assistant communicates</p>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <Label className="text-lg font-medium">Formality Level</Label>
+                <RadioGroup 
+                  value={data.tone.formality} 
+                  onValueChange={(value) => updateData('tone', { ...data.tone, formality: value })}
+                  className="flex gap-4 mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="casual" id="casual" />
+                    <Label htmlFor="casual">Casual</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="professional" id="professional" />
+                    <Label htmlFor="professional">Professional</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="formal" id="formal" />
+                    <Label htmlFor="formal">Formal</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div>
+                <Label className="text-lg font-medium">Energy Level</Label>
+                <RadioGroup 
+                  value={data.tone.energy} 
+                  onValueChange={(value) => updateData('tone', { ...data.tone, energy: value })}
+                  className="flex gap-4 mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="calm" id="calm" />
+                    <Label htmlFor="calm">Calm</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="balanced" id="balanced" />
+                    <Label htmlFor="balanced">Balanced</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="energetic" id="energetic" />
+                    <Label htmlFor="energetic">Energetic</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div>
+                <Label className="text-lg font-medium">Approach</Label>
+                <RadioGroup 
+                  value={data.tone.approach} 
+                  onValueChange={(value) => updateData('tone', { ...data.tone, approach: value })}
+                  className="flex gap-4 mt-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="direct" id="direct" />
+                    <Label htmlFor="direct">Direct</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="consultative" id="consultative" />
+                    <Label htmlFor="consultative">Consultative</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="supportive" id="supportive" />
+                    <Label htmlFor="supportive">Supportive</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 5:
+        return (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <Settings className="h-12 w-12 text-[#7B61FF] mx-auto mb-4" />
+              <CardTitle className="text-2xl">What are your main pain points?</CardTitle>
+              <p className="text-gray-600">We'll help you tackle these challenges</p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {painPoints.map((point) => (
+                  <div key={point} className="flex items-center space-x-2">
+                    <Checkbox
+                      checked={data.painPoints.includes(point)}
+                      onCheckedChange={() => toggleArrayItem('painPoints', point)}
+                    />
+                    <Label>{point}</Label>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 6:
+        return (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <Bot className="h-12 w-12 text-[#7B61FF] mx-auto mb-4" />
+              <CardTitle className="text-2xl">Name your AI assistant</CardTitle>
+              <p className="text-gray-600">Give your AI sales assistant a personal touch</p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Label htmlFor="agentName">Assistant Name</Label>
+                <Input
+                  id="agentName"
+                  value={data.agentName}
+                  onChange={(e) => updateData('agentName', e.target.value)}
+                  placeholder="e.g., Sarah, Alex, Morgan..."
+                  className="text-lg"
+                />
+                <p className="text-sm text-gray-500">
+                  Choose a name that feels right for your team. This is how your AI assistant will introduce itself.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 7:
+        return (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <BarChart className="h-12 w-12 text-[#7B61FF] mx-auto mb-4" />
+              <CardTitle className="text-2xl">Choose your modules</CardTitle>
+              <p className="text-gray-600">Select the features you want to enable</p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-4">
+                {modules.map((module) => (
+                  <div key={module.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        checked={data.modules.includes(module.id)}
+                        onCheckedChange={() => toggleArrayItem('modules', module.id)}
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span>{module.icon}</span>
+                          <Label className="font-medium">{module.name}</Label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 8:
+        return (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader className="text-center">
+              <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto mb-4" />
+              <CardTitle className="text-2xl">What's your primary goal?</CardTitle>
+              <p className="text-gray-600">Tell us what success looks like for you</p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Label htmlFor="goals">Describe your main objective</Label>
+                <Input
+                  id="goals"
+                  value={data.goals}
+                  onChange={(e) => updateData('goals', e.target.value)}
+                  placeholder="e.g., Increase sales by 30%, improve conversion rates, reduce response time..."
+                  className="text-lg"
+                />
+                <p className="text-sm text-gray-500">
+                  This helps us customize your dashboard and recommendations.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
       default:
-        return '/os/rep/dashboard';
+        return null;
     }
   };
 
-  const canProceed = (): boolean => {
-    const stepKey = steps[currentStep].key;
-    switch (stepKey) {
-      case 'personal': return settings.full_name.trim() !== '';
-      case 'role': return settings.role !== '';
-      case 'industry': return settings.industry !== '';
-      case 'sales_model': return settings.sales_model.length > 0;
-      case 'team_roles': return settings.team_roles.length > 0;
-      case 'agent_name': return settings.agent_name.trim() !== '';
-      case 'tone': return true;
-      case 'pain_points': return settings.pain_points.length > 0;
-      case 'goals': return settings.original_goal.trim() !== '';
-      case 'modules': return Object.values(settings.enabled_modules).some(Boolean);
-      case 'complete': return true;
+  const canProceed = () => {
+    switch (currentStep) {
+      case 1: return data.industry !== '';
+      case 2: return data.salesModel.length > 0;
+      case 3: return data.teamRoles.length > 0;
+      case 4: return data.tone.formality !== '' && data.tone.energy !== '' && data.tone.approach !== '';
+      case 5: return data.painPoints.length > 0;
+      case 6: return data.agentName.trim() !== '';
+      case 7: return data.modules.length > 0;
+      case 8: return data.goals.trim() !== '';
       default: return false;
     }
   };
 
-  const renderStepContent = () => {
-    const stepKey = steps[currentStep].key;
-
-    switch (stepKey) {
-      case 'personal':
-        return (
-          <div className="space-y-4">
-            <User className="h-12 w-12 text-blue-600 mx-auto" />
-            <h2 className="text-2xl font-bold text-center">Welcome! Let's get started</h2>
-            <p className="text-gray-600 text-center">First, tell us about yourself</p>
-            <div>
-              <Label htmlFor="full_name">Full Name</Label>
-              <Input
-                id="full_name"
-                value={settings.full_name}
-                onChange={(e) => updateSettings({ full_name: e.target.value })}
-                placeholder="Enter your full name"
-              />
-            </div>
-          </div>
-        );
-
-      case 'role':
-        return (
-          <div className="space-y-4">
-            <Building className="h-12 w-12 text-blue-600 mx-auto" />
-            <h2 className="text-2xl font-bold text-center">What's your role?</h2>
-            <p className="text-gray-600 text-center">This helps us customize your experience</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                { value: 'sales_rep', label: 'Sales Representative', desc: 'Individual contributor focused on selling' },
-                { value: 'manager', label: 'Sales Manager', desc: 'Team leader managing sales reps' },
-                { value: 'admin', label: 'Administrator', desc: 'System administrator' },
-                { value: 'developer', label: 'Developer', desc: 'Technical team member' }
-              ].map((role) => (
-                <Card 
-                  key={role.value}
-                  className={`cursor-pointer transition-all ${
-                    settings.role === role.value 
-                      ? 'ring-2 ring-blue-500 bg-blue-50' 
-                      : 'hover:bg-gray-50'
-                  }`}
-                  onClick={() => updateSettings({ role: role.value as any })}
-                >
-                  <CardContent className="p-4 text-center">
-                    <h3 className="font-semibold">{role.label}</h3>
-                    <p className="text-sm text-gray-600 mt-1">{role.desc}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'industry':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center">What's your industry?</h2>
-            <p className="text-gray-600 text-center">We'll tailor AI responses to your market</p>
-            <Select 
-              value={settings.industry} 
-              onValueChange={(value) => updateSettings({ industry: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select your industry" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="technology">Technology</SelectItem>
-                <SelectItem value="healthcare">Healthcare</SelectItem>
-                <SelectItem value="finance">Finance</SelectItem>
-                <SelectItem value="real_estate">Real Estate</SelectItem>
-                <SelectItem value="manufacturing">Manufacturing</SelectItem>
-                <SelectItem value="retail">Retail</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {settings.industry === 'other' && (
-              <div>
-                <Label htmlFor="custom_industry">Please specify</Label>
-                <Input
-                  id="custom_industry"
-                  value={settings.customIndustry || ''}
-                  onChange={(e) => updateSettings({ customIndustry: e.target.value })}
-                  placeholder="Your industry"
-                />
-              </div>
-            )}
-          </div>
-        );
-
-      case 'sales_model':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center">Sales Model</h2>
-            <p className="text-gray-600 text-center">How do you typically sell? (Select all that apply)</p>
-            <div className="space-y-3">
-              {[
-                'Inbound leads',
-                'Outbound prospecting',
-                'Referrals',
-                'Channel partners',
-                'Events/Trade shows',
-                'Social selling'
-              ].map((model) => (
-                <label key={model} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    checked={settings.sales_model.includes(model)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        updateSettings({ sales_model: [...settings.sales_model, model] });
-                      } else {
-                        updateSettings({ 
-                          sales_model: settings.sales_model.filter(m => m !== model) 
-                        });
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span>{model}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'team_roles':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center">Team Structure</h2>
-            <p className="text-gray-600 text-center">What roles are part of your sales process?</p>
-            <div className="space-y-3">
-              {[
-                'SDR/BDR',
-                'Account Executive',
-                'Sales Manager',
-                'Customer Success',
-                'Marketing',
-                'Sales Engineer'
-              ].map((role) => (
-                <label key={role} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    checked={settings.team_roles.includes(role)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        updateSettings({ team_roles: [...settings.team_roles, role] });
-                      } else {
-                        updateSettings({ 
-                          team_roles: settings.team_roles.filter(r => r !== role) 
-                        });
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span>{role}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'agent_name':
-        return (
-          <div className="space-y-4">
-            <Bot className="h-12 w-12 text-blue-600 mx-auto" />
-            <h2 className="text-2xl font-bold text-center">Name your AI assistant</h2>
-            <p className="text-gray-600 text-center">Choose a name you'll be comfortable using</p>
-            <div>
-              <Label htmlFor="agent_name">Assistant Name</Label>
-              <Input
-                id="agent_name"
-                value={settings.agent_name}
-                onChange={(e) => updateSettings({ agent_name: e.target.value })}
-                placeholder="e.g., Nova, Alex, Assistant"
-              />
-            </div>
-          </div>
-        );
-
-      case 'tone':
-        return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-center">Communication Style</h2>
-            <p className="text-gray-600 text-center">Customize how your AI assistant communicates</p>
-            
-            {[
-              { key: 'humor', label: 'Humor Level', desc: 'How playful should responses be?' },
-              { key: 'formality', label: 'Formality Level', desc: 'Professional vs casual tone' },
-              { key: 'pushiness', label: 'Assertiveness', desc: 'How direct in recommendations?' },
-              { key: 'detail', label: 'Detail Level', desc: 'Brief vs comprehensive responses' }
-            ].map(({ key, label, desc }) => (
-              <div key={key} className="space-y-2">
-                <div className="flex justify-between">
-                  <Label>{label}</Label>
-                  <span className="text-sm text-gray-500">{settings.tone[key as keyof typeof settings.tone]}%</span>
-                </div>
-                <Slider
-                  value={[settings.tone[key as keyof typeof settings.tone]]}
-                  onValueChange={([value]) => 
-                    updateSettings({
-                      tone: { ...settings.tone, [key]: value }
-                    })
-                  }
-                  max={100}
-                  step={1}
-                />
-                <p className="text-xs text-gray-500">{desc}</p>
-              </div>
-            ))}
-          </div>
-        );
-
-      case 'pain_points':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center">Current Challenges</h2>
-            <p className="text-gray-600 text-center">What are your biggest sales challenges?</p>
-            <div className="space-y-3">
-              {[
-                'Lead generation',
-                'Lead qualification',
-                'Follow-up consistency',
-                'Pipeline management',
-                'Closing deals',
-                'Time management',
-                'Data entry/CRM',
-                'Team coordination'
-              ].map((pain) => (
-                <label key={pain} className="flex items-center space-x-3 cursor-pointer p-3 rounded-lg border hover:bg-gray-50">
-                  <input
-                    type="checkbox"
-                    checked={settings.pain_points.includes(pain)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        updateSettings({ pain_points: [...settings.pain_points, pain] });
-                      } else {
-                        updateSettings({ 
-                          pain_points: settings.pain_points.filter(p => p !== pain) 
-                        });
-                      }
-                    }}
-                    className="rounded"
-                  />
-                  <span>{pain}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'goals':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center">Your Goals</h2>
-            <p className="text-gray-600 text-center">What do you want to achieve with SalesOS?</p>
-            <div>
-              <Label htmlFor="goals">Describe your main goals</Label>
-              <Textarea
-                id="goals"
-                value={settings.original_goal}
-                onChange={(e) => updateSettings({ original_goal: e.target.value })}
-                placeholder="e.g., Increase sales by 30%, improve lead conversion, automate follow-ups..."
-                className="min-h-[100px]"
-              />
-            </div>
-          </div>
-        );
-
-      case 'modules':
-        return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-center">Choose Features</h2>
-            <p className="text-gray-600 text-center">Select the features you want to enable</p>
-            <div className="space-y-3">
-              {[
-                { key: 'dialer', label: 'Auto Dialer', desc: 'Automated calling system' },
-                { key: 'brain', label: 'AI Brain', desc: 'Intelligent sales insights' },
-                { key: 'leads', label: 'Lead Management', desc: 'Track and manage leads' },
-                { key: 'analytics', label: 'Analytics', desc: 'Performance tracking' },
-                { key: 'missions', label: 'Sales Missions', desc: 'Gamified goals' },
-                { key: 'tools', label: 'Sales Tools', desc: 'Additional utilities' },
-                { key: 'aiAgent', label: 'AI Agent', desc: 'Virtual assistant' }
-              ].map(({ key, label, desc }) => (
-                <label key={key} className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 cursor-pointer">
-                  <div>
-                    <div className="font-medium">{label}</div>
-                    <div className="text-sm text-gray-600">{desc}</div>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={settings.enabled_modules[key as keyof typeof settings.enabled_modules]}
-                    onChange={(e) => updateSettings({
-                      enabled_modules: {
-                        ...settings.enabled_modules,
-                        [key]: e.target.checked
-                      }
-                    })}
-                    className="rounded"
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'complete':
-        return (
-          <div className="space-y-6 text-center">
-            <Sparkles className="h-16 w-16 text-blue-500 mx-auto" />
-            <h2 className="text-2xl font-bold">Ready to launch your SalesOS!</h2>
-            <div className="bg-blue-50 rounded-lg p-6 text-left">
-              <h3 className="font-semibold mb-4">Your Configuration:</h3>
-              <div className="space-y-2 text-sm">
-                <p><strong>Name:</strong> {settings.full_name}</p>
-                <p><strong>Role:</strong> {settings.role}</p>
-                <p><strong>Industry:</strong> {settings.industry}</p>
-                <p><strong>AI Assistant:</strong> {settings.agent_name}</p>
-                <p><strong>Target OS:</strong> {getTargetOS(settings.role)}</p>
-              </div>
-            </div>
-            <Button 
-              onClick={handleComplete}
-              disabled={isSubmitting}
-              size="lg"
-              className="px-8"
-            >
-              {isSubmitting ? 'Processing...' : 'Complete Test'}
-              <Sparkles className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        );
-
-      default:
-        return <div>Step not found</div>;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
-      <div className="max-w-2xl mx-auto">
-        {/* Test Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <TestTube className="h-8 w-8 text-orange-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Test Onboarding</h1>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 p-4">
+      {/* Header */}
+      <div className="container mx-auto mb-8">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Logo />
+            <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+              TEST ONBOARDING
+            </Badge>
           </div>
-          <div className="bg-orange-100 text-orange-800 px-4 py-2 rounded-full text-sm font-medium inline-block">
-            Testing Mode - Changes will reflect in real onboarding
-          </div>
+          <Button variant="outline" onClick={() => navigate('/auth')}>
+            Exit Test
+          </Button>
         </div>
+      </div>
 
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between text-sm text-gray-500 mb-2">
-            <span>Step {currentStep + 1} of {steps.length}</span>
-            <span>{Math.round(((currentStep + 1) / steps.length) * 100)}%</span>
+      {/* Progress Bar */}
+      <div className="container mx-auto mb-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-gray-600">Step {currentStep} of {totalSteps}</span>
+            <span className="text-sm font-medium text-gray-600">{Math.round(progress)}% Complete</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <motion.div
-              className="bg-blue-500 h-2 rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-              transition={{ duration: 0.3 }}
-            />
-          </div>
+          <Progress value={progress} className="h-2" />
         </div>
+      </div>
 
-        {/* Step Content */}
-        <Card className="mb-8">
-          <CardContent className="p-8">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentStep}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {renderStepContent()}
-              </motion.div>
-            </AnimatePresence>
-          </CardContent>
-        </Card>
+      {/* Main Content */}
+      <div className="container mx-auto">
+        {renderStep()}
 
         {/* Navigation */}
-        {currentStep < steps.length - 1 && (
-          <div className="flex justify-between">
+        <div className="flex justify-between items-center max-w-2xl mx-auto mt-8">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Previous
+          </Button>
+
+          {currentStep === totalSteps ? (
             <Button
-              variant="outline"
-              onClick={handlePrev}
-              disabled={currentStep === 0}
+              onClick={handleComplete}
+              disabled={!canProceed()}
+              className="bg-[#7B61FF] hover:bg-[#674edc] flex items-center gap-2"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Previous
+              Complete Setup
+              <CheckCircle2 className="h-4 w-4" />
             </Button>
+          ) : (
             <Button
               onClick={handleNext}
               disabled={!canProceed()}
+              className="bg-[#7B61FF] hover:bg-[#674edc] flex items-center gap-2"
             >
               Next
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="h-4 w-4" />
             </Button>
-          </div>
-        )}
-
-        {/* Back to Auth Button */}
-        <div className="text-center mt-8">
-          <Button variant="ghost" onClick={() => navigate('/auth')}>
-            Back to Auth Page
-          </Button>
+          )}
         </div>
       </div>
     </div>

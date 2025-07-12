@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 
 // Auth & Onboarding pages
-import AuthPage from './pages/auth';
+import AuthPage from './pages/auth/AuthPage';
 import SignUpPage from './pages/signup';
 import TestOnboarding from './pages/TestOnboarding';
 import OnboardingPage from './pages/onboarding/OnboardingPage';
@@ -12,25 +12,12 @@ import ManagerOnboarding from './pages/onboarding/manager';
 import OnboardingTest from './pages/OnboardingTest';
 import OnboardingGuard from './components/OnboardingGuard';
 
-// OS Components
-import SalesRepOS from './components/os/SalesRepOS';
-import ManagerOS from './components/os/ManagerOS';
-import DeveloperOS from './components/os/DeveloperOS';
-
 const queryClient = new QueryClient();
-
-function QueryClient({ children }: { children: React.ReactNode }) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-}
 
 function App() {
   return (
     <BrowserRouter>
-      <QueryClient>
+      <QueryClientProvider client={queryClient}>
         <Toaster />
         <Routes>
           {/* Existing routes */}
@@ -46,15 +33,10 @@ function App() {
           <Route path="/onboarding/manager" element={<ManagerOnboarding />} />
           <Route path="/onboarding-test" element={<OnboardingTest />} />
           
-          {/* OS routes */}
-          <Route path="/os/rep/*" element={<SalesRepOS />} />
-          <Route path="/os/manager/*" element={<ManagerOS />} />
-          <Route path="/os/dev/*" element={<DeveloperOS />} />
-          
           {/* Default route */}
           <Route path="/" element={<Navigate to="/auth" replace />} />
         </Routes>
-      </QueryClient>
+      </QueryClientProvider>
     </BrowserRouter>
   );
 }
