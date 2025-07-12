@@ -1,8 +1,9 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, DollarSign, Users, Target, Calendar } from 'lucide-react';
-import { AIInsightsModal } from '@/components/Manager/AIInsightsModal';
+import AIInsightsModal from '@/components/Manager/AIInsightsModal';
 import ManagerPulse from '@/components/Manager/ManagerPulse';
 import TeamPerformanceSection from '@/components/Manager/TeamPerformanceSection';
 import TeamRewardsOverview from '@/components/Manager/TeamRewardsOverview';

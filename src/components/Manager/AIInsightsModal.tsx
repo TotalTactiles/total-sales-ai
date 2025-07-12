@@ -24,7 +24,7 @@ interface AIInsightsModalProps {
 
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
 
-export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
+const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
   isOpen,
   onClose,
   data
@@ -162,3 +162,5 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
     </Dialog>
   );
 };
+
+export default AIInsightsModal;
