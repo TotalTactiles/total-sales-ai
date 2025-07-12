@@ -60,48 +60,39 @@ const ManagerOS: React.FC = () => {
   const navTabs = [
     {
       key: 'dashboard',
-      label: 'Dashboard',
-      icon: '📊'
+      label: 'Dashboard'
     },
     {
       key: 'business-ops',
-      label: 'Business Ops',
-      icon: '🏢'
+      label: 'Business Ops'
     },
     {
       key: 'team',
-      label: 'Team',
-      icon: '👥'
+      label: 'Team'
     },
     {
       key: 'leads',
-      label: 'Leads',
-      icon: '🎯'
+      label: 'Leads'
     },
     {
       key: 'ai',
-      label: 'AI Assistant',
-      icon: '🤖'
+      label: 'AI Assistant'
     },
     {
       key: 'company-brain',
-      label: 'Company Brain',
-      icon: '🧠'
+      label: 'Company Brain'
     },
     {
       key: 'security',
-      label: 'Security',
-      icon: '🛡️'
+      label: 'Security'
     },
     {
       key: 'reports',
-      label: 'Reports',
-      icon: '📈'
+      label: 'Reports'
     },
     {
       key: 'settings',
-      label: 'Settings',
-      icon: '⚙️'
+      label: 'Settings'
     }
   ];
 
@@ -141,27 +132,26 @@ const ManagerOS: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Unified Navigation Bar */}
-      <nav className="flex items-center justify-between px-6 py-3 bg-white border-b border-slate-200 shadow-sm">
+      <nav className="flex items-center justify-between px-6 py-2 bg-white border-b border-slate-200 shadow-sm">
         <div className="flex items-center gap-8">
           {/* TSAM Brand */}
           <div className="flex items-center gap-3">
-            <span className="text-xl font-bold text-slate-900">TSAM</span>
+            <span className="text-lg font-bold text-slate-900">TSAM</span>
           </div>
 
-          {/* Navigation Tabs */}
+          {/* Navigation Tabs - Text Only */}
           <div className="hidden lg:flex items-center gap-1">
             {navTabs.map(tab => (
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.key)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
                   activeTab === tab.key
-                    ? 'bg-blue-600 text-white shadow-md'
+                    ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
               >
-                <span className="text-xs">{tab.icon}</span>
-                <span>{tab.label}</span>
+                {tab.label}
               </button>
             ))}
           </div>
@@ -218,14 +208,13 @@ const ManagerOS: React.FC = () => {
             <button
               key={tab.key}
               onClick={() => handleTabChange(tab.key)}
-              className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 whitespace-nowrap ${
                 activeTab === tab.key
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <span className="text-xs">{tab.icon}</span>
-              <span>{tab.label}</span>
+              {tab.label}
             </button>
           ))}
         </div>
