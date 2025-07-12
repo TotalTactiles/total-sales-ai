@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Code, Shield, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 interface DeveloperModeToggleProps {
   onModeChange?: (mode: 'sales_rep' | 'manager' | 'developer') => void;
@@ -11,6 +12,7 @@ interface DeveloperModeToggleProps {
 
 const DeveloperModeToggle: React.FC<DeveloperModeToggleProps> = ({ onModeChange }) => {
   const { profile } = useAuth();
+  const navigate = useNavigate();
   const [isDeveloperMode, setIsDeveloperMode] = useState(false);
   const [currentViewMode, setCurrentViewMode] = useState<'sales_rep' | 'manager' | 'developer'>('sales_rep');
 
@@ -33,6 +35,13 @@ const DeveloperModeToggle: React.FC<DeveloperModeToggleProps> = ({ onModeChange 
       setCurrentViewMode(originalRole as 'sales_rep' | 'manager');
       localStorage.setItem('viewMode', originalRole);
       onModeChange?.(originalRole as 'sales_rep' | 'manager');
+      
+      // Navigate back to appropriate dashboard
+      if (originalRole === 'manager') {
+        navigate('/manager/dashboard');
+      } else {
+        navigate('/sales/dashboard');
+      }
     }
   };
 
@@ -40,6 +49,15 @@ const DeveloperModeToggle: React.FC<DeveloperModeToggleProps> = ({ onModeChange 
     setCurrentViewMode(mode);
     localStorage.setItem('viewMode', mode);
     onModeChange?.(mode);
+    
+    // Navigate to appropriate dashboard
+    if (mode === 'developer') {
+      navigate('/developer/dashboard');
+    } else if (mode === 'manager') {
+      navigate('/manager/dashboard');
+    } else {
+      navigate('/sales/dashboard');
+    }
   };
 
   if (!isDeveloperMode) {

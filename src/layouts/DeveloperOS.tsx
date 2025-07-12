@@ -31,7 +31,7 @@ const DeveloperOS: React.FC = () => {
         <UnifiedLayout>
           <Suspense fallback={<DeveloperPageFallback />}>
             <Routes>
-              <Route index element={<Navigate to="/developer/dashboard" replace />} />
+              <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DeveloperDashboard />} />
               <Route path="system-monitor" element={<SystemMonitor />} />
               <Route path="error-logs" element={<ErrorLogs />} />
@@ -42,7 +42,7 @@ const DeveloperOS: React.FC = () => {
               <Route path="feature-flags" element={<FeatureFlagManager />} />
               <Route path="system-updates" element={<SystemUpdatesTracker />} />
               <Route path="ai-integration" element={<AIIntegrationMapper />} />
-              <Route path="*" element={<Navigate to="/developer/dashboard" replace />} />
+              <Route path="*" element={<Navigate to="dashboard" replace />} />
             </Routes>
           </Suspense>
         </UnifiedLayout>

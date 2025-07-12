@@ -12,7 +12,6 @@ import DeveloperOS from '@/layouts/DeveloperOS';
 
 // Legacy imports for backward compatibility
 import Dashboard from '@/components/dashboard/Dashboard';
-import ManagerDashboard from '@/pages/ManagerDashboard';
 
 const MainLayout: React.FC = () => {
   const { user, profile, loading } = useAuth();
@@ -21,6 +20,14 @@ const MainLayout: React.FC = () => {
 
   // Determine user role with better fallback logic
   const getUserRole = () => {
+    // Check for developer mode first
+    const devMode = localStorage.getItem('developerMode') === 'true';
+    const viewMode = localStorage.getItem('viewMode') as 'sales_rep' | 'manager' | 'developer';
+    
+    if (devMode && viewMode === 'developer') {
+      return 'developer';
+    }
+    
     if (isDemoMode && demoUser?.role) {
       return demoUser.role;
     }
@@ -45,7 +52,9 @@ const MainLayout: React.FC = () => {
     demoUserRole: demoUser?.role,
     profileRole: profile?.role,
     userId: user?.id,
-    currentPath: location.pathname
+    currentPath: location.pathname,
+    devMode: localStorage.getItem('developerMode'),
+    viewMode: localStorage.getItem('viewMode')
   });
 
   if (loading) {
@@ -65,6 +74,17 @@ const MainLayout: React.FC = () => {
     return <Navigate to="/auth" replace />;
   }
 
+  // Handle Developer OS routing (including developer mode)
+  if (userRole === 'developer' || userRole === 'admin') {
+    return (
+      <Routes>
+        <Route path="/developer/*" element={<DeveloperOS />} />
+        <Route path="/" element={<Navigate to="/developer/dashboard" replace />} />
+        <Route path="/*" element={<Navigate to="/developer/dashboard" replace />} />
+      </Routes>
+    );
+  }
+
   // Handle Manager OS routing
   if (userRole === 'manager') {
     return (
@@ -79,17 +99,6 @@ const MainLayout: React.FC = () => {
         {/* Root redirect for managers */}
         <Route path="/" element={<Navigate to="/manager/dashboard" replace />} />
         <Route path="/*" element={<Navigate to="/manager/dashboard" replace />} />
-      </Routes>
-    );
-  }
-
-  // Handle Developer OS routing
-  if (userRole === 'developer' || userRole === 'admin') {
-    return (
-      <Routes>
-        <Route path="/developer/*" element={<DeveloperOS />} />
-        <Route path="/" element={<Navigate to="/developer/dashboard" replace />} />
-        <Route path="/*" element={<Navigate to="/developer/dashboard" replace />} />
       </Routes>
     );
   }
