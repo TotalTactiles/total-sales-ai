@@ -43,11 +43,11 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
     switch (data.chartType) {
       case 'line':
         return (
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={160}>
             <LineChart data={data.chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <XAxis dataKey="name" fontSize={12} />
+              <YAxis fontSize={12} />
               <Tooltip />
               <Line type="monotone" dataKey="value" stroke="#3B82F6" strokeWidth={2} />
             </LineChart>
@@ -55,11 +55,11 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
         );
       case 'bar':
         return (
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={160}>
             <BarChart data={data.chartData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <XAxis dataKey="name" fontSize={12} />
+              <YAxis fontSize={12} />
               <Tooltip />
               <Bar dataKey="value" fill="#3B82F6" />
             </BarChart>
@@ -67,7 +67,7 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
         );
       case 'pie':
         return (
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={160}>
             <PieChart>
               <Pie
                 data={data.chartData}
@@ -75,7 +75,7 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
                 cy="50%"
                 labelLine={false}
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
+                outerRadius={60}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -94,78 +94,80 @@ export const AIInsightsModal: React.FC<AIInsightsModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
-        <DialogHeader className="space-y-3">
+      <DialogContent className="max-w-[95vw] w-full max-h-[85vh] sm:max-w-2xl lg:max-w-3xl bg-white/95 backdrop-blur-sm border-0 shadow-2xl overflow-hidden flex flex-col">
+        <DialogHeader className="space-y-3 flex-shrink-0 px-4 sm:px-6 pt-4 sm:pt-6">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              {data.title}
+            <DialogTitle className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <span className="truncate">{data.title}</span>
               {getTrendIcon()}
             </DialogTitle>
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs whitespace-nowrap">
               AI Analysis
             </Badge>
           </div>
           
-          <div className="text-center py-3">
-            <div className="text-2xl font-bold text-gray-900 mb-1">
+          <div className="text-center py-2 sm:py-3">
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
               {data.value}
             </div>
-            <p className="text-sm text-gray-600">{data.subtitle}</p>
+            <p className="text-xs sm:text-sm text-gray-600">{data.subtitle}</p>
           </div>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Chart Section */}
-          {data.chartData && data.chartData.length > 0 && (
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-4">
-              <h4 className="font-medium text-gray-900 mb-3">Performance Trend</h4>
-              {renderChart()}
-            </div>
-          )}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="space-y-4 sm:space-y-6">
+            {/* Chart Section */}
+            {data.chartData && data.chartData.length > 0 && (
+              <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-3 sm:p-4">
+                <h4 className="font-medium text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">Performance Trend</h4>
+                {renderChart()}
+              </div>
+            )}
 
-          {/* AI Insights Section */}
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">🤖 AI Insights</h4>
-            <div className="space-y-2">
-              {data.insights && data.insights.length > 0 ? (
-                data.insights.map((insight, index) => (
-                  <div key={index} className="flex items-start gap-2 text-sm text-gray-700 bg-blue-50 p-3 rounded-lg">
-                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
-                    {insight}
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500 italic">No insights available</div>
-              )}
+            {/* AI Insights Section */}
+            <div className="space-y-2 sm:space-y-3">
+              <h4 className="font-medium text-gray-900 text-sm sm:text-base">🤖 AI Insights</h4>
+              <div className="space-y-2">
+                {data.insights && data.insights.length > 0 ? (
+                  data.insights.map((insight, index) => (
+                    <div key={index} className="flex items-start gap-2 text-xs sm:text-sm text-gray-700 bg-blue-50 p-2 sm:p-3 rounded-lg">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 sm:mt-2 flex-shrink-0" />
+                      <span className="leading-relaxed">{insight}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs sm:text-sm text-gray-500 italic">No insights available</div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Recommendations Section */}
-          <div className="space-y-3">
-            <h4 className="font-medium text-gray-900">💡 AI Recommendations</h4>
-            <div className="space-y-2">
-              {data.recommendations && data.recommendations.length > 0 ? (
-                data.recommendations.map((rec, index) => (
-                  <div key={index} className="flex items-start gap-2 text-sm text-gray-700 bg-green-50 p-3 rounded-lg">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-2 flex-shrink-0" />
-                    {rec}
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-gray-500 italic">No recommendations available</div>
-              )}
+            {/* Recommendations Section */}
+            <div className="space-y-2 sm:space-y-3">
+              <h4 className="font-medium text-gray-900 text-sm sm:text-base">💡 AI Recommendations</h4>
+              <div className="space-y-2">
+                {data.recommendations && data.recommendations.length > 0 ? (
+                  data.recommendations.map((rec, index) => (
+                    <div key={index} className="flex items-start gap-2 text-xs sm:text-sm text-gray-700 bg-green-50 p-2 sm:p-3 rounded-lg">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 sm:mt-2 flex-shrink-0" />
+                      <span className="leading-relaxed">{rec}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-xs sm:text-sm text-gray-500 italic">No recommendations available</div>
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* Action Section */}
-          <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-500">
-              Last updated: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
-            </p>
-            <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Close Analysis
-            </Button>
+            {/* Action Section */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pt-4 border-t border-gray-100 gap-3 sm:gap-0">
+              <p className="text-xs text-gray-500">
+                Last updated: {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString()}
+              </p>
+              <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Close Analysis
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
