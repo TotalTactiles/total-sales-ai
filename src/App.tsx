@@ -1,46 +1,33 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
-import { AuthProvider } from '@/contexts/AuthContext';
 
-// Auth & Onboarding pages
-import AuthPage from './pages/auth/AuthPage';
-import SignUpPage from './pages/signup';
-import TestOnboarding from './pages/TestOnboarding';
-import OnboardingPage from './pages/onboarding/OnboardingPage';
-import SalesRepOnboarding from './pages/onboarding/sales-rep';
-import ManagerOnboarding from './pages/onboarding/manager';
-import OnboardingTest from './pages/OnboardingTest';
-import OnboardingGuard from './components/OnboardingGuard';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import { AuthProvider } from '@/contexts/AuthContext';
+import MainLayout from '@/layouts/MainLayout';
+import NewLandingPage from '@/pages/NewLandingPage';
+import AuthPage from '@/pages/auth/AuthPage';
+import ManagerOS from '@/layouts/ManagerOS';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Toaster />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <Router>
           <Routes>
-            {/* Existing routes */}
+            <Route path="/" element={<NewLandingPage />} />
+            <Route path="/landing" element={<NewLandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
-            <Route path="/signup" element={<SignUpPage />} />
-            
-            {/* Test Onboarding Route - Temporary for testing */}
-            <Route path="/test-onboarding" element={<TestOnboarding />} />
-            
-            {/* Onboarding routes */}
-            <Route path="/onboarding" element={<OnboardingGuard><OnboardingPage /></OnboardingGuard>} />
-            <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />
-            <Route path="/onboarding/manager" element={<ManagerOnboarding />} />
-            <Route path="/onboarding-test" element={<OnboardingTest />} />
-            
-            {/* Default route */}
-            <Route path="/" element={<Navigate to="/auth" replace />} />
+            <Route path="/login" element={<AuthPage />} />
+            <Route path="/manager/*" element={<ManagerOS />} />
+            <Route path="/*" element={<MainLayout />} />
           </Routes>
-        </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+        </Router>
+        <Toaster />
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
