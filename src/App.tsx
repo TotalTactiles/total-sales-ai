@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Auth & Onboarding pages
 import AuthPage from './pages/auth/AuthPage';
@@ -18,24 +19,26 @@ function App() {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <Toaster />
-        <Routes>
-          {/* Existing routes */}
-          <Route path="/auth" element={<AuthPage />} />
-          <Route path="/signup" element={<SignUpPage />} />
-          
-          {/* Test Onboarding Route - Temporary for testing */}
-          <Route path="/test-onboarding" element={<TestOnboarding />} />
-          
-          {/* Onboarding routes */}
-          <Route path="/onboarding" element={<OnboardingGuard><OnboardingPage /></OnboardingGuard>} />
-          <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />
-          <Route path="/onboarding/manager" element={<ManagerOnboarding />} />
-          <Route path="/onboarding-test" element={<OnboardingTest />} />
-          
-          {/* Default route */}
-          <Route path="/" element={<Navigate to="/auth" replace />} />
-        </Routes>
+        <AuthProvider>
+          <Toaster />
+          <Routes>
+            {/* Existing routes */}
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            
+            {/* Test Onboarding Route - Temporary for testing */}
+            <Route path="/test-onboarding" element={<TestOnboarding />} />
+            
+            {/* Onboarding routes */}
+            <Route path="/onboarding" element={<OnboardingGuard><OnboardingPage /></OnboardingGuard>} />
+            <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />
+            <Route path="/onboarding/manager" element={<ManagerOnboarding />} />
+            <Route path="/onboarding-test" element={<OnboardingTest />} />
+            
+            {/* Default route */}
+            <Route path="/" element={<Navigate to="/auth" replace />} />
+          </Routes>
+        </AuthProvider>
       </QueryClientProvider>
     </BrowserRouter>
   );
