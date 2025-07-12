@@ -1,33 +1,61 @@
-
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/sonner';
-import { AuthProvider } from '@/contexts/AuthContext';
-import MainLayout from '@/layouts/MainLayout';
-import NewLandingPage from '@/pages/NewLandingPage';
-import AuthPage from '@/pages/auth/AuthPage';
-import ManagerOS from '@/layouts/ManagerOS';
+import { Toaster } from 'sonner';
+
+// Auth & Onboarding pages
+import AuthPage from './pages/auth';
+import SignUpPage from './pages/signup';
+import TestOnboarding from './pages/TestOnboarding';
+import OnboardingPage from './pages/onboarding/OnboardingPage';
+import SalesRepOnboarding from './pages/onboarding/sales-rep';
+import ManagerOnboarding from './pages/onboarding/manager';
+import OnboardingTest from './pages/OnboardingTest';
+import OnboardingGuard from './components/OnboardingGuard';
+
+// OS Components
+import SalesRepOS from './components/os/SalesRepOS';
+import ManagerOS from './components/os/ManagerOS';
+import DeveloperOS from './components/os/DeveloperOS';
 
 const queryClient = new QueryClient();
 
-function App() {
+function QueryClient({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<NewLandingPage />} />
-            <Route path="/landing" element={<NewLandingPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/login" element={<AuthPage />} />
-            <Route path="/manager/*" element={<ManagerOS />} />
-            <Route path="/*" element={<MainLayout />} />
-          </Routes>
-        </Router>
-        <Toaster />
-      </AuthProvider>
+      {children}
     </QueryClientProvider>
+  );
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <QueryClient>
+        <Toaster />
+        <Routes>
+          {/* Existing routes */}
+          <Route path="/auth" element={<AuthPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          
+          {/* Test Onboarding Route - Temporary for testing */}
+          <Route path="/test-onboarding" element={<TestOnboarding />} />
+          
+          {/* Onboarding routes */}
+          <Route path="/onboarding" element={<OnboardingGuard><OnboardingPage /></OnboardingGuard>} />
+          <Route path="/onboarding/sales-rep" element={<SalesRepOnboarding />} />
+          <Route path="/onboarding/manager" element={<ManagerOnboarding />} />
+          <Route path="/onboarding-test" element={<OnboardingTest />} />
+          
+          {/* OS routes */}
+          <Route path="/os/rep/*" element={<SalesRepOS />} />
+          <Route path="/os/manager/*" element={<ManagerOS />} />
+          <Route path="/os/dev/*" element={<DeveloperOS />} />
+          
+          {/* Default route */}
+          <Route path="/" element={<Navigate to="/auth" replace />} />
+        </Routes>
+      </QueryClient>
+    </BrowserRouter>
   );
 }
 
