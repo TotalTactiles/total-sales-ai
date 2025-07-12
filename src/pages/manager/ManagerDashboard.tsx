@@ -1,318 +1,511 @@
 
 import React, { useState } from 'react';
+import AIDailySummary from '@/components/Dashboard/AIDailySummary';
+import ChatBubble from '@/components/AI/ChatBubble';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, DollarSign, Users, Target, Calendar } from 'lucide-react';
-import AIInsightsModal from '@/components/Manager/AIInsightsModal';
-import ManagerPulse from '@/components/Manager/ManagerPulse';
-import TeamPerformanceSection from '@/components/Manager/TeamPerformanceSection';
-import TeamRewardsOverview from '@/components/Manager/TeamRewardsOverview';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
+import { AIInsightsModal } from '@/components/Manager/AIInsightsModal';
+import { 
+  DollarSign, 
+  Users, 
+  Target, 
+  TrendingUp, 
+  Award,
+  Calendar,
+  AlertTriangle,
+  CheckCircle,
+  Activity,
+  BarChart3
+} from 'lucide-react';
 
 const ManagerDashboard = () => {
-  const [selectedInsight, setSelectedInsight] = useState<any>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedModal, setSelectedModal] = useState<any>(null);
 
-  const openInsightModal = (insightData: any) => {
-    setSelectedInsight(insightData);
-    setIsModalOpen(true);
-  };
+  const aiSummary = "Good morning! Your team has achieved 68% month completion with strong pipeline data at $137,700. Revenue trends show +15.2% growth. AI suggests focusing on the 3 active rewards to maintain momentum.";
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedInsight(null);
-  };
-
-  // Mock data for main metrics
-  const mainMetrics = [
+  // Top Metrics Data with AI insights
+  const topMetrics = [
     {
+      id: 'revenue',
       title: 'Revenue',
-      value: '$847K',
-      change: '+12.5%',
-      trend: 'up',
-      period: 'vs last month',
+      value: '$346,249',
+      change: '+12% from last month',
       icon: DollarSign,
-      data: { revenue: 847000, growth: 12.5, breakdown: [120000, 145000, 180000, 200000, 202000] }
+      gradient: 'from-emerald-500 to-emerald-600',
+      bgGradient: 'from-emerald-50 to-emerald-100',
+      borderColor: 'border-emerald-200',
+      insights: [
+        "Revenue growth accelerated by 12% compared to last month",
+        "Top performing channel: Enterprise sales (+25%)",
+        "Seasonal trend indicates continued growth through Q4"
+      ],
+      recommendations: [
+        "Focus on Enterprise segment for maximum ROI",
+        "Increase marketing spend in top-performing channels",
+        "Consider hiring additional sales reps for scaling"
+      ],
+      chartData: [
+        { name: 'Jan', value: 280000 },
+        { name: 'Feb', value: 295000 },
+        { name: 'Mar', value: 310000 },
+        { name: 'Apr', value: 346249 }
+      ],
+      chartType: 'line' as const,
+      trend: 'up' as const
     },
     {
+      id: 'leads',
       title: 'Leads',
-      value: '2,847',
-      change: '+8.2%',
-      trend: 'up',
-      period: 'vs last month',
+      value: '1,247',
+      change: '+5% from last month',
       icon: Users,
-      data: { leads: 2847, growth: 8.2, sources: { google: 1200, linkedin: 800, referral: 547, organic: 300 } }
+      gradient: 'from-blue-500 to-blue-600',
+      bgGradient: 'from-blue-50 to-blue-100',
+      borderColor: 'border-blue-200',
+      insights: [
+        "Lead quality improved by 18% this month",
+        "LinkedIn campaigns generating highest quality leads",
+        "Conversion rate from leads to qualified prospects: 24%"
+      ],
+      recommendations: [
+        "Double down on LinkedIn advertising budget",
+        "Implement lead scoring to prioritize high-value prospects",
+        "Create nurture sequences for unqualified leads"
+      ],
+      chartData: [
+        { name: 'Organic', value: 487 },
+        { name: 'Paid', value: 312 },
+        { name: 'Referral', value: 289 },
+        { name: 'Social', value: 159 }
+      ],
+      chartType: 'pie' as const,
+      trend: 'up' as const
     },
     {
+      id: 'deals',
       title: 'Deals',
-      value: '156',
-      change: '+15.7%',
-      trend: 'up',
-      period: 'vs last month',
+      value: '$187,500',
+      change: '+8% from last month',
       icon: Target,
-      data: { deals: 156, growth: 15.7, pipeline: { qualified: 45, proposal: 67, negotiation: 32, closing: 12 } }
+      gradient: 'from-purple-500 to-purple-600',
+      bgGradient: 'from-purple-50 to-purple-100',
+      borderColor: 'border-purple-200',
+      insights: [
+        "Average deal size increased to $12,500",
+        "Sales cycle shortened by 3 days on average",
+        "Win rate improved to 34% from 28%"
+      ],
+      recommendations: [
+        "Focus on upselling existing clients",
+        "Streamline proposal process to reduce cycle time",
+        "Train team on new objection handling techniques"
+      ],
+      chartData: [
+        { name: 'Q1', value: 145000 },
+        { name: 'Q2', value: 162000 },
+        { name: 'Q3', value: 174000 },
+        { name: 'Q4', value: 187500 }
+      ],
+      chartType: 'bar' as const,
+      trend: 'up' as const
     },
     {
+      id: 'conversion',
       title: 'Conversion Rate',
-      value: '5.8%',
-      change: '-2.1%',
-      trend: 'down',
-      period: 'vs last month',
+      value: '68%',
+      change: '+3% from last month',
       icon: TrendingUp,
-      data: { rate: 5.8, change: -2.1, funnel: { leads: 2847, qualified: 1200, demos: 400, proposals: 200, closed: 165 } }
+      gradient: 'from-orange-500 to-orange-600',
+      bgGradient: 'from-orange-50 to-orange-100',
+      borderColor: 'border-orange-200',
+      insights: [
+        "Lead-to-customer conversion improved significantly",
+        "Email sequences driving highest conversion rates",
+        "Mobile users converting 15% better than desktop"
+      ],
+      recommendations: [
+        "Optimize mobile experience further",
+        "A/B test email sequence timing",
+        "Implement chatbot for instant lead qualification"
+      ],
+      chartData: [
+        { name: 'Week 1', value: 62 },
+        { name: 'Week 2', value: 65 },
+        { name: 'Week 3', value: 67 },
+        { name: 'Week 4', value: 68 }
+      ],
+      chartType: 'line' as const,
+      trend: 'up' as const
     }
   ];
 
-  const monthlyForecast = {
-    title: 'Monthly Forecast',
-    current: '$847K',
-    target: '$950K',
-    projected: '$892K',
-    confidence: 78,
-    data: {
-      historical: [750000, 820000, 780000, 847000],
-      forecast: [892000, 950000],
-      breakdown: { existing: 640000, pipeline: 252000, new: 58000 }
+  // Campaign Performance Data with insights
+  const campaigns = [
+    { 
+      id: 'social',
+      name: 'Social Media', 
+      metric: '85% CTR', 
+      bgColor: 'bg-gradient-to-br from-pink-100 to-pink-200',
+      insights: [
+        "Instagram Stories generating 2x engagement",
+        "Video content outperforming static posts by 340%",
+        "Peak engagement times: 2-4 PM and 7-9 PM"
+      ],
+      recommendations: [
+        "Increase video content production",
+        "Schedule posts during peak hours",
+        "Expand Instagram Stories budget by 50%"
+      ]
+    },
+    { 
+      id: 'ppc',
+      name: 'Pay Per Click (PPC)', 
+      metric: '$2.50 CPC', 
+      bgColor: 'bg-gradient-to-br from-blue-100 to-blue-200',
+      insights: [
+        "Google Ads performing better than Bing by 45%",
+        "Long-tail keywords converting at higher rates",
+        "Ad spend efficiency improved by 23%"
+      ],
+      recommendations: [
+        "Reallocate budget from Bing to Google",
+        "Expand long-tail keyword targeting",
+        "Test automated bidding strategies"
+      ]
+    },
+    { 
+      id: 'email',
+      name: 'Email Marketing', 
+      metric: '42% Open Rate', 
+      bgColor: 'bg-gradient-to-br from-green-100 to-green-200',
+      insights: [
+        "Subject line A/B tests showing 18% improvement",
+        "Segmented campaigns outperforming broadcast by 67%",
+        "Mobile open rates at 78% of total opens"
+      ],
+      recommendations: [
+        "Implement advanced segmentation",
+        "Optimize for mobile-first design",
+        "Expand A/B testing to email content"
+      ]
+    },
+    { 
+      id: 'content',
+      name: 'Content Marketing', 
+      metric: '15K Views', 
+      bgColor: 'bg-gradient-to-br from-purple-100 to-purple-200',
+      insights: [
+        "Blog posts generating 34% of organic traffic",
+        "How-to content receiving highest engagement",
+        "Content-to-lead conversion rate at 8.5%"
+      ],
+      recommendations: [
+        "Create more educational how-to content",
+        "Repurpose top blog posts into video format",
+        "Optimize content for featured snippets"
+      ]
     }
+  ];
+
+  // Team Performance Data
+  const teamMembers = [
+    {
+      id: 'sarah',
+      name: 'Sarah Johnson',
+      title: 'Sales Manager', 
+      avatar: 'SJ',
+      deals: 23,
+      target: 85,
+      performance: 'excellent',
+      insights: [
+        "Consistently exceeding targets by 15-20%",
+        "Strong relationship building with Enterprise clients",
+        "Mentor to 3 junior sales reps"
+      ],
+      recommendations: [
+        "Consider for senior management track",
+        "Assign highest-value prospects",
+        "Expand mentoring responsibilities"
+      ]
+    },
+    {
+      id: 'michael',
+      name: 'Michael Chen',
+      title: 'Marketing Lead',
+      avatar: 'MC',
+      campaigns: 12,
+      roi: '320%',
+      performance: 'good',
+      insights: [
+        "Digital campaigns showing strong ROI",
+        "Innovative approach to social media strategy",
+        "Collaboration with sales team improving"
+      ],
+      recommendations: [
+        "Lead cross-functional campaign initiatives",
+        "Expand budget for top-performing channels",
+        "Consider advanced marketing automation tools"
+      ]
+    },
+    {
+      id: 'emily',
+      name: 'Emily Rodriguez',
+      title: 'Account Executive',
+      avatar: 'ER',
+      accounts: 45,
+      retention: '92%',
+      performance: 'excellent',
+      insights: [
+        "Highest client retention rate on the team",
+        "Exceptional at identifying upsell opportunities",
+        "Customer satisfaction scores consistently above 4.8/5"
+      ],
+      recommendations: [
+        "Lead customer success initiatives",
+        "Train team on retention strategies",
+        "Consider for key account management role"
+      ]
+    }
+  ];
+
+  const handleCardClick = (cardData: any) => {
+    setSelectedModal({
+      ...cardData,
+      subtitle: cardData.change || cardData.metric || 'Performance Analysis'
+    });
   };
-
-  const campaignPerformance = [
-    {
-      name: 'Social Media',
-      spend: '$12.5K',
-      leads: '347',
-      cpl: '$36',
-      trend: 'up',
-      change: '+8.2%',
-      data: { platforms: { linkedin: 180, facebook: 120, twitter: 47 }, engagement: 4.2 }
-    },
-    {
-      name: 'PPC Campaigns',
-      spend: '$28.7K',
-      leads: '892',
-      cpl: '$32',
-      trend: 'up',
-      change: '+15.3%',
-      data: { keywords: 125, avgPosition: 2.3, clickthrough: 3.8 }
-    },
-    {
-      name: 'Email Marketing',
-      spend: '$2.1K',
-      leads: '234',
-      cpl: '$9',
-      trend: 'down',
-      change: '-5.1%',
-      data: { campaigns: 8, openRate: 24.5, clickRate: 3.2 }
-    }
-  ];
-
-  const leadSources = [
-    {
-      source: 'Google Ads',
-      leads: '1,247',
-      conversion: '6.2%',
-      revenue: '$324K',
-      trend: 'up',
-      data: { quality: 7.8, avgDeal: 18500, timeToClose: 45 }
-    },
-    {
-      source: 'LinkedIn',
-      leads: '834',
-      conversion: '8.1%',
-      revenue: '$189K',
-      trend: 'up',
-      data: { quality: 8.5, avgDeal: 22000, timeToClose: 38 }
-    },
-    {
-      source: 'Referrals',
-      leads: '423',
-      conversion: '12.4%',
-      revenue: '$156K',
-      trend: 'up',
-      data: { quality: 9.2, avgDeal: 35000, timeToClose: 28 }
-    }
-  ];
 
   return (
-    <div className="p-4 space-y-4 max-w-7xl mx-auto">
-      {/* Main Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {mainMetrics.map((metric) => {
-          const IconComponent = metric.icon;
-          return (
-            <Card 
-              key={metric.title} 
-              className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => openInsightModal({
-                title: `${metric.title} Analysis`,
-                type: 'metric',
-                data: metric.data,
-                insights: [
-                  `${metric.title} is ${metric.trend === 'up' ? 'performing well' : 'needs attention'} with ${metric.change} change`,
-                  'AI recommendations available for optimization',
-                  'Trend analysis shows consistent growth pattern'
-                ]
+    <div className="h-full overflow-y-auto">
+      <div className="p-4">
+        {/* Compact Page Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+            Manager Dashboard
+          </h1>
+          <p className="text-slate-600 text-sm mt-1">Executive overview and AI-powered insights</p>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 max-w-[1600px] mx-auto">
+          {/* Main Dashboard Content - 4 columns */}
+          <div className="lg:col-span-4 space-y-4">
+            {/* Compact Top Metrics Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {topMetrics.map((metric, index) => {
+                const IconComponent = metric.icon;
+                return (
+                  <Card 
+                    key={index} 
+                    className={`${metric.bgGradient} ${metric.borderColor} border cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-0.5`}
+                    onClick={() => handleCardClick(metric)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <IconComponent className={`h-6 w-6 bg-gradient-to-r ${metric.gradient} bg-clip-text text-transparent`} />
+                        <div className="w-2 h-2 rounded-full bg-white/50"></div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                          {metric.title}
+                        </p>
+                        <p className="text-xl font-bold text-slate-900 leading-tight">
+                          {metric.value}
+                        </p>
+                        <p className="text-xs text-emerald-600 font-medium">
+                          {metric.change}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
               })}
-            >
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
-                <IconComponent className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{metric.value}</div>
-                <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                  {metric.trend === 'up' ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500" />
-                  )}
-                  <span className={metric.trend === 'up' ? 'text-green-600' : 'text-red-600'}>
-                    {metric.change}
-                  </span>
-                  <span>{metric.period}</span>
+            </div>
+
+            {/* Compact Monthly Forecast */}
+            <Card className="bg-gradient-to-r from-white to-slate-50 border cursor-pointer hover:shadow-md transition-all duration-300"
+                  onClick={() => handleCardClick({
+                    id: 'forecast',
+                    title: 'Monthly Forecast',
+                    value: '$450,000',
+                    subtitle: 'Projected Revenue - 112% of target',
+                    insights: [
+                      "On track to exceed monthly target by $50,000",
+                      "Current pipeline value suggests strong Q4 finish",
+                      "Team performance 12% above average pace"
+                    ],
+                    recommendations: [
+                      "Maintain current sales velocity",
+                      "Focus on closing high-value deals in pipeline",
+                      "Prepare resource allocation for Q1 ramp-up"
+                    ],
+                    chartData: [
+                      { name: 'Week 1', value: 112500 },
+                      { name: 'Week 2', value: 225000 },
+                      { name: 'Week 3', value: 337500 },
+                      { name: 'Week 4', value: 450000 }
+                    ],
+                    chartType: 'line' as const,
+                    trend: 'up' as const
+                  })}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-bold text-slate-900">Monthly Forecast</CardTitle>
+                  <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs">
+                    <TrendingUp className="h-3 w-3 mr-1" />
+                    +12% above pace
+                  </Badge>
                 </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <span className="text-2xl font-bold text-slate-900">$450,000</span>
+                    <p className="text-slate-600 text-xs">Projected Revenue</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-emerald-600">112%</div>
+                    <div className="text-xs text-slate-500">Goal Completion</div>
+                  </div>
+                </div>
+                <Progress value={112} className="h-2 bg-slate-200" />
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
 
-      {/* Monthly Forecast */}
-      <Card 
-        className="cursor-pointer hover:shadow-md transition-shadow"
-        onClick={() => openInsightModal({
-          title: 'Monthly Forecast Analysis',
-          type: 'forecast',
-          data: monthlyForecast.data,
-          insights: [
-            `Currently at ${monthlyForecast.current} of ${monthlyForecast.target} target`,
-            `${monthlyForecast.confidence}% confidence in hitting projected ${monthlyForecast.projected}`,
-            'Pipeline health indicates strong month-end performance'
-          ]
-        })}
-      >
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            {monthlyForecast.title}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Current</p>
-              <p className="text-2xl font-bold">{monthlyForecast.current}</p>
+            {/* Compact Campaign Performance */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {campaigns.map((campaign, index) => (
+                <Card 
+                  key={index} 
+                  className={`${campaign.bgColor} border cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-0.5`}
+                  onClick={() => handleCardClick({
+                    id: campaign.id,
+                    title: campaign.name,
+                    value: campaign.metric,
+                    subtitle: 'Campaign Performance Analysis',
+                    insights: campaign.insights,
+                    recommendations: campaign.recommendations,
+                    chartData: [
+                      { name: 'Week 1', value: Math.floor(Math.random() * 100) + 50 },
+                      { name: 'Week 2', value: Math.floor(Math.random() * 100) + 60 },
+                      { name: 'Week 3', value: Math.floor(Math.random() * 100) + 70 },
+                      { name: 'Week 4', value: Math.floor(Math.random() * 100) + 80 }
+                    ],
+                    chartType: 'bar' as const,
+                    trend: 'up' as const
+                  })}
+                >
+                  <CardContent className="p-4 text-center">
+                    <h4 className="font-semibold text-slate-800 mb-2 text-sm">{campaign.name}</h4>
+                    <div className="text-lg font-bold text-slate-900">{campaign.metric}</div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Target</p>
-              <p className="text-2xl font-bold">{monthlyForecast.target}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Projected</p>
-              <p className="text-2xl font-bold text-blue-600">{monthlyForecast.projected}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Confidence</p>
-              <p className="text-2xl font-bold text-green-600">{monthlyForecast.confidence}%</p>
+
+            {/* Compact Team Performance */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-blue-100 rounded-lg">
+                    <Users className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-slate-900">Team Performance</h2>
+                    <p className="text-slate-600 text-xs">Individual performance metrics</p>
+                  </div>
+                </div>
+                <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
+                  <Award className="h-3 w-3 mr-1" />
+                  3 Active Performers
+                </Badge>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {teamMembers.map((member, index) => (
+                  <Card 
+                    key={index} 
+                    className="bg-gradient-to-br from-white to-slate-50 border cursor-pointer hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+                    onClick={() => handleCardClick({
+                      id: member.id,
+                      title: member.name,
+                      value: member.title,
+                      subtitle: 'Team Member Performance Analysis',
+                      insights: member.insights,
+                      recommendations: member.recommendations,
+                      chartData: [
+                        { name: 'Q1', value: Math.floor(Math.random() * 50) + 50 },
+                        { name: 'Q2', value: Math.floor(Math.random() * 50) + 60 },
+                        { name: 'Q3', value: Math.floor(Math.random() * 50) + 70 },
+                        { name: 'Q4', value: Math.floor(Math.random() * 50) + 80 }
+                      ],
+                      chartType: 'line' as const,
+                      trend: 'up' as const
+                    })}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-12 w-12 border-2 border-white shadow-md">
+                          <AvatarFallback className="bg-gradient-to-br from-slate-700 to-slate-800 text-white text-sm font-bold">
+                            {member.avatar}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <CardTitle className="text-sm font-bold text-slate-900">
+                            {member.name}
+                          </CardTitle>
+                          <p className="text-xs text-slate-600 font-medium">{member.title}</p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2 text-center text-xs">
+                        <div>
+                          <p className="text-slate-600">Performance</p>
+                          <p className="text-sm font-bold text-slate-900 capitalize">
+                            {member.performance}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-slate-600">Status</p>
+                          <p className="text-sm font-bold text-emerald-600">Active</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Manager Pulse */}
-      <ManagerPulse />
-
-      {/* Campaign Performance */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {campaignPerformance.map((campaign) => (
-          <Card 
-            key={campaign.name}
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => openInsightModal({
-              title: `${campaign.name} Performance`,
-              type: 'campaign',
-              data: campaign.data,
-              insights: [
-                `Spend: ${campaign.spend} generating ${campaign.leads} leads`,
-                `Cost per lead: ${campaign.cpl} (${campaign.change})`,
-                'Optimization recommendations available'
-              ]
-            })}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center justify-between">
-                {campaign.name}
-                <Badge variant={campaign.trend === 'up' ? 'default' : 'destructive'}>
-                  {campaign.change}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Spend:</span>
-                <span className="font-medium">{campaign.spend}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Leads:</span>
-                <span className="font-medium">{campaign.leads}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">CPL:</span>
-                <span className="font-medium">{campaign.cpl}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+          
+          {/* Right Sidebar - Compact AI Daily Summary */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-4">
+              <AIDailySummary summary={aiSummary} isFullUser={true} />
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* Lead Sources */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {leadSources.map((source) => (
-          <Card 
-            key={source.source}
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => openInsightModal({
-              title: `${source.source} Analysis`,
-              type: 'source',
-              data: source.data,
-              insights: [
-                `${source.leads} leads with ${source.conversion} conversion rate`,
-                `Generated ${source.revenue} in revenue`,
-                `Average deal size: $${source.data.avgDeal.toLocaleString()}`
-              ]
-            })}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">{source.source}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Leads:</span>
-                <span className="font-medium">{source.leads}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Conversion:</span>
-                <span className="font-medium text-green-600">{source.conversion}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Revenue:</span>
-                <span className="font-medium">{source.revenue}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Team Performance Section */}
-      <TeamPerformanceSection />
-
-      {/* Team Rewards Overview */}
-      <TeamRewardsOverview />
 
       {/* AI Insights Modal */}
-      <AIInsightsModal
-        isOpen={isModalOpen}
-        onClose={closeModal}
-        data={selectedInsight}
+      {selectedModal && (
+        <AIInsightsModal
+          isOpen={!!selectedModal}
+          onClose={() => setSelectedModal(null)}
+          data={selectedModal}
+        />
+      )}
+
+      {/* AI Chat Bubble */}
+      <ChatBubble 
+        assistantType="dashboard" 
+        enabled={true}
+        context={{
+          workspace: 'dashboard',
+          userRole: 'manager'
+        }}
       />
     </div>
   );
