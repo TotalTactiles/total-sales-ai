@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -10,8 +11,11 @@ export const useCallStatus = (callSid?: string) => {
   useEffect(() => {
     if (!callSid) return;
 
+    // Create a unique channel name to avoid conflicts
+    const channelName = `call-status-${callSid}-${Date.now()}`;
+    
     const channel = supabase
-      .channel(`call-status-${callSid}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {

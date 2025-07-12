@@ -57,7 +57,15 @@ export const useTSAM = () => {
     }
 
     fetchTSAMData();
-    setupRealtimeSubscriptions();
+    
+    // Setup realtime subscriptions with proper cleanup
+    const cleanup = setupRealtimeSubscriptions();
+    
+    return () => {
+      if (cleanup) {
+        cleanup();
+      }
+    };
   }, [isDeveloper, user?.id]);
 
   const fetchTSAMData = async () => {
@@ -104,8 +112,11 @@ export const useTSAM = () => {
   const setupRealtimeSubscriptions = () => {
     if (!isDeveloper) return;
 
+    // Create a unique channel name to avoid conflicts
+    const channelName = `tsam-realtime-${Date.now()}`;
+    
     const channel = supabase
-      .channel('tsam-realtime')
+      .channel(channelName)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -122,7 +133,10 @@ export const useTSAM = () => {
       })
       .subscribe();
 
-    return () => supabase.removeChannel(channel);
+    // Return cleanup function
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const ingestEvent = async (eventData: {
