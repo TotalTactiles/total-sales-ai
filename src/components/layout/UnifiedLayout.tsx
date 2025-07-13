@@ -3,7 +3,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDemoMode } from '@/hooks/useDemoMode';
-import DeveloperNavigation from '@/components/Navigation/DeveloperNavigation';
+import SalesRepNavigation from '@/components/Navigation/SalesRepNavigation';
 
 interface UnifiedLayoutProps {
   children: React.ReactNode;
@@ -14,37 +14,23 @@ const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({ children }) => {
   const { profile } = useAuth();
   const { isDemoMode } = useDemoMode();
 
-  // Determine if we should show developer navigation
-  const showDeveloperNav = () => {
-    // Check for developer mode
-    const devMode = localStorage.getItem('developerMode') === 'true';
-    const viewMode = localStorage.getItem('viewMode');
-    
-    if (devMode && viewMode === 'developer') {
-      return true;
-    }
-    
-    // Check if user is actually a developer
-    if (profile?.role === 'developer' || profile?.role === 'admin') {
-      return true;
-    }
-    
-    // Check if on developer route
-    return location.pathname.startsWith('/developer');
+  // Show sales navigation for sales reps
+  const showSalesNav = () => {
+    if (profile?.role === 'sales_rep') return true;
+    if (location.pathname.startsWith('/sales')) return true;
+    return false;
   };
 
-  const shouldShowDevNav = showDeveloperNav();
+  const shouldShowSalesNav = showSalesNav();
 
   return (
-    <div className="flex h-screen w-full bg-gray-900">
-      {/* Developer Navigation Sidebar */}
-      {shouldShowDevNav && <DeveloperNavigation />}
+    <div className="min-h-screen bg-background">
+      {/* Sales Rep Navigation */}
+      {shouldShowSalesNav && <SalesRepNavigation />}
       
       {/* Main Content Area */}
-      <main className="flex-1 overflow-hidden bg-gray-900">
-        <div className="h-full overflow-auto">
-          {children}
-        </div>
+      <main className={`${shouldShowSalesNav ? 'pt-16' : ''}`}>
+        {children}
       </main>
     </div>
   );
