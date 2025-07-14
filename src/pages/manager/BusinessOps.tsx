@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,24 +17,161 @@ import {
   Zap,
   Activity,
   Calendar,
-  Settings
+  Settings,
+  Phone,
+  PieChart,
+  RefreshCw
 } from 'lucide-react';
 import FunnelChart from '@/components/Manager/FunnelChart';
 import AIFunnelInsights from '@/components/Manager/AIFunnelInsights';
 import RetentionIntelligencePanel from '@/components/Manager/RetentionIntelligencePanel';
 import ProcessInReview from '@/components/Manager/ProcessInReview';
+import BusinessOpsCardModal from '@/components/Manager/BusinessOpsCardModal';
+import ProcessInReviewActions from '@/components/Manager/ProcessInReviewActions';
+import RetentionActions from '@/components/Manager/RetentionActions';
+import { toast } from 'sonner';
 
 const BusinessOps = () => {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [aiAnalyticsActive, setAiAnalyticsActive] = useState(true);
+  const [selectedCard, setSelectedCard] = useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Mock sales reps data
-  const salesRepsData = [
-    { name: 'Sarah Chen', deals: 12, value: '$145K', conversion: '28%', status: 'exceeding', calls: 89, training: 92, emoji: '🔥' },
-    { name: 'Mike Johnson', deals: 8, value: '$98K', conversion: '22%', status: 'on-track', calls: 67, training: 78, emoji: '📈' },
-    { name: 'Emma Davis', deals: 6, value: '$67K', conversion: '18%', status: 'needs-support', calls: 45, training: 56, emoji: '⚠️' },
-    { name: 'James Wilson', deals: 10, value: '$123K', conversion: '25%', status: 'on-track', calls: 78, training: 84, emoji: '📊' }
+  // Updated ops metrics with revenue-facing system cards
+  const opsMetrics = [
+    {
+      id: 'revenue-trend',
+      title: 'Revenue Trends',
+      value: '+15.2%',
+      subtitle: 'vs last month',
+      icon: DollarSign,
+      color: 'green',
+      bgColor: 'bg-green-50',
+      textColor: 'text-green-600',
+      borderColor: 'border-green-200',
+      trend: 'up',
+      insights: [
+        'Q4 trending 23% above target',
+        'Enterprise deals driving growth',
+        'Upsell opportunities identified'
+      ]
+    },
+    {
+      id: 'customer-acquisition',
+      title: 'Customer Acquisition Cost',
+      value: '$1,240',
+      subtitle: '8% improvement',
+      icon: Target,
+      color: 'blue',
+      bgColor: 'bg-blue-50',
+      textColor: 'text-blue-600',
+      borderColor: 'border-blue-200',
+      trend: 'up',
+      insights: [
+        'CAC reduced by 8% this quarter',
+        'Digital channels performing well',
+        'ROI optimization working'
+      ]
+    },
+    {
+      id: 'customer-lifetime-value',
+      title: 'Customer Lifetime Value',
+      value: '$18,500',
+      subtitle: 'LTV:CAC ratio 14.9:1',
+      icon: TrendingUp,
+      color: 'purple',
+      bgColor: 'bg-purple-50',
+      textColor: 'text-purple-600',
+      borderColor: 'border-purple-200',
+      trend: 'up',
+      insights: [
+        'LTV increased by 12% YoY',
+        'Retention programs effective',
+        'Premium tier adoption growing'
+      ]
+    },
+    {
+      id: 'churn-prevention',
+      title: 'Churn Rate',
+      value: '2.3%',
+      subtitle: 'Monthly churn rate',
+      icon: RefreshCw,
+      color: 'orange',
+      bgColor: 'bg-orange-50',
+      textColor: 'text-orange-600',
+      borderColor: 'border-orange-200',
+      trend: 'down',
+      insights: [
+        'Churn reduced by 0.5% this month',
+        'Early warning system active',
+        'Customer success interventions working'
+      ]
+    },
+    {
+      id: 'market-share',
+      title: 'Market Share',
+      value: '12.8%',
+      subtitle: 'Regional market position',
+      icon: PieChart,
+      color: 'indigo',
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-600',
+      borderColor: 'border-indigo-200',
+      trend: 'up',
+      insights: [
+        'Market share grew 1.2% this quarter',
+        'Competitive positioning strong',
+        'New market segments identified'
+      ]
+    },
+    {
+      id: 'revenue-per-employee',
+      title: 'Revenue per Employee',
+      value: '$145K',
+      subtitle: 'Annual productivity metric',
+      icon: Users,
+      color: 'teal',
+      bgColor: 'bg-teal-50',
+      textColor: 'text-teal-600',
+      borderColor: 'border-teal-200',
+      trend: 'up',
+      insights: [
+        'Productivity up 8% this year',
+        'Automation initiatives paying off',
+        'Team efficiency optimized'
+      ]
+    }
   ];
+
+  // Expanded Business Ops actions
+  const businessOpsActions = [
+    { id: 'forecast-analysis', label: 'Revenue Forecast Analysis', icon: TrendingUp },
+    { id: 'pipeline-audit', label: 'Pipeline Health Audit', icon: BarChart3 },
+    { id: 'competitive-analysis', label: 'Competitive Analysis', icon: Target },
+    { id: 'market-research', label: 'Market Research Report', icon: Brain },
+    { id: 'customer-segmentation', label: 'Customer Segmentation', icon: Users },
+    { id: 'pricing-optimization', label: 'Pricing Optimization', icon: DollarSign },
+    { id: 'churn-analysis', label: 'Churn Risk Analysis', icon: AlertTriangle },
+    { id: 'roi-calculator', label: 'ROI Calculator', icon: Calculator },
+    { id: 'territory-planning', label: 'Territory Planning', icon: Settings },
+    { id: 'performance-benchmarking', label: 'Performance Benchmarking', icon: Activity },
+    { id: 'campaign-analysis', label: 'Campaign Effectiveness', icon: Zap },
+    { id: 'lead-scoring', label: 'Lead Scoring Model', icon: Target }
+  ];
+
+  const handleCardClick = (metric: any) => {
+    setSelectedCard(metric);
+    setIsModalOpen(true);
+  };
+
+  const handleExportPDF = () => {
+    toast.success('Exporting Business Operations report as PDF with embedded notes and charts');
+  };
+
+  const handleActionClick = (actionId: string) => {
+    const action = businessOpsActions.find(a => a.id === actionId);
+    toast.success(`Launching ${action?.label} tool`);
+  };
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
@@ -54,81 +190,85 @@ const BusinessOps = () => {
             <Brain className="h-3 w-3 mr-1" />
             AI Analytics {aiAnalyticsActive ? 'Active' : 'Inactive'}
           </Badge>
+          <Button variant="outline" onClick={handleExportPDF}>
+            <Download className="h-4 w-4 mr-2" />
+            Export PDF
+          </Button>
           <Button variant="outline">
             <Filter className="h-4 w-4 mr-2" />
             Filters
-          </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export
           </Button>
         </div>
       </div>
 
       {/* Business Operations Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="process-review">Process in Review</TabsTrigger>
-          <TabsTrigger value="funnels">Funnels</TabsTrigger>
+          <TabsTrigger value="process-review">PIV (Process in Review)</TabsTrigger>
           <TabsTrigger value="retention">Retention</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Key Business Metrics */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Monthly ARR</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$2.4M</div>
-                <p className="text-xs text-green-600">
-                  +18% from last month
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">CAC</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$1,240</div>
-                <p className="text-xs text-green-600">
-                  -8% improvement
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">LTV</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">$18,500</div>
-                <p className="text-xs text-muted-foreground">
-                  LTV:CAC ratio 14.9:1
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-lg shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                <BarChart3 className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">24.3%</div>
-                <p className="text-xs text-green-600">
-                  +3.1% from last period
-                </p>
-              </CardContent>
-            </Card>
+          {/* Clickable Ops Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {opsMetrics.map((metric) => {
+              const IconComponent = metric.icon;
+              return (
+                <Card 
+                  key={metric.id}
+                  className={`${metric.bgColor} ${metric.borderColor} border-2 cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105`}
+                  onClick={() => handleCardClick(metric)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <IconComponent className={`h-6 w-6 ${metric.textColor}`} />
+                      <Badge className={`${metric.textColor} bg-white/20`}>
+                        Active
+                      </Badge>
+                    </div>
+                    <h3 className="font-semibold text-gray-900 text-sm mb-2">
+                      {metric.title}
+                    </h3>
+                    <div className={`text-2xl font-bold ${metric.textColor} mb-1`}>
+                      {metric.value}
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      {metric.subtitle}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
+
+          {/* Expanded All Actions Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                All Business Operations Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                {businessOpsActions.map((action) => {
+                  const IconComponent = action.icon;
+                  return (
+                    <Button
+                      key={action.id}
+                      variant="outline"
+                      className="h-16 flex flex-col items-center justify-center gap-2 text-xs"
+                      onClick={() => handleActionClick(action.id)}
+                    >
+                      <IconComponent className="h-5 w-5" />
+                      <span className="text-center leading-tight">{action.label}</span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
 
           {/* AI Interpretation Blocks */}
           {aiAnalyticsActive && (
@@ -242,70 +382,20 @@ const BusinessOps = () => {
         </TabsContent>
 
         <TabsContent value="process-review" className="space-y-6">
-          <ProcessInReview />
-        </TabsContent>
-
-        <TabsContent value="funnels" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <FunnelChart />
-            <AIFunnelInsights />
-          </div>
+          <ProcessInReviewActions />
         </TabsContent>
 
         <TabsContent value="retention" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="rounded-lg shadow-sm">
-              <CardHeader>
-                <CardTitle>Customer Retention Metrics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Monthly Churn Rate</span>
-                    <Badge variant="secondary">2.3%</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Annual Retention</span>
-                    <Badge variant="default">94.2%</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Expansion Revenue</span>
-                    <Badge variant="secondary">$340K</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Upsell Rate</span>
-                    <Badge variant="default">28%</Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-lg shadow-sm">
-              <CardHeader>
-                <CardTitle>Revenue Health Score</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <h4 className="font-medium text-green-800">🚀 Expansion Opportunities (12 accounts)</h4>
-                    <p className="text-sm text-green-700">High usage, feature requests, growth indicators</p>
-                  </div>
-                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h4 className="font-medium text-yellow-800">🧊 Medium Risk (7 accounts)</h4>
-                    <p className="text-sm text-yellow-700">Reduced engagement, missed check-ins</p>
-                  </div>
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                    <h4 className="font-medium text-red-800">⚠️ High Risk (3 accounts)</h4>
-                    <p className="text-sm text-red-700">Decreased usage, support tickets, payment delays</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <RetentionIntelligencePanel />
+          <RetentionActions />
         </TabsContent>
       </Tabs>
+
+      {/* Business Ops Card Modal */}
+      <BusinessOpsCardModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        cardData={selectedCard}
+      />
     </div>
   );
 };
