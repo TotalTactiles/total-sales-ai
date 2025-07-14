@@ -9,22 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import LeadCard from './LeadCard';
 import { Search, Settings, RotateCcw, Star } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Lead {
-  id: string;
-  name: string;
-  company: string;
-  email: string;
-  phone: string;
-  status: string;
-  priority: string;
-  score: number;
-  likelihood: number;
-  tags: string[];
-  source: string;
-  lastContact: string;
-  nextAction: string;
-}
+import { Lead } from '@/types/lead';
 
 interface CustomizationSettings {
   showCompany: boolean;
@@ -63,8 +48,8 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({ leads, onLeadSelect }) => {
 
   const filteredLeads = leads.filter(lead => 
     lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    lead.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (lead.company && lead.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (lead.email && lead.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleCustomizationChange = (field: keyof CustomizationSettings, value: boolean) => {
@@ -75,7 +60,6 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({ leads, onLeadSelect }) => {
   };
 
   const handleSaveCustomization = () => {
-    // Save to localStorage or user preferences
     localStorage.setItem('leadCardCustomization', JSON.stringify(customization));
     setIsCustomView(true);
     setShowCustomizeModal(false);
@@ -89,7 +73,6 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({ leads, onLeadSelect }) => {
     toast.success('Reset to default view');
   };
 
-  // Load saved customization on component mount
   React.useEffect(() => {
     const saved = localStorage.getItem('leadCardCustomization');
     if (saved) {
@@ -104,7 +87,6 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({ leads, onLeadSelect }) => {
   }, []);
 
   const getAIRecommendedFields = () => {
-    // AI-recommended fields based on usage patterns
     return ['showScore', 'showLikelihood', 'showNextAction'];
   };
 
@@ -147,8 +129,17 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({ leads, onLeadSelect }) => {
           <LeadCard
             key={lead.id}
             lead={lead}
-            onSelect={() => onLeadSelect(lead)}
-            customization={customization}
+            onLeadSelect={onLeadSelect}
+            customizeSettings={{
+              showScore: customization.showScore,
+              showCompany: customization.showCompany,
+              showEmail: customization.showEmail,
+              showPhone: customization.showPhone,
+              showTags: customization.showTags,
+              showLastContact: customization.showLastContact,
+              showConversionLikelihood: customization.showLikelihood,
+              showPriority: true
+            }}
           />
         ))}
       </div>

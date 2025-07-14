@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   X, 
-  Brain,
-  Shield
+  Brain
 } from 'lucide-react';
 import VoiceControls from './VoiceControls';
 import { Lead } from '@/types/lead';
@@ -37,12 +36,6 @@ const LeadIntelligenceHeader: React.FC<LeadIntelligenceHeaderProps> = ({
       <DialogTitle className="text-xl font-bold flex items-center gap-3">
         <Brain className="h-6 w-6 text-blue-600" />
         Lead Intelligence: {lead.name}
-        {isSensitive && (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-            <Shield className="h-3 w-3 mr-1" />
-            Sensitive
-          </Badge>
-        )}
       </DialogTitle>
       <div className="flex items-center gap-2">
         <VoiceControls 
@@ -50,15 +43,6 @@ const LeadIntelligenceHeader: React.FC<LeadIntelligenceHeaderProps> = ({
           onToggle={onVoiceToggle}
           leadName={lead.name}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onSensitiveToggle}
-          className={`${isSensitive ? 'border-red-300 text-red-700' : 'border-gray-300'}`}
-        >
-          <Shield className="h-4 w-4 mr-1" />
-          {isSensitive ? 'Remove Sensitive' : 'Mark Sensitive'}
-        </Button>
         <Button
           variant="outline"
           size="sm"
