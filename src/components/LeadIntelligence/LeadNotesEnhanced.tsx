@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +24,7 @@ import { Lead } from '@/types/lead';
 interface LeadNotesEnhancedProps {
   lead: Lead;
   aiDelegationMode: boolean;
+  onUpdate?: (field: string, value: any) => void;
 }
 
 interface Note {
@@ -42,7 +42,7 @@ interface Note {
   source?: 'manual' | 'dialer' | 'ai_assistant' | 'form';
 }
 
-const LeadNotesEnhanced: React.FC<LeadNotesEnhancedProps> = ({ lead, aiDelegationMode }) => {
+const LeadNotesEnhanced: React.FC<LeadNotesEnhancedProps> = ({ lead, aiDelegationMode, onUpdate }) => {
   const [newNote, setNewNote] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [notes, setNotes] = useState<Note[]>([
@@ -114,6 +114,10 @@ const LeadNotesEnhanced: React.FC<LeadNotesEnhancedProps> = ({ lead, aiDelegatio
     setNewNote('');
     setShowSuggestions(false);
     toast.success('Note added successfully');
+    
+    if (onUpdate) {
+      onUpdate('notes', [...notes, note]);
+    }
   };
 
   const handleAddTask = () => {
@@ -136,6 +140,10 @@ const LeadNotesEnhanced: React.FC<LeadNotesEnhancedProps> = ({ lead, aiDelegatio
 
     setNotes(prev => [aiNote, ...prev]);
     toast.success('AI note generated');
+    
+    if (onUpdate) {
+      onUpdate('notes', [aiNote, ...notes]);
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
