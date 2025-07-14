@@ -1,273 +1,248 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
-  Search,
-  Star,
+  Eye, 
+  Download, 
+  Mail, 
+  Phone, 
+  MessageSquare, 
   Clock,
-  Zap,
-  Mail,
-  Phone,
-  Database,
   Sparkles,
-  Play,
-  Settings,
-  Download
+  ThumbsUp,
+  ThumbsDown,
+  Send
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface AutomationTemplatesProps {
-  hasNewTemplates?: boolean;
+  hasNewTemplates: boolean;
 }
 
 const AutomationTemplates: React.FC<AutomationTemplatesProps> = ({ hasNewTemplates }) => {
-  const [selectedCategory, setSelectedCategory] = useState('All Templates');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [newTemplates, setNewTemplates] = useState<any[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
-  const categories = [
-    { name: 'All Templates', count: 24, icon: <Star className="h-4 w-4" /> },
-    { name: 'NEW Templates 🆕', count: newTemplates.length, icon: <Sparkles className="h-4 w-4" />, isNew: true },
-    { name: 'Lead Nurturing', count: 8, icon: <Zap className="h-4 w-4" /> },
-    { name: 'Follow-ups', count: 6, icon: <Mail className="h-4 w-4" /> },
-    { name: 'Meeting Scheduling', count: 4, icon: <Clock className="h-4 w-4" /> },
-    { name: 'Proposal Management', count: 3, icon: <Database className="h-4 w-4" /> },
-    { name: 'Client Onboarding', count: 3, icon: <Phone className="h-4 w-4" /> }
-  ];
-
-  const defaultTemplates = [
+  const templates = [
     {
-      id: 'new-lead-welcome',
-      name: 'New Lead Welcome Series',
-      description: 'Automated email sequence to welcome and nurture new leads',
-      rating: 4.8,
-      uses: 1247,
-      duration: '3-5 days',
-      difficulty: 'Easy',
-      tags: ['email', 'nurturing', 'welcome'],
-      category: 'Lead Nurturing'
+      id: '1',
+      name: 'Welcome Email Sequence',
+      type: 'email',
+      status: hasNewTemplates ? 'new' : 'available',
+      description: 'Multi-step welcome sequence for new leads',
+      efficiency: 85,
+      source: 'Manager OS',
+      preview: 'Subject: Welcome to [Company Name]!\n\nHi [First Name],\n\nWelcome to our community! We\'re excited to have you on board...',
+      deployCount: 12,
+      successRate: 85
     },
     {
-      id: 'demo-followup',
-      name: 'Demo Follow-up Sequence',
-      description: 'Follow up with prospects after product demonstrations',
-      rating: 4.9,
-      uses: 892,
-      duration: '1-2 weeks',
-      difficulty: 'Medium',
-      tags: ['demo', 'follow-up', 'conversion'],
-      category: 'Follow-ups'
+      id: '2',
+      name: 'Follow-up Call Script',
+      type: 'calling',
+      status: 'updated',
+      description: 'Optimized script for second follow-up calls',
+      efficiency: 92,
+      source: 'AI Generated',
+      preview: 'Opening: Hi [Name], this is [Your Name] from [Company]. I wanted to follow up on our conversation about...',
+      deployCount: 8,
+      successRate: 92
     },
     {
-      id: 'cold-outreach-sms',
-      name: 'Cold Outreach SMS',
-      description: 'Initial contact SMS for cold leads with high response rates',
-      rating: 4.6,
-      uses: 634,
-      duration: 'Immediate',
-      difficulty: 'Easy',
-      tags: ['sms', 'cold-outreach', 'initial-contact'],
-      category: 'Lead Nurturing'
-    },
-    {
-      id: 'meeting-scheduler',
-      name: 'Meeting Scheduler',
-      description: 'Automated meeting scheduling with calendar integration',
-      rating: 4.7,
-      uses: 456,
-      duration: '30 minutes',
-      difficulty: 'Medium',
-      tags: ['calendar', 'scheduling', 'automation'],
-      category: 'Meeting Scheduling'
+      id: '3',
+      name: 'Demo Booking SMS',
+      type: 'sms',
+      status: 'available',
+      description: 'Short SMS sequence for demo scheduling',
+      efficiency: 67,
+      source: 'Template Library',
+      preview: 'Hi [Name]! Ready to see how [Product] can save you 5+ hours per week? Book your demo: [Link]',
+      deployCount: 15,
+      successRate: 67
     }
   ];
 
-  const [templates, setTemplates] = useState(defaultTemplates);
+  const handlePreview = (template: any) => {
+    setSelectedTemplate(template);
+    setShowPreview(true);
+  };
 
-  useEffect(() => {
-    // Load new templates from Manager OS
-    const storedTemplates = localStorage.getItem('newAutomationTemplates');
-    if (storedTemplates) {
-      const templateData = JSON.parse(storedTemplates);
-      setNewTemplates(templateData.templates || []);
+  const handleDeploy = (template: any) => {
+    toast.success(`"${template.name}" recommended to manager for deployment`);
+  };
+
+  const handleFeedback = (template: any, feedback: 'positive' | 'negative') => {
+    toast.success(`Feedback submitted for "${template.name}"`);
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'email': return <Mail className="h-4 w-4" />;
+      case 'sms': return <MessageSquare className="h-4 w-4" />;
+      case 'calling': return <Phone className="h-4 w-4" />;
+      default: return <Clock className="h-4 w-4" />;
     }
-  }, [hasNewTemplates]);
+  };
 
-  const filteredTemplates = templates.filter(template => {
-    if (selectedCategory === 'All Templates') return true;
-    if (selectedCategory === 'NEW Templates 🆕') {
-      return newTemplates.some(nt => nt.id === template.id);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'new':
+        return <Badge className="bg-green-100 text-green-800">New</Badge>;
+      case 'updated':
+        return <Badge className="bg-blue-100 text-blue-800">Updated</Badge>;
+      case 'available':
+        return <Badge className="bg-gray-100 text-gray-800">Available</Badge>;
+      default:
+        return null;
     }
-    return template.category === selectedCategory;
-  });
-
-  const handleUseTemplate = (templateId: string) => {
-    console.log('Using template:', templateId);
-    // Implement template deployment logic
   };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Automation Templates</h2>
-          <p className="text-gray-600 mt-1">Pre-built workflows to accelerate your sales process</p>
+          <h3 className="text-lg font-semibold">Automation Templates</h3>
+          <p className="text-sm text-gray-600">Ready-to-use templates synced from Manager OS</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Search templates..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 w-64"
-            />
-          </div>
-          <Button variant="outline" size="sm">
-            Advanced Filters
-          </Button>
-        </div>
+        {hasNewTemplates && (
+          <Badge className="bg-green-100 text-green-800">
+            <Sparkles className="h-3 w-3 mr-1" />
+            New Templates Available
+          </Badge>
+        )}
       </div>
 
-      <div className="flex gap-6">
-        {/* Categories Sidebar */}
-        <div className="w-64 space-y-2">
-          <h3 className="font-medium text-gray-900 mb-3">Categories</h3>
-          {categories.map((category) => (
-            <button
-              key={category.name}
-              onClick={() => setSelectedCategory(category.name)}
-              className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${
-                selectedCategory === category.name
-                  ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                  : 'hover:bg-gray-50'
-              } ${category.isNew ? 'animate-pulse' : ''}`}
-            >
-              <div className="flex items-center gap-2">
-                {category.icon}
-                <span className="text-sm font-medium">{category.name}</span>
-                {category.isNew && hasNewTemplates && (
-                  <Sparkles className="h-3 w-3 text-yellow-500" />
-                )}
+      {/* Templates Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {templates.map((template) => (
+          <Card key={template.id} className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  {getTypeIcon(template.type)}
+                  <h4 className="font-medium">{template.name}</h4>
+                </div>
+                {getStatusBadge(template.status)}
               </div>
-              <Badge variant="outline" className="text-xs">
-                {category.count}
-              </Badge>
-            </button>
-          ))}
-        </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">{template.description}</p>
+              
+              {/* Metrics */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500">Success Rate</p>
+                  <p className="font-medium">{template.successRate}%</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Deployments</p>
+                  <p className="font-medium">{template.deployCount}</p>
+                </div>
+              </div>
 
-        {/* Templates Grid */}
-        <div className="flex-1">
-          {selectedCategory === 'NEW Templates 🆕' && newTemplates.length > 0 && (
-            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-5 w-5 text-yellow-500" />
-                <h3 className="font-medium text-gray-900">New Templates from Manager</h3>
+              {/* Source */}
+              <div className="text-xs text-gray-500">
+                Source: {template.source}
               </div>
-              <p className="text-sm text-gray-600">
-                Your manager has sent {newTemplates.length} new automation templates for you to use.
-              </p>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePreview(template)}
+                  className="flex-1"
+                >
+                  <Eye className="h-4 w-4 mr-1" />
+                  Preview
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => handleDeploy(template)}
+                  className="flex-1"
+                >
+                  <Send className="h-4 w-4 mr-1" />
+                  Deploy
+                </Button>
+              </div>
+
+              {/* Feedback */}
+              <div className="flex items-center justify-between pt-2 border-t">
+                <span className="text-xs text-gray-500">Rate this template:</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFeedback(template, 'positive')}
+                    className="h-6 w-6 p-0"
+                  >
+                    <ThumbsUp className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFeedback(template, 'negative')}
+                    className="h-6 w-6 p-0"
+                  >
+                    <ThumbsDown className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedTemplate && getTypeIcon(selectedTemplate.type)}
+              {selectedTemplate?.name} Preview
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedTemplate && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Template Content:</h4>
+                <pre className="text-sm whitespace-pre-wrap text-gray-700">
+                  {selectedTemplate.preview}
+                </pre>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="font-medium">Success Rate</p>
+                  <p className="text-gray-600">{selectedTemplate.successRate}%</p>
+                </div>
+                <div>
+                  <p className="font-medium">Total Deployments</p>
+                  <p className="text-gray-600">{selectedTemplate.deployCount}</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button onClick={() => setShowPreview(false)} variant="outline">
+                  Close
+                </Button>
+                <Button onClick={() => {
+                  handleDeploy(selectedTemplate);
+                  setShowPreview(false);
+                }}>
+                  <Send className="h-4 w-4 mr-1" />
+                  Deploy Template
+                </Button>
+              </div>
             </div>
           )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Show new templates first if viewing NEW category */}
-            {selectedCategory === 'NEW Templates 🆕' && newTemplates.map((template) => (
-              <Card key={template.id} className="border-2 border-yellow-300 bg-yellow-50">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-2">
-                      {template.icon}
-                      <div>
-                        <CardTitle className="text-lg">{template.name}</CardTitle>
-                        <p className="text-sm text-gray-600 mt-1">{template.description}</p>
-                      </div>
-                    </div>
-                    <Badge className="bg-yellow-500 text-white">NEW</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span>New</span>
-                    </div>
-                    <span>{template.steps} steps</span>
-                    <span>{template.category}</span>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      className="flex-1"
-                      onClick={() => handleUseTemplate(template.id)}
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Use Template
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-
-            {/* Regular templates */}
-            {filteredTemplates.map((template) => (
-              <Card key={template.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{template.name}</CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">{template.description}</p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span>{template.rating}</span>
-                    </div>
-                    <span>{template.uses} uses</span>
-                    <span>{template.duration}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {template.difficulty}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-1 mb-4">
-                    {template.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      className="flex-1"
-                      onClick={() => handleUseTemplate(template.id)}
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Use Template
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

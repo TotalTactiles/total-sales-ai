@@ -4,10 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Zap, Play, Pause, Settings, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, Filter, Search, Sparkles } from 'lucide-react';
+import { Zap, Play, Pause, Settings, TrendingUp, Clock, CheckCircle, AlertCircle, Plus, Filter, Search, Sparkles, Brain } from 'lucide-react';
 import AutomationDashboard from './AutomationDashboard';
 import AutomationTemplates from './AutomationTemplates';
-import AutomationWorkflowBuilder from './AutomationWorkflowBuilder';
 import AutomationAnalytics from './AutomationAnalytics';
 import { toast } from 'sonner';
 
@@ -66,78 +65,70 @@ const AIAgentAutomation = () => {
 
   return (
     <div className="space-y-4">
-      {/* Compact Header */}
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 p-4 text-white">
+      {/* Enhanced Header with AI Branding */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600 p-6 text-white">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative z-10 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold flex items-center gap-2 mb-1">
-              <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm">
-                <Zap className="h-4 w-4" />
+            <h2 className="text-2xl font-bold flex items-center gap-3 mb-2">
+              <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                <Brain className="h-6 w-6" />
               </div>
-              Sales Automation Hub
+              AI Sales Automation Hub
             </h2>
-            <p className="text-blue-100 text-xs">
+            <p className="text-blue-100 text-sm">
               Streamline your sales process with intelligent automation
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" size="sm" className="bg-white/20 border-white/30 hover:bg-white/30 backdrop-blur-sm text-xs h-8 text-gray-50">
-              <Filter className="h-3 w-3 mr-1" />
+          <div className="flex gap-3">
+            <Button variant="secondary" size="sm" className="bg-white/20 border-white/30 hover:bg-white/30 backdrop-blur-sm text-white">
+              <Filter className="h-4 w-4 mr-2" />
               Filter
             </Button>
-            <Button size="sm" className="bg-white hover:bg-blue-50 font-medium text-xs h-8 text-zinc-950">
-              <Plus className="h-3 w-3 mr-1" />
+            <Button size="sm" className="bg-white hover:bg-blue-50 font-medium text-blue-600">
+              <Plus className="h-4 w-4 mr-2" />
               New Automation
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Compact Sub-tabs */}
+      {/* Enhanced Sub-tabs - Removed Workflow Builder for Rep View */}
       <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm border border-slate-200/50 rounded-lg p-0.5 h-9">
-          <TabsTrigger value="dashboard" className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
-            <TrendingUp className="h-3 w-3" />
-            <span className="text-xs">Dashboard</span>
+        <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm border border-slate-200/50 rounded-lg p-1 h-12">
+          <TabsTrigger value="dashboard" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+            <TrendingUp className="h-4 w-4" />
+            <span>Dashboard</span>
           </TabsTrigger>
           <TabsTrigger 
             value="templates" 
-            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white relative"
+            className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white relative"
             onClick={clearNewTemplatesNotification}
           >
-            <Settings className="h-3 w-3" />
-            <span className="text-xs">Templates</span>
+            <Settings className="h-4 w-4" />
+            <span>Templates</span>
             {hasNewTemplates && (
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-[8px] text-white font-bold">{newTemplatesCount}</span>
+              <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                <span className="text-xs text-white font-bold">{newTemplatesCount}</span>
               </div>
             )}
           </TabsTrigger>
-          <TabsTrigger value="builder" className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
-            <Zap className="h-3 w-3" />
-            <span className="text-xs">Workflow Builder</span>
-          </TabsTrigger>
-          <TabsTrigger value="analytics" className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
-            <TrendingUp className="h-3 w-3" />
-            <span className="text-xs">Analytics</span>
+          <TabsTrigger value="analytics" className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
+            <TrendingUp className="h-4 w-4" />
+            <span>Analytics</span>
           </TabsTrigger>
         </TabsList>
 
-        <div className="mt-4">
-          <TabsContent value="dashboard" className="space-y-4 m-0">
+        <div className="mt-6">
+          <TabsContent value="dashboard" className="space-y-6 m-0">
             <AutomationDashboard />
           </TabsContent>
 
-          <TabsContent value="templates" className="space-y-4 m-0">
+          <TabsContent value="templates" className="space-y-6 m-0">
             <AutomationTemplates hasNewTemplates={hasNewTemplates} />
           </TabsContent>
 
-          <TabsContent value="builder" className="space-y-4 m-0">
-            <AutomationWorkflowBuilder />
-          </TabsContent>
-
-          <TabsContent value="analytics" className="space-y-4 m-0">
+          <TabsContent value="analytics" className="space-y-6 m-0">
             <AutomationAnalytics />
           </TabsContent>
         </div>
