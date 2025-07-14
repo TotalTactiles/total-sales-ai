@@ -1,138 +1,89 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  GraduationCap, 
-  Target, 
-  TrendingUp, 
-  Clock, 
-  Calendar, 
-  CheckCircle, 
-  X,
-  Zap,
-  Eye
-} from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, Target, TrendingUp, BookOpen, CheckCircle, X, Eye } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface CoachingTask {
   id: string;
   title: string;
   description: string;
-  category: 'objection_handling' | 'closing_techniques' | 'discovery' | 'presentation';
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   estimatedTime: string;
+  category: string;
   daysInCoaching: number;
-  progress?: number;
+  isCompleted: boolean;
 }
 
-const AICoachingPanel: React.FC = () => {
-  const [coachingTasks, setCoachingTasks] = useState<CoachingTask[]>([
+const AICoachingPanel = () => {
+  const [tasks, setTasks] = useState<CoachingTask[]>([
     {
       id: '1',
-      title: 'Handling Price Objections',
-      description: 'Learn advanced techniques to overcome price-related objections and demonstrate value.',
-      category: 'objection_handling',
+      title: 'Objection Handling: Price Concerns',
+      description: 'Learn 5 proven techniques to overcome price objections and demonstrate value',
       difficulty: 'intermediate',
       estimatedTime: '15 min',
+      category: 'Objection Handling',
       daysInCoaching: 2,
-      progress: 0
+      isCompleted: false
     },
     {
       id: '2',
-      title: 'Discovery Questions Mastery',
-      description: 'Master the art of asking the right questions to uncover pain points.',
-      category: 'discovery',
+      title: 'Discovery Questions Framework',
+      description: 'Master the BANT qualification framework for better lead qualification',
       difficulty: 'beginner',
-      estimatedTime: '10 min',
-      daysInCoaching: 0,
-      progress: 0
+      estimatedTime: '20 min',
+      category: 'Discovery',
+      daysInCoaching: 5,
+      isCompleted: false
     },
     {
       id: '3',
-      title: 'Assumptive Close Technique',
-      description: 'Learn when and how to use assumptive closing to accelerate deals.',
-      category: 'closing_techniques',
+      title: 'Advanced Closing Techniques',
+      description: 'Practice assumption close, alternative close, and urgency-based closing',
       difficulty: 'advanced',
-      estimatedTime: '20 min',
-      daysInCoaching: 5,
-      progress: 60
+      estimatedTime: '25 min',
+      category: 'Closing',
+      daysInCoaching: 1,
+      isCompleted: false
     }
   ]);
 
-  const [selectedTask, setSelectedTask] = useState<CoachingTask | null>(null);
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [reminderData, setReminderData] = useState({
-    date: '',
-    time: '',
-    notes: ''
-  });
-  const [showPreview, setShowPreview] = useState(false);
+  const [hoveredTask, setHoveredTask] = useState<string | null>(null);
+  const [showActionModal, setShowActionModal] = useState<string | null>(null);
 
-  const handleTaskClick = (task: CoachingTask) => {
-    setSelectedTask(task);
-    setIsTaskModalOpen(true);
-  };
+  const handleTaskAction = (taskId: string, action: 'act_now' | 'calendar' | 'remind_later' | 'dismiss') => {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
 
-  const handleActNow = () => {
-    if (!selectedTask) return;
-    
-    // Opens module in Academy tab
-    console.log('Opening Academy module:', selectedTask);
-    
-    // Log to TSAM for tracking
-    console.log('TSAM tracking: Coaching task started', selectedTask);
-    
-    setIsTaskModalOpen(false);
-    // Navigate to Academy tab with specific module
-  };
-
-  const handleAddToCalendar = () => {
-    if (!selectedTask) return;
-    
-    console.log('Adding to calendar:', selectedTask);
-    setIsTaskModalOpen(false);
-  };
-
-  const handleRemindLater = () => {
-    if (!selectedTask) return;
-    
-    console.log('Remind later:', selectedTask, reminderData);
-    setIsTaskModalOpen(false);
-  };
-
-  const handleDismiss = () => {
-    if (!selectedTask) return;
-    
-    console.log('Dismissing task:', selectedTask);
-    setCoachingTasks(prev => prev.filter(task => task.id !== selectedTask.id));
-    setIsTaskModalOpen(false);
-  };
-
-  const handleMarkComplete = () => {
-    if (!selectedTask) return;
-    
-    // Mark as complete - remove from both Dashboard + Academy > Recommended
-    console.log('Marking complete:', selectedTask);
-    setCoachingTasks(prev => prev.filter(task => task.id !== selectedTask.id));
-    setIsTaskModalOpen(false);
-  };
-
-  const handlePreview = () => {
-    setShowPreview(true);
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'objection_handling': return 'bg-red-100 text-red-800';
-      case 'closing_techniques': return 'bg-green-100 text-green-800';
-      case 'discovery': return 'bg-blue-100 text-blue-800';
-      case 'presentation': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+    switch (action) {
+      case 'act_now':
+        // Navigate to Academy tab with this specific module
+        toast.success(`Opening "${task.title}" in Academy`);
+        break;
+      case 'calendar':
+        toast.success('Added to calendar for later study');
+        break;
+      case 'remind_later':
+        toast.success('Reminder set for tomorrow');
+        break;
+      case 'dismiss':
+        setTasks(prev => prev.filter(t => t.id !== taskId));
+        toast.success('Coaching task dismissed');
+        break;
     }
+    setShowActionModal(null);
+  };
+
+  const handleCompleteTask = (taskId: string) => {
+    setTasks(prev => prev.map(task => 
+      task.id === taskId 
+        ? { ...task, isCompleted: true }
+        : task
+    ));
+    toast.success('Coaching completed! Great job!');
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -144,173 +95,163 @@ const AICoachingPanel: React.FC = () => {
     }
   };
 
-  return (
-    <>
-      <Card className="h-full">
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-xl font-bold flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-green-600" />
-              AI Sales Coaching
-            </CardTitle>
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-              {coachingTasks.length} Tasks
-            </Badge>
-          </div>
-        </CardHeader>
+  const activeTasks = tasks.filter(t => !t.isCompleted);
 
-        <CardContent className="space-y-4">
-          {coachingTasks.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <GraduationCap className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p>All coaching tasks completed!</p>
-              <p className="text-sm">You're on top of your game.</p>
-            </div>
-          ) : (
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {coachingTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="p-4 border rounded-lg hover:shadow-md transition-all cursor-pointer relative"
-                  onClick={() => handleTaskClick(task)}
-                  onMouseEnter={() => setShowPreview(true)}
-                  onMouseLeave={() => setShowPreview(false)}
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-semibold pr-2">{task.title}</h4>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Badge className={getCategoryColor(task.category)} variant="outline" size="sm">
-                        {task.category.replace('_', ' ')}
-                      </Badge>
-                      {task.daysInCoaching > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          {task.daysInCoaching}d coaching
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
+  return (
+    <Card className="relative">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Target className="h-5 w-5 text-blue-600" />
+            AI Sales Coaching
+          </CardTitle>
+          <Badge variant="secondary" className="text-xs">
+            {activeTasks.length} Active
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {activeTasks.length === 0 ? (
+          <div className="text-center py-6 text-gray-500">
+            <CheckCircle className="h-12 w-12 mx-auto mb-2 text-green-500" />
+            <p className="text-sm">All coaching completed!</p>
+            <p className="text-xs text-gray-400">New recommendations coming soon</p>
+          </div>
+        ) : (
+          activeTasks.map((task) => (
+            <div
+              key={task.id}
+              className="relative bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors cursor-pointer"
+              onMouseEnter={() => setHoveredTask(task.id)}
+              onMouseLeave={() => setHoveredTask(null)}
+              onClick={() => setShowActionModal(task.id)}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                  <h4 className="font-medium text-sm mb-1">{task.title}</h4>
+                  <p className="text-xs text-gray-600 mb-2">{task.description}</p>
                   
-                  <p className="text-sm text-gray-600 mb-3">{task.description}</p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Badge className={getDifficultyColor(task.difficulty)} variant="outline" size="sm">
-                        {task.difficulty}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline" className={`text-xs ${getDifficultyColor(task.difficulty)}`}>
+                      {task.difficulty}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                      {task.estimatedTime}
+                    </Badge>
+                    <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700">
+                      {task.category}
+                    </Badge>
+                    {task.daysInCoaching > 1 && (
+                      <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700">
+                        Day {task.daysInCoaching} in Coaching
                       </Badge>
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {task.estimatedTime}
-                      </span>
-                    </div>
-                    
-                    {task.progress !== undefined && task.progress > 0 && (
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-2 bg-gray-200 rounded-full">
-                          <div 
-                            className="h-2 bg-green-500 rounded-full transition-all"
-                            style={{ width: `${task.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-xs text-gray-500">{task.progress}%</span>
-                      </div>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Task Action Modal */}
-      <Dialog open={isTaskModalOpen} onOpenChange={setIsTaskModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5" />
-              {selectedTask?.title}
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedTask && (
-            <div className="space-y-4">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm mb-3">{selectedTask.description}</p>
-                <div className="flex items-center gap-3">
-                  <Badge className={getCategoryColor(selectedTask.category)} variant="outline">
-                    {selectedTask.category.replace('_', ' ')}
-                  </Badge>
-                  <Badge className={getDifficultyColor(selectedTask.difficulty)} variant="outline">
-                    {selectedTask.difficulty}
-                  </Badge>
-                  <span className="text-xs text-gray-500 flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {selectedTask.estimatedTime}
-                  </span>
-                </div>
-                {selectedTask.daysInCoaching > 0 && (
-                  <div className="mt-2">
-                    <Badge variant="outline" className="text-xs">
-                      {selectedTask.daysInCoaching} days in coaching
-                    </Badge>
+                {hoveredTask === task.id && (
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setHoveredTask(null);
+                      }}
+                      title="Preview"
+                    >
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTaskAction(task.id, 'dismiss');
+                      }}
+                      title="Dismiss"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
                   </div>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Button onClick={handleActNow} className="w-full">
-                  <Zap className="h-4 w-4 mr-2" />
-                  Start Learning
-                </Button>
-                <Button variant="outline" onClick={handlePreview} className="w-full">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Preview
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" onClick={handleAddToCalendar} className="w-full">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Add to Calendar
-                </Button>
-                <Button variant="outline" onClick={() => setIsTaskModalOpen(false)} className="w-full">
-                  <Clock className="h-4 w-4 mr-2" />
-                  Remind Later
-                </Button>
-              </div>
-
-              {selectedTask.progress !== undefined && selectedTask.progress > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Progress</span>
-                    <span className="text-sm text-gray-500">{selectedTask.progress}%</span>
-                  </div>
-                  <div className="w-full h-2 bg-gray-200 rounded-full">
-                    <div 
-                      className="h-2 bg-green-500 rounded-full transition-all"
-                      style={{ width: `${selectedTask.progress}%` }}
-                    />
-                  </div>
-                  {selectedTask.progress >= 80 && (
-                    <Button variant="outline" onClick={handleMarkComplete} className="w-full">
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Mark Complete
+              {/* Action Modal */}
+              {showActionModal === task.id && (
+                <div className="absolute top-0 left-0 right-0 bottom-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium text-sm">{task.title}</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => setShowActionModal(null)}
+                    >
+                      <X className="h-3 w-3" />
                     </Button>
-                  )}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => handleTaskAction(task.id, 'act_now')}
+                      className="text-xs"
+                    >
+                      <BookOpen className="h-3 w-3 mr-1" />
+                      Act Now
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleTaskAction(task.id, 'calendar')}
+                      className="text-xs"
+                    >
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Calendar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleTaskAction(task.id, 'remind_later')}
+                      className="text-xs"
+                    >
+                      <Clock className="h-3 w-3 mr-1" />
+                      Remind Later
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleTaskAction(task.id, 'dismiss')}
+                      className="text-xs text-red-600 hover:text-red-700"
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Dismiss
+                    </Button>
+                  </div>
                 </div>
               )}
-
-              <div className="flex justify-end pt-4 border-t">
-                <Button variant="destructive" onClick={handleDismiss}>
-                  <X className="h-4 w-4 mr-2" />
-                  Dismiss
-                </Button>
-              </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </>
+          ))
+        )}
+
+        {activeTasks.length > 0 && (
+          <div className="pt-2 border-t">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs text-blue-600 hover:text-blue-700"
+              onClick={() => toast.info('Opening Academy with all recommendations')}
+            >
+              <TrendingUp className="h-3 w-3 mr-1" />
+              View All in Academy
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
