@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -20,7 +21,8 @@ import {
   Settings,
   Phone,
   PieChart,
-  RefreshCw
+  RefreshCw,
+  Calculator
 } from 'lucide-react';
 import FunnelChart from '@/components/Manager/FunnelChart';
 import AIFunnelInsights from '@/components/Manager/AIFunnelInsights';
