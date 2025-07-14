@@ -49,6 +49,12 @@ const SalesRepDashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* AI Recommendations - Moved higher for visibility */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <AIRecommendations />
+          <AICoachingPanel />
+        </div>
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Optimized Pipeline Pulse */}
@@ -69,12 +75,6 @@ const SalesRepDashboard: React.FC = () => {
         {/* Rewards Progress Section */}
         <div className="mt-6">
           <RewardsProgress />
-        </div>
-
-        {/* AI Recommendations and Coaching - Bottom Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AIRecommendations />
-          <AICoachingPanel />
         </div>
 
         {/* AI Assistant Contextual Bubble */}
