@@ -6,13 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useAuth } from "@/contexts/AuthContext";
-import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
-import LeadManagement from "./pages/LeadManagement";
-import Dialer from "./pages/Dialer";
-import CompanyBrain from "./pages/CompanyBrain";
-import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
 
 // Manager pages
 import ManagerDashboard from "./pages/manager/Dashboard";
@@ -22,6 +15,8 @@ import ManagerLeads from "./pages/manager/ManagerLeads";
 import AIAssistant from "./pages/manager/AIAssistant";
 import Security from "./pages/manager/Security";
 import ManagerSettings from "./pages/manager/Settings";
+import CompanyBrain from "./pages/CompanyBrain";
+import Reports from "./pages/Reports";
 
 const queryClient = new QueryClient();
 
@@ -29,10 +24,18 @@ const AppRoutes = () => {
   const { user, profile } = useAuth();
 
   if (!user) {
-    return <Index />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Manager OS</h1>
+          <p className="text-muted-foreground">Please sign in to continue</p>
+        </div>
+      </div>
+    );
   }
 
-  const isManager = profile?.role === 'manager';
+  // For now, assume all users are managers
+  const isManager = true;
 
   return (
     <Routes>
@@ -49,23 +52,11 @@ const AppRoutes = () => {
           <Route path="/manager/reports" element={<Reports />} />
           <Route path="/manager/security" element={<Security />} />
           <Route path="/manager/settings" element={<ManagerSettings />} />
-          {/* Redirect any non-manager routes */}
           <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
         </>
       ) : (
-        // Sales rep routes
-        <>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/leads" element={<LeadManagement />} />
-          <Route path="/dialer" element={<Dialer />} />
-          <Route path="/company-brain" element={<CompanyBrain />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
-          {/* Redirect any manager routes */}
-          <Route path="/manager/*" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </>
+        // Default fallback
+        <Route path="*" element={<Navigate to="/manager/dashboard" replace />} />
       )}
     </Routes>
   );
