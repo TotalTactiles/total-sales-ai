@@ -16,7 +16,7 @@ import { LogOut, User } from 'lucide-react';
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
 import BusinessOps from '@/pages/manager/BusinessOps';
 import EnhancedTeamManagement from '@/pages/manager/EnhancedTeamManagement';
-import LeadManagement from '@/pages/manager/LeadManagement';
+import ManagerLeads from '@/pages/manager/ManagerLeads';
 import AIAssistant from '@/pages/manager/AIAssistant';
 import CompanyBrain from '@/pages/manager/CompanyBrain';
 import Security from '@/pages/manager/Security';
@@ -105,7 +105,7 @@ const ManagerOS: React.FC = () => {
       case 'team':
         return <EnhancedTeamManagement />;
       case 'leads':
-        return <LeadManagement />;
+        return <ManagerLeads />;
       case 'ai':
         return <AIAssistant />;
       case 'company-brain':
