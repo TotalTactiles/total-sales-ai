@@ -1,10 +1,11 @@
+
 // Demo mode configuration
 export const isDemoMode = true; // Set to false for production
 
 // Demo users for testing different roles and dashboards
 export const demoUsers = [
   {
-    id: 'demo-manager-001',
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', // Valid UUID
     name: 'Demo Manager',
     email: 'manager@tsam.com',
     password: 'password123',
@@ -12,7 +13,7 @@ export const demoUsers = [
     description: 'Access team performance analytics, lead assignments, and coaching insights'
   },
   {
-    id: 'demo-sales-001', 
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d480', // Valid UUID
     name: 'Demo Sales Rep',
     email: 'sales@tsam.com',
     password: 'password123',
@@ -20,7 +21,7 @@ export const demoUsers = [
     description: 'View your assigned leads, track activities, and get AI-powered insights'
   },
   {
-    id: 'demo-dev-001',
+    id: 'f47ac10b-58cc-4372-a567-0e02b2c3d481', // Valid UUID
     name: 'Demo Developer', 
     email: 'dev@tsam.ai',
     password: 'DevTSAM2025',
