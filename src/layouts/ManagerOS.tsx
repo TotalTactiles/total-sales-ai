@@ -18,7 +18,7 @@ import BusinessOps from '@/pages/manager/BusinessOps';
 import EnhancedTeamManagement from '@/pages/manager/EnhancedTeamManagement';
 import ManagerLeads from '@/pages/manager/ManagerLeads';
 import AIAssistant from '@/pages/manager/AIAssistant';
-import CompanyBrain from '@/pages/manager/CompanyBrain';
+import ManagerCompanyBrain from '@/pages/manager/ManagerCompanyBrain';
 import Security from '@/pages/manager/Security';
 import Reports from '@/pages/manager/Reports';
 import Settings from '@/pages/manager/Settings';
@@ -47,7 +47,6 @@ const ManagerOS: React.FC = () => {
       await logout();
     } catch (error) {
       console.error('Logout error:', error);
-      // Force redirect even if logout fails
       navigate('/auth');
     }
   };
@@ -58,42 +57,15 @@ const ManagerOS: React.FC = () => {
   }, [location.pathname]);
 
   const navTabs = [
-    {
-      key: 'dashboard',
-      label: 'Dashboard'
-    },
-    {
-      key: 'business-ops',
-      label: 'Business Ops'
-    },
-    {
-      key: 'team',
-      label: 'Team'
-    },
-    {
-      key: 'leads',
-      label: 'Leads'
-    },
-    {
-      key: 'ai',
-      label: 'AI Assistant'
-    },
-    {
-      key: 'company-brain',
-      label: 'Company Brain'
-    },
-    {
-      key: 'security',
-      label: 'Security'
-    },
-    {
-      key: 'reports',
-      label: 'Reports'
-    },
-    {
-      key: 'settings',
-      label: 'Settings'
-    }
+    { key: 'dashboard', label: 'Dashboard' },
+    { key: 'business-ops', label: 'Business Ops' },
+    { key: 'team', label: 'Team' },
+    { key: 'leads', label: 'Leads' },
+    { key: 'ai', label: 'AI Assistant' },
+    { key: 'company-brain', label: 'Company Brain' },
+    { key: 'security', label: 'Security' },
+    { key: 'reports', label: 'Reports' },
+    { key: 'settings', label: 'Settings' }
   ];
 
   const renderContent = () => {
@@ -109,7 +81,7 @@ const ManagerOS: React.FC = () => {
       case 'ai':
         return <AIAssistant />;
       case 'company-brain':
-        return <CompanyBrain />;
+        return <ManagerCompanyBrain />;
       case 'security':
         return <Security />;
       case 'reports':
@@ -131,21 +103,25 @@ const ManagerOS: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Unified Navigation Bar */}
-      <nav className="flex items-center justify-between px-6 py-2 bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
+      {/* Top Navigation Bar */}
+      <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
         <div className="flex items-center gap-8">
           {/* TSAM Brand */}
           <div className="flex items-center gap-3">
-            <span className="text-lg font-bold text-slate-900">TSAM</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">T</span>
+            </div>
+            <span className="text-xl font-bold text-slate-900">TSAM</span>
+            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">Manager OS</span>
           </div>
 
-          {/* Navigation Tabs - Text Only */}
+          {/* Navigation Tabs */}
           <div className="hidden lg:flex items-center gap-1">
             {navTabs.map(tab => (
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.key)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   activeTab === tab.key
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -160,13 +136,13 @@ const ManagerOS: React.FC = () => {
         {/* User Info with Dropdown */}
         <div className="flex items-center gap-3">
           <div className="text-right hidden md:block">
-            <p className="text-sm font-medium text-slate-900">Manager</p>
-            <p className="text-xs text-slate-500">Executive Dashboard</p>
+            <p className="text-sm font-medium text-slate-900">{displayName}</p>
+            <p className="text-xs text-slate-500">Manager</p>
           </div>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center hover:ring-2 hover:ring-blue-200 transition-all cursor-pointer">
+              <button className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center hover:ring-2 hover:ring-blue-200 transition-all cursor-pointer">
                 <span className="text-white font-semibold text-sm">{initials}</span>
               </button>
             </DropdownMenuTrigger>
@@ -176,7 +152,6 @@ const ManagerOS: React.FC = () => {
               align="end"
               sideOffset={5}
             >
-              {/* User Info Header */}
               <div className="flex items-center gap-3 p-2 mb-2">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                   <span className="text-white font-semibold text-xs">{initials}</span>
@@ -220,7 +195,7 @@ const ManagerOS: React.FC = () => {
         </div>
       </div>
 
-      {/* Content Area - Fixed height with proper scrolling */}
+      {/* Content Area */}
       <main className="flex-1 min-h-0 overflow-hidden">
         <div className="h-full overflow-y-auto">
           {renderContent()}

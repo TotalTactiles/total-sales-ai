@@ -185,11 +185,11 @@ const CompanyBrainManager: React.FC = () => {
   ];
 
   const totalActiveConnections = dataSourceCards.filter(card => card.status === 'connected').length;
-  const totalFiles = uploadedFiles.length + (websiteData?.pages || 0) + dataStatus.social.connected * 50; // Estimated files
+  const totalFiles = uploadedFiles.length + (websiteData?.pages || 0) + dataStatus.social.connected * 50;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100">
-      {/* Header */}
+      {/* Header - Simplified since navigation is now in parent */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-blue-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
@@ -198,7 +198,7 @@ const CompanyBrainManager: React.FC = () => {
                 <Brain className="h-10 w-10 text-white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-slate-900">Manager Company Brain</h1>
+                <h1 className="text-4xl font-bold text-slate-900">Company Brain</h1>
                 <p className="text-slate-600 mt-1 text-lg">Centralized Knowledge Management & AI Intelligence</p>
               </div>
             </div>

@@ -1,6 +1,5 @@
 
 import React from 'react';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import CompanyBrainManager from '@/components/CompanyBrain/CompanyBrainManager';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -27,15 +26,7 @@ const ManagerCompanyBrain = () => {
     return <Navigate to="/" replace />;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <ManagerNavigation />
-      
-      <div className="ml-64">
-        <CompanyBrainManager />
-      </div>
-    </div>
-  );
+  return <CompanyBrainManager />;
 };
 
 export default ManagerCompanyBrain;
