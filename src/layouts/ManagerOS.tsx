@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
 import { LogOut, User } from 'lucide-react';
+import NavigationalPanel from '@/components/Navigation/NavigationalPanel';
 
 // Manager Pages
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
@@ -133,8 +134,12 @@ const ManagerOS: React.FC = () => {
           </div>
         </div>
 
-        {/* User Info with Dropdown */}
+        {/* Right Side - Navigation Panel + User Info */}
         <div className="flex items-center gap-3">
+          {/* NavigationalPanel with icons */}
+          <NavigationalPanel />
+          
+          {/* User Info */}
           <div className="text-right hidden md:block">
             <p className="text-sm font-medium text-slate-900">{displayName}</p>
             <p className="text-xs text-slate-500">Manager</p>
