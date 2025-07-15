@@ -68,10 +68,7 @@ declare global {
     readonly confidence: number;
   }
 
-  var SpeechRecognition: {
-    prototype: SpeechRecognition;
-    new(): SpeechRecognition;
-  };
+  // Remove the duplicate var declaration that was causing conflicts
 }
 
 // Export the SpeechRecognition type for use in other files
