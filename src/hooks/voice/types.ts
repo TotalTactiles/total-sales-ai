@@ -40,6 +40,16 @@ declare global {
     abort(): void;
   }
 
+  var SpeechRecognition: {
+    prototype: SpeechRecognition;
+    new(): SpeechRecognition;
+  };
+
+  var webkitSpeechRecognition: {
+    prototype: SpeechRecognition;
+    new(): SpeechRecognition;
+  };
+
   interface SpeechRecognitionEvent extends Event {
     readonly resultIndex: number;
     readonly results: SpeechRecognitionResultList;
@@ -67,8 +77,6 @@ declare global {
     readonly transcript: string;
     readonly confidence: number;
   }
-
-  // Remove the duplicate var declaration that was causing conflicts
 }
 
 // Export the SpeechRecognition type for use in other files

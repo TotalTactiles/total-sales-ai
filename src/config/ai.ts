@@ -69,12 +69,12 @@ export const aiConfig = {
     }
   },
   features: {
-    contextualBubble: true,
-    voiceBriefing: true,
-    realTimeCoaching: true,
-    smartAutomations: true,
-    predictiveAnalytics: true,
-    conversationalAI: true
+    contextualBubble: false, // Disabled
+    voiceBriefing: false, // Disabled
+    realTimeCoaching: false, // Disabled
+    smartAutomations: false, // Disabled
+    predictiveAnalytics: false, // Disabled
+    conversationalAI: false // Disabled
   },
   fallback: {
     enabled: true,

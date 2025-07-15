@@ -1,198 +1,264 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Volume2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { VoiceInteractionState, VoiceInteractionOptions } from '@/hooks/voice/types';
 
-interface VoiceCommand {
-  id: string;
-  command: string;
-  response: string;
-  timestamp: Date;
-  confidence: number;
+interface VoiceAssistantProps {
+  isActive: boolean;
+  onToggle: () => void;
+  workspace: string;
+  onCommand?: (command: string) => void;
 }
 
-const VoiceAssistant: React.FC = () => {
-  const [isListening, setIsListening] = useState(false);
-  const [isSupported, setIsSupported] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [voiceLog, setVoiceLog] = useState<VoiceCommand[]>([]);
+const VoiceAssistant: React.FC<VoiceAssistantProps> = ({
+  isActive,
+  onToggle,
+  workspace,
+  onCommand
+}) => {
+  const [voiceState, setVoiceState] = useState<VoiceInteractionState>({
+    isListening: false,
+    isProcessing: false,
+    isSpeaking: false,
+    isWakeWordActive: false,
+    isDetecting: false,
+    transcript: '',
+    response: '',
+    error: null,
+    permissionState: 'unknown',
+    microphoneSupported: false
+  });
+
+  const [isEnabled] = useState(false); // AI features disabled
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
-    // Check if browser supports Speech Recognition
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    setIsSupported(!!SpeechRecognition);
-  }, []);
+    // Check if speech recognition is supported
+    const isSupported = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+    setVoiceState(prev => ({ ...prev, microphoneSupported: isSupported }));
 
-  const startListening = () => {
-    if (!isSupported) return;
+    if (isSupported && isActive && isEnabled) {
+      initializeSpeechRecognition();
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [isActive, isEnabled]);
+
+  const initializeSpeechRecognition = () => {
+    if (!isEnabled) return; // Skip if AI disabled
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
     const recognition = new SpeechRecognition();
-    
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
 
     recognition.onstart = () => {
-      setIsListening(true);
+      setVoiceState(prev => ({ ...prev, isListening: true, error: null }));
     };
 
     recognition.onresult = (event) => {
-      const current = event.resultIndex;
-      const transcript = event.results[current][0].transcript;
-      setTranscript(transcript);
+      let finalTranscript = '';
+      let interimTranscript = '';
 
-      // Check for "Hey Sam" wake word
-      if (transcript.toLowerCase().includes('hey sam')) {
-        handleVoiceCommand(transcript);
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      const fullTranscript = finalTranscript || interimTranscript;
+      setVoiceState(prev => ({ ...prev, transcript: fullTranscript }));
+
+      if (finalTranscript) {
+        handleVoiceCommand(finalTranscript.trim());
       }
     };
 
     recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      setIsListening(false);
+      setVoiceState(prev => ({
+        ...prev,
+        error: `Speech recognition error: ${event.error}`,
+        isListening: false
+      }));
     };
 
     recognition.onend = () => {
-      setIsListening(false);
+      setVoiceState(prev => ({ ...prev, isListening: false }));
+      
+      if (isActive && isEnabled) {
+        setTimeout(() => {
+          recognition.start();
+        }, 1000);
+      }
     };
 
+    recognitionRef.current = recognition;
     recognition.start();
   };
 
-  const stopListening = () => {
-    setIsListening(false);
-    setTranscript('');
-  };
+  const handleVoiceCommand = async (command: string) => {
+    if (!isEnabled) return; // Skip if AI disabled
 
-  const handleVoiceCommand = (command: string) => {
-    const response = processCommand(command);
-    
-    const voiceCommand: VoiceCommand = {
-      id: Date.now().toString(),
-      command: command,
-      response: response,
-      timestamp: new Date(),
-      confidence: 0.95
-    };
-
-    setVoiceLog(prev => [voiceCommand, ...prev.slice(0, 9)]);
-    
-    // Speak the response
-    speakResponse(response);
-  };
-
-  const processCommand = (command: string): string => {
     const lowerCommand = command.toLowerCase();
     
-    if (lowerCommand.includes('show leads')) {
-      return 'Displaying your lead dashboard now';
-    } else if (lowerCommand.includes('team performance')) {
-      return 'Here are your team performance metrics';
-    } else if (lowerCommand.includes('schedule meeting')) {
-      return 'Opening calendar to schedule a new meeting';
-    } else if (lowerCommand.includes('revenue report')) {
-      return 'Generating your latest revenue report';
-    } else if (lowerCommand.includes('help')) {
-      return 'I can help you with leads, team management, reports, and scheduling. What would you like to do?';
-    } else {
-      return 'I understand. Let me help you with that request';
+    // Check for wake word
+    if (lowerCommand.includes('hey sam') || lowerCommand.includes('hello sam')) {
+      setVoiceState(prev => ({ ...prev, isWakeWordActive: true }));
+      
+      // Process the command after wake word
+      const actualCommand = lowerCommand.replace(/hey sam|hello sam/g, '').trim();
+      if (actualCommand) {
+        await processCommand(actualCommand);
+      }
+      
+      // Reset wake word state after processing
+      setTimeout(() => {
+        setVoiceState(prev => ({ ...prev, isWakeWordActive: false }));
+      }, 3000);
     }
   };
 
-  const speakResponse = (text: string) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.8;
-      utterance.pitch = 1;
-      utterance.volume = 0.8;
-      speechSynthesis.speak(utterance);
+  const processCommand = async (command: string) => {
+    if (!isEnabled) return; // Skip if AI disabled
+
+    setVoiceState(prev => ({ ...prev, isProcessing: true }));
+    
+    try {
+      // Mock response since AI is disabled
+      const response = "AI features are currently disabled in demo mode.";
+      
+      setVoiceState(prev => ({ 
+        ...prev, 
+        response,
+        isProcessing: false 
+      }));
+
+      if (onCommand) {
+        onCommand(command);
+      }
+
+    } catch (error) {
+      setVoiceState(prev => ({
+        ...prev,
+        error: 'Failed to process voice command',
+        isProcessing: false
+      }));
     }
   };
 
-  if (!isSupported) {
+  const handleToggle = () => {
+    if (isActive && recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    onToggle();
+  };
+
+  if (!voiceState.microphoneSupported) {
     return (
-      <Card className="max-w-md">
-        <CardContent className="p-4 text-center">
-          <MicOff className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            Voice recognition is not supported in your browser
-          </p>
+      <Card className="w-80 border-yellow-200 bg-yellow-50">
+        <CardContent className="p-4">
+          <div className="text-center text-yellow-700">
+            Voice features not supported in this browser
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium">Voice Assistant - "Hey Sam"</h3>
-            <Badge variant={isListening ? "default" : "outline"}>
-              {isListening ? 'Listening...' : 'Ready'}
-            </Badge>
+    <Card className={`w-80 transition-all duration-300 ${
+      isActive ? 'border-blue-500 shadow-lg' : 'border-gray-200'
+    }`}>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isActive ? "default" : "outline"}
+              size="sm"
+              onClick={handleToggle}
+              disabled={!isEnabled}
+              className="flex items-center gap-2"
+            >
+              {voiceState.isListening ? <Mic className="h-4 w-4" /> : <MicOff className="h-4 w-4" />}
+              {isActive ? 'Active' : 'Inactive'}
+            </Button>
+            {voiceState.isWakeWordActive && (
+              <div className="animate-pulse text-blue-600 text-sm font-medium">
+                Listening...
+              </div>
+            )}
           </div>
           
-          <div className="flex items-center gap-2 mb-4">
-            <Button
-              onClick={isListening ? stopListening : startListening}
-              variant={isListening ? "destructive" : "default"}
-              size="sm"
-            >
-              {isListening ? (
-                <>
-                  <MicOff className="h-4 w-4 mr-2" />
-                  Stop Listening
-                </>
-              ) : (
-                <>
-                  <Mic className="h-4 w-4 mr-2" />
-                  Start Listening
-                </>
-              )}
-            </Button>
+          <div className="flex items-center gap-1">
+            {voiceState.isSpeaking ? (
+              <Volume2 className="h-4 w-4 text-green-500" />
+            ) : (
+              <VolumeX className="h-4 w-4 text-gray-400" />
+            )}
+          </div>
+        </div>
+
+        {!isEnabled && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="text-blue-700 text-sm font-medium">Demo Mode</div>
+            <div className="text-blue-600 text-xs mt-1">
+              AI features are disabled. Architecture is ready for activation.
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div>
+            <div className="text-xs font-medium text-gray-500 mb-1">Current Workspace</div>
+            <div className="text-sm text-gray-700 capitalize">{workspace}</div>
           </div>
 
-          {transcript && (
-            <div className="p-2 bg-muted rounded text-sm">
-              <strong>Heard:</strong> {transcript}
+          {voiceState.transcript && (
+            <div>
+              <div className="text-xs font-medium text-gray-500 mb-1">Last Command</div>
+              <div className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                {voiceState.transcript}
+              </div>
             </div>
           )}
-        </CardContent>
-      </Card>
 
-      {voiceLog.length > 0 && (
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-medium mb-3 flex items-center gap-2">
-              <Volume2 className="h-4 w-4" />
-              Voice Command Log
-            </h3>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {voiceLog.map((log) => (
-                <div key={log.id} className="border rounded p-2">
-                  <div className="text-sm">
-                    <strong>Command:</strong> {log.command}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Response:</strong> {log.response}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {log.timestamp.toLocaleTimeString()} 
-                    <Badge variant="outline" className="ml-2 text-xs">
-                      {Math.round(log.confidence * 100)}% confidence
-                    </Badge>
-                  </div>
-                </div>
-              ))}
+          {voiceState.response && (
+            <div>
+              <div className="text-xs font-medium text-gray-500 mb-1">Response</div>
+              <div className="text-sm text-gray-700 bg-blue-50 p-2 rounded">
+                {voiceState.response}
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          )}
+
+          {voiceState.error && (
+            <div>
+              <div className="text-xs font-medium text-red-500 mb-1">Error</div>
+              <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                {voiceState.error}
+              </div>
+            </div>
+          )}
+
+          <div className="text-xs text-gray-500">
+            Status: {voiceState.isListening ? 'Listening' : 'Standby'} • 
+            Wake word: "Hey Sam"
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
