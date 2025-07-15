@@ -36,8 +36,8 @@ const performDemoSetup = async (): Promise<void> => {
     const userCreationPromises = demoUsers.map(async (demoUser) => {
       try {
         // Check if user already exists by email instead of ID
-        const { data: existingUsers } = await supabase.auth.admin.listUsers();
-        const existingUser = existingUsers?.users?.find(u => u.email === demoUser.email);
+        const { data: existingUsersData } = await supabase.auth.admin.listUsers();
+        const existingUser = existingUsersData?.users?.find(u => u.email === demoUser.email);
         
         if (existingUser) {
           logger.info(`🎭 Demo user ${demoUser.email} already exists`, {}, 'demo');
