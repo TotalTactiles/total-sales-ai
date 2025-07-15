@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Search, Filter, Plus, Megaphone } from 'lucide-react';
+import { Users, Search, Plus, Megaphone } from 'lucide-react';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import AdPlatformIntegration from '@/components/LeadManagement/AdPlatformIntegration';
 

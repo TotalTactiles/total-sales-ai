@@ -14,7 +14,10 @@ import {
   CheckCircle, 
   AlertCircle,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Zap,
+  Brain,
+  Shield
 } from 'lucide-react';
 
 interface AdPlatform {
@@ -26,6 +29,7 @@ interface AdPlatform {
   lastSync?: string;
   leadCount: number;
   campaigns: number;
+  authUrl?: string;
 }
 
 const AdPlatformIntegration = () => {
@@ -37,7 +41,8 @@ const AdPlatformIntegration = () => {
       connected: false,
       status: 'disconnected',
       leadCount: 0,
-      campaigns: 0
+      campaigns: 0,
+      authUrl: '/auth/oauth/meta'
     },
     {
       id: 'google',
@@ -46,7 +51,8 @@ const AdPlatformIntegration = () => {
       connected: false,
       status: 'disconnected',
       leadCount: 0,
-      campaigns: 0
+      campaigns: 0,
+      authUrl: '/auth/oauth/google'
     },
     {
       id: 'linkedin',
@@ -55,14 +61,15 @@ const AdPlatformIntegration = () => {
       connected: false,
       status: 'disconnected',
       leadCount: 0,
-      campaigns: 0
+      campaigns: 0,
+      authUrl: '/auth/oauth/linkedin'
     }
   ]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'syncing': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'syncing': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'error': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
@@ -71,7 +78,7 @@ const AdPlatformIntegration = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'active': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'syncing': return <RefreshCw className="h-4 w-4 text-yellow-600 animate-spin" />;
+      case 'syncing': return <RefreshCw className="h-4 w-4 text-blue-600 animate-spin" />;
       case 'error': return <AlertCircle className="h-4 w-4 text-red-600" />;
       default: return <AlertCircle className="h-4 w-4 text-gray-400" />;
     }
@@ -89,7 +96,7 @@ const AdPlatformIntegration = () => {
         : platform
     ));
 
-    // Simulate connection process
+    // Simulate OAuth connection process
     setTimeout(() => {
       setPlatforms(prev => prev.map(platform => 
         platform.id === platformId 
@@ -150,6 +157,44 @@ const AdPlatformIntegration = () => {
           <p className="text-gray-600">Connect your advertising platforms to sync leads automatically</p>
         </div>
       </div>
+
+      {/* AI Routing Information */}
+      <Card className="border-purple-200 bg-purple-50/50">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2 text-purple-900">
+            <Brain className="h-5 w-5" />
+            <span>AI Intelligence Routing</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-purple-800 mb-4">
+            All connected lead sources automatically route through our AI intelligence system:
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-3 bg-white rounded-lg border border-purple-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <Zap className="h-4 w-4 text-blue-600" />
+                <div className="font-medium text-blue-900">Lead Intelligence Command</div>
+              </div>
+              <div className="text-sm text-blue-700">AI-powered lead scoring, routing, and qualification</div>
+            </div>
+            <div className="p-3 bg-white rounded-lg border border-purple-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <Brain className="h-4 w-4 text-purple-600" />
+                <div className="font-medium text-purple-900">Company Brain</div>
+              </div>
+              <div className="text-sm text-purple-700">Knowledge base integration and insights</div>
+            </div>
+            <div className="p-3 bg-white rounded-lg border border-purple-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <Shield className="h-4 w-4 text-green-600" />
+                <div className="font-medium text-green-900">TSAM Master Brain</div>
+              </div>
+              <div className="text-sm text-green-700">Internal analytics and optimization (Internal Only)</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
@@ -213,7 +258,7 @@ const AdPlatformIntegration = () => {
                             className="flex-1"
                             disabled={platform.status === 'syncing'}
                           >
-                            {platform.status === 'syncing' ? 'Connecting...' : 'Connect'}
+                            {platform.status === 'syncing' ? 'Connecting...' : 'Connect via OAuth'}
                           </Button>
                         ) : (
                           <>
@@ -243,30 +288,34 @@ const AdPlatformIntegration = () => {
             })}
           </div>
 
-          <Card>
+          {/* Developer OS Audit Trail Information */}
+          <Card className="border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Activity className="h-5 w-5" />
-                <span>Integration Status</span>
+                <span>Integration Activity & Audit Trails</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="text-sm text-gray-600">
-                  Connected platforms automatically sync leads every 30 minutes and route them through:
+                  All platform connections and data transfers are automatically logged to Developer OS for audit trails and monitoring.
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="font-medium text-blue-900">Lead Intelligence Command</div>
-                    <div className="text-sm text-blue-700">AI-powered lead scoring and routing</div>
-                  </div>
-                  <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
-                    <div className="font-medium text-purple-900">Company Brain</div>
-                    <div className="text-sm text-purple-700">Knowledge base and insights</div>
-                  </div>
-                  <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                    <div className="font-medium text-green-900">TSAM Master Brain</div>
-                    <div className="text-sm text-green-700">Internal analytics and optimization</div>
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="font-medium text-gray-900 mb-2">Recent Activity</div>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Meta Ads - Lead sync attempt</span>
+                      <span className="text-green-600 font-medium">Success</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Google Ads - Connection established</span>
+                      <span className="text-green-600 font-medium">Success</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">LinkedIn Ads - Auth renewal</span>
+                      <span className="text-blue-600 font-medium">Pending</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -292,7 +341,7 @@ const AdPlatformIntegration = () => {
                           <Badge className={getStatusColor(platform.status)}>
                             {platform.status === 'disconnected' ? 'Not Connected' : 
                              platform.status === 'syncing' ? 'Syncing...' :
-                             platform.status === 'active' ? 'Connected' : 'Error'}
+                             platform.status === 'active' ? 'Connected via OAuth' : 'Error'}
                           </Badge>
                         </div>
                       </div>
@@ -314,6 +363,7 @@ const AdPlatformIntegration = () => {
                 <CardContent>
                   {platform.connected ? (
                     <div className="space-y-6">
+                      {/* Stats */}
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="p-4 bg-gray-50 rounded-lg">
                           <div className="text-2xl font-bold text-gray-900">{platform.leadCount}</div>
@@ -333,6 +383,26 @@ const AdPlatformIntegration = () => {
                         </div>
                       </div>
 
+                      {/* AI Routing Status */}
+                      <div className="border rounded-lg p-4 bg-purple-50/30 border-purple-200">
+                        <h4 className="font-medium mb-3 text-purple-900">AI Intelligence Routing Status</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span className="text-sm">Lead Intelligence Command: Active</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span className="text-sm">Company Brain: Synced</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            <span className="text-sm">TSAM Master Brain: Connected</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sync Settings */}
                       <div className="border rounded-lg p-4">
                         <h4 className="font-medium mb-3">Sync Settings</h4>
                         <div className="space-y-3">
@@ -345,7 +415,7 @@ const AdPlatformIntegration = () => {
                           </div>
                           <div className="flex items-center justify-between">
                             <div>
-                              <div className="font-medium">Lead Scoring</div>
+                              <div className="font-medium">AI Lead Scoring</div>
                               <div className="text-sm text-gray-600">Apply AI scoring to incoming leads</div>
                             </div>
                             <Switch defaultChecked />
@@ -357,6 +427,13 @@ const AdPlatformIntegration = () => {
                             </div>
                             <Switch defaultChecked />
                           </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">Developer OS Logging</div>
+                              <div className="text-sm text-gray-600">Log all activities to Developer OS audit trail</div>
+                            </div>
+                            <Switch defaultChecked />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -365,11 +442,14 @@ const AdPlatformIntegration = () => {
                       <IconComponent className="h-16 w-16 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-medium text-gray-900 mb-2">Connect {platform.name}</h3>
                       <p className="text-gray-600 mb-4">
-                        Connect your {platform.name} account to start syncing leads automatically
+                        Connect your {platform.name} account via OAuth to start syncing leads automatically through our AI intelligence system
                       </p>
-                      <Button onClick={() => handleConnect(platform.id)}>
-                        Connect {platform.name}
+                      <Button onClick={() => handleConnect(platform.id)} className="mb-4">
+                        Connect via OAuth
                       </Button>
+                      <div className="text-sm text-gray-500">
+                        Secure OAuth authentication • Auto-sync every 30 minutes • AI-powered lead routing
+                      </div>
                     </div>
                   )}
                 </CardContent>
