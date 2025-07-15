@@ -1,27 +1,61 @@
 
 import React from 'react';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-import EnterpriseIntegrationDashboard from '@/components/Enterprise/EnterpriseIntegrationDashboard';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-const EnterpriseIntegration = () => {
+const EnterpriseIntegration: React.FC = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <ManagerNavigation />
-      
-      <main className="pt-[60px]">
-        <div className="flex-1 px-4 md:px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">Enterprise Integration Center</h1>
-              <p className="text-gray-600 mt-2">
-                Manage and monitor enterprise system integrations, data synchronization, and API connectivity
-              </p>
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Enterprise Integration</h1>
+        <Button>Add Integration</Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Active Integrations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span>Salesforce CRM</span>
+                <span className="text-green-600">Connected</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Microsoft Teams</span>
+                <span className="text-green-600">Connected</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Slack</span>
+                <span className="text-red-600">Disconnected</span>
+              </div>
             </div>
-            
-            <EnterpriseIntegrationDashboard />
-          </div>
-        </div>
-      </main>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Integration Health</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span>API Calls Today</span>
+                <span>2,847</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Success Rate</span>
+                <span>99.2%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Avg Response Time</span>
+                <span>145ms</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
