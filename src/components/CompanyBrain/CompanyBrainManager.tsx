@@ -16,7 +16,8 @@ import {
   Search,
   Filter,
   AlertCircle,
-  X
+  X,
+  Database
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useCompanyBrain } from '@/hooks/useCompanyBrain';
@@ -27,6 +28,10 @@ import { EnhancedDataLibrary } from './components/EnhancedDataLibrary';
 import { SummaryHeader } from './components/SummaryHeader';
 import SocialMediaIntegrations from '@/components/Manager/SocialMediaIntegrations';
 import WebsiteParser from '@/components/Manager/WebsiteParser';
+import KnowledgeTab from './KnowledgeTab';
+import CRMIntegrationTab from './CRMIntegrationTab';
+import AutomationTab from './AutomationTab';
+import BusinessGoalsTab from './BusinessGoalsTab';
 
 const CompanyBrainManager: React.FC = () => {
   const [websiteUrl, setWebsiteUrl] = useState('');
@@ -224,22 +229,30 @@ const CompanyBrainManager: React.FC = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white/50 backdrop-blur-sm border border-slate-200">
+          <TabsList className="grid w-full grid-cols-6 bg-white/50 backdrop-blur-sm border border-slate-200">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Brain className="h-4 w-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="social-media" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Social Media
+            <TabsTrigger value="knowledge" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Knowledge
             </TabsTrigger>
-            <TabsTrigger value="website-parser" className="flex items-center gap-2">
-              <Globe className="h-4 w-4" />
-              Website Parser
+            <TabsTrigger value="crm-integration" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              CRM Integration
             </TabsTrigger>
-            <TabsTrigger value="data-library" className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              Data Library
+            <TabsTrigger value="automation" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Automation
+            </TabsTrigger>
+            <TabsTrigger value="business-goals" className="flex items-center gap-2">
+              <Activity className="h-4 w-4" />
+              Business Goals
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
             </TabsTrigger>
           </TabsList>
 
@@ -312,16 +325,28 @@ const CompanyBrainManager: React.FC = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="social-media">
-            <SocialMediaIntegrations />
+          <TabsContent value="knowledge">
+            <KnowledgeTab />
           </TabsContent>
 
-          <TabsContent value="website-parser">
-            <WebsiteParser />
+          <TabsContent value="crm-integration">
+            <CRMIntegrationTab />
           </TabsContent>
 
-          <TabsContent value="data-library">
-            <EnhancedDataLibrary />
+          <TabsContent value="automation">
+            <AutomationTab />
+          </TabsContent>
+
+          <TabsContent value="business-goals">
+            <BusinessGoalsTab />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <div className="text-center py-12">
+              <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Settings</h3>
+              <p className="text-gray-600">Company Brain configuration settings will be available here</p>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
