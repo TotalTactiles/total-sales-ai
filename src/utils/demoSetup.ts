@@ -43,8 +43,8 @@ const performDemoSetup = async (): Promise<void> => {
           return;
         }
 
-        // Type-safe user lookup
-        const existingUser = existingUsersResponse?.users?.find((user) => user.email === demoUser.email);
+        // Type-safe user lookup with explicit typing
+        const existingUser = existingUsersResponse?.users?.find((user: { email?: string }) => user.email === demoUser.email);
         
         if (existingUser) {
           logger.info(`🎭 Demo user ${demoUser.email} already exists`, {}, 'demo');
