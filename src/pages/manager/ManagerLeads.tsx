@@ -4,8 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Users, Search, Filter, Plus } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, Search, Filter, Plus, Megaphone } from 'lucide-react';
 import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
+import AdPlatformIntegration from '@/components/LeadManagement/AdPlatformIntegration';
 
 const ManagerLeads = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,99 +55,118 @@ const ManagerLeads = () => {
           </Button>
         </div>
 
-        {/* Search and Filter */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Team Leads ({filteredLeads.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4 mb-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search leads by name or company..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="px-3 py-2 border rounded-md bg-white"
-              >
-                <option value="all">All Status</option>
-                <option value="new">New</option>
-                <option value="contacted">Contacted</option>
-                <option value="qualified">Qualified</option>
-                <option value="proposal">Proposal</option>
-              </select>
-            </div>
+        <Tabs defaultValue="leads" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="leads" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Team Leads
+            </TabsTrigger>
+            <TabsTrigger value="ad-platforms" className="flex items-center gap-2">
+              <Megaphone className="h-4 w-4" />
+              Ad Platform Integration
+            </TabsTrigger>
+          </TabsList>
 
-            {/* Leads Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4">Lead</th>
-                    <th className="text-left py-3 px-4">Company</th>
-                    <th className="text-left py-3 px-4">Status</th>
-                    <th className="text-left py-3 px-4">Assigned To</th>
-                    <th className="text-left py-3 px-4">Score</th>
-                    <th className="text-left py-3 px-4">Likelihood</th>
-                    <th className="text-left py-3 px-4">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLeads.map((lead) => (
-                    <tr key={lead.id} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4">
-                        <div>
-                          <p className="font-medium">{lead.name}</p>
-                          <p className="text-sm text-gray-600">{lead.email}</p>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">{lead.company}</td>
-                      <td className="py-3 px-4">
-                        <Badge className={getStatusColor(lead.status)}>
-                          {lead.status}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-4">{lead.assignedTo}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                            <span className="text-xs font-medium text-blue-800">{lead.score}</span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-green-500 h-2 rounded-full"
-                              style={{ width: `${lead.likelihood}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-sm font-medium">{lead.likelihood}%</span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">Edit</Button>
-                          <Button size="sm" variant="outline">Reassign</Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+          <TabsContent value="leads">
+            {/* Search and Filter */}
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Team Leads ({filteredLeads.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-4 mb-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Input
+                      placeholder="Search leads by name or company..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
+                  <select
+                    value={filterStatus}
+                    onChange={(e) => setFilterStatus(e.target.value)}
+                    className="px-3 py-2 border rounded-md bg-white"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="new">New</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="qualified">Qualified</option>
+                    <option value="proposal">Proposal</option>
+                  </select>
+                </div>
+
+                {/* Leads Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-3 px-4">Lead</th>
+                        <th className="text-left py-3 px-4">Company</th>
+                        <th className="text-left py-3 px-4">Status</th>
+                        <th className="text-left py-3 px-4">Assigned To</th>
+                        <th className="text-left py-3 px-4">Score</th>
+                        <th className="text-left py-3 px-4">Likelihood</th>
+                        <th className="text-left py-3 px-4">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredLeads.map((lead) => (
+                        <tr key={lead.id} className="border-b hover:bg-gray-50">
+                          <td className="py-3 px-4">
+                            <div>
+                              <p className="font-medium">{lead.name}</p>
+                              <p className="text-sm text-gray-600">{lead.email}</p>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">{lead.company}</td>
+                          <td className="py-3 px-4">
+                            <Badge className={getStatusColor(lead.status)}>
+                              {lead.status}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4">{lead.assignedTo}</td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span className="text-xs font-medium text-blue-800">{lead.score}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-green-500 h-2 rounded-full"
+                                  style={{ width: `${lead.likelihood}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-sm font-medium">{lead.likelihood}%</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex gap-2">
+                              <Button size="sm" variant="outline">Edit</Button>
+                              <Button size="sm" variant="outline">Reassign</Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="ad-platforms">
+            <AdPlatformIntegration />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
