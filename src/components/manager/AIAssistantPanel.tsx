@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ import {
   FileText, 
   Image, 
   Folder,
-  Memory,
+  Database,
   Upload,
   Zap,
   Users,
@@ -114,7 +113,7 @@ const AIAssistantPanel: React.FC = () => {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
-              <Memory className="h-4 w-4" />
+              <Database className="h-4 w-4" />
               Memory
             </CardTitle>
           </CardHeader>

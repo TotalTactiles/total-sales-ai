@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,8 +17,9 @@ import {
   AlertCircle,
   Clock,
   Globe,
-  Dropbox,
-  HardDrive
+  Cloud,
+  HardDrive,
+  MessageSquare
 } from 'lucide-react';
 
 const KnowledgeTab: React.FC = () => {
@@ -124,7 +124,7 @@ const KnowledgeTab: React.FC = () => {
                       <span className="text-sm">Device Upload</span>
                     </Button>
                     <Button variant="outline" className="h-20 flex flex-col gap-2">
-                      <Dropbox className="h-6 w-6" />
+                      <Cloud className="h-6 w-6" />
                       <span className="text-sm">Dropbox</span>
                     </Button>
                     <Button variant="outline" className="h-20 flex flex-col gap-2">
