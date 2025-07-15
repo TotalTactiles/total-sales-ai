@@ -55,19 +55,19 @@ const ManagerLeads = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="leads" className="w-full">
+        <Tabs defaultValue="team-leads" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="leads" className="flex items-center gap-2">
+            <TabsTrigger value="team-leads" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Team Leads
             </TabsTrigger>
             <TabsTrigger value="ad-platforms" className="flex items-center gap-2">
               <Megaphone className="h-4 w-4" />
-              Ad Platform Integration
+              Ad Platforms
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="leads">
+          <TabsContent value="team-leads">
             {/* Search and Filter */}
             <Card className="mb-6">
               <CardHeader>
