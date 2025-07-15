@@ -1,308 +1,303 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
 import { 
   BarChart, 
-  FileText, 
+  TrendingUp, 
+  Users, 
+  Phone, 
+  Mail, 
+  MessageSquare, 
   Download, 
-  Settings, 
-  Plus,
-  TrendingUp,
-  Users,
+  Filter,
+  FileText,
   Calendar,
-  Zap,
+  BarChart3,
+  Brain,
+  AlertTriangle,
+  Clock,
+  DollarSign,
   Target,
+  Zap,
+  RefreshCw,
+  BookOpen,
+  PieChart,
   Activity,
-  Brain
+  Settings
 } from 'lucide-react';
 
-interface QuickStat {
-  id: string;
-  title: string;
-  value: string;
-  change: string;
-  icon: React.ComponentType<any>;
-  visible: boolean;
-}
+const Reports = () => {
+  const [generatingReport, setGeneratingReport] = useState<string | null>(null);
 
-const Reports: React.FC = () => {
-  const [quickStats, setQuickStats] = useState<QuickStat[]>([
-    { id: '1', title: 'Total Revenue', value: '$124,580', change: '+12%', icon: TrendingUp, visible: true },
-    { id: '2', title: 'New Leads', value: '47', change: '+8%', icon: Users, visible: true },
-    { id: '3', title: 'Conversion Rate', value: '23.4%', change: '+2.1%', icon: Target, visible: true },
-    { id: '4', title: 'Team Activity', value: '89%', change: '+5%', icon: Activity, visible: true },
-    { id: '5', title: 'Pipeline Value', value: '$890K', change: '+15%', icon: BarChart, visible: false },
-    { id: '6', title: 'Customer Satisfaction', value: '94%', change: '+3%', icon: Users, visible: false }
-  ]);
+  const reportData = {
+    totalLeads: 1247,
+    conversionRate: 23.4,
+    avgDealSize: 45600,
+    callsMade: 2891,
+    emailsSent: 5647,
+    smssSent: 1203
+  };
 
-  const [isCustomizeOpen, setIsCustomizeOpen] = useState(false);
-  const [isCustomReportOpen, setIsCustomReportOpen] = useState(false);
-  const [customReport, setCustomReport] = useState({
-    name: '',
-    summary: '',
-    conditions: '',
-    question: '',
-    autoRun: false
-  });
-
-  const quickReports = [
-    { name: 'Performance Report', description: 'Team and individual performance metrics' },
-    { name: 'Team Activity Report', description: 'Daily activity and engagement summary' },
-    { name: 'Weekly Summary', description: 'Comprehensive weekly business overview' }
+  const aiReportButtons = [
+    { id: 'funnel', title: 'Full Funnel Breakdown', icon: BarChart3, description: 'Complete pipeline analysis with conversion rates' },
+    { id: 'objections', title: 'Objection & Drop-Off Heatmap', icon: AlertTriangle, description: 'Identify where deals are getting stuck' },
+    { id: 'experiments', title: 'Experiment Outcome Tracker', icon: Target, description: 'A/B test results and performance metrics' },
+    { id: 'lost-deals', title: 'Lost Deal Analysis', icon: TrendingUp, description: 'Why deals failed and prevention strategies' },
+    { id: 'time-to-close', title: 'Time-to-Close Efficiency Report', icon: Clock, description: 'Deal velocity and optimization opportunities' },
+    { id: 'lead-recycle', title: 'Lead Recycle Audit', icon: RefreshCw, description: 'Re-engagement opportunities analysis' },
+    { id: 'ai-coach', title: 'AI Coach Impact Summary', icon: Brain, description: 'Performance improvements from AI coaching' },
+    { id: 'outreach', title: 'Call & Outreach Effectiveness Report', icon: Phone, description: 'Channel performance and recommendations' },
+    { id: 'deal-flow', title: 'Weekly Deal Flow Recap', icon: Activity, description: 'Pipeline movement and velocity trends' },
+    { id: 'pipeline-hygiene', title: 'Pipeline Hygiene Report', icon: Settings, description: 'Data quality and cleanup recommendations' },
+    { id: 'top-offers', title: 'Top Performing Offers by Segment', icon: PieChart, description: 'Product-market fit analysis' },
+    { id: 'forecast', title: 'Forecast vs Actual (Variance Tracker)', icon: BarChart, description: 'Prediction accuracy and adjustments' },
+    { id: 'deal-velocity', title: 'Deal Velocity vs Market Average', icon: Zap, description: 'Competitive benchmarking analysis' },
+    { id: 'team-structure', title: 'Team Structure Efficiency Analysis', icon: Users, description: 'Organizational optimization insights' },
+    { id: 'sales-market', title: 'Sales-Market Ops Sync Report', icon: BookOpen, description: 'Alignment between sales and marketing' },
+    { id: 'attribution', title: 'Deal Attribution & Assist Tracking', icon: Target, description: 'Multi-touch attribution analysis' }
   ];
 
-  const aiReports = [
-    { 
-      category: 'Leads', 
-      reports: [
-        { name: 'Lead Quality Analysis', summary: 'AI analysis of lead sources and conversion patterns' },
-        { name: 'Pipeline Optimization', summary: 'Recommendations for improving lead flow' }
-      ]
-    },
-    { 
-      category: 'Sales', 
-      reports: [
-        { name: 'Sales Performance Insights', summary: 'Individual and team sales performance with AI recommendations' },
-        { name: 'Revenue Forecasting', summary: 'AI-powered revenue predictions and growth opportunities' }
-      ]
-    },
-    { 
-      category: 'Team', 
-      reports: [
-        { name: 'Team Productivity Analysis', summary: 'Comprehensive team efficiency and engagement metrics' },
-        { name: 'Coaching Recommendations', summary: 'AI-generated coaching insights for each team member' }
-      ]
-    }
-  ];
-
-  const handleToggleStatVisibility = (statId: string) => {
-    setQuickStats(prev => prev.map(stat => 
-      stat.id === statId ? { ...stat, visible: !stat.visible } : stat
-    ));
+  const handleGenerateReport = async (reportId: string, title: string) => {
+    setGeneratingReport(reportId);
+    
+    // Simulate AI report generation
+    setTimeout(() => {
+      setGeneratingReport(null);
+      // In a real implementation, this would trigger the actual AI report generation
+      console.log(`Generating AI report: ${title}`);
+      
+      // Mock success notification
+      alert(`${title} has been generated successfully! It will be available for download shortly.`);
+    }, 2000);
   };
-
-  const handleExportAll = () => {
-    // Generate PDF with all visible cards
-    console.log('Exporting all visible cards as PDF');
-  };
-
-  const handleQuickReport = (reportName: string) => {
-    // Generate quick report
-    console.log('Generating quick report:', reportName);
-  };
-
-  const handleCreateCustomReport = () => {
-    console.log('Creating custom report:', customReport);
-    setIsCustomReportOpen(false);
-    setCustomReport({ name: '', summary: '', conditions: '', question: '', autoRun: false });
-  };
-
-  const visibleStats = quickStats.filter(stat => stat.visible);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6 space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto p-4 md:p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Reports & Analytics</h1>
-            <p className="text-muted-foreground">Track performance and generate insights</p>
+            <h1 className="text-2xl md:text-3xl font-bold">Reports & Analytics</h1>
+            <p className="text-muted-foreground">Track performance and optimize your sales process</p>
           </div>
           <div className="flex gap-2">
-            <Dialog open={isCustomizeOpen} onOpenChange={setIsCustomizeOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Customize
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Customize Dashboard Cards</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  {quickStats.map((stat) => (
-                    <div key={stat.id} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <stat.icon className="h-4 w-4" />
-                        <span>{stat.title}</span>
-                      </div>
-                      <Switch
-                        checked={stat.visible}
-                        onCheckedChange={() => handleToggleStatVisibility(stat.id)}
-                      />
-                    </div>
-                  ))}
-                </div>
-                <Button onClick={() => setIsCustomizeOpen(false)} className="w-full">
-                  Save Changes
-                </Button>
-              </DialogContent>
-            </Dialog>
-            <Button onClick={handleExportAll}>
+            <Button variant="outline" size="sm">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
+            <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Export All
             </Button>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {visibleStats.map((stat) => (
-            <Card key={stat.id}>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <stat.icon className="h-5 w-5" />
-                  {stat.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold mb-1">{stat.value}</div>
-                <Badge className="bg-green-100 text-green-800">{stat.change}</Badge>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{reportData.totalLeads.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">+12%</span> from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{reportData.conversionRate}%</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">+2.4%</span> from last month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Avg Deal Size</CardTitle>
+              <BarChart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${reportData.avgDealSize.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground">
+                <span className="text-green-600">+8.2%</span> from last month
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Quick Reports */}
-        <Card>
+        {/* Activity Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Calls Made
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold">{reportData.callsMade.toLocaleString()}</div>
+              <Badge variant="secondary" className="mt-1">This Month</Badge>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Mail className="h-4 w-4" />
+                Emails Sent
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold">{reportData.emailsSent.toLocaleString()}</div>
+              <Badge variant="secondary" className="mt-1">This Month</Badge>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                SMS Sent
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold">{reportData.smssSent.toLocaleString()}</div>
+              <Badge variant="secondary" className="mt-1">This Month</Badge>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Reports & Custom Reports */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Reports</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Button variant="outline" className="w-full justify-start">
+                <FileText className="h-4 w-4 mr-2" />
+                Sales Performance Report
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <BarChart3 className="h-4 w-4 mr-2" />
+                Team Activity Report
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                <Calendar className="h-4 w-4 mr-2" />
+                Weekly Summary
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Custom Reports</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground dark:text-gray-400 mb-4">
+                Create custom reports with specific metrics and date ranges.
+              </p>
+              <Button className="w-full bg-indigo-700 hover:bg-indigo-600">
+                Create Custom Report
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* AI-Powered Reports Section */}
+        <Card className="mt-8">
           <CardHeader>
-            <CardTitle>Quick Reports</CardTitle>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-purple-600" />
+                <CardTitle>Generate AI-Powered Reports</CardTitle>
+                <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                  AI Enhanced
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Instantly generate detailed analytics with AI insights
+              </p>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {quickReports.map((report) => (
-                <Button
-                  key={report.name}
-                  variant="outline"
-                  className="h-auto p-4 text-left"
-                  onClick={() => handleQuickReport(report.name)}
-                >
-                  <div>
-                    <div className="font-medium mb-1">{report.name}</div>
-                    <div className="text-sm text-muted-foreground">{report.description}</div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Custom Reports */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Custom Reports</CardTitle>
-            <Dialog open={isCustomReportOpen} onOpenChange={setIsCustomReportOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Custom Report
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Create Custom Report</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Report Name</label>
-                    <Input
-                      value={customReport.name}
-                      onChange={(e) => setCustomReport(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="e.g., Monthly Sales Analysis"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Summary</label>
-                    <Input
-                      value={customReport.summary}
-                      onChange={(e) => setCustomReport(prev => ({ ...prev, summary: e.target.value }))}
-                      placeholder="Brief description of the report"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Data Conditions</label>
-                    <Textarea
-                      value={customReport.conditions}
-                      onChange={(e) => setCustomReport(prev => ({ ...prev, conditions: e.target.value }))}
-                      placeholder="Specify filters, date ranges, and data criteria..."
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Key Question</label>
-                    <Input
-                      value={customReport.question}
-                      onChange={(e) => setCustomReport(prev => ({ ...prev, question: e.target.value }))}
-                      placeholder="What specific question should this report answer?"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium">Auto-run Weekly</label>
-                    <Switch
-                      checked={customReport.autoRun}
-                      onCheckedChange={(checked) => setCustomReport(prev => ({ ...prev, autoRun: checked }))}
-                    />
-                  </div>
-                  <Button onClick={handleCreateCustomReport} className="w-full">
-                    Create Report
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {aiReportButtons.map((report) => {
+                const IconComponent = report.icon;
+                const isGenerating = generatingReport === report.id;
+                
+                return (
+                  <Button
+                    key={report.id}
+                    variant="outline"
+                    className="h-auto p-4 flex flex-col items-start text-left space-y-2 hover:bg-purple-50 hover:border-purple-200 transition-colors"
+                    onClick={() => handleGenerateReport(report.id, report.title)}
+                    disabled={isGenerating}
+                  >
+                    <div className="flex items-center gap-2 w-full">
+                      <IconComponent className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''} text-purple-600`} />
+                      <span className="font-medium text-sm">{report.title}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{report.description}</p>
+                    {isGenerating && (
+                      <Badge variant="secondary" className="text-xs">
+                        Generating...
+                      </Badge>
+                    )}
                   </Button>
+                );
+              })}
+            </div>
+            
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Brain className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h4 className="font-medium text-blue-900">AI Report Features</h4>
+                  <ul className="text-sm text-blue-800 mt-1 space-y-1">
+                    <li>• PDF-exportable with professional formatting</li>
+                    <li>• Interactive graphs with toggle views</li>
+                    <li>• 2-3 sentence insight summaries per chart</li>
+                    <li>• Presentation-ready for stakeholder reviews</li>
+                  </ul>
                 </div>
-              </DialogContent>
-            </Dialog>
-          </CardHeader>
-          <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No custom reports created yet</p>
-              <p className="text-sm">Create your first custom report to get started</p>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* AI-Powered Reports */}
+        {/* Performance by Source */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5" />
-              AI-Powered Reports
-            </CardTitle>
+            <CardTitle>Performance by Source</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {aiReports.map((category) => (
-                <div key={category.category}>
-                  <h3 className="font-medium mb-3 flex items-center gap-2">
-                    {category.category === 'Leads' && <Users className="h-4 w-4" />}
-                    {category.category === 'Sales' && <TrendingUp className="h-4 w-4" />}
-                    {category.category === 'Team' && <Activity className="h-4 w-4" />}
-                    {category.category}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {category.reports.map((report) => (
-                      <Card key={report.name} className="cursor-pointer hover:shadow-md transition-shadow">
-                        <CardContent className="p-4">
-                          <h4 className="font-medium mb-2">{report.name}</h4>
-                          <p className="text-sm text-muted-foreground mb-3">{report.summary}</p>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
-                              <FileText className="h-3 w-3 mr-1" />
-                              View
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <Download className="h-3 w-3 mr-1" />
-                              Export
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+            <div className="space-y-4">
+              {[
+                { source: 'Website', leads: 456, conversion: 28.5 },
+                { source: 'LinkedIn', leads: 234, conversion: 31.2 },
+                { source: 'Referrals', leads: 189, conversion: 45.6 },
+                { source: 'Cold Outreach', leads: 368, conversion: 15.3 }
+              ].map((item) => (
+                <div key={item.source} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium">{item.source}</div>
+                    <div className="text-sm text-muted-foreground">{item.leads} leads</div>
                   </div>
+                  <Badge variant={item.conversion > 30 ? "default" : "secondary"}>
+                    {item.conversion}% conversion
+                  </Badge>
                 </div>
               ))}
             </div>

@@ -40,16 +40,6 @@ declare global {
     abort(): void;
   }
 
-  var SpeechRecognition: {
-    prototype: SpeechRecognition;
-    new(): SpeechRecognition;
-  };
-
-  var webkitSpeechRecognition: {
-    prototype: SpeechRecognition;
-    new(): SpeechRecognition;
-  };
-
   interface SpeechRecognitionEvent extends Event {
     readonly resultIndex: number;
     readonly results: SpeechRecognitionResultList;
@@ -77,6 +67,11 @@ declare global {
     readonly transcript: string;
     readonly confidence: number;
   }
+
+  var SpeechRecognition: {
+    prototype: SpeechRecognition;
+    new(): SpeechRecognition;
+  };
 }
 
 // Export the SpeechRecognition type for use in other files
