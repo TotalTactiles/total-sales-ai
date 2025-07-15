@@ -1,8 +1,15 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   BarChart, 
   TrendingUp, 
@@ -11,66 +18,375 @@ import {
   Mail, 
   MessageSquare, 
   Download, 
-  Filter,
+  Settings,
   FileText,
-  Calendar,
   BarChart3,
+  Calendar,
   Brain,
-  AlertTriangle,
-  Clock,
-  DollarSign,
   Target,
-  Zap,
-  RefreshCw,
-  BookOpen,
-  PieChart,
+  DollarSign,
+  Clock,
   Activity,
-  Settings
+  Zap,
+  Filter,
+  Plus,
+  Eye,
+  PieChart
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-const Reports = () => {
-  const [generatingReport, setGeneratingReport] = useState<string | null>(null);
+interface StatCard {
+  id: string;
+  title: string;
+  value: string;
+  subtitle: string;
+  icon: React.ComponentType<any>;
+  color: string;
+  isDefault: boolean;
+}
 
-  const reportData = {
-    totalLeads: 1247,
-    conversionRate: 23.4,
-    avgDealSize: 45600,
-    callsMade: 2891,
-    emailsSent: 5647,
-    smssSent: 1203
-  };
+interface CustomReport {
+  id: string;
+  name: string;
+  summary: string;
+  conditions: string;
+  goal: string;
+  createdAt: string;
+  autoRun?: string;
+}
 
-  const aiReportButtons = [
-    { id: 'funnel', title: 'Full Funnel Breakdown', icon: BarChart3, description: 'Complete pipeline analysis with conversion rates' },
-    { id: 'objections', title: 'Objection & Drop-Off Heatmap', icon: AlertTriangle, description: 'Identify where deals are getting stuck' },
-    { id: 'experiments', title: 'Experiment Outcome Tracker', icon: Target, description: 'A/B test results and performance metrics' },
-    { id: 'lost-deals', title: 'Lost Deal Analysis', icon: TrendingUp, description: 'Why deals failed and prevention strategies' },
-    { id: 'time-to-close', title: 'Time-to-Close Efficiency Report', icon: Clock, description: 'Deal velocity and optimization opportunities' },
-    { id: 'lead-recycle', title: 'Lead Recycle Audit', icon: RefreshCw, description: 'Re-engagement opportunities analysis' },
-    { id: 'ai-coach', title: 'AI Coach Impact Summary', icon: Brain, description: 'Performance improvements from AI coaching' },
-    { id: 'outreach', title: 'Call & Outreach Effectiveness Report', icon: Phone, description: 'Channel performance and recommendations' },
-    { id: 'deal-flow', title: 'Weekly Deal Flow Recap', icon: Activity, description: 'Pipeline movement and velocity trends' },
-    { id: 'pipeline-hygiene', title: 'Pipeline Hygiene Report', icon: Settings, description: 'Data quality and cleanup recommendations' },
-    { id: 'top-offers', title: 'Top Performing Offers by Segment', icon: PieChart, description: 'Product-market fit analysis' },
-    { id: 'forecast', title: 'Forecast vs Actual (Variance Tracker)', icon: BarChart, description: 'Prediction accuracy and adjustments' },
-    { id: 'deal-velocity', title: 'Deal Velocity vs Market Average', icon: Zap, description: 'Competitive benchmarking analysis' },
-    { id: 'team-structure', title: 'Team Structure Efficiency Analysis', icon: Users, description: 'Organizational optimization insights' },
-    { id: 'sales-market', title: 'Sales-Market Ops Sync Report', icon: BookOpen, description: 'Alignment between sales and marketing' },
-    { id: 'attribution', title: 'Deal Attribution & Assist Tracking', icon: Target, description: 'Multi-touch attribution analysis' }
+interface AIReport {
+  id: string;
+  title: string;
+  category: string;
+  data: any;
+  summary: string;
+  optimization: string;
+  timestamp: string;
+}
+
+const Reports: React.FC = () => {
+  const { user, profile } = useAuth();
+  const [selectedCards, setSelectedCards] = useState<string[]>([]);
+  const [customReports, setCustomReports] = useState<CustomReport[]>([]);
+  const [aiReports, setAIReports] = useState<AIReport[]>([]);
+  const [activeAITab, setActiveAITab] = useState('ai-enhanced');
+  const [showCustomizeModal, setShowCustomizeModal] = useState(false);
+  const [showCustomReportModal, setShowCustomReportModal] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState<string | null>(null);
+
+  // Default stat cards data
+  const defaultStatCards: StatCard[] = [
+    {
+      id: 'total-leads',
+      title: 'Total Leads',
+      value: '1,247',
+      subtitle: '+12% from last month',
+      icon: Users,
+      color: 'text-blue-600',
+      isDefault: true
+    },
+    {
+      id: 'conversion-rate',
+      title: 'Conversion Rate',
+      value: '23.4%',
+      subtitle: '+2.4% from last month',
+      icon: TrendingUp,
+      color: 'text-green-600',
+      isDefault: true
+    },
+    {
+      id: 'avg-deal-size',
+      title: 'Average Deal Size',
+      value: '$45,600',
+      subtitle: '+8.2% from last month',
+      icon: DollarSign,
+      color: 'text-purple-600',
+      isDefault: true
+    },
+    {
+      id: 'calls-made',
+      title: 'Calls Made',
+      value: '2,891',
+      subtitle: 'This Month',
+      icon: Phone,
+      color: 'text-orange-600',
+      isDefault: true
+    },
+    {
+      id: 'emails-sent',
+      title: 'Emails Sent',
+      value: '5,647',
+      subtitle: 'This Month',
+      icon: Mail,
+      color: 'text-indigo-600',
+      isDefault: true
+    },
+    {
+      id: 'sms-sent',
+      title: 'SMS Sent',
+      value: '1,203',
+      subtitle: 'This Month',
+      icon: MessageSquare,
+      color: 'text-pink-600',
+      isDefault: true
+    }
   ];
 
-  const handleGenerateReport = async (reportId: string, title: string) => {
-    setGeneratingReport(reportId);
-    
-    // Simulate AI report generation
-    setTimeout(() => {
-      setGeneratingReport(null);
-      // In a real implementation, this would trigger the actual AI report generation
-      console.log(`Generating AI report: ${title}`);
+  // Additional stat cards for customization
+  const additionalStatCards: StatCard[] = [
+    {
+      id: 'total-revenue',
+      title: 'Total Revenue',
+      value: '$2,346,249',
+      subtitle: '+15% from last month',
+      icon: DollarSign,
+      color: 'text-emerald-600',
+      isDefault: false
+    },
+    {
+      id: 'avg-response-time',
+      title: 'Avg. Response Time',
+      value: '2.4 hours',
+      subtitle: '-0.6 hours from last month',
+      icon: Clock,
+      color: 'text-yellow-600',
+      isDefault: false
+    },
+    {
+      id: 'lead-source-breakdown',
+      title: 'Lead Source Breakdown',
+      value: '8 sources',
+      subtitle: 'Website: 45%, LinkedIn: 23%',
+      icon: PieChart,
+      color: 'text-cyan-600',
+      isDefault: false
+    },
+    {
+      id: 'deals-closed-month',
+      title: 'Deals Closed This Month',
+      value: '127',
+      subtitle: '+18% from last month',
+      icon: Target,
+      color: 'text-red-600',
+      isDefault: false
+    },
+    {
+      id: 'followups-pending',
+      title: 'Follow-ups Pending',
+      value: '43',
+      subtitle: '12 overdue',
+      icon: Calendar,
+      color: 'text-amber-600',
+      isDefault: false
+    },
+    {
+      id: 'ai-workflow-conversions',
+      title: 'AI Workflow Conversions',
+      value: '89%',
+      subtitle: '+5% from last month',
+      icon: Brain,
+      color: 'text-violet-600',
+      isDefault: false
+    },
+    {
+      id: 'rep-activity-score',
+      title: 'Rep Activity Score',
+      value: '8.7/10',
+      subtitle: 'Team average',
+      icon: Activity,
+      color: 'text-teal-600',
+      isDefault: false
+    },
+    {
+      id: 'campaign-roi',
+      title: 'Campaign ROI',
+      value: '340%',
+      subtitle: '+23% from last month',
+      icon: Zap,
+      color: 'text-lime-600',
+      isDefault: false
+    }
+  ];
+
+  const allStatCards = [...defaultStatCards, ...additionalStatCards];
+
+  useEffect(() => {
+    // Initialize with default cards
+    setSelectedCards(defaultStatCards.map(card => card.id));
+    loadCustomReports();
+    loadAIReports();
+  }, []);
+
+  const loadCustomReports = async () => {
+    // Mock data for custom reports
+    const mockReports: CustomReport[] = [
+      {
+        id: '1',
+        name: 'Q4 Performance Analysis',
+        summary: 'Comprehensive Q4 performance metrics',
+        conditions: 'Date: Q4 2024, Status: All',
+        goal: 'Identify top performing campaigns and areas for improvement',
+        createdAt: '2024-01-15T10:00:00Z',
+        autoRun: 'weekly'
+      },
+      {
+        id: '2',
+        name: 'Lead Source Effectiveness',
+        summary: 'Analysis of lead source conversion rates',
+        conditions: 'Source: All, Period: Last 30 days',
+        goal: 'Determine which lead sources provide highest ROI',
+        createdAt: '2024-01-14T14:30:00Z'
+      }
+    ];
+    setCustomReports(mockReports);
+  };
+
+  const loadAIReports = async () => {
+    // Mock data for AI reports
+    const mockAIReports: AIReport[] = [
+      {
+        id: '1',
+        title: 'Full Funnel Breakdown',
+        category: 'ai-enhanced',
+        data: { conversionRate: 23.4, dropOffPoints: ['Initial Contact', 'Proposal'] },
+        summary: 'Your funnel shows strong initial engagement but drops significantly at proposal stage.',
+        optimization: 'Consider improving proposal templates and follow-up timing.',
+        timestamp: '2024-01-15T10:00:00Z'
+      },
+      {
+        id: '2',
+        title: 'Lead Quality Assessment',
+        category: 'leads',
+        data: { qualifiedLeads: 456, totalLeads: 1247 },
+        summary: 'Lead quality has improved 15% this month with better targeting.',
+        optimization: 'Focus on enterprise leads which show 2x higher conversion rates.',
+        timestamp: '2024-01-15T09:30:00Z'
+      },
+      {
+        id: '3',
+        title: 'Sales Performance Trends',
+        category: 'sales',
+        data: { revenue: 2346249, deals: 127 },
+        summary: 'Sales team is 18% ahead of monthly target with strong Q4 performance.',
+        optimization: 'Maintain current momentum while focusing on larger deal sizes.',
+        timestamp: '2024-01-15T09:00:00Z'
+      }
+    ];
+    setAIReports(mockAIReports);
+  };
+
+  const handleCardToggle = (cardId: string) => {
+    setSelectedCards(prev => 
+      prev.includes(cardId) 
+        ? prev.filter(id => id !== cardId)
+        : [...prev, cardId]
+    );
+  };
+
+  const handleSaveCustomization = async () => {
+    try {
+      // Save user preferences to database
+      await supabase
+        .from('user_preferences')
+        .upsert({
+          user_id: user?.id,
+          preference_type: 'reports_stat_cards',
+          preferences: { selectedCards }
+        });
+
+      setShowCustomizeModal(false);
+      toast.success('Card preferences saved successfully');
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      toast.error('Failed to save preferences');
+    }
+  };
+
+  const handleExportAll = async () => {
+    try {
+      const visibleCards = allStatCards.filter(card => selectedCards.includes(card.id));
+      const exportData = {
+        cards: visibleCards.map(card => ({
+          title: card.title,
+          value: card.value,
+          timestamp: new Date().toISOString()
+        })),
+        companyName: profile?.company_id || 'Company',
+        exportDate: new Date().toISOString()
+      };
+
+      // Log export to Company Brain
+      await supabase
+        .from('ai_brain_logs')
+        .insert({
+          type: 'report_export',
+          event_summary: 'Manager exported stat cards report',
+          payload: exportData,
+          company_id: profile?.company_id
+        });
+
+      // Trigger PDF generation (mock)
+      const filename = `Manager_Report_Export_${profile?.company_id || 'Company'}_${new Date().toISOString().split('T')[0]}.pdf`;
+      toast.success(`Report exported: ${filename}`);
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      toast.error('Failed to export report');
+    }
+  };
+
+  const handleGenerateQuickReport = async (reportType: string) => {
+    setIsGeneratingReport(reportType);
+    try {
+      // Mock report generation
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Mock success notification
-      alert(`${title} has been generated successfully! It will be available for download shortly.`);
-    }, 2000);
+      const filename = `${reportType.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      toast.success(`Report generated: ${filename}`);
+    } catch (error) {
+      console.error('Error generating report:', error);
+      toast.error('Failed to generate report');
+    } finally {
+      setIsGeneratingReport(null);
+    }
+  };
+
+  const handleCreateCustomReport = async (reportData: Omit<CustomReport, 'id' | 'createdAt'>) => {
+    try {
+      const newReport: CustomReport = {
+        ...reportData,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString()
+      };
+
+      setCustomReports(prev => [...prev, newReport]);
+      
+      // Save to Company Brain
+      await supabase
+        .from('ai_brain_logs')
+        .insert({
+          type: 'custom_report_created',
+          event_summary: `Custom report created: ${reportData.name}`,
+          payload: newReport,
+          company_id: profile?.company_id
+        });
+
+      setShowCustomReportModal(false);
+      toast.success('Custom report created successfully');
+    } catch (error) {
+      console.error('Error creating custom report:', error);
+      toast.error('Failed to create custom report');
+    }
+  };
+
+  const getVisibleCards = () => {
+    return allStatCards.filter(card => selectedCards.includes(card.id));
+  };
+
+  const getAIReportsByCategory = (category: string) => {
+    return aiReports.filter(report => report.category === category);
   };
 
   return (
@@ -83,224 +399,261 @@ const Reports = () => {
             <p className="text-muted-foreground">Track performance and optimize your sales process</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
-            </Button>
-            <Button variant="outline" size="sm">
+            <Dialog open={showCustomizeModal} onOpenChange={setShowCustomizeModal}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Customize
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Customize Stat Cards</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {allStatCards.map((card) => (
+                    <div key={card.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={card.id}
+                        checked={selectedCards.includes(card.id)}
+                        onCheckedChange={() => handleCardToggle(card.id)}
+                      />
+                      <Label htmlFor={card.id} className="flex items-center gap-2 cursor-pointer">
+                        <card.icon className={`h-4 w-4 ${card.color}`} />
+                        {card.title}
+                        {card.isDefault && (
+                          <Badge variant="secondary" className="text-xs">Default</Badge>
+                        )}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => setShowCustomizeModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveCustomization}>
+                    Save Changes
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Button variant="outline" size="sm" onClick={handleExportAll}>
               <Download className="h-4 w-4 mr-2" />
               Export All
             </Button>
           </div>
         </div>
 
-        {/* Key Metrics */}
+        {/* KPI Stat Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Leads</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{reportData.totalLeads.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">+12%</span> from last month
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{reportData.conversionRate}%</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">+2.4%</span> from last month
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Deal Size</CardTitle>
-              <BarChart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${reportData.avgDealSize.toLocaleString()}</div>
-              <p className="text-xs text-muted-foreground">
-                <span className="text-green-600">+8.2%</span> from last month
-              </p>
-            </CardContent>
-          </Card>
+          {getVisibleCards().map((card) => {
+            const IconComponent = card.icon;
+            return (
+              <Card key={card.id}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
+                  <IconComponent className={`h-4 w-4 ${card.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{card.value}</div>
+                  <p className="text-xs text-muted-foreground">{card.subtitle}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
-        {/* Activity Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                Calls Made
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">{reportData.callsMade.toLocaleString()}</div>
-              <Badge variant="secondary" className="mt-1">This Month</Badge>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Emails Sent
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">{reportData.emailsSent.toLocaleString()}</div>
-              <Badge variant="secondary" className="mt-1">This Month</Badge>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                SMS Sent
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xl font-bold">{reportData.smssSent.toLocaleString()}</div>
-              <Badge variant="secondary" className="mt-1">This Month</Badge>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Reports & Custom Reports */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Reports</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button variant="outline" className="w-full justify-start">
-                <FileText className="h-4 w-4 mr-2" />
-                Sales Performance Report
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <BarChart3 className="h-4 w-4 mr-2" />
-                Team Activity Report
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Calendar className="h-4 w-4 mr-2" />
-                Weekly Summary
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Custom Reports</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground dark:text-gray-400 mb-4">
-                Create custom reports with specific metrics and date ranges.
-              </p>
-              <Button className="w-full bg-indigo-700 hover:bg-indigo-600">
-                Create Custom Report
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* AI-Powered Reports Section */}
-        <Card className="mt-8">
+        {/* Quick Reports */}
+        <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Brain className="h-5 w-5 text-purple-600" />
-                <CardTitle>Generate AI-Powered Reports</CardTitle>
-                <Badge variant="outline" className="bg-purple-50 text-purple-700">
-                  AI Enhanced
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Instantly generate detailed analytics with AI insights
-              </p>
-            </div>
+            <CardTitle>Quick Reports</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {aiReportButtons.map((report) => {
-                const IconComponent = report.icon;
-                const isGenerating = generatingReport === report.id;
-                
-                return (
-                  <Button
-                    key={report.id}
-                    variant="outline"
-                    className="h-auto p-4 flex flex-col items-start text-left space-y-2 hover:bg-purple-50 hover:border-purple-200 transition-colors"
-                    onClick={() => handleGenerateReport(report.id, report.title)}
-                    disabled={isGenerating}
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      <IconComponent className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''} text-purple-600`} />
-                      <span className="font-medium text-sm">{report.title}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{report.description}</p>
-                    {isGenerating && (
-                      <Badge variant="secondary" className="text-xs">
-                        Generating...
-                      </Badge>
-                    )}
-                  </Button>
-                );
-              })}
-            </div>
-            
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-start gap-3">
-                <Brain className="h-5 w-5 text-blue-600 mt-0.5" />
-                <div>
-                  <h4 className="font-medium text-blue-900">AI Report Features</h4>
-                  <ul className="text-sm text-blue-800 mt-1 space-y-1">
-                    <li>• PDF-exportable with professional formatting</li>
-                    <li>• Interactive graphs with toggle views</li>
-                    <li>• 2-3 sentence insight summaries per chart</li>
-                    <li>• Presentation-ready for stakeholder reviews</li>
-                  </ul>
-                </div>
-              </div>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { title: 'Performance Report', icon: BarChart3 },
+                { title: 'Team Activity Report', icon: Activity },
+                { title: 'Weekly Summary', icon: Calendar }
+              ].map((report) => (
+                <Button
+                  key={report.title}
+                  variant="outline"
+                  className="h-auto p-4 justify-start"
+                  onClick={() => handleGenerateQuickReport(report.title)}
+                  disabled={isGeneratingReport === report.title}
+                >
+                  <report.icon className="h-4 w-4 mr-2" />
+                  {isGeneratingReport === report.title ? 'Generating...' : report.title}
+                </Button>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Performance by Source */}
+        {/* Custom Reports */}
         <Card>
           <CardHeader>
-            <CardTitle>Performance by Source</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Custom Reports</CardTitle>
+              <Dialog open={showCustomReportModal} onOpenChange={setShowCustomReportModal}>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Custom Report
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create Custom Report</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target as HTMLFormElement);
+                    handleCreateCustomReport({
+                      name: formData.get('name') as string,
+                      summary: formData.get('summary') as string,
+                      conditions: formData.get('conditions') as string,
+                      goal: formData.get('goal') as string,
+                      autoRun: formData.get('autoRun') as string
+                    });
+                  }}>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="name">Report Name</Label>
+                        <Input id="name" name="name" required />
+                      </div>
+                      <div>
+                        <Label htmlFor="summary">Quick Summary</Label>
+                        <Input id="summary" name="summary" required />
+                      </div>
+                      <div>
+                        <Label htmlFor="conditions">Data Conditions</Label>
+                        <Textarea id="conditions" name="conditions" required />
+                      </div>
+                      <div>
+                        <Label htmlFor="goal">Goal/Question</Label>
+                        <Textarea id="goal" name="goal" required />
+                      </div>
+                      <div>
+                        <Label htmlFor="autoRun">Auto-run Schedule</Label>
+                        <Select name="autoRun">
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select schedule" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            <SelectItem value="weekly">Weekly</SelectItem>
+                            <SelectItem value="monthly">Monthly</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button type="button" variant="outline" onClick={() => setShowCustomReportModal(false)}>
+                        Cancel
+                      </Button>
+                      <Button type="submit">Create Report</Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { source: 'Website', leads: 456, conversion: 28.5 },
-                { source: 'LinkedIn', leads: 234, conversion: 31.2 },
-                { source: 'Referrals', leads: 189, conversion: 45.6 },
-                { source: 'Cold Outreach', leads: 368, conversion: 15.3 }
-              ].map((item) => (
-                <div key={item.source} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <div className="font-medium">{item.source}</div>
-                    <div className="text-sm text-muted-foreground">{item.leads} leads</div>
+              {customReports.map((report) => (
+                <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex-1">
+                    <h3 className="font-medium">{report.name}</h3>
+                    <p className="text-sm text-muted-foreground">{report.summary}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Created: {new Date(report.createdAt).toLocaleDateString()}
+                      {report.autoRun && ` • Auto-run: ${report.autoRun}`}
+                    </p>
                   </div>
-                  <Badge variant={item.conversion > 30 ? "default" : "secondary"}>
-                    {item.conversion}% conversion
-                  </Badge>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View
+                    </Button>
+                    <Button size="sm" variant="outline">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* AI-Powered Reports */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-purple-600" />
+              <CardTitle>AI-Powered Reports</CardTitle>
+              <Badge variant="outline" className="bg-purple-50 text-purple-700">
+                AI Enhanced
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeAITab} onValueChange={setActiveAITab}>
+              <TabsList className="grid w-full grid-cols-7">
+                <TabsTrigger value="ai-enhanced">AI-Enhanced</TabsTrigger>
+                <TabsTrigger value="leads">Leads</TabsTrigger>
+                <TabsTrigger value="sales">Sales</TabsTrigger>
+                <TabsTrigger value="marketing">Marketing</TabsTrigger>
+                <TabsTrigger value="team">Team</TabsTrigger>
+                <TabsTrigger value="automation">Automation</TabsTrigger>
+                <TabsTrigger value="performance">Performance</TabsTrigger>
+              </TabsList>
+              
+              {['ai-enhanced', 'leads', 'sales', 'marketing', 'team', 'automation', 'performance'].map((category) => (
+                <TabsContent key={category} value={category} className="space-y-4">
+                  {getAIReportsByCategory(category).length > 0 ? (
+                    getAIReportsByCategory(category).map((report) => (
+                      <div key={report.id} className="p-4 border rounded-lg space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-medium">{report.title}</h3>
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(report.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{report.summary}</p>
+                        {report.optimization && (
+                          <div className="bg-blue-50 p-3 rounded-md">
+                            <p className="text-sm text-blue-800">
+                              <strong>Optimization:</strong> {report.optimization}
+                            </p>
+                          </div>
+                        )}
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Download className="h-4 w-4 mr-2" />
+                            Export
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <p className="text-muted-foreground">No AI reports available for this category yet.</p>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Reports will appear here as data is processed and analyzed.
+                      </p>
+                    </div>
+                  )}
+                </TabsContent>
+              ))}
+            </Tabs>
           </CardContent>
         </Card>
       </div>
