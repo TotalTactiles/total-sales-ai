@@ -1,27 +1,32 @@
 
 import React from 'react';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-import DeploymentDashboard from '@/components/Deployment/DeploymentDashboard';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Rocket, Package, Settings } from 'lucide-react';
 
 const DeploymentCenter = () => {
   return (
-    <div className="min-h-screen bg-background">
-      <ManagerNavigation />
-      
-      <main className="pt-[60px]">
-        <div className="flex-1 px-4 md:px-6 py-6">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-gray-900">Deployment Center</h1>
-              <p className="text-gray-600 mt-2">
-                Orchestrate deployments across environments with enterprise-grade CI/CD automation
-              </p>
-            </div>
-            
-            <DeploymentDashboard />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Deployment Center</h1>
+        <p className="text-gray-600">Manage deployments and system updates</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Rocket className="h-5 w-5" />
+            Deployment Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <Package className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-500">Deployment center coming soon</p>
           </div>
-        </div>
-      </main>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,21 +1,30 @@
 
 import React from 'react';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
-import LeadsAI from '@/components/AI/LeadsAI';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Target, Users, TrendingUp } from 'lucide-react';
 
 const ManagerLeadManagement = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ManagerNavigation />
-      
-      <div className="ml-64 p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Lead Management</h1>
-          <p className="text-gray-600">AI-powered lead scoring and optimization</p>
-        </div>
-        
-        <LeadsAI />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
+        <p className="text-gray-600">Manage leads and pipeline</p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5" />
+            Lead Pipeline
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+            <p className="text-gray-500">Lead management dashboard coming soon</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
