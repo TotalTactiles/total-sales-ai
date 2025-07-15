@@ -1,253 +1,142 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Target, TrendingUp, BookOpen, CheckCircle, X, Eye } from 'lucide-react';
-import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Brain, BookOpen, Target, MessageSquare, X } from 'lucide-react';
 
-interface CoachingTask {
-  id: string;
-  title: string;
-  description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  estimatedTime: string;
-  category: string;
-  daysInCoaching: number;
-  isCompleted: boolean;
+interface AICoachingPanelProps {
+  onCoachingClick?: (coaching: any) => void;
 }
 
-const AICoachingPanel = () => {
-  const [tasks, setTasks] = useState<CoachingTask[]>([
+const AICoachingPanel: React.FC<AICoachingPanelProps> = ({ onCoachingClick }) => {
+  const coachingTasks = [
     {
       id: '1',
-      title: 'Objection Handling: Price Concerns',
-      description: 'Learn 5 proven techniques to overcome price objections and demonstrate value',
-      difficulty: 'intermediate',
+      title: 'Handling Price Objections',
+      description: 'Master the art of turning price concerns into value conversations',
+      category: 'objection_handling',
+      difficulty: 'intermediate' as const,
       estimatedTime: '15 min',
-      category: 'Objection Handling',
-      daysInCoaching: 2,
-      isCompleted: false
+      daysActive: 2,
+      type: 'training'
     },
     {
       id: '2',
-      title: 'Discovery Questions Framework',
-      description: 'Master the BANT qualification framework for better lead qualification',
-      difficulty: 'beginner',
+      title: 'Discovery Call Framework',
+      description: 'Structured approach to uncovering customer pain points',
+      category: 'discovery',
+      difficulty: 'beginner' as const,
       estimatedTime: '20 min',
-      category: 'Discovery',
-      daysInCoaching: 5,
-      isCompleted: false
+      daysActive: 0,
+      type: 'framework'
     },
     {
       id: '3',
-      title: 'Advanced Closing Techniques',
-      description: 'Practice assumption close, alternative close, and urgency-based closing',
-      difficulty: 'advanced',
+      title: 'Closing Techniques',
+      description: 'Advanced strategies for converting qualified leads',
+      category: 'closing',
+      difficulty: 'advanced' as const,
       estimatedTime: '25 min',
-      category: 'Closing',
-      daysInCoaching: 1,
-      isCompleted: false
+      daysActive: 5,
+      type: 'technique'
     }
-  ]);
-
-  const [hoveredTask, setHoveredTask] = useState<string | null>(null);
-  const [showActionModal, setShowActionModal] = useState<string | null>(null);
-
-  const handleTaskAction = (taskId: string, action: 'act_now' | 'calendar' | 'remind_later' | 'dismiss') => {
-    const task = tasks.find(t => t.id === taskId);
-    if (!task) return;
-
-    switch (action) {
-      case 'act_now':
-        // Navigate to Academy tab with this specific module
-        toast.success(`Opening "${task.title}" in Academy`);
-        break;
-      case 'calendar':
-        toast.success('Added to calendar for later study');
-        break;
-      case 'remind_later':
-        toast.success('Reminder set for tomorrow');
-        break;
-      case 'dismiss':
-        setTasks(prev => prev.filter(t => t.id !== taskId));
-        toast.success('Coaching task dismissed');
-        break;
-    }
-    setShowActionModal(null);
-  };
-
-  const handleCompleteTask = (taskId: string) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId 
-        ? { ...task, isCompleted: true }
-        : task
-    ));
-    toast.success('Coaching completed! Great job!');
-  };
+  ];
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'beginner': return 'bg-green-100 text-green-800';
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800';
-      case 'advanced': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'beginner': return 'bg-green-100 text-green-800 border-green-200';
+      case 'intermediate': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'advanced': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const activeTasks = tasks.filter(t => !t.isCompleted);
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'training': return BookOpen;
+      case 'framework': return Target;
+      case 'technique': return MessageSquare;
+      default: return Brain;
+    }
+  };
+
+  const handleCoachingClick = (coaching: any) => {
+    if (onCoachingClick) {
+      onCoachingClick(coaching);
+    }
+  };
+
+  const handleDismiss = (e: React.MouseEvent, coachingId: string) => {
+    e.stopPropagation();
+    console.log('Dismissing coaching:', coachingId);
+    // Log dismissal to TSAM
+  };
 
   return (
-    <Card className="relative">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Target className="h-5 w-5 text-blue-600" />
-            AI Sales Coaching
-          </CardTitle>
-          <Badge variant="secondary" className="text-xs">
-            {activeTasks.length} Active
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Brain className="h-5 w-5 text-purple-500" />
+          AI Sales Coaching
+          <Badge variant="secondary" className="ml-auto">
+            {coachingTasks.length} tasks
           </Badge>
-        </div>
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {activeTasks.length === 0 ? (
-          <div className="text-center py-6 text-gray-500">
-            <CheckCircle className="h-12 w-12 mx-auto mb-2 text-green-500" />
-            <p className="text-sm">All coaching completed!</p>
-            <p className="text-xs text-gray-400">New recommendations coming soon</p>
-          </div>
-        ) : (
-          activeTasks.map((task) => (
+        {coachingTasks.map((coaching) => {
+          const IconComponent = getTypeIcon(coaching.type);
+          return (
             <div
-              key={task.id}
-              className="relative bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors cursor-pointer"
-              onMouseEnter={() => setHoveredTask(task.id)}
-              onMouseLeave={() => setHoveredTask(null)}
-              onClick={() => setShowActionModal(task.id)}
+              key={coaching.id}
+              onClick={() => handleCoachingClick(coaching)}
+              className="p-4 rounded-lg border-l-4 border-purple-500 bg-purple-50/50 hover:bg-purple-50 transition-colors cursor-pointer group"
             >
-              <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <h4 className="font-medium text-sm mb-1">{task.title}</h4>
-                  <p className="text-xs text-gray-600 mb-2">{task.description}</p>
-                  
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className={`text-xs ${getDifficultyColor(task.difficulty)}`}>
-                      {task.difficulty}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
-                      {task.estimatedTime}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700">
-                      {task.category}
-                    </Badge>
-                    {task.daysInCoaching > 1 && (
-                      <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700">
-                        Day {task.daysInCoaching} in Coaching
+                  <div className="flex items-center gap-2 mb-1">
+                    <IconComponent className="h-4 w-4 text-purple-600" />
+                    <span className="font-medium text-purple-900">{coaching.title}</span>
+                    {coaching.daysActive > 0 && (
+                      <Badge variant="outline" className="text-orange-600 text-xs">
+                        {coaching.daysActive} days in coaching
                       </Badge>
                     )}
                   </div>
-                </div>
-
-                {hoveredTask === task.id && (
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setHoveredTask(null);
-                      }}
-                      title="Preview"
-                    >
-                      <Eye className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleTaskAction(task.id, 'dismiss');
-                      }}
-                      title="Dismiss"
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+                  <p className="text-sm text-purple-800 mb-2">{coaching.description}</p>
+                  <div className="flex items-center gap-2">
+                    <Badge className={getDifficultyColor(coaching.difficulty)} variant="outline">
+                      {coaching.difficulty}
+                    </Badge>
+                    <span className="text-xs text-gray-600">
+                      {coaching.estimatedTime} • {coaching.category}
+                    </span>
                   </div>
-                )}
+                </div>
+                <div className="flex items-center gap-2 ml-3">
+                  <Button size="sm" variant="outline">
+                    Start
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={(e) => handleDismiss(e, coaching.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-
-              {/* Action Modal */}
-              {showActionModal === task.id && (
-                <div className="absolute top-0 left-0 right-0 bottom-0 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-sm">{task.title}</h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0"
-                      onClick={() => setShowActionModal(null)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => handleTaskAction(task.id, 'act_now')}
-                      className="text-xs"
-                    >
-                      <BookOpen className="h-3 w-3 mr-1" />
-                      Act Now
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleTaskAction(task.id, 'calendar')}
-                      className="text-xs"
-                    >
-                      <Calendar className="h-3 w-3 mr-1" />
-                      Calendar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleTaskAction(task.id, 'remind_later')}
-                      className="text-xs"
-                    >
-                      <Clock className="h-3 w-3 mr-1" />
-                      Remind Later
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleTaskAction(task.id, 'dismiss')}
-                      className="text-xs text-red-600 hover:text-red-700"
-                    >
-                      <X className="h-3 w-3 mr-1" />
-                      Dismiss
-                    </Button>
-                  </div>
-                </div>
-              )}
             </div>
-          ))
-        )}
-
-        {activeTasks.length > 0 && (
-          <div className="pt-2 border-t">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full text-xs text-blue-600 hover:text-blue-700"
-              onClick={() => toast.info('Opening Academy with all recommendations')}
-            >
-              <TrendingUp className="h-3 w-3 mr-1" />
-              View All in Academy
-            </Button>
+          );
+        })}
+        
+        {coachingTasks.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <Brain className="h-12 w-12 mx-auto mb-3 opacity-30" />
+            <p>No coaching tasks at the moment.</p>
+            <p className="text-sm">Great job on completing your training!</p>
           </div>
         )}
       </CardContent>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,10 +28,49 @@ import PerformanceCardsGrid from '@/components/Dashboard/PerformanceCardsGrid';
 import OptimizedPipelinePulse from '@/components/Dashboard/OptimizedPipelinePulse';
 import RewardsProgress from '@/components/Dashboard/RewardsProgress';
 import AIOptimizedSchedule from '@/components/Dashboard/AIOptimizedSchedule';
+import AIRecommendationModal from '@/components/AI/AIRecommendationModal';
+import AICoachingModal from '@/components/AI/AICoachingModal';
+import { ScheduleEventModal, ReminderTaskModal } from '@/components/Dashboard/PipelinePulseModals';
 
 const SalesRepDashboard: React.FC = () => {
   const { profile } = useAuth();
   const { leads } = useMockData();
+  
+  // Modal states
+  const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
+  const [selectedCoaching, setSelectedCoaching] = useState<any>(null);
+  const [scheduleModal, setScheduleModal] = useState<{isOpen: boolean, leadName: string}>({isOpen: false, leadName: ''});
+  const [reminderModal, setReminderModal] = useState<{isOpen: boolean, leadName: string}>({isOpen: false, leadName: ''});
+
+  const handleRecommendationClick = (recommendation: any) => {
+    setSelectedRecommendation(recommendation);
+  };
+
+  const handleCoachingClick = (coaching: any) => {
+    setSelectedCoaching(coaching);
+  };
+
+  const handleRecommendationAction = (action: string) => {
+    console.log('Recommendation action:', action, selectedRecommendation);
+    // Log to Rep Activity Tracker, Lead Profile, TSAM Master Brain
+    setSelectedRecommendation(null);
+  };
+
+  const handleCoachingAction = (action: string) => {
+    console.log('Coaching action:', action, selectedCoaching);
+    // Log to Academy, Calendar, TSAM
+    setSelectedCoaching(null);
+  };
+
+  const handleScheduleEvent = (eventData: any) => {
+    console.log('Schedule event:', eventData);
+    // Log to Lead Profile > Tasks, Global Reminder Dashboard, TSAM Master Brain
+  };
+
+  const handleAddReminder = (reminderData: any) => {
+    console.log('Add reminder:', reminderData);
+    // Log to Lead Profile > Tasks, Global Reminder Dashboard, TSAM Master Brain
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
@@ -51,15 +90,19 @@ const SalesRepDashboard: React.FC = () => {
 
         {/* AI Recommendations - Moved higher for visibility */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <AIRecommendations />
-          <AICoachingPanel />
+          <AIRecommendations onRecommendationClick={handleRecommendationClick} />
+          <AICoachingPanel onCoachingClick={handleCoachingClick} />
         </div>
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Optimized Pipeline Pulse */}
           <div className="lg:col-span-2">
-            <OptimizedPipelinePulse leads={leads} />
+            <OptimizedPipelinePulse 
+              leads={leads} 
+              onScheduleEvent={(leadName) => setScheduleModal({isOpen: true, leadName})}
+              onAddReminder={(leadName) => setReminderModal({isOpen: true, leadName})}
+            />
           </div>
 
           {/* Right Sidebar */}
@@ -84,6 +127,39 @@ const SalesRepDashboard: React.FC = () => {
             currentLead: undefined,
             isCallActive: false
           }}
+        />
+
+        {/* Modals */}
+        {selectedRecommendation && (
+          <AIRecommendationModal
+            isOpen={!!selectedRecommendation}
+            onClose={() => setSelectedRecommendation(null)}
+            recommendation={selectedRecommendation}
+            onAction={handleRecommendationAction}
+          />
+        )}
+
+        {selectedCoaching && (
+          <AICoachingModal
+            isOpen={!!selectedCoaching}
+            onClose={() => setSelectedCoaching(null)}
+            coaching={selectedCoaching}
+            onAction={handleCoachingAction}
+          />
+        )}
+
+        <ScheduleEventModal
+          isOpen={scheduleModal.isOpen}
+          onClose={() => setScheduleModal({isOpen: false, leadName: ''})}
+          leadName={scheduleModal.leadName}
+          onScheduleEvent={handleScheduleEvent}
+        />
+
+        <ReminderTaskModal
+          isOpen={reminderModal.isOpen}
+          onClose={() => setReminderModal({isOpen: false, leadName: ''})}
+          leadName={reminderModal.leadName}
+          onAddReminder={handleAddReminder}
         />
       </div>
     </div>
