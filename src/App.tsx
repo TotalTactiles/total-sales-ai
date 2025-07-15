@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import MainLayout from '@/layouts/MainLayout';
 import NewLandingPage from '@/pages/NewLandingPage';
 import AuthPage from '@/pages/auth/AuthPage';
@@ -21,7 +22,11 @@ function App() {
             <Route path="/landing" element={<NewLandingPage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/login" element={<AuthPage />} />
-            <Route path="/manager/*" element={<ManagerOS />} />
+            <Route path="/manager/*" element={
+              <UnifiedAIProvider>
+                <ManagerOS />
+              </UnifiedAIProvider>
+            } />
             <Route path="/*" element={<MainLayout />} />
           </Routes>
         </Router>
