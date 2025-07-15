@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,12 +23,13 @@ import {
   RefreshCw,
   Calculator
 } from 'lucide-react';
-import FunnelChart from '@/components/Manager/FunnelChart';
+import FunnelsTab from '@/components/Manager/FunnelsTab';
 import AIFunnelInsights from '@/components/Manager/AIFunnelInsights';
 import RetentionIntelligencePanel from '@/components/Manager/RetentionIntelligencePanel';
-import ProcessInReview from '@/components/Manager/ProcessInReview';
 import BusinessOpsCardModal from '@/components/Manager/BusinessOpsCardModal';
-import ProcessInReviewActions from '@/components/Manager/ProcessInReviewActions';
+import SalesProcessStageBuilder from '@/components/Manager/SalesProcessStageBuilder';
+import SalesProcessPerformanceMapping from '@/components/Manager/SalesProcessPerformanceMapping';
+import SalesProcessAIOptimization from '@/components/Manager/SalesProcessAIOptimization';
 import RetentionActions from '@/components/Manager/RetentionActions';
 import { toast } from 'sonner';
 
@@ -39,7 +39,6 @@ const BusinessOps = () => {
   const [selectedCard, setSelectedCard] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Updated ops metrics with revenue-facing system cards
   const opsMetrics = [
     {
       id: 'revenue-trend',
@@ -145,7 +144,6 @@ const BusinessOps = () => {
     }
   ];
 
-  // Expanded Business Ops actions
   const businessOpsActions = [
     { id: 'forecast-analysis', label: 'Revenue Forecast Analysis', icon: TrendingUp },
     { id: 'pipeline-audit', label: 'Pipeline Health Audit', icon: BarChart3 },
@@ -205,14 +203,14 @@ const BusinessOps = () => {
 
       {/* Business Operations Tabs */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="process-review">PIV (Process in Review)</TabsTrigger>
+          <TabsTrigger value="sales-process">Sales Process</TabsTrigger>
+          <TabsTrigger value="funnels">Funnels</TabsTrigger>
           <TabsTrigger value="retention">Retention</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Clickable Ops Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {opsMetrics.map((metric) => {
               const IconComponent = metric.icon;
@@ -244,7 +242,6 @@ const BusinessOps = () => {
             })}
           </div>
 
-          {/* Expanded All Actions Section */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -272,7 +269,6 @@ const BusinessOps = () => {
             </CardContent>
           </Card>
 
-          {/* AI Interpretation Blocks */}
           {aiAnalyticsActive && (
             <Card className="rounded-lg shadow-sm">
               <CardHeader>
@@ -323,7 +319,6 @@ const BusinessOps = () => {
             </Card>
           )}
 
-          {/* AI Forecast Section */}
           <Card className="rounded-lg shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -352,7 +347,6 @@ const BusinessOps = () => {
             </CardContent>
           </Card>
 
-          {/* Quick AI Actions Bar */}
           <Card className="rounded-lg shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -383,8 +377,30 @@ const BusinessOps = () => {
           </Card>
         </TabsContent>
 
-        <TabsContent value="process-review" className="space-y-6">
-          <ProcessInReviewActions />
+        <TabsContent value="sales-process" className="space-y-6">
+          <Tabs defaultValue="stage-builder" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="stage-builder">Stage Builder</TabsTrigger>
+              <TabsTrigger value="performance-mapping">Performance Mapping</TabsTrigger>
+              <TabsTrigger value="ai-optimization">AI Optimization</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="stage-builder">
+              <SalesProcessStageBuilder />
+            </TabsContent>
+
+            <TabsContent value="performance-mapping">
+              <SalesProcessPerformanceMapping />
+            </TabsContent>
+
+            <TabsContent value="ai-optimization">
+              <SalesProcessAIOptimization />
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
+
+        <TabsContent value="funnels" className="space-y-6">
+          <FunnelsTab />
         </TabsContent>
 
         <TabsContent value="retention" className="space-y-6">
@@ -392,7 +408,6 @@ const BusinessOps = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Business Ops Card Modal */}
       <BusinessOpsCardModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
