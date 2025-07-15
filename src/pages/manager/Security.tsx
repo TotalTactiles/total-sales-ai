@@ -1,17 +1,18 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Shield, AlertTriangle, CheckCircle, Lock } from 'lucide-react';
 import AISecurityDashboard from '@/components/Security/AISecurityDashboard';
 import { useAuth } from '@/contexts/AuthContext';
+
 const SecurityPage: React.FC = () => {
-  const {
-    profile
-  } = useAuth();
+  const { profile } = useAuth();
 
   // Only allow managers and admins
   if (profile?.role !== 'manager' && profile?.role !== 'admin') {
-    return <div className="p-6">
+    return (
+      <div className="p-6">
         <Card>
           <CardContent className="p-8 text-center">
             <Lock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -19,9 +20,12 @@ const SecurityPage: React.FC = () => {
             <p className="text-muted-foreground">Security dashboard is only available to managers and administrators.</p>
           </CardContent>
         </Card>
-      </div>;
+      </div>
+    );
   }
-  return <div className="p-6 space-y-6 mx-[92px]">
+
+  return (
+    <div className="p-6 space-y-6 mx-[92px]">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Security Center</h1>
@@ -36,6 +40,8 @@ const SecurityPage: React.FC = () => {
       </div>
 
       <AISecurityDashboard />
-    </div>;
+    </div>
+  );
 };
+
 export default SecurityPage;
