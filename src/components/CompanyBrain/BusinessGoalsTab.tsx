@@ -1,747 +1,452 @@
 
 import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Progress } from '@/components/ui/progress';
 import { 
-  Plus, 
-  Eye, 
-  Edit, 
   Target, 
-  TrendingUp, 
+  Plus, 
   Brain, 
-  FileText, 
-  Download,
-  RefreshCw,
+  TrendingUp, 
+  AlertTriangle,
   CheckCircle,
-  AlertCircle,
-  Clock
+  Calendar,
+  User,
+  Edit,
+  Trash2,
+  ChevronDown,
+  ChevronRight
 } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface BusinessGoal {
   id: string;
-  name: string;
-  metric: string;
-  dataSource: string;
+  title: string;
+  description: string;
+  type: 'Revenue' | 'Client Wins' | 'Team Growth' | 'Product Launch';
   targetValue: number;
-  currentValue: number;
-  timeframe: string;
-  status: 'on_track' | 'at_risk' | 'behind' | 'completed';
-  assignee: string;
-  createdDate: Date;
-  notes: string;
-}
-
-interface AISuggestion {
-  id: string;
-  summary: string;
-  linkedMetric: string;
-  timestamp: Date;
-  triggerSource: string;
-  confidence: number;
-  impact: 'high' | 'medium' | 'low';
+  currentProgress: number;
+  priority: 'High' | 'Medium' | 'Low';
+  status: 'In Progress' | 'Completed' | 'Paused';
+  deadline: string;
+  owner: string;
+  ownerId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AITrainingQuestion {
   id: string;
   question: string;
-  category: string;
-  answered: boolean;
-  answer?: string;
-  timestamp: Date;
+  answer: string;
 }
 
 const BusinessGoalsTab: React.FC = () => {
-  const [isAddGoalOpen, setIsAddGoalOpen] = useState(false);
-  const [selectedGoal, setSelectedGoal] = useState<BusinessGoal | null>(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [selectedQuestion, setSelectedQuestion] = useState<AITrainingQuestion | null>(null);
-  const [questionAnswer, setQuestionAnswer] = useState('');
+  const [showAddGoalModal, setShowAddGoalModal] = useState(false);
+  const [expandedQuestions, setExpandedQuestions] = useState<string[]>([]);
 
-  const [goals] = useState<BusinessGoal[]>([
+  // Mock data for demo
+  const mockGoals: BusinessGoal[] = [
     {
       id: '1',
-      name: 'Increase Monthly Recurring Revenue',
-      metric: 'MRR Growth',
-      dataSource: 'Stripe + Salesforce',
-      targetValue: 50000,
-      currentValue: 42000,
-      timeframe: 'Q1 2024',
-      status: 'on_track',
-      assignee: 'Sarah Johnson',
-      createdDate: new Date('2023-12-01'),
-      notes: 'Focus on enterprise accounts and upselling existing customers'
+      title: 'Close $200K MRR',
+      description: 'Enterprise focus, push higher ticket deals',
+      type: 'Revenue',
+      targetValue: 200000,
+      currentProgress: 137000,
+      priority: 'High',
+      status: 'In Progress',
+      deadline: '2025-07-31',
+      owner: 'Sarah Johnson',
+      ownerId: 'user_1',
+      createdAt: '2025-06-01',
+      updatedAt: '2025-07-04'
     },
     {
       id: '2',
-      name: 'Improve Lead Conversion Rate',
-      metric: 'Conversion %',
-      dataSource: 'CRM Analytics',
-      targetValue: 25,
-      currentValue: 18,
-      timeframe: 'Q1 2024',
-      status: 'at_risk',
-      assignee: 'Mike Rodriguez',
-      createdDate: new Date('2023-11-15'),
-      notes: 'Implement new qualification process and lead scoring'
+      title: 'Acquire 50 Enterprise Clients',
+      description: 'Target Fortune 500 companies',
+      type: 'Client Wins',
+      targetValue: 50,
+      currentProgress: 32,
+      priority: 'High',
+      status: 'In Progress',
+      deadline: '2025-08-15',
+      owner: 'Michael Chen',
+      ownerId: 'user_2',
+      createdAt: '2025-06-15',
+      updatedAt: '2025-07-03'
     },
     {
       id: '3',
-      name: 'Reduce Customer Acquisition Cost',
-      metric: 'CAC',
-      dataSource: 'Marketing + Sales Data',
-      targetValue: 500,
-      currentValue: 650,
-      timeframe: 'Q2 2024',
-      status: 'behind',
-      assignee: 'Lisa Kim',
-      createdDate: new Date('2023-10-20'),
-      notes: 'Optimize ad spend and improve organic channels'
+      title: 'Expand Sales Team to 15 Reps',
+      description: 'Hire and onboard new sales representatives',
+      type: 'Team Growth',
+      targetValue: 15,
+      currentProgress: 12,
+      priority: 'Medium',
+      status: 'In Progress',
+      deadline: '2025-09-01',
+      owner: 'Emily Rodriguez',
+      ownerId: 'user_3',
+      createdAt: '2025-05-20',
+      updatedAt: '2025-07-02'
     }
-  ]);
+  ];
 
-  const [aiSuggestions] = useState<AISuggestion[]>([
+  const mockAISuggestions = [
     {
       id: '1',
-      summary: 'Focus on enterprise leads for higher MRR growth - they convert 3x better',
-      linkedMetric: 'MRR Growth',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      triggerSource: 'Lead Analysis Pattern',
-      confidence: 87,
-      impact: 'high'
+      title: 'Enterprise leads closed 24% faster',
+      description: 'Your team is excelling with enterprise deals. Consider doubling down on this segment.',
+      source: 'Revenue Analysis',
+      type: 'opportunity',
+      impact: 'High'
     },
     {
       id: '2',
-      summary: 'Implement automated follow-up sequences to improve conversion rates',
-      linkedMetric: 'Conversion %',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      triggerSource: 'Workflow Analysis',
-      confidence: 92,
-      impact: 'high'
+      title: 'Reps lagging on client call volume',
+      description: 'Current call volume is 30% below target. Goal slippage projected for Q3.',
+      source: 'Activity Tracking',
+      type: 'warning',
+      impact: 'Medium'
     },
     {
       id: '3',
-      summary: 'Social media campaigns on LinkedIn show 40% lower CAC than Google Ads',
-      linkedMetric: 'CAC',
-      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000),
-      triggerSource: 'Marketing Channel Analysis',
-      confidence: 78,
-      impact: 'medium'
+      title: 'Proposal-to-close rate improving',
+      description: 'Your proposal quality has increased conversion by 18% this month.',
+      source: 'Pipeline Analysis',
+      type: 'success',
+      impact: 'High'
     }
-  ]);
+  ];
 
-  const [trainingQuestions] = useState<AITrainingQuestion[]>([
+  const [trainingQuestions, setTrainingQuestions] = useState<AITrainingQuestion[]>([
     {
       id: '1',
-      question: 'What is your ideal customer profile for enterprise accounts?',
-      category: 'Customer Segmentation',
-      answered: false,
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+      question: 'What is your #1 revenue goal this quarter?',
+      answer: 'Reach $200K MRR by focusing on enterprise clients and increasing average deal size through value-based selling.'
     },
     {
       id: '2',
-      question: 'How do you prioritize leads when they have similar scores?',
-      category: 'Lead Qualification',
-      answered: true,
-      answer: 'We prioritize based on company size, budget authority, and timeline urgency',
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+      question: 'Are you targeting acquisition, retention, or expansion?',
+      answer: 'Primary focus on acquisition (60%) and expansion (40%). Retention is stable at 92% so less immediate focus needed.'
     },
     {
       id: '3',
-      question: 'What are the key indicators that a lead is ready for a demo?',
-      category: 'Sales Process',
-      answered: false,
-      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+      question: 'What signals would indicate you\'re off track?',
+      answer: 'Pipeline velocity dropping below 45 days, conversion rates under 15%, or monthly new client acquisition below 8 companies.'
     }
   ]);
 
-  const [alignmentScore] = useState(78);
+  const getProgressPercentage = (current: number, target: number) => {
+    return Math.min((current / target) * 100, 100);
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'on_track': return 'bg-green-100 text-green-700';
-      case 'at_risk': return 'bg-yellow-100 text-yellow-700';
-      case 'behind': return 'bg-red-100 text-red-700';
-      case 'completed': return 'bg-blue-100 text-blue-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'Completed':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'In Progress':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'Paused':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'on_track': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'at_risk': return <AlertCircle className="h-4 w-4 text-yellow-600" />;
-      case 'behind': return <AlertCircle className="h-4 w-4 text-red-600" />;
-      case 'completed': return <CheckCircle className="h-4 w-4 text-blue-600" />;
-      default: return <Clock className="h-4 w-4 text-gray-600" />;
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'High':
+        return 'bg-red-100 text-red-800';
+      case 'Medium':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Low':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
-  const getProgress = (current: number, target: number, isReverse: boolean = false) => {
-    if (isReverse) {
-      // For metrics where lower is better (like CAC)
-      const progress = Math.max(0, Math.min(100, ((target - current) / target) * 100 + 100));
-      return Math.round(progress);
-    } else {
-      // For metrics where higher is better
-      return Math.round((current / target) * 100);
+  const getSuggestionIcon = (type: string) => {
+    switch (type) {
+      case 'opportunity':
+        return <TrendingUp className="h-5 w-5 text-green-600" />;
+      case 'warning':
+        return <AlertTriangle className="h-5 w-5 text-yellow-600" />;
+      case 'success':
+        return <CheckCircle className="h-5 w-5 text-blue-600" />;
+      default:
+        return <Brain className="h-5 w-5 text-purple-600" />;
     }
   };
 
-  const getImpactColor = (impact: string) => {
-    switch (impact) {
-      case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
+  const getSuggestionColor = (type: string) => {
+    switch (type) {
+      case 'opportunity':
+        return 'bg-green-50 border-green-200';
+      case 'warning':
+        return 'bg-yellow-50 border-yellow-200';
+      case 'success':
+        return 'bg-blue-50 border-blue-200';
+      default:
+        return 'bg-purple-50 border-purple-200';
     }
   };
 
-  const getAlignmentColor = (score: number) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+  const toggleQuestion = (questionId: string) => {
+    setExpandedQuestions(prev => 
+      prev.includes(questionId) 
+        ? prev.filter(id => id !== questionId)
+        : [...prev, questionId]
+    );
   };
 
-  const handleViewGoal = (goal: BusinessGoal) => {
-    setSelectedGoal(goal);
-    setIsViewModalOpen(true);
-  };
-
-  const handleAnswerQuestion = (question: AITrainingQuestion) => {
-    setSelectedQuestion(question);
-    setQuestionAnswer(question.answer || '');
-  };
-
-  const handleSaveAnswer = () => {
-    if (!questionAnswer.trim()) {
-      toast.error('Please provide an answer');
-      return;
-    }
-    
-    toast.success('Answer saved - AI will use this to improve recommendations');
-    setSelectedQuestion(null);
-    setQuestionAnswer('');
-  };
-
-  const handleExportInsights = () => {
-    toast.info('Exporting AI insights to PDF - Feature disabled for demo');
-  };
-
-  const handleRetrainAI = () => {
-    toast.info('AI Retraining initiated - This process takes 10-15 minutes');
-  };
-
-  const formatTimeAgo = (date: Date) => {
-    const hours = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60));
-    if (hours < 1) return 'Less than 1h ago';
-    if (hours < 24) return `${hours}h ago`;
-    return `${Math.floor(hours / 24)}d ago`;
+  const updateAnswer = (questionId: string, newAnswer: string) => {
+    setTrainingQuestions(prev => 
+      prev.map(q => q.id === questionId ? { ...q, answer: newAnswer } : q)
+    );
+    // Auto-save simulation
+    toast.success('Answer saved and used to train Company Brain');
   };
 
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="goals" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="goals">Goals Management</TabsTrigger>
-          <TabsTrigger value="suggestions">AI Suggestions</TabsTrigger>
-          <TabsTrigger value="training">AI Training</TabsTrigger>
-          <TabsTrigger value="alignment">AI Alignment</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="goals" className="space-y-6">
-          {/* Goals Header */}
+    <div className="space-y-8">
+      {/* Section 1: Current Business Goals */}
+      <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+        <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">Business Goals</h3>
-              <p className="text-sm text-gray-600">
-                Track and manage your business objectives with real-time data sync
-              </p>
-            </div>
-            <Button onClick={() => setIsAddGoalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New Goal
-            </Button>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-600" />
+              Current Business Goals
+            </CardTitle>
+            <Dialog open={showAddGoalModal} onOpenChange={setShowAddGoalModal}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add New Goal
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add New Business Goal</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <Input placeholder="Goal title" />
+                  <Input placeholder="Description" />
+                  <Button onClick={() => {
+                    setShowAddGoalModal(false);
+                    toast.success('Goal added successfully');
+                  }}>
+                    Create Goal
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
-
-          {/* Goals Stats */}
-          <div className="grid grid-cols-4 gap-4">
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-blue-600">{goals.length}</div>
-                <div className="text-sm text-gray-600">Total Goals</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">
-                  {goals.filter(g => g.status === 'on_track').length}
-                </div>
-                <div className="text-sm text-gray-600">On Track</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-yellow-600">
-                  {goals.filter(g => g.status === 'at_risk').length}
-                </div>
-                <div className="text-sm text-gray-600">At Risk</div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-600">
-                  {goals.filter(g => g.status === 'behind').length}
-                </div>
-                <div className="text-sm text-gray-600">Behind</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Goals Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Goals</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {goals.map((goal) => (
-                  <div key={goal.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h4 className="font-medium">{goal.name}</h4>
-                        <Badge className={getStatusColor(goal.status)}>
-                          {getStatusIcon(goal.status)}
-                          <span className="ml-1 capitalize">{goal.status.replace('_', ' ')}</span>
-                        </Badge>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {mockGoals.map((goal) => (
+              <div key={goal.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 mb-1">{goal.title}</h4>
+                    <p className="text-sm text-gray-600 mb-2">{goal.description}</p>
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        {goal.owner}
                       </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-600">Metric: </span>
-                          <span className="font-medium">{goal.metric}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">Progress: </span>
-                          <span className="font-medium">
-                            {goal.currentValue.toLocaleString()} / {goal.targetValue.toLocaleString()}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">Timeframe: </span>
-                          <span className="font-medium">{goal.timeframe}</span>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">Assigned: </span>
-                          <span className="font-medium">{goal.assignee}</span>
-                        </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {goal.deadline}
                       </div>
-
-                      <div className="mt-3">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span>Progress</span>
-                          <span>
-                            {getProgress(goal.currentValue, goal.targetValue, goal.metric === 'CAC')}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${
-                              goal.status === 'on_track' ? 'bg-green-500' :
-                              goal.status === 'at_risk' ? 'bg-yellow-500' : 'bg-red-500'
-                            }`}
-                            style={{ 
-                              width: `${getProgress(goal.currentValue, goal.targetValue, goal.metric === 'CAC')}%` 
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 ml-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleViewGoal(goal)}
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => toast.info('Edit goal - Feature disabled for demo')}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
                     </div>
                   </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="suggestions" className="space-y-6">
-          {/* AI Suggestions Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold">AI Suggestions</h3>
-              <p className="text-sm text-gray-600">
-                AI-generated insights and recommendations based on your business goals
-              </p>
-            </div>
-            <Button onClick={handleExportInsights}>
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
-            </Button>
-          </div>
-
-          {/* Suggestions Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {aiSuggestions.map((suggestion) => (
-              <Card key={suggestion.id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <CardTitle className="text-base line-clamp-2">{suggestion.summary}</CardTitle>
-                    <Badge className={getImpactColor(suggestion.impact)}>
-                      {suggestion.impact} impact
+                  <div className="flex items-center gap-2">
+                    <Badge className={getPriorityColor(goal.priority)}>
+                      {goal.priority}
+                    </Badge>
+                    <Badge className={getStatusColor(goal.status)}>
+                      {goal.status}
                     </Badge>
                   </div>
-                </CardHeader>
+                </div>
                 
-                <CardContent className="space-y-3">
-                  <div className="text-sm">
-                    <span className="text-gray-600">Linked Metric: </span>
-                    <span className="font-medium">{suggestion.linkedMetric}</span>
+                <div className="mb-3">
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="text-gray-600">Progress</span>
+                    <span className="font-medium">
+                      {goal.type === 'Revenue' ? '$' : ''}{goal.currentProgress.toLocaleString()} / {goal.type === 'Revenue' ? '$' : ''}{goal.targetValue.toLocaleString()}
+                    </span>
                   </div>
-                  
-                  <div className="text-sm">
-                    <span className="text-gray-600">Trigger Source: </span>
-                    <span className="font-medium">{suggestion.triggerSource}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">{formatTimeAgo(suggestion.timestamp)}</span>
-                    <div className="flex items-center gap-1">
-                      <Brain className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium">{suggestion.confidence}% confidence</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  <Progress value={getProgressPercentage(goal.currentProgress, goal.targetValue)} className="h-2" />
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="gap-1">
+                    <Edit className="h-3 w-3" />
+                    Edit
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    View
+                  </Button>
+                  <Button variant="outline" size="sm" className="gap-1 text-red-600 hover:text-red-700">
+                    <Trash2 className="h-3 w-3" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="training" className="space-y-6">
-          {/* AI Training Header */}
-          <div>
-            <h3 className="text-lg font-semibold">AI Training Questions</h3>
-            <p className="text-sm text-gray-600">
-              Answer questions to help AI better understand your business context and preferences
-            </p>
+      {/* Section 2: Goal-Aligned AI Suggestions */}
+      <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-purple-600" />
+            Goal-Aligned AI Suggestions
+            <Badge variant="outline" className="bg-gray-100 text-gray-600 text-xs">
+              Demo Mode
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {mockAISuggestions.map((suggestion) => (
+              <div
+                key={suggestion.id}
+                className={`p-4 rounded-lg border-2 ${getSuggestionColor(suggestion.type)} hover:shadow-md transition-all duration-200`}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  {getSuggestionIcon(suggestion.type)}
+                  <h4 className="font-medium text-gray-900 text-sm">{suggestion.title}</h4>
+                </div>
+                <p className="text-sm text-gray-700 mb-3">{suggestion.description}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500">{suggestion.source}</span>
+                  <Button size="sm" variant="outline" className="h-7 text-xs">
+                    View in Dashboard
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Training Questions */}
+      {/* Section 3: AI Training Questions */}
+      <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5 text-indigo-600" />
+            AI Training Questions
+          </CardTitle>
+          <p className="text-sm text-gray-600">Help train the Company Brain to better understand your business goals</p>
+        </CardHeader>
+        <CardContent>
           <div className="space-y-4">
-            {trainingQuestions.map((question) => (
-              <Card key={question.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h4 className="font-medium mb-2">{question.question}</h4>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">{question.category}</Badge>
-                        <Badge className={question.answered ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}>
-                          {question.answered ? 'Answered' : 'Pending'}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="text-xs text-gray-500">
-                      {formatTimeAgo(question.timestamp)}
-                    </div>
-                  </div>
-
-                  {question.answered && question.answer && (
-                    <div className="bg-green-50 p-3 rounded-lg mb-4">
-                      <div className="text-sm font-medium text-green-800 mb-1">Your Answer:</div>
-                      <div className="text-sm text-green-700">{question.answer}</div>
-                    </div>
+            {trainingQuestions.map((item) => (
+              <div key={item.id} className="border border-gray-200 rounded-lg">
+                <button
+                  onClick={() => toggleQuestion(item.id)}
+                  className="w-full p-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors"
+                >
+                  <span className="font-medium text-gray-900">{item.question}</span>
+                  {expandedQuestions.includes(item.id) ? (
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-gray-500" />
                   )}
-
-                  <div className="flex justify-end">
-                    <Button 
-                      variant={question.answered ? "outline" : "default"}
-                      size="sm"
-                      onClick={() => handleAnswerQuestion(question)}
-                    >
-                      {question.answered ? 'Update Answer' : 'Answer Question'}
-                    </Button>
+                </button>
+                {expandedQuestions.includes(item.id) && (
+                  <div className="px-4 pb-4 border-t border-gray-100">
+                    <textarea
+                      value={item.answer}
+                      onChange={(e) => updateAnswer(item.id, e.target.value)}
+                      className="w-full mt-3 p-3 border border-gray-300 rounded-md text-sm resize-none"
+                      rows={3}
+                      placeholder="Enter your answer here..."
+                    />
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                        Used to train Company Brain
+                      </Badge>
+                      <span className="text-xs text-green-600">Auto-saved</span>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
+              </div>
             ))}
           </div>
-        </TabsContent>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="alignment" className="space-y-6">
-          {/* AI Alignment Tracker */}
-          <div>
-            <h3 className="text-lg font-semibold">AI Alignment Tracker</h3>
-            <p className="text-sm text-gray-600">
-              Monitor how well the AI aligns with your business goals and preferences
-            </p>
-          </div>
-
-          {/* Alignment Score */}
-          <Card>
-            <CardContent className="p-8 text-center">
-              <div className={`text-6xl font-bold mb-4 ${getAlignmentColor(alignmentScore)}`}>
-                {alignmentScore}%
+      {/* Section 4: AI Alignment Tracker */}
+      <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-orange-600" />
+            AI Alignment Tracker
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-gray-900 mb-1">Goal Alignment Status</h4>
+                <Badge variant="outline" className="bg-gray-100 text-gray-600">
+                  AI Goal-Sync Disabled
+                </Badge>
               </div>
-              <h3 className="text-xl font-semibold mb-2">AI Alignment Score</h3>
-              <p className="text-gray-600 mb-6">
-                {alignmentScore >= 80 ? 'Excellent alignment with your business goals' :
-                 alignmentScore >= 60 ? 'Good alignment, room for improvement' :
-                 'Poor alignment, consider retraining'}
-              </p>
-              
-              <div className="flex justify-center gap-4 mb-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">12</div>
-                  <div className="text-sm text-gray-600">Training Sessions</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">89</div>
-                  <div className="text-sm text-gray-600">Questions Answered</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">156</div>
-                  <div className="text-sm text-gray-600">Data Points</div>
-                </div>
-              </div>
-
-              <Button onClick={handleRetrainAI} size="lg" className="gap-2">
-                <RefreshCw className="h-5 w-5" />
+              <Button disabled className="gap-2">
+                <Brain className="h-4 w-4" />
                 Retrain AI
               </Button>
-            </CardContent>
-          </Card>
-
-          {/* Training Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Training Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded">
-                  <div>
-                    <div className="font-medium">Last Training Session</div>
-                    <div className="text-sm text-gray-600">January 10, 2024 - 14:30</div>
-                  </div>
-                  <Badge className="bg-green-100 text-green-700">Completed</Badge>
-                </div>
-                
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded">
-                  <div>
-                    <div className="font-medium">Next Scheduled Training</div>
-                    <div className="text-sm text-gray-600">January 24, 2024 - Auto-scheduled</div>
-                  </div>
-                  <Badge className="bg-blue-100 text-blue-700">Scheduled</Badge>
-                </div>
-
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
-                    <div>
-                      <h4 className="font-medium text-yellow-800">Post-Training Effects</h4>
-                      <p className="text-sm text-yellow-700 mt-1">
-                        After retraining, all AI systems (Company Brain, Rep OS, TSAM Brain) 
-                        will recalibrate to align with updated business goals and preferences.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* View Goal Modal */}
-      <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{selectedGoal?.name}</DialogTitle>
-          </DialogHeader>
-          
-          {selectedGoal && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-medium mb-3">Goal Details</h4>
-                  <div className="space-y-2 text-sm">
-                    <div><span className="text-gray-600">Metric:</span> {selectedGoal.metric}</div>
-                    <div><span className="text-gray-600">Data Source:</span> {selectedGoal.dataSource}</div>
-                    <div><span className="text-gray-600">Timeframe:</span> {selectedGoal.timeframe}</div>
-                    <div><span className="text-gray-600">Assignee:</span> {selectedGoal.assignee}</div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium mb-3">Progress</h4>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold mb-2">
-                      {getProgress(selectedGoal.currentValue, selectedGoal.targetValue, selectedGoal.metric === 'CAC')}%
-                    </div>
-                    <div className="text-sm text-gray-600 mb-3">
-                      {selectedGoal.currentValue.toLocaleString()} / {selectedGoal.targetValue.toLocaleString()}
-                    </div>
-                    <Badge className={getStatusColor(selectedGoal.status)}>
-                      {getStatusIcon(selectedGoal.status)}
-                      <span className="ml-1 capitalize">{selectedGoal.status.replace('_', ' ')}</span>
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-3">Notes</h4>
-                <div className="bg-gray-50 p-4 rounded-lg text-sm">
-                  {selectedGoal.notes}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium mb-3">AI Insights</h4>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <div className="flex items-start gap-3">
-                    <Brain className="h-5 w-5 text-blue-600 mt-0.5" />
-                    <div>
-                      <div className="font-medium text-blue-800">AI Recommendation</div>
-                      <div className="text-sm text-blue-700 mt-1">
-                        Based on current trends, focus on enterprise leads and implement 
-                        automated follow-up sequences to accelerate progress toward this goal.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsViewModalOpen(false)}>
-                  Close
-                </Button>
-                <Button onClick={() => toast.info('Edit goal - Feature disabled for demo')}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Goal
-                </Button>
-              </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Answer Question Modal */}
-      <Dialog open={!!selectedQuestion} onOpenChange={() => setSelectedQuestion(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Answer Training Question</DialogTitle>
-          </DialogHeader>
-          
-          {selectedQuestion && (
+            
             <div className="space-y-4">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="font-medium text-blue-800 mb-2">Question:</div>
-                <div className="text-blue-700">{selectedQuestion.question}</div>
-              </div>
-
               <div>
-                <label className="block text-sm font-medium mb-2">Your Answer:</label>
-                <textarea
-                  value={questionAnswer}
-                  onChange={(e) => setQuestionAnswer(e.target.value)}
-                  placeholder="Provide detailed answer to help AI understand your preferences..."
-                  className="w-full h-32 p-3 border rounded-md resize-none"
-                />
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="text-gray-600">Alignment Score</span>
+                  <span className="font-bold text-2xl text-orange-600">84%</span>
+                </div>
+                <Progress value={84} className="h-3" />
               </div>
-
-              <div className="bg-yellow-50 p-3 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <Brain className="h-4 w-4 text-yellow-600 mt-0.5" />
-                  <div className="text-sm text-yellow-700">
-                    Your answer will be used to improve AI recommendations and align 
-                    future suggestions with your business preferences.
-                  </div>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-600">Last Trained</span>
+                  <p className="font-medium">July 4, 2025</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Next Training</span>
+                  <p className="font-medium text-gray-400">Disabled</p>
                 </div>
               </div>
-
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setSelectedQuestion(null)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSaveAnswer}>
-                  Save Answer
-                </Button>
-              </div>
             </div>
-          )}
-        </Dialog>
-      </Dialog>
-
-      {/* Add Goal Modal */}
-      <Dialog open={isAddGoalOpen} onOpenChange={setIsAddGoalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Business Goal</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <Input placeholder="Goal name (e.g., Increase Monthly Revenue)" />
-            <Input placeholder="Metric (e.g., MRR, Conversion Rate, CAC)" />
-            <select className="w-full border rounded-md px-3 py-2">
-              <option>Select timeframe</option>
-              <option>This Quarter</option>
-              <option>Next Quarter</option>
-              <option>This Year</option>
-              <option>Custom</option>
-            </select>
-            <Input placeholder="Target value" type="number" />
-            <Input placeholder="Data source (e.g., Stripe, Salesforce)" />
-            <select className="w-full border rounded-md px-3 py-2">
-              <option>Assign to</option>
-              <option>Sarah Johnson</option>
-              <option>Mike Rodriguez</option>
-              <option>Lisa Kim</option>
-            </select>
-            <textarea 
-              placeholder="Notes and context for this goal..."
-              className="w-full h-24 p-3 border rounded-md resize-none"
-            />
-
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsAddGoalOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={() => {
-                toast.success('Goal added successfully');
-                setIsAddGoalOpen(false);
-              }}>
-                <Target className="h-4 w-4 mr-2" />
-                Add Goal
-              </Button>
+            
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Note:</strong> AI alignment engine is built and ready. Enable "Goal-Aware AI Suggestions" in Settings to activate full goal-sync functionality.
+              </p>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </CardContent>
+      </Card>
     </div>
   );
 };
