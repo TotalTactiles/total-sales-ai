@@ -35,7 +35,7 @@ const performDemoSetup = async (): Promise<void> => {
     // Batch create all demo users
     const userCreationPromises = demoUsers.map(async (demoUser) => {
       try {
-        // Check if user already exists by email instead of ID
+        // Check if user already exists by email
         const { data: existingUsersResponse, error: listError } = await supabase.auth.admin.listUsers();
         
         if (listError) {
@@ -43,7 +43,8 @@ const performDemoSetup = async (): Promise<void> => {
           return;
         }
 
-        const existingUser = existingUsersResponse?.users?.find((user: any) => user.email === demoUser.email);
+        // Type-safe user lookup
+        const existingUser = existingUsersResponse?.users?.find((user) => user.email === demoUser.email);
         
         if (existingUser) {
           logger.info(`🎭 Demo user ${demoUser.email} already exists`, {}, 'demo');
@@ -87,6 +88,8 @@ const performDemoSetup = async (): Promise<void> => {
           }, {
             onConflict: 'id'
           });
+
+          logger.info(`✅ Profile created for: ${demoUser.email}`, {}, 'demo');
         }
 
       } catch (error) {
