@@ -5,11 +5,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Bot, Sparkles, Send, Mail, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Mail, 
+  MessageSquare, 
+  Send, 
+  Paperclip, 
+  Bot, 
+  Wand2,
+  ChevronDown,
+  ChevronUp
+} from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
-import { useIntegrations } from '@/hooks/useIntegrations';
 
 interface LeadCommsTabProps {
   lead: Lead;
@@ -17,379 +26,408 @@ interface LeadCommsTabProps {
   onUpdate: (field: string, value: any) => void;
 }
 
-interface ThreadMessage {
-  id: string;
-  type: 'sent' | 'received';
-  content: string;
-  timestamp: string;
-  subject?: string;
-}
-
-interface Thread {
+interface EmailThread {
   id: string;
   subject: string;
-  preview: string;
+  from: string;
+  to: string;
   timestamp: string;
-  type: 'email' | 'sms';
-  messages: ThreadMessage[];
+  preview: string;
+  body: string;
+  direction: 'sent' | 'received';
+  thread: Array<{
+    id: string;
+    from: string;
+    to: string;
+    timestamp: string;
+    body: string;
+    direction: 'sent' | 'received';
+  }>;
+}
+
+interface SMSMessage {
+  id: string;
+  from: string;
+  to: string;
+  message: string;
+  timestamp: string;
+  direction: 'sent' | 'received';
 }
 
 const LeadCommsTab: React.FC<LeadCommsTabProps> = ({ lead, aiDelegationMode, onUpdate }) => {
-  const [emailContent, setEmailContent] = useState('');
+  const [emailDraft, setEmailDraft] = useState('');
   const [emailSubject, setEmailSubject] = useState('');
-  const [smsContent, setSmsContent] = useState('');
-  const [expandedThreads, setExpandedThreads] = useState<Set<string>>(new Set());
-  const [isGeneratingEmailAI, setIsGeneratingEmailAI] = useState(false);
-  const [isGeneratingSmsAI, setIsGeneratingSmsAI] = useState(false);
-  
-  const { sendEmail, sendSMS, isLoading } = useIntegrations();
+  const [smsDraft, setSmsDraft] = useState('');
+  const [expandedEmails, setExpandedEmails] = useState<Set<string>>(new Set());
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
-  // Mock thread data - replace with real data from your backend
-  const mockThreads: Thread[] = [
+  // Mock email threads
+  const mockEmailThreads: EmailThread[] = [
     {
-      id: 'email-1',
-      type: 'email',
-      subject: 'RE: Software Solution Discussion',
-      preview: 'Thanks for the pricing info. Could you also send the ROI calculator...',
+      id: '1',
+      subject: 'Re: Pricing Information Request',
+      from: lead.email,
+      to: 'you@company.com',
       timestamp: '2 hours ago',
-      messages: [
+      preview: 'Thanks for the detailed pricing breakdown. I have a few follow-up questions...',
+      body: 'Thanks for the detailed pricing breakdown. I have a few follow-up questions about the implementation timeline and ongoing support costs.',
+      direction: 'received',
+      thread: [
         {
-          id: 'msg-1',
-          type: 'sent',
-          content: `Hi ${lead.name.split(' ')[0]},\n\nFollowing up on our call. Attached is the pricing breakdown and implementation timeline.\n\nBest regards`,
+          id: '1a',
+          from: 'you@company.com',
+          to: lead.email,
           timestamp: '1 day ago',
-          subject: 'Software Solution Discussion'
+          body: 'Hi John, Thanks for your interest in our solution. Please find attached the detailed pricing breakdown you requested.',
+          direction: 'sent'
         },
         {
-          id: 'msg-2',
-          type: 'received',
-          content: 'Thanks for the pricing info. Could you also send the ROI calculator you mentioned? We\'re evaluating this for Q1 implementation.',
-          timestamp: '2 hours ago'
+          id: '1b',
+          from: lead.email,
+          to: 'you@company.com',
+          timestamp: '2 hours ago',
+          body: 'Thanks for the detailed pricing breakdown. I have a few follow-up questions about the implementation timeline and ongoing support costs.',
+          direction: 'received'
         }
       ]
     },
     {
-      id: 'sms-1',
-      type: 'sms',
-      subject: 'SMS Thread',
-      preview: 'Quick follow-up from our call...',
-      timestamp: '10:30 AM',
-      messages: [
+      id: '2',
+      subject: 'Demo Schedule Confirmation',
+      from: 'you@company.com',
+      to: lead.email,
+      timestamp: '1 week ago',
+      preview: 'Confirming our demo session for tomorrow at 2 PM EST...',
+      body: 'Confirming our demo session for tomorrow at 2 PM EST. Looking forward to showing you our platform.',
+      direction: 'sent',
+      thread: [
         {
-          id: 'sms-msg-1',
-          type: 'sent',
-          content: 'Hi! Quick follow-up from our call. I\'ll send that ROI calculator by Friday. Thanks!',
-          timestamp: '10:30 AM'
-        },
-        {
-          id: 'sms-msg-2',
-          type: 'received',
-          content: 'Sounds great! Looking forward to seeing the numbers.',
-          timestamp: '11:45 AM'
+          id: '2a',
+          from: 'you@company.com',
+          to: lead.email,
+          timestamp: '1 week ago',
+          body: 'Confirming our demo session for tomorrow at 2 PM EST. Looking forward to showing you our platform.',
+          direction: 'sent'
         }
       ]
     }
   ];
 
-  const toggleThread = (threadId: string) => {
-    const newExpanded = new Set(expandedThreads);
-    if (newExpanded.has(threadId)) {
-      newExpanded.delete(threadId);
+  // Mock SMS messages
+  const mockSMSMessages: SMSMessage[] = [
+    {
+      id: '1',
+      from: lead.phone,
+      to: '+1234567890',
+      message: 'Sounds great! Looking forward to seeing the numbers.',
+      timestamp: '11:45 AM',
+      direction: 'received'
+    },
+    {
+      id: '2',
+      from: '+1234567890',
+      to: lead.phone,
+      message: 'Hi John, just sent over the ROI calculator. Let me know your thoughts!',
+      timestamp: 'Yesterday 3:30 PM',
+      direction: 'sent'
+    }
+  ];
+
+  const toggleEmailThread = (emailId: string) => {
+    const newExpanded = new Set(expandedEmails);
+    if (newExpanded.has(emailId)) {
+      newExpanded.delete(emailId);
     } else {
-      newExpanded.add(threadId);
+      newExpanded.add(emailId);
     }
-    setExpandedThreads(newExpanded);
+    setExpandedEmails(newExpanded);
   };
 
-  const handleEmailAIAssist = async () => {
-    setIsGeneratingEmailAI(true);
+  const handleAIAssist = async (type: 'email' | 'sms') => {
+    setIsGeneratingAI(true);
     try {
-      // Simulate AI generation - replace with actual AI service call
       await new Promise(resolve => setTimeout(resolve, 2000));
-      const aiEmailContent = `Hi ${lead.name.split(' ')[0]},\n\nBased on our recent conversation about ${lead.company}'s needs, I wanted to follow up with the ROI calculator showing potential savings of $45K+ annually.\n\nKey benefits for your team:\n• 18 hours/week time savings\n• 15% reduction in errors\n• 25% faster processing\n\nWould you be available for a 15-minute call this week to walk through the numbers?\n\nBest regards`;
       
-      setEmailContent(aiEmailContent);
-      setEmailSubject(`ROI Analysis - ${lead.company} Opportunity`);
-      toast.success('AI has generated an email based on your lead context');
-    } catch (error) {
-      toast.error('Failed to generate AI content');
-    } finally {
-      setIsGeneratingEmailAI(false);
-    }
-  };
-
-  const handleEmailAIFix = async () => {
-    if (!emailContent.trim()) return;
-    
-    setIsGeneratingEmailAI(true);
-    try {
-      // Simulate AI improvement - replace with actual AI service call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const improvedContent = emailContent
-        .replace(/\n\n/g, '\n\n')
-        .replace(/Hi /g, `Hi ${lead.name.split(' ')[0]}, `)
-        .concat('\n\nP.S. Happy to jump on a quick call if that\'s easier to discuss.');
-      
-      setEmailContent(improvedContent);
-      toast.success('AI has improved your email content');
-    } catch (error) {
-      toast.error('Failed to improve content');
-    } finally {
-      setIsGeneratingEmailAI(false);
-    }
-  };
-
-  const handleSmsAIAssist = async () => {
-    setIsGeneratingSmsAI(true);
-    try {
-      // Simulate AI generation - replace with actual AI service call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const aiSmsContent = `Hi ${lead.name.split(' ')[0]}! ROI calculator ready showing $45K+ savings for ${lead.company}. 15-min call to review? 📊`;
-      
-      setSmsContent(aiSmsContent);
-      toast.success('AI has generated an SMS based on your lead context');
-    } catch (error) {
-      toast.error('Failed to generate AI content');
-    } finally {
-      setIsGeneratingSmsAI(false);
-    }
-  };
-
-  const handleSmsAIFix = async () => {
-    if (!smsContent.trim()) return;
-    
-    setIsGeneratingSmsAI(true);
-    try {
-      // Simulate AI improvement - replace with actual AI service call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const improvedContent = smsContent
-        .replace(/\s+/g, ' ')
-        .trim()
-        .concat(' 🚀');
-      
-      setSmsContent(improvedContent);
-      toast.success('AI has improved your SMS content');
-    } catch (error) {
-      toast.error('Failed to improve content');
-    } finally {
-      setIsGeneratingSmsAI(false);
-    }
-  };
-
-  const handleSendEmail = async () => {
-    if (emailSubject.trim() && emailContent.trim()) {
-      const result = await sendEmail(lead.email, emailSubject, emailContent, lead.id, lead.name);
-      
-      if (result.success) {
-        setEmailSubject('');
-        setEmailContent('');
-        toast.success(`Email sent to ${lead.name}`);
+      if (type === 'email') {
+        const aiEmailDraft = `Hi ${lead.name},\n\nI hope this email finds you well. Based on our previous conversations about ${lead.company}'s needs, I wanted to follow up on the proposal we discussed.\n\nGiven your interest in automation and efficiency improvements, I believe our solution could deliver significant ROI for your team. Would you be available for a brief call this week to discuss the next steps?\n\nBest regards,\nYour Sales Rep`;
+        setEmailDraft(aiEmailDraft);
+        setEmailSubject(`Follow-up: ${lead.company} Solution Discussion`);
+      } else {
+        const aiSMSDraft = `Hi ${lead.name}! Just wanted to follow up on our conversation about ${lead.company}'s automation needs. When would be a good time to discuss next steps?`;
+        setSmsDraft(aiSMSDraft);
       }
+      
+      toast.success(`AI has generated a ${type} draft for you`);
+    } catch (error) {
+      toast.error(`Failed to generate AI ${type}`);
+    } finally {
+      setIsGeneratingAI(false);
     }
   };
 
-  const handleSendSMS = async () => {
-    if (smsContent.trim()) {
-      const result = await sendSMS(lead.phone, smsContent, lead.id, lead.name);
-      
-      if (result.success) {
-        setSmsContent('');
-        toast.success(`SMS sent to ${lead.name}`);
-      }
+  const handleAIFix = async (type: 'email' | 'sms') => {
+    const currentDraft = type === 'email' ? emailDraft : smsDraft;
+    if (!currentDraft.trim()) {
+      toast.error('Please write a draft first');
+      return;
     }
+
+    setIsGeneratingAI(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      if (type === 'email') {
+        const improvedDraft = currentDraft
+          .replace(/\bhope this finds you well\b/gi, 'trust you\'re doing well')
+          .replace(/\bwanted to follow up\b/gi, 'following up')
+          .replace(/\bwould you be available\b/gi, 'are you free')
+          + '\n\nP.S. Happy to share some quick wins we\'ve achieved with similar companies if that would be helpful.';
+        setEmailDraft(improvedDraft);
+      } else {
+        const improvedSMS = currentDraft
+          .replace(/\bHi\b/g, 'Hey')
+          .replace(/\bwould be\b/gi, 'works')
+          .slice(0, 150) + '? 📅';
+        setSmsDraft(improvedSMS);
+      }
+      
+      toast.success(`AI has improved your ${type} draft`);
+    } catch (error) {
+      toast.error(`Failed to improve ${type}`);
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  const handleSendEmail = () => {
+    if (!emailDraft.trim() || !emailSubject.trim()) {
+      toast.error('Please fill in both subject and message');
+      return;
+    }
+    toast.success('Email sent successfully');
+    setEmailDraft('');
+    setEmailSubject('');
+  };
+
+  const handleSendSMS = () => {
+    if (!smsDraft.trim()) {
+      toast.error('Please enter a message');
+      return;
+    }
+    toast.success('SMS sent successfully');
+    setSmsDraft('');
   };
 
   return (
     <div className="p-6 space-y-6">
-      {/* Communication History */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Communication History</h3>
-        
-        {mockThreads.map((thread) => (
-          <Card key={thread.id} className="overflow-hidden">
-            <Collapsible 
-              open={expandedThreads.has(thread.id)}
-              onOpenChange={() => toggleThread(thread.id)}
-            >
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-slate-50 pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {thread.type === 'email' ? (
-                        <Mail className="h-4 w-4 text-blue-600" />
-                      ) : (
-                        <MessageSquare className="h-4 w-4 text-green-600" />
-                      )}
-                      <div>
-                        <h4 className="font-medium text-sm">{thread.subject}</h4>
-                        <p className="text-sm text-slate-600 truncate">{thread.preview}</p>
+      <Tabs defaultValue="email" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="email" className="flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            Email
+          </TabsTrigger>
+          <TabsTrigger value="sms" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            SMS
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Email Tab */}
+        <TabsContent value="email" className="space-y-6">
+          {/* Email History */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Email History</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {mockEmailThreads.map((email) => (
+                <div key={email.id} className="border border-gray-200 rounded-lg">
+                  <div 
+                    className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => toggleEmailThread(email.id)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <Badge variant={email.direction === 'sent' ? 'default' : 'secondary'}>
+                          {email.direction === 'sent' ? 'Sent' : 'Received'}
+                        </Badge>
+                        <span className="font-medium">{email.subject}</span>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">{thread.timestamp}</span>
-                      {expandedThreads.has(thread.id) ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-              </CollapsibleTrigger>
-              
-              <CollapsibleContent>
-                <CardContent className="pt-0">
-                  <div className="space-y-3 border-t pt-3">
-                    {thread.messages.map((message) => (
-                      <div key={message.id} className={`p-3 rounded-lg ${
-                        message.type === 'sent' 
-                          ? 'bg-blue-50 border border-blue-200 ml-8' 
-                          : 'bg-gray-50 border border-gray-200 mr-8'
-                      }`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <Badge variant={message.type === 'sent' ? 'default' : 'secondary'}>
-                            {message.type === 'sent' ? 'Sent' : 'Received'}
-                          </Badge>
-                          <span className="text-xs text-slate-500">{message.timestamp}</span>
-                        </div>
-                        {message.subject && (
-                          <h5 className="font-medium text-sm mb-1">{message.subject}</h5>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">{email.timestamp}</span>
+                        {expandedEmails.has(email.id) ? (
+                          <ChevronUp className="h-4 w-4 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-gray-400" />
                         )}
-                        <p className="text-sm whitespace-pre-line">{message.content}</p>
                       </div>
-                    ))}
+                    </div>
+                    <p className="text-sm text-gray-600 line-clamp-2">{email.preview}</p>
                   </div>
-                </CardContent>
-              </CollapsibleContent>
-            </Collapsible>
+                  
+                  {expandedEmails.has(email.id) && (
+                    <div className="border-t border-gray-200 bg-gray-50">
+                      <div className="p-4 space-y-4">
+                        <h4 className="font-medium text-gray-900">Full Thread</h4>
+                        {email.thread.map((message, index) => (
+                          <div key={message.id} className="bg-white rounded-lg p-3 border">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <Badge variant={message.direction === 'sent' ? 'default' : 'secondary'} className="text-xs">
+                                  {message.direction === 'sent' ? 'Sent' : 'Received'}
+                                </Badge>
+                                <span className="text-sm font-medium">
+                                  {message.direction === 'sent' ? 'You' : lead.name}
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500">{message.timestamp}</span>
+                            </div>
+                            <p className="text-sm text-gray-700">{message.body}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </CardContent>
           </Card>
-        ))}
-      </div>
 
-      {/* Email Compose */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Compose Email
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-1 block">To:</label>
-            <Input value={lead.email} disabled />
-          </div>
-          
-          <div>
-            <label className="text-sm font-medium mb-1 block">Subject:</label>
-            <Input
-              value={emailSubject}
-              onChange={(e) => setEmailSubject(e.target.value)}
-              placeholder="Enter email subject..."
-            />
-          </div>
+          {/* Email Compose */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Compose Email</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Subject</label>
+                <Input
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="Enter email subject..."
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-1 block">Message</label>
+                <Textarea
+                  value={emailDraft}
+                  onChange={(e) => setEmailDraft(e.target.value)}
+                  placeholder="Write your email..."
+                  className="min-h-[120px]"
+                />
+              </div>
+              
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={handleSendEmail}>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Email
+                </Button>
+                
+                <Button variant="outline">
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleAIAssist('email')}
+                  disabled={isGeneratingAI}
+                >
+                  <Bot className="h-4 w-4 mr-2" />
+                  {isGeneratingAI ? 'Generating...' : 'AI Assist'}
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleAIFix('email')}
+                  disabled={isGeneratingAI || !emailDraft.trim()}
+                >
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  AI Fix
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          <div>
-            <label className="text-sm font-medium mb-1 block">Message:</label>
-            <Textarea
-              value={emailContent}
-              onChange={(e) => setEmailContent(e.target.value)}
-              placeholder="Write your email message..."
-              className="min-h-[150px]"
-            />
-          </div>
+        {/* SMS Tab */}
+        <TabsContent value="sms" className="space-y-6">
+          {/* SMS History */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">SMS History</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {mockSMSMessages.map((sms) => (
+                <div 
+                  key={sms.id} 
+                  className={`flex ${sms.direction === 'sent' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                    sms.direction === 'sent' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gray-200 text-gray-800'
+                  }`}>
+                    <p className="text-sm">{sms.message}</p>
+                    <p className={`text-xs mt-1 ${
+                      sms.direction === 'sent' ? 'text-blue-100' : 'text-gray-500'
+                    }`}>
+                      {sms.timestamp}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
 
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              onClick={handleSendEmail} 
-              disabled={!emailSubject.trim() || !emailContent.trim() || isLoading}
-            >
-              <Send className="h-4 w-4 mr-2" />
-              {isLoading ? 'Sending...' : 'Send Email'}
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={handleEmailAIAssist}
-              disabled={isGeneratingEmailAI}
-            >
-              <Bot className="h-4 w-4 mr-2" />
-              {isGeneratingEmailAI ? 'Generating...' : 'AI Assist'}
-            </Button>
-            
-            {emailContent.trim() && (
-              <Button 
-                variant="outline" 
-                onClick={handleEmailAIFix}
-                disabled={isGeneratingEmailAI}
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                {isGeneratingEmailAI ? 'Improving...' : 'AI Fix'}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* SMS Compose */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Compose SMS
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-1 block">To:</label>
-            <Input value={lead.phone} disabled />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium mb-1 block">Message:</label>
-            <Textarea
-              value={smsContent}
-              onChange={(e) => setSmsContent(e.target.value)}
-              placeholder="Write your SMS message..."
-              className="min-h-[100px]"
-              maxLength={160}
-            />
-            <div className="text-xs text-slate-500 mt-1">
-              {smsContent.length}/160 characters
-            </div>
-          </div>
-
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              onClick={handleSendSMS} 
-              disabled={!smsContent.trim() || isLoading}
-            >
-              <Send className="h-4 w-4 mr-2" />
-              {isLoading ? 'Sending...' : 'Send SMS'}
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={handleSmsAIAssist}
-              disabled={isGeneratingSmsAI}
-            >
-              <Bot className="h-4 w-4 mr-2" />
-              {isGeneratingSmsAI ? 'Generating...' : 'AI Assist'}
-            </Button>
-            
-            {smsContent.trim() && (
-              <Button 
-                variant="outline" 
-                onClick={handleSmsAIFix}
-                disabled={isGeneratingSmsAI}
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                {isGeneratingSmsAI ? 'Improving...' : 'AI Fix'}
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          {/* SMS Compose */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Send SMS</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium mb-1 block">Message</label>
+                <Textarea
+                  value={smsDraft}
+                  onChange={(e) => setSmsDraft(e.target.value)}
+                  placeholder="Write your SMS message..."
+                  className="min-h-[100px]"
+                  maxLength={160}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {smsDraft.length}/160 characters
+                </p>
+              </div>
+              
+              <div className="flex gap-2 flex-wrap">
+                <Button onClick={handleSendSMS}>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send SMS
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleAIAssist('sms')}
+                  disabled={isGeneratingAI}
+                >
+                  <Bot className="h-4 w-4 mr-2" />
+                  {isGeneratingAI ? 'Generating...' : 'AI Assist'}
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleAIFix('sms')}
+                  disabled={isGeneratingAI || !smsDraft.trim()}
+                >
+                  <Wand2 className="h-4 w-4 mr-2" />
+                  AI Fix
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

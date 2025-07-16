@@ -1,4 +1,3 @@
-
 import { logger } from '@/utils/logger';
 
 import React, { useState, useMemo } from 'react';
@@ -11,6 +10,7 @@ import EnhancedLeadManagement from '@/components/LeadManagement/EnhancedLeadMana
 import LeadSlidePanel from '@/components/LeadManagement/LeadSlidePanel';
 import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
 import LeadImportDialog from '@/components/LeadImport/LeadImportDialog';
+import LeadProfile from '@/components/LeadProfile/LeadProfile';
 
 const LeadManagement = () => {
   const { profile } = useAuth();
@@ -72,14 +72,12 @@ const LeadManagement = () => {
         isDemo={showDemo}
       />
 
-      {/* Lead Slide Panel */}
-      {selectedLead && (
-        <LeadSlidePanel
-          lead={selectedLead}
-          isOpen={isSlidePanelOpen}
-          onClose={handleClosePanel}
-        />
-      )}
+      {/* Enhanced Lead Profile Modal */}
+      <LeadProfile
+        lead={selectedLead}
+        isOpen={isSlidePanelOpen}
+        onClose={handleClosePanel}
+      />
 
       {/* Lead Intelligence Panel */}
       {selectedLead && (
