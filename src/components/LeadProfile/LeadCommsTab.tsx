@@ -44,7 +44,7 @@ const LeadCommsTab: React.FC<LeadCommsTabProps> = ({ lead, aiDelegationMode, onU
   
   const { sendEmail, sendSMS, isLoading } = useIntegrations();
 
-  // Mock thread data with clickable history
+  // Mock thread data - replace with real data from your backend
   const mockThreads: Thread[] = [
     {
       id: 'email-1',
@@ -104,7 +104,7 @@ const LeadCommsTab: React.FC<LeadCommsTabProps> = ({ lead, aiDelegationMode, onU
   const handleEmailAIAssist = async () => {
     setIsGeneratingEmailAI(true);
     try {
-      // Simulate AI generation - connects to backend AI logic
+      // Simulate AI generation - replace with actual AI service call
       await new Promise(resolve => setTimeout(resolve, 2000));
       const aiEmailContent = `Hi ${lead.name.split(' ')[0]},\n\nBased on our recent conversation about ${lead.company}'s needs, I wanted to follow up with the ROI calculator showing potential savings of $45K+ annually.\n\nKey benefits for your team:\n• 18 hours/week time savings\n• 15% reduction in errors\n• 25% faster processing\n\nWould you be available for a 15-minute call this week to walk through the numbers?\n\nBest regards`;
       
@@ -123,7 +123,7 @@ const LeadCommsTab: React.FC<LeadCommsTabProps> = ({ lead, aiDelegationMode, onU
     
     setIsGeneratingEmailAI(true);
     try {
-      // Simulate AI improvement - connects to backend logic
+      // Simulate AI improvement - replace with actual AI service call
       await new Promise(resolve => setTimeout(resolve, 1500));
       const improvedContent = emailContent
         .replace(/\n\n/g, '\n\n')
@@ -142,7 +142,7 @@ const LeadCommsTab: React.FC<LeadCommsTabProps> = ({ lead, aiDelegationMode, onU
   const handleSmsAIAssist = async () => {
     setIsGeneratingSmsAI(true);
     try {
-      // Simulate AI generation
+      // Simulate AI generation - replace with actual AI service call
       await new Promise(resolve => setTimeout(resolve, 1500));
       const aiSmsContent = `Hi ${lead.name.split(' ')[0]}! ROI calculator ready showing $45K+ savings for ${lead.company}. 15-min call to review? 📊`;
       
@@ -160,7 +160,7 @@ const LeadCommsTab: React.FC<LeadCommsTabProps> = ({ lead, aiDelegationMode, onU
     
     setIsGeneratingSmsAI(true);
     try {
-      // Simulate AI improvement
+      // Simulate AI improvement - replace with actual AI service call
       await new Promise(resolve => setTimeout(resolve, 1000));
       const improvedContent = smsContent
         .replace(/\s+/g, ' ')
@@ -201,7 +201,7 @@ const LeadCommsTab: React.FC<LeadCommsTabProps> = ({ lead, aiDelegationMode, onU
 
   return (
     <div className="p-6 space-y-6">
-      {/* Communication History - Now with clickable threads */}
+      {/* Communication History */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Communication History</h3>
         
@@ -266,7 +266,7 @@ const LeadCommsTab: React.FC<LeadCommsTabProps> = ({ lead, aiDelegationMode, onU
         ))}
       </div>
 
-      {/* Email Compose - Now with AI Assist & AI Fix buttons */}
+      {/* Email Compose */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
@@ -331,7 +331,7 @@ const LeadCommsTab: React.FC<LeadCommsTabProps> = ({ lead, aiDelegationMode, onU
         </CardContent>
       </Card>
 
-      {/* SMS Compose - Now with AI Assist & AI Fix buttons */}
+      {/* SMS Compose */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">

@@ -8,7 +8,7 @@ import { useMockData } from '@/hooks/useMockData';
 import { convertMockLeadToLead } from '@/utils/mockDataUtils';
 import { Lead } from '@/types/lead';
 import EnhancedLeadManagement from '@/components/LeadManagement/EnhancedLeadManagement';
-import LeadProfile from '@/components/LeadProfile/LeadProfile';
+import LeadSlidePanel from '@/components/LeadManagement/LeadSlidePanel';
 import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
 import LeadImportDialog from '@/components/LeadImport/LeadImportDialog';
 
@@ -18,8 +18,8 @@ const LeadManagement = () => {
   const { leads: mockLeads } = useMockData();
   
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isIntelligencePanelOpen, setIsIntelligencePanelOpen] = useState(false);
+  const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   // Determine which leads to show and loading state
@@ -54,17 +54,14 @@ const LeadManagement = () => {
   const handleLeadSelect = (lead: Lead) => {
     logger.info('Lead selected:', lead);
     setSelectedLead(lead);
-    setIsProfileOpen(true);
     setIsIntelligencePanelOpen(true);
+    setIsSlidePanelOpen(true);
   };
 
-  const handleCloseProfile = () => {
-    setIsProfileOpen(false);
-    setSelectedLead(null);
-  };
-
-  const handleCloseIntelligence = () => {
+  const handleClosePanel = () => {
     setIsIntelligencePanelOpen(false);
+    setIsSlidePanelOpen(false);
+    setSelectedLead(null);
   };
 
   return (
@@ -75,19 +72,21 @@ const LeadManagement = () => {
         isDemo={showDemo}
       />
 
-      {/* Enhanced Lead Profile Modal with all new features */}
-      <LeadProfile
-        lead={selectedLead}
-        isOpen={isProfileOpen}
-        onClose={handleCloseProfile}
-      />
+      {/* Lead Slide Panel */}
+      {selectedLead && (
+        <LeadSlidePanel
+          lead={selectedLead}
+          isOpen={isSlidePanelOpen}
+          onClose={handleClosePanel}
+        />
+      )}
 
-      {/* Lead Intelligence Panel (separate from profile) */}
+      {/* Lead Intelligence Panel */}
       {selectedLead && (
         <LeadIntelligencePanel
           lead={selectedLead}
           isOpen={isIntelligencePanelOpen}
-          onClose={handleCloseIntelligence}
+          onClose={handleClosePanel}
         />
       )}
 
