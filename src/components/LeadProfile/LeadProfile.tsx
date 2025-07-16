@@ -132,7 +132,7 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
             </ScrollArea>
           </div>
 
-          {/* Main Content Area - Now with proper scrolling */}
+          {/* Main Content Area - Scrollable Tab Content */}
           <div className="flex-1 flex flex-col min-w-0">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
               <div className="border-b px-4 shrink-0">
