@@ -145,34 +145,40 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
                 </TabsList>
               </div>
 
-              {/* Scrollable Tab Content */}
+              {/* Scrollable Tab Content - Each tab now has proper ScrollArea */}
               <div className="flex-1 overflow-hidden min-h-0">
                 <TabsContent value="summary" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadSummaryTab 
-                      lead={leadData} 
-                      aiDelegationMode={aiDelegationMode} 
-                    />
+                    <div className="p-6">
+                      <LeadSummaryTab 
+                        lead={leadData} 
+                        aiDelegationMode={aiDelegationMode} 
+                      />
+                    </div>
                   </ScrollArea>
                 </TabsContent>
 
                 <TabsContent value="notes" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadNotesTab 
-                      lead={leadData} 
-                      aiDelegationMode={aiDelegationMode}
-                      onUpdate={handleLeadUpdate}
-                    />
+                    <div className="p-6">
+                      <LeadNotesTab 
+                        lead={leadData} 
+                        aiDelegationMode={aiDelegationMode}
+                        onUpdate={handleLeadUpdate}
+                      />
+                    </div>
                   </ScrollArea>
                 </TabsContent>
 
                 <TabsContent value="tasks" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadTasksTab 
-                      lead={leadData} 
-                      aiDelegationMode={aiDelegationMode}
-                      onUpdate={handleLeadUpdate}
-                    />
+                    <div className="p-6">
+                      <LeadTasksTab 
+                        lead={leadData} 
+                        aiDelegationMode={aiDelegationMode}
+                        onUpdate={handleLeadUpdate}
+                      />
+                    </div>
                   </ScrollArea>
                 </TabsContent>
 
@@ -188,9 +194,11 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
 
                 <TabsContent value="timeline" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadTimelineTab 
-                      lead={leadData} 
-                    />
+                    <div className="p-6">
+                      <LeadTimelineTab 
+                        lead={leadData} 
+                      />
+                    </div>
                   </ScrollArea>
                 </TabsContent>
               </div>
