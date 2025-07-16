@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { X, Bot, Sparkles } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
@@ -130,7 +132,7 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
             </ScrollArea>
           </div>
 
-          {/* Main Content Area - Scrollable Tab Content */}
+          {/* Main Content Area - Now with proper scrolling */}
           <div className="flex-1 flex flex-col min-w-0">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="flex-1 flex flex-col">
               <div className="border-b px-4 shrink-0">
