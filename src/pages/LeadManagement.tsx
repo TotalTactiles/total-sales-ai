@@ -11,7 +11,6 @@ import EnhancedLeadManagement from '@/components/LeadManagement/EnhancedLeadMana
 import LeadSlidePanel from '@/components/LeadManagement/LeadSlidePanel';
 import LeadIntelligencePanel from '@/components/LeadIntelligence/LeadIntelligencePanel';
 import LeadImportDialog from '@/components/LeadImport/LeadImportDialog';
-import LeadProfile from '@/components/LeadProfile/LeadProfile';
 
 const LeadManagement = () => {
   const { profile } = useAuth();
@@ -22,7 +21,6 @@ const LeadManagement = () => {
   const [isIntelligencePanelOpen, setIsIntelligencePanelOpen] = useState(false);
   const [isSlidePanelOpen, setIsSlidePanelOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
-  const [isLeadProfileOpen, setIsLeadProfileOpen] = useState(false);
 
   // Determine which leads to show and loading state
   const { leads, isInDemoMode, hasRealData, showDemo } = useMemo(() => {
@@ -56,13 +54,13 @@ const LeadManagement = () => {
   const handleLeadSelect = (lead: Lead) => {
     logger.info('Lead selected:', lead);
     setSelectedLead(lead);
-    setIsLeadProfileOpen(true);
+    setIsIntelligencePanelOpen(true);
+    setIsSlidePanelOpen(true);
   };
 
   const handleClosePanel = () => {
     setIsIntelligencePanelOpen(false);
     setIsSlidePanelOpen(false);
-    setIsLeadProfileOpen(false);
     setSelectedLead(null);
   };
 
@@ -72,13 +70,6 @@ const LeadManagement = () => {
         leads={leads}
         onLeadSelect={handleLeadSelect}
         isDemo={showDemo}
-      />
-
-      {/* Lead Profile Modal */}
-      <LeadProfile
-        lead={selectedLead}
-        isOpen={isLeadProfileOpen}
-        onClose={handleClosePanel}
       />
 
       {/* Lead Slide Panel */}
