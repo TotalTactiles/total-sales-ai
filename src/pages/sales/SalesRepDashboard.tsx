@@ -31,6 +31,7 @@ import AIOptimizedSchedule from '@/components/Dashboard/AIOptimizedSchedule';
 import AIRecommendationModal from '@/components/AI/AIRecommendationModal';
 import AICoachingModal from '@/components/AI/AICoachingModal';
 import { ScheduleEventModal, ReminderTaskModal } from '@/components/Dashboard/PipelinePulseModals';
+import PerformanceInsightModal from '@/components/Dashboard/PerformanceInsightModal';
 
 const SalesRepDashboard: React.FC = () => {
   const { profile } = useAuth();
@@ -41,6 +42,7 @@ const SalesRepDashboard: React.FC = () => {
   const [selectedCoaching, setSelectedCoaching] = useState<any>(null);
   const [scheduleModal, setScheduleModal] = useState<{isOpen: boolean, leadName: string}>({isOpen: false, leadName: ''});
   const [reminderModal, setReminderModal] = useState<{isOpen: boolean, leadName: string}>({isOpen: false, leadName: ''});
+  const [performanceInsight, setPerformanceInsight] = useState<any>(null);
 
   const handleRecommendationClick = (recommendation: any) => {
     setSelectedRecommendation(recommendation);
@@ -52,24 +54,24 @@ const SalesRepDashboard: React.FC = () => {
 
   const handleRecommendationAction = (action: string) => {
     console.log('Recommendation action:', action, selectedRecommendation);
-    // Log to Rep Activity Tracker, Lead Profile, TSAM Master Brain
     setSelectedRecommendation(null);
   };
 
   const handleCoachingAction = (action: string) => {
     console.log('Coaching action:', action, selectedCoaching);
-    // Log to Academy, Calendar, TSAM
     setSelectedCoaching(null);
   };
 
   const handleScheduleEvent = (eventData: any) => {
     console.log('Schedule event:', eventData);
-    // Log to Lead Profile > Tasks, Global Reminder Dashboard, TSAM Master Brain
   };
 
   const handleAddReminder = (reminderData: any) => {
     console.log('Add reminder:', reminderData);
-    // Log to Lead Profile > Tasks, Global Reminder Dashboard, TSAM Master Brain
+  };
+
+  const handlePerformanceCardClick = (cardData: any) => {
+    setPerformanceInsight(cardData);
   };
 
   return (
@@ -79,7 +81,7 @@ const SalesRepDashboard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Performance Cards Grid - Now in top-left */}
           <div className="lg:col-span-2">
-            <PerformanceCardsGrid />
+            <PerformanceCardsGrid onCardClick={handlePerformanceCardClick} />
           </div>
           
           {/* Voice Briefing - Right side */}
@@ -161,6 +163,14 @@ const SalesRepDashboard: React.FC = () => {
           leadName={reminderModal.leadName}
           onAddReminder={handleAddReminder}
         />
+
+        {performanceInsight && (
+          <PerformanceInsightModal
+            isOpen={!!performanceInsight}
+            onClose={() => setPerformanceInsight(null)}
+            cardData={performanceInsight}
+          />
+        )}
       </div>
     </div>
   );

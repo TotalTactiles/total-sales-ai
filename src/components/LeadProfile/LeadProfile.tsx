@@ -4,7 +4,9 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Bot, Sparkles } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { X, Bot, Sparkles, Mail, MessageSquare, Phone, Calendar } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
@@ -32,6 +34,8 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
   const [activeTab, setActiveTab] = useState('summary');
   const [aiDelegationMode, setAiDelegationMode] = useState(false);
   const [leadData, setLeadData] = useState(lead);
+  const [selectedEmailThread, setSelectedEmailThread] = useState<any>(null);
+  const [selectedSMSThread, setSelectedSMSThread] = useState<any>(null);
   
   const {
     trackEvent,
@@ -105,6 +109,49 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
     toast.success('AI Assistant is now handling this lead. You\'ll be notified of major updates.');
   };
 
+  // Mock recent communications data
+  const recentComms = {
+    emails: [
+      {
+        id: '1',
+        subject: 'Follow-up on Demo Discussion',
+        preview: 'Thank you for taking the time to discuss our solution...',
+        timestamp: '2 hours ago',
+        direction: 'sent',
+        thread: [
+          { id: '1a', content: 'Thank you for taking the time to discuss our solution. I wanted to follow up...', timestamp: '2 hours ago', direction: 'sent' },
+          { id: '1b', content: 'Thanks for reaching out. I\'d like to schedule another call...', timestamp: '1 hour ago', direction: 'received' }
+        ]
+      },
+      {
+        id: '2',
+        subject: 'Pricing Information Request',
+        preview: 'Here\'s the pricing breakdown you requested...',
+        timestamp: '1 day ago',
+        direction: 'sent',
+        thread: [
+          { id: '2a', content: 'Here\'s the pricing breakdown you requested for the enterprise plan...', timestamp: '1 day ago', direction: 'sent' }
+        ]
+      }
+    ],
+    sms: [
+      {
+        id: '1',
+        preview: 'Quick question about the proposal timeline...',
+        timestamp: '30 minutes ago',
+        direction: 'received',
+        thread: [
+          { id: '1a', content: 'Quick question about the proposal timeline - when can we expect it?', timestamp: '30 minutes ago', direction: 'received' },
+          { id: '1b', content: 'I\'ll have it ready by tomorrow morning. Will send it over first thing!', timestamp: '25 minutes ago', direction: 'sent' }
+        ]
+      }
+    ]
+  };
+
+  const generateAISummary = () => {
+    return `${leadData?.name} from ${leadData?.company} is a high-potential prospect with a score of ${leadData?.score}%. Last contacted ${leadData?.lastContact}, they've shown strong interest in our enterprise solution. Recent interactions indicate budget approval is pending, with decision timeline of 2-3 weeks. Key pain points: scalability and integration challenges. Recommended next action: Send ROI calculator and schedule technical demo.`;
+  };
+
   if (!isOpen || !leadData) return null;
 
   return (
@@ -123,7 +170,65 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
           {/* Left Sidebar - Lead Details Card */}
           <div className="w-80 border-r border-gray-200 bg-slate-50 shrink-0">
             <ScrollArea className="h-full">
-              <div className="p-4">
+              <div className="p-4 space-y-4">
+                {/* AI Summary Card */}
+                <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <Bot className="h-4 w-4 text-blue-600" />
+                      AI Lead Summary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-sm text-slate-700 leading-relaxed">{generateAISummary()}</p>
+                  </CardContent>
+                </Card>
+
+                {/* Recent Communications */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">Recent Communications</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 space-y-3">
+                    {/* Recent Emails */}
+                    {recentComms.emails.slice(0, 2).map(email => (
+                      <div 
+                        key={email.id} 
+                        className="p-2 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors"
+                        onClick={() => setSelectedEmailThread(email)}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <Mail className="h-3 w-3 text-blue-600" />
+                          <Badge variant={email.direction === 'sent' ? 'default' : 'secondary'} className="text-xs">
+                            {email.direction}
+                          </Badge>
+                          <span className="text-xs text-gray-500">{email.timestamp}</span>
+                        </div>
+                        <p className="text-xs font-medium truncate">{email.subject}</p>
+                        <p className="text-xs text-gray-600 truncate">{email.preview}</p>
+                      </div>
+                    ))}
+
+                    {/* Recent SMS */}
+                    {recentComms.sms.slice(0, 2).map(sms => (
+                      <div 
+                        key={sms.id} 
+                        className="p-2 bg-green-50 rounded-lg cursor-pointer hover:bg-green-100 transition-colors"
+                        onClick={() => setSelectedSMSThread(sms)}
+                      >
+                        <div className="flex items-center gap-2 mb-1">
+                          <MessageSquare className="h-3 w-3 text-green-600" />
+                          <Badge variant={sms.direction === 'sent' ? 'default' : 'secondary'} className="text-xs">
+                            {sms.direction}
+                          </Badge>
+                          <span className="text-xs text-gray-500">{sms.timestamp}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 truncate">{sms.preview}</p>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
                 <LeadDetailsCard 
                   lead={leadData} 
                   onUpdate={handleLeadUpdate}
@@ -210,6 +315,67 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
             </ScrollArea>
           </div>
         </div>
+
+        {/* Email Thread Modal */}
+        {selectedEmailThread && (
+          <Dialog open={!!selectedEmailThread} onOpenChange={() => setSelectedEmailThread(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">{selectedEmailThread.subject}</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedEmailThread(null)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </DialogHeader>
+              <ScrollArea className="max-h-96">
+                <div className="space-y-4">
+                  {selectedEmailThread.thread.map((message: any) => (
+                    <div key={message.id} className={`p-3 rounded-lg ${message.direction === 'sent' ? 'bg-blue-50 ml-8' : 'bg-gray-50 mr-8'}`}>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge variant={message.direction === 'sent' ? 'default' : 'secondary'} className="text-xs">
+                          {message.direction === 'sent' ? 'You' : leadData.name}
+                        </Badge>
+                        <span className="text-xs text-gray-500">{message.timestamp}</span>
+                      </div>
+                      <p className="text-sm">{message.content}</p>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* SMS Thread Modal */}
+        {selectedSMSThread && (
+          <Dialog open={!!selectedSMSThread} onOpenChange={() => setSelectedSMSThread(null)}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">SMS Conversation</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedSMSThread(null)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </DialogHeader>
+              <ScrollArea className="max-h-96">
+                <div className="space-y-3">
+                  {selectedSMSThread.thread.map((message: any) => (
+                    <div key={message.id} className={`flex ${message.direction === 'sent' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[80%] p-3 rounded-lg ${message.direction === 'sent' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}>
+                        <p className="text-sm">{message.content}</p>
+                        <p className={`text-xs mt-1 ${message.direction === 'sent' ? 'text-blue-100' : 'text-gray-500'}`}>
+                          {message.timestamp}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
+        )}
       </DialogContent>
     </Dialog>
   );
