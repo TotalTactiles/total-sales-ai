@@ -5,7 +5,7 @@ export interface Lead {
   email: string;
   phone: string;
   company: string;
-  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'ai_handle' | 'closed_won' | 'closed_lost';
+  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost';
   priority: 'low' | 'medium' | 'high';
   source: string;
   score: number;

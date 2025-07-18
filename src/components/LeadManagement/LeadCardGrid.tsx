@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,8 +26,6 @@ interface CustomizationSettings {
 interface LeadCardGridProps {
   leads: Lead[];
   onLeadSelect: (lead: Lead) => void;
-  showCustomization?: boolean;
-  onCustomizationChange?: (show: boolean) => void;
 }
 
 const DEFAULT_CUSTOMIZATION: CustomizationSettings = {
@@ -42,37 +40,11 @@ const DEFAULT_CUSTOMIZATION: CustomizationSettings = {
   showNextAction: true,
 };
 
-const LeadCardGrid: React.FC<LeadCardGridProps> = ({ 
-  leads, 
-  onLeadSelect, 
-  showCustomization = false,
-  onCustomizationChange 
-}) => {
+const LeadCardGrid: React.FC<LeadCardGridProps> = ({ leads, onLeadSelect }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [customization, setCustomization] = useState<CustomizationSettings>(DEFAULT_CUSTOMIZATION);
   const [isCustomView, setIsCustomView] = useState(false);
-
-  // Load customization from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('leadCardCustomization');
-    if (saved) {
-      try {
-        const parsedCustomization = JSON.parse(saved);
-        setCustomization(parsedCustomization);
-        setIsCustomView(true);
-      } catch (error) {
-        console.error('Error loading customization:', error);
-      }
-    }
-  }, []);
-
-  // Show modal when customization prop changes
-  useEffect(() => {
-    if (showCustomization) {
-      setShowCustomizeModal(true);
-    }
-  }, [showCustomization]);
 
   const filteredLeads = leads.filter(lead => 
     lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -91,7 +63,6 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
     localStorage.setItem('leadCardCustomization', JSON.stringify(customization));
     setIsCustomView(true);
     setShowCustomizeModal(false);
-    onCustomizationChange?.(false);
     toast.success('View customization saved');
   };
 
@@ -102,10 +73,18 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
     toast.success('Reset to default view');
   };
 
-  const handleCloseModal = () => {
-    setShowCustomizeModal(false);
-    onCustomizationChange?.(false);
-  };
+  React.useEffect(() => {
+    const saved = localStorage.getItem('leadCardCustomization');
+    if (saved) {
+      try {
+        const parsedCustomization = JSON.parse(saved);
+        setCustomization(parsedCustomization);
+        setIsCustomView(true);
+      } catch (error) {
+        console.error('Error loading customization:', error);
+      }
+    }
+  }, []);
 
   const getAIRecommendedFields = () => {
     return ['showScore', 'showLikelihood', 'showNextAction'];
@@ -180,7 +159,7 @@ const LeadCardGrid: React.FC<LeadCardGridProps> = ({
       )}
 
       {/* Customize View Modal */}
-      <Dialog open={showCustomizeModal} onOpenChange={handleCloseModal}>
+      <Dialog open={showCustomizeModal} onOpenChange={setShowCustomizeModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Customize Lead Card View</DialogTitle>

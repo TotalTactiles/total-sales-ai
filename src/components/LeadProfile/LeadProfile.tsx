@@ -10,26 +10,24 @@ import { toast } from 'sonner';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useAIBrainInsights } from '@/hooks/useAIBrainInsights';
 import LeadProfileHeader from './LeadProfileHeader';
-import LeadDetailsCard from '../LeadIntelligence/LeadDetailsCard';
-import LeadSummary from '../LeadIntelligence/LeadSummary';
-import LeadNotesEnhanced from '../LeadIntelligence/LeadNotesEnhanced';
-import LeadTasksEnhanced from '../LeadIntelligence/LeadTasksEnhanced';
-import LeadComms from '../LeadIntelligence/LeadComms';
-import LeadTimeline from '../LeadIntelligence/LeadTimeline';
+import LeadDetailsCard from './LeadDetailsCard';
+import LeadSummaryTab from './LeadSummaryTab';
+import LeadNotesTab from './LeadNotesTab';
+import LeadTasksTab from './LeadTasksTab';
+import LeadCommsTab from './LeadCommsTab';
+import LeadTimelineTab from './LeadTimelineTab';
 import AIAssistantTab from '../LeadIntelligence/AIAssistantTab';
 
 interface LeadProfileProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
-  onDelegateToAI?: (leadId: string) => void;
 }
 
 const LeadProfile: React.FC<LeadProfileProps> = ({
   lead,
   isOpen,
-  onClose,
-  onDelegateToAI
+  onClose
 }) => {
   const [activeTab, setActiveTab] = useState('summary');
   const [aiDelegationMode, setAiDelegationMode] = useState(false);
@@ -94,20 +92,17 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
       logGhostIntent('ai_delegation', 'Tried to delegate sensitive lead - requires approval mode');
       return;
     }
-    
-    if (onDelegateToAI && leadData) {
-      onDelegateToAI(leadData.id);
-      setAiDelegationMode(true);
-      trackEvent({
-        feature: 'ai_delegation',
-        action: 'activate',
-        context: 'lead_profile',
-        metadata: {
-          leadId: lead?.id,
-          leadScore: lead?.score
-        }
-      });
-    }
+    setAiDelegationMode(true);
+    trackEvent({
+      feature: 'ai_delegation',
+      action: 'activate',
+      context: 'lead_profile',
+      metadata: {
+        leadId: lead?.id,
+        leadScore: lead?.score
+      }
+    });
+    toast.success('AI Assistant is now handling this lead. You\'ll be notified of major updates.');
   };
 
   if (!isOpen || !leadData) return null;
@@ -119,7 +114,7 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
           <LeadProfileHeader 
             lead={leadData} 
             aiDelegationMode={aiDelegationMode} 
-            onClose={onClose}
+            onClose={onClose} 
             onAIDelegation={handleAIDelegation} 
           />
         </DialogHeader>
@@ -132,7 +127,6 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
                 <LeadDetailsCard 
                   lead={leadData} 
                   onUpdate={handleLeadUpdate}
-                  isSensitive={leadData.isSensitive || false}
                 />
               </div>
             </ScrollArea>
@@ -155,18 +149,16 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
               <div className="flex-1 overflow-hidden min-h-0">
                 <TabsContent value="summary" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadSummary 
+                    <LeadSummaryTab 
                       lead={leadData} 
                       aiDelegationMode={aiDelegationMode} 
-                      rationaleMode={true}
-                      isSensitive={leadData.isSensitive || false}
                     />
                   </ScrollArea>
                 </TabsContent>
 
                 <TabsContent value="notes" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadNotesEnhanced 
+                    <LeadNotesTab 
                       lead={leadData} 
                       aiDelegationMode={aiDelegationMode}
                       onUpdate={handleLeadUpdate}
@@ -176,7 +168,7 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
 
                 <TabsContent value="tasks" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadTasksEnhanced 
+                    <LeadTasksTab 
                       lead={leadData} 
                       aiDelegationMode={aiDelegationMode}
                       onUpdate={handleLeadUpdate}
@@ -186,20 +178,18 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
 
                 <TabsContent value="comms" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadComms 
+                    <LeadCommsTab 
                       lead={leadData} 
                       aiDelegationMode={aiDelegationMode}
-                      isSensitive={leadData.isSensitive || false}
-                      rationaleMode={true}
+                      onUpdate={handleLeadUpdate}
                     />
                   </ScrollArea>
                 </TabsContent>
 
                 <TabsContent value="timeline" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadTimeline 
-                      lead={leadData}
-                      rationaleMode={true}
+                    <LeadTimelineTab 
+                      lead={leadData} 
                     />
                   </ScrollArea>
                 </TabsContent>

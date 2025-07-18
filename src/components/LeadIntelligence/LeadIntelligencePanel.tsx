@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -114,10 +115,6 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
     trackClick('voice_controls', voiceEnabled ? 'disable' : 'enable');
   };
 
-  const handleRationaleModeChange = () => {
-    setRationaleMode(!rationaleMode);
-  };
-
   if (!isOpen || !leadData) return null;
 
   return (
@@ -230,7 +227,7 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
                     lead={leadData} 
                     voiceEnabled={voiceEnabled} 
                     rationaleMode={rationaleMode} 
-                    onRationaleModeChange={handleRationaleModeChange}
+                    onRationaleModeChange={setRationaleMode}
                     onLeadUpdate={handleLeadUpdate}
                   />
                 </div>
