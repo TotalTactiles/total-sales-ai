@@ -1,0 +1,83 @@
+
+/* Chat Mobile Responsiveness */
+@media (max-width: 768px) {
+  .chat-container {
+    flex-direction: column;
+  }
+  
+  .chat-sidebar {
+    width: 100%;
+    height: 200px;
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  
+  .chat-thread {
+    flex: 1;
+  }
+  
+  .chat-right-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 50;
+    background: hsl(var(--background));
+  }
+  
+  .message-input {
+    padding: 0.75rem;
+  }
+  
+  .message-bubble {
+    max-width: 85%;
+  }
+}
+
+@media (max-width: 640px) {
+  .chat-sidebar {
+    height: 150px;
+  }
+  
+  .message-bubble {
+    max-width: 90%;
+  }
+  
+  .chat-header {
+    padding: 0.75rem;
+  }
+  
+  .chat-right-panel {
+    width: 100%;
+  }
+}
+
+/* Chat Animation Improvements */
+.message-bubble {
+  animation: messageSlideIn 0.3s ease-out;
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.typing-indicator {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

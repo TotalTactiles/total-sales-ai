@@ -5,27 +5,26 @@ import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
   Users, 
-  Phone, 
-  Brain, 
+  Target, 
   BarChart3, 
   MessageSquare,
+  Settings,
   LogOut 
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-const SalesNavigation: React.FC = () => {
+const ManagerNavigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut } = useAuth();
 
   const navItems = [
-    { path: '/sales/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/sales/leads', label: 'Leads', icon: Users },
-    { path: '/sales/dialer', label: 'Dialer', icon: Phone },
-    { path: '/sales/brain', label: 'Company Brain', icon: Brain },
-    { path: '/sales/analytics', label: 'Analytics', icon: BarChart3 },
-    { path: '/sales/chat', label: 'Internal Chat', icon: MessageSquare },
+    { path: '/manager/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { path: '/manager/leads', label: 'Leads', icon: Target },
+    { path: '/manager/team', label: 'Team Management', icon: Users },
+    { path: '/manager/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/manager/chat', label: 'Internal Chat', icon: MessageSquare },
   ];
 
   const handleSignOut = async () => {
@@ -41,7 +40,7 @@ const SalesNavigation: React.FC = () => {
   return (
     <nav className="w-60 bg-card border-r border-border flex flex-col">
       <div className="p-5">
-        <h1 className="text-lg font-bold text-foreground">Sales OS</h1>
+        <h1 className="text-lg font-bold text-foreground">Manager OS</h1>
       </div>
       
       <div className="flex-1 px-3">
@@ -77,4 +76,4 @@ const SalesNavigation: React.FC = () => {
   );
 };
 
-export default SalesNavigation;
+export default ManagerNavigation;
