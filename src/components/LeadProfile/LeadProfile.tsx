@@ -116,21 +116,12 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[98vw] h-[96vh] p-0 overflow-hidden">
         <DialogHeader className="p-4 pb-0 shrink-0">
-          <div className="flex items-center justify-between">
-            <LeadProfileHeader 
-              lead={leadData} 
-              aiDelegationMode={aiDelegationMode} 
-              onAIDelegation={handleAIDelegation} 
-            />
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <LeadProfileHeader 
+            lead={leadData} 
+            aiDelegationMode={aiDelegationMode} 
+            onClose={onClose}
+            onAIDelegation={handleAIDelegation} 
+          />
         </DialogHeader>
 
         <div className="flex-1 flex overflow-hidden min-h-0">
