@@ -10,12 +10,12 @@ import { toast } from 'sonner';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useAIBrainInsights } from '@/hooks/useAIBrainInsights';
 import LeadProfileHeader from './LeadProfileHeader';
-import LeadDetailsCard from './LeadDetailsCard';
-import LeadSummaryTab from './LeadSummaryTab';
-import LeadNotesTab from './LeadNotesTab';
-import LeadTasksTab from './LeadTasksTab';
-import LeadCommsTab from './LeadCommsTab';
-import LeadTimelineTab from './LeadTimelineTab';
+import LeadDetailsCard from '../LeadIntelligence/LeadDetailsCard';
+import LeadSummary from '../LeadIntelligence/LeadSummary';
+import LeadNotesEnhanced from '../LeadIntelligence/LeadNotesEnhanced';
+import LeadTasksEnhanced from '../LeadIntelligence/LeadTasksEnhanced';
+import LeadComms from '../LeadIntelligence/LeadComms';
+import LeadTimeline from '../LeadIntelligence/LeadTimeline';
 import AIAssistantTab from '../LeadIntelligence/AIAssistantTab';
 
 interface LeadProfileProps {
@@ -132,6 +132,7 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
                 <LeadDetailsCard 
                   lead={leadData} 
                   onUpdate={handleLeadUpdate}
+                  isSensitive={leadData.isSensitive || false}
                 />
               </div>
             </ScrollArea>
@@ -154,16 +155,18 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
               <div className="flex-1 overflow-hidden min-h-0">
                 <TabsContent value="summary" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadSummaryTab 
+                    <LeadSummary 
                       lead={leadData} 
                       aiDelegationMode={aiDelegationMode} 
+                      rationaleMode={true}
+                      isSensitive={leadData.isSensitive || false}
                     />
                   </ScrollArea>
                 </TabsContent>
 
                 <TabsContent value="notes" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadNotesTab 
+                    <LeadNotesEnhanced 
                       lead={leadData} 
                       aiDelegationMode={aiDelegationMode}
                       onUpdate={handleLeadUpdate}
@@ -173,7 +176,7 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
 
                 <TabsContent value="tasks" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadTasksTab 
+                    <LeadTasksEnhanced 
                       lead={leadData} 
                       aiDelegationMode={aiDelegationMode}
                       onUpdate={handleLeadUpdate}
@@ -183,18 +186,20 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
 
                 <TabsContent value="comms" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadCommsTab 
+                    <LeadComms 
                       lead={leadData} 
                       aiDelegationMode={aiDelegationMode}
-                      onUpdate={handleLeadUpdate}
+                      isSensitive={leadData.isSensitive || false}
+                      rationaleMode={true}
                     />
                   </ScrollArea>
                 </TabsContent>
 
                 <TabsContent value="timeline" className="h-full m-0 p-0">
                   <ScrollArea className="h-full">
-                    <LeadTimelineTab 
-                      lead={leadData} 
+                    <LeadTimeline 
+                      lead={leadData}
+                      rationaleMode={true}
                     />
                   </ScrollArea>
                 </TabsContent>
