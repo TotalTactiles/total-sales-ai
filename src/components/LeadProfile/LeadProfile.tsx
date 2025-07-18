@@ -22,12 +22,14 @@ interface LeadProfileProps {
   lead: Lead | null;
   isOpen: boolean;
   onClose: () => void;
+  onDelegateToAI?: (leadId: string) => void;
 }
 
 const LeadProfile: React.FC<LeadProfileProps> = ({
   lead,
   isOpen,
-  onClose
+  onClose,
+  onDelegateToAI
 }) => {
   const [activeTab, setActiveTab] = useState('summary');
   const [aiDelegationMode, setAiDelegationMode] = useState(false);
@@ -92,17 +94,20 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
       logGhostIntent('ai_delegation', 'Tried to delegate sensitive lead - requires approval mode');
       return;
     }
-    setAiDelegationMode(true);
-    trackEvent({
-      feature: 'ai_delegation',
-      action: 'activate',
-      context: 'lead_profile',
-      metadata: {
-        leadId: lead?.id,
-        leadScore: lead?.score
-      }
-    });
-    toast.success('AI Assistant is now handling this lead. You\'ll be notified of major updates.');
+    
+    if (onDelegateToAI && leadData) {
+      onDelegateToAI(leadData.id);
+      setAiDelegationMode(true);
+      trackEvent({
+        feature: 'ai_delegation',
+        action: 'activate',
+        context: 'lead_profile',
+        metadata: {
+          leadId: lead?.id,
+          leadScore: lead?.score
+        }
+      });
+    }
   };
 
   if (!isOpen || !leadData) return null;
@@ -111,12 +116,21 @@ const LeadProfile: React.FC<LeadProfileProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-[98vw] h-[96vh] p-0 overflow-hidden">
         <DialogHeader className="p-4 pb-0 shrink-0">
-          <LeadProfileHeader 
-            lead={leadData} 
-            aiDelegationMode={aiDelegationMode} 
-            onClose={onClose} 
-            onAIDelegation={handleAIDelegation} 
-          />
+          <div className="flex items-center justify-between">
+            <LeadProfileHeader 
+              lead={leadData} 
+              aiDelegationMode={aiDelegationMode} 
+              onAIDelegation={handleAIDelegation} 
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="flex-1 flex overflow-hidden min-h-0">
