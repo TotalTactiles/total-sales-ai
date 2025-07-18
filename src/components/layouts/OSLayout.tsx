@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -101,7 +102,7 @@ const OSLayout: React.FC<OSLayoutProps> = ({ children }) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-[#7B61FF] mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-28 w-28 border-b-2 border-[#7B61FF] mx-auto mb-3.5"></div> {/* Reduced size */}
           <p className="text-gray-600">Loading TSAM OS...</p>
         </div>
       </div>
@@ -115,11 +116,11 @@ const OSLayout: React.FC<OSLayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation Bar */}
       <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="px-6 py-4">
+        <div className="px-5 py-3.5"> {/* Reduced padding */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-[#7B61FF]">TSAM</h1>
+            <div className="flex items-center space-x-7"> {/* Reduced spacing */}
+              <div className="flex items-center gap-2.5"> {/* Reduced gap */}
+                <h1 className="text-xl font-bold text-[#7B61FF]">TSAM</h1> {/* Reduced text size */}
                 <Badge variant="outline" className="text-xs">
                   OS v2.1
                 </Badge>
@@ -133,13 +134,13 @@ const OSLayout: React.FC<OSLayoutProps> = ({ children }) => {
                     <button
                       key={tab.href}
                       onClick={() => navigate(tab.href)}
-                      className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`flex items-center px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${ /* Reduced padding */
                         currentPath === tab.href
                           ? 'bg-[#7B61FF] text-white'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`}
                     >
-                      <IconComponent className="h-4 w-4 mr-2" />
+                      <IconComponent className="h-3.5 w-3.5 mr-1.5" /> {/* Reduced icon size */}
                       {tab.name}
                     </button>
                   );
@@ -148,7 +149,7 @@ const OSLayout: React.FC<OSLayoutProps> = ({ children }) => {
             </div>
 
             {/* User Menu */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3.5"> {/* Reduced gap */}
               <div className="text-right hidden md:block">
                 <p className="text-sm font-medium text-gray-900">
                   {profile?.full_name || user?.email || 'User'}
@@ -158,17 +159,17 @@ const OSLayout: React.FC<OSLayoutProps> = ({ children }) => {
                 </Badge>
               </div>
               
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                <User className="h-4 w-4" />
+              <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold"> {/* Reduced size */}
+                <User className="h-3.5 w-3.5" /> {/* Reduced icon size */}
               </div>
 
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={handleLogout}
-                className="flex items-center gap-2"
+                className="flex items-center gap-1.5" /* Reduced gap */
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className="h-3.5 w-3.5" /> {/* Reduced icon size */}
                 <span className="hidden md:inline">Logout</span>
               </Button>
             </div>
@@ -177,7 +178,7 @@ const OSLayout: React.FC<OSLayoutProps> = ({ children }) => {
       </nav>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-2">
+      <div className="md:hidden bg-white border-b border-gray-200 px-3.5 py-1.5"> {/* Reduced padding */}
         <div className="flex space-x-1 overflow-x-auto">
           {navigationTabs.map((tab) => {
             const IconComponent = tab.icon;
@@ -185,13 +186,13 @@ const OSLayout: React.FC<OSLayoutProps> = ({ children }) => {
               <button
                 key={tab.href}
                 onClick={() => navigate(tab.href)}
-                className={`flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${ /* Reduced padding */
                   currentPath === tab.href
                     ? 'bg-[#7B61FF] text-white'
                     : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }`}
               >
-                <IconComponent className="h-3 w-3 mr-1" />
+                <IconComponent className="h-3 w-3 mr-1" /> {/* Reduced icon size */}
                 {tab.name}
               </button>
             );
@@ -208,3 +209,4 @@ const OSLayout: React.FC<OSLayoutProps> = ({ children }) => {
 };
 
 export default OSLayout;
+

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useOptimizedLogout } from '@/utils/logoutOptimizer';
@@ -105,15 +106,19 @@ const ManagerOS: React.FC = () => {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Top Navigation Bar */}
-      <nav className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200 shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-8">
+      <nav className="flex items-center justify-between px-5 py-3 bg-white border-b border-slate-200 shadow-sm flex-shrink-0"> {/* Reduced padding */}
+        <div className="flex items-center gap-7"> {/* Reduced gap */}
           {/* TSAM Brand */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+          <div className="flex items-center gap-2.5"> {/* Reduced gap */}
+            <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center"> {/* Reduced size */}
               <span className="text-white font-bold text-sm">T</span>
             </div>
-            <span className="text-xl font-bold text-slate-900">TSAM</span>
-            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-medium">Manager OS</span>
+            <span className="text-lg font-bold text-slate-900"> {/* Reduced text size */}
+              TSAM
+            </span>
+            <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium"> {/* Reduced padding */}
+              Manager OS
+            </span>
           </div>
 
           {/* Navigation Tabs */}
@@ -122,7 +127,7 @@ const ManagerOS: React.FC = () => {
               <button
                 key={tab.key}
                 onClick={() => handleTabChange(tab.key)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${ /* Reduced padding */
                   activeTab === tab.key
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -135,7 +140,7 @@ const ManagerOS: React.FC = () => {
         </div>
 
         {/* Right Side - Navigation Panel + User Info */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5"> {/* Reduced gap */}
           {/* NavigationalPanel with icons */}
           <NavigationalPanel />
           
@@ -147,18 +152,18 @@ const ManagerOS: React.FC = () => {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center hover:ring-2 hover:ring-blue-200 transition-all cursor-pointer">
+              <button className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center hover:ring-2 hover:ring-blue-200 transition-all cursor-pointer"> {/* Reduced size */}
                 <span className="text-white font-semibold text-sm">{initials}</span>
               </button>
             </DropdownMenuTrigger>
             
             <DropdownMenuContent 
-              className="w-56 bg-white shadow-lg border rounded-lg p-2" 
+              className="w-52 bg-white shadow-lg border rounded-lg p-2" /* Reduced width */
               align="end"
               sideOffset={5}
             >
-              <div className="flex items-center gap-3 p-2 mb-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="flex items-center gap-2.5 p-1.5 mb-1.5"> {/* Reduced padding */}
+                <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center"> {/* Reduced size */}
                   <span className="text-white font-semibold text-xs">{initials}</span>
                 </div>
                 <div className="flex flex-col">
@@ -171,7 +176,7 @@ const ManagerOS: React.FC = () => {
 
               <DropdownMenuItem 
                 onClick={handleLogout}
-                className="flex items-center gap-2 py-2 px-3 hover:bg-red-50 rounded cursor-pointer text-red-600"
+                className="flex items-center gap-2 py-1.5 px-2.5 hover:bg-red-50 rounded cursor-pointer text-red-600" /* Reduced padding */
               >
                 <LogOut className="h-4 w-4" />
                 <span className="text-sm">Log out</span>
@@ -182,13 +187,13 @@ const ManagerOS: React.FC = () => {
       </nav>
 
       {/* Mobile Navigation */}
-      <div className="lg:hidden bg-white border-b border-slate-200 px-4 py-2 flex-shrink-0">
+      <div className="lg:hidden bg-white border-b border-slate-200 px-3.5 py-1.5 flex-shrink-0"> {/* Reduced padding */}
         <div className="flex gap-1 overflow-x-auto">
           {navTabs.map(tab => (
             <button
               key={tab.key}
               onClick={() => handleTabChange(tab.key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 whitespace-nowrap ${ /* Reduced padding */
                 activeTab === tab.key
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
@@ -211,3 +216,4 @@ const ManagerOS: React.FC = () => {
 };
 
 export default ManagerOS;
+

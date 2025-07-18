@@ -1,4 +1,5 @@
 
+
 /* Mobile-specific styles and optimizations */
 
 /* Mobile navigation improvements */
@@ -6,7 +7,7 @@
   .mobile-tab-bar {
     @apply fixed bottom-0 left-0 right-0 bg-sidebar border-t border-sidebar-border;
     @apply flex items-center justify-around px-2 py-2 z-50;
-    height: 70px;
+    height: 63px; /* Reduced from 70px */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
   }
@@ -14,9 +15,9 @@
   .mobile-tab-item {
     @apply flex flex-col items-center justify-center text-xs;
     @apply text-sidebar-foreground/70 hover:text-sidebar-foreground;
-    @apply transition-colors duration-200 rounded-lg p-2 min-w-0;
+    @apply transition-colors duration-200 rounded-lg p-1.5 min-w-0; /* Reduced padding */
     flex: 1;
-    max-width: 64px;
+    max-width: 58px; /* Reduced from 64px */
   }
   
   .mobile-tab-item.active {
@@ -25,19 +26,19 @@
   
   .mobile-tab-item span {
     @apply mt-1 truncate w-full text-center;
-    font-size: 10px;
-    line-height: 1.2;
+    font-size: 9px; /* Reduced from 10px */
+    line-height: 1.1; /* Reduced from 1.2 */
     font-weight: 500;
   }
 
   /* Add bottom padding to main content to account for mobile tab bar */
   .main-content {
-    padding-bottom: 80px;
+    padding-bottom: 72px; /* Reduced from 80px */
   }
   
   /* Mobile menu improvements */
   .mobile-nav-item {
-    @apply flex items-center gap-3 px-4 py-3 text-sm font-medium;
+    @apply flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium; /* Reduced padding */
     @apply border-l-4 border-transparent;
     transition: all 0.2s ease;
   }
@@ -54,12 +55,12 @@
   .developer-mobile-header {
     @apply fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white;
     @apply border-b border-gray-700 shadow-lg;
-    height: 64px;
+    height: 58px; /* Reduced from 64px */
   }
 
   /* Ensure content doesn't overlap with mobile header */
   .developer-mobile-content {
-    @apply pt-16;
+    @apply pt-14; /* Reduced from pt-16 */
   }
 
   /* Force full width on mobile */
@@ -72,13 +73,13 @@
 
 /* Responsive containers */
 .responsive-container {
-  @apply px-4 sm:px-6 lg:px-8;
+  @apply px-3.5 sm:px-5 lg:px-7; /* Reduced from px-4 sm:px-6 lg:px-8 */
   max-width: 100%;
 }
 
 /* Card spacing and layout improvements */
 .card-grid {
-  @apply grid gap-4 sm:gap-6;
+  @apply grid gap-3.5 sm:gap-5; /* Reduced from gap-4 sm:gap-6 */
   width: 100%;
 }
 
@@ -101,8 +102,8 @@
 /* Mobile-friendly cards */
 .mobile-card {
   @apply rounded-lg border bg-card text-card-foreground shadow-sm;
-  @apply p-4 sm:p-6;
-  min-height: 120px;
+  @apply p-3.5 sm:p-5; /* Reduced from p-4 sm:p-6 */
+  min-height: 108px; /* Reduced from 120px */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -111,16 +112,16 @@
 
 /* Clean spacing utilities */
 .section-spacing {
-  @apply space-y-4 sm:space-y-6;
+  @apply space-y-3.5 sm:space-y-5; /* Reduced from space-y-4 sm:space-y-6 */
 }
 
 .content-spacing {
-  @apply space-y-3 sm:space-y-4;
+  @apply space-y-2.5 sm:space-y-3.5; /* Reduced from space-y-3 sm:space-y-4 */
 }
 
 /* Touch-friendly interactive elements */
 .touch-target {
-  @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  @apply min-h-[40px] min-w-[40px] flex items-center justify-center; /* Reduced from 44px */
   touch-action: manipulation;
 }
 
@@ -151,7 +152,7 @@
 }
 
 .dashboard-content {
-  @apply max-w-full mx-auto py-4 sm:py-6 px-4 sm:px-6 space-y-4 sm:space-y-6;
+  @apply max-w-full mx-auto py-3.5 sm:py-5 px-3.5 sm:px-5 space-y-3.5 sm:space-y-5; /* Reduced spacing */
   overflow-x: hidden;
   width: 100%;
 }
@@ -176,21 +177,21 @@ body, html {
 /* Desktop sidebar spacing */
 @media (min-width: 769px) {
   .developer-sidebar-expanded {
-    margin-left: 256px;
-    width: calc(100vw - 256px);
+    margin-left: 230px; /* Reduced from 256px */
+    width: calc(100vw - 230px);
   }
   
   .developer-sidebar-collapsed {
-    margin-left: 64px;
-    width: calc(100vw - 64px);
+    margin-left: 58px; /* Reduced from 64px */
+    width: calc(100vw - 58px);
   }
 }
 
 /* Optimize touch targets for mobile */
 @media (max-width: 768px) {
   button, .clickable {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 40px; /* Reduced from 44px */
+    min-width: 40px;
     touch-action: manipulation;
   }
   
@@ -274,7 +275,7 @@ body, html {
 @media (min-width: 769px) {
   .sidebar-collapsed {
     transform: translateX(0);
-    width: 4rem;
+    width: 3.6rem; /* Reduced from 4rem */
   }
 }
 
@@ -297,15 +298,15 @@ body, html {
 
 /* Consistent button sizing */
 .btn-sm {
-  @apply px-3 py-1.5 text-sm;
+  @apply px-2.5 py-1 text-sm; /* Reduced from px-3 py-1.5 */
 }
 
 .btn-md {
-  @apply px-4 py-2 text-sm;
+  @apply px-3.5 py-1.5 text-sm; /* Reduced from px-4 py-2 */
 }
 
 .btn-lg {
-  @apply px-6 py-3 text-base;
+  @apply px-5 py-2.5 text-base; /* Reduced from px-6 py-3 */
 }
 
 /* Clean borders and shadows */
@@ -323,8 +324,8 @@ body, html {
 
 /* Developer OS specific styles */
 .developer-grid {
-  @apply grid gap-4 sm:gap-6;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  @apply grid gap-3.5 sm:gap-5; /* Reduced from gap-4 sm:gap-6 */
+  grid-template-columns: repeat(auto-fit, minmax(252px, 1fr)); /* Reduced from 280px */
 }
 
 @media (max-width: 640px) {
@@ -335,7 +336,7 @@ body, html {
 
 /* Ensure proper spacing for TSAM Brain status */
 .tsam-status-banner {
-  @apply text-center py-6 sm:py-8;
+  @apply text-center py-5 sm:py-7; /* Reduced from py-6 sm:py-8 */
 }
 
 .tsam-status-banner h2 {
@@ -374,6 +375,7 @@ body, html {
 
 /* Fix for overlapping content */
 .content-safe-area {
-  @apply min-h-screen p-4 sm:p-6;
+  @apply min-h-screen p-3.5 sm:p-5; /* Reduced from p-4 sm:p-6 */
   box-sizing: border-box;
 }
+

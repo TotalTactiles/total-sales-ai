@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import Navigation from '@/components/Navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -72,21 +73,23 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
       <Navigation />
-      <div className="flex-1 p-6 space-y-8 max-w-7xl mx-auto">
+      <div className="flex-1 p-5 space-y-7 max-w-7xl mx-auto"> {/* Reduced padding and spacing */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Sales Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-900"> {/* Reduced text size */}
+              Sales Dashboard
+            </h1>
             <p className="text-gray-600 mt-1">Welcome back, {profile?.full_name || 'Sales Rep'}</p>
           </div>
           <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            <CheckCircle className="h-3 w-3 mr-1" />
+            <CheckCircle className="h-2.5 w-2.5 mr-1" /> {/* Reduced icon size */}
             AI Assistant Active
           </Badge>
         </div>
 
         <AIDailySummary summary={dashboardData.aiSummary} isFullUser={true} />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"> {/* Reduced gap */}
           {mockStats.map((stat, index) => (
             <StatsCard key={index} {...stat} />
           ))}
@@ -97,7 +100,7 @@ const Dashboard: React.FC = () => {
         <PriorityTasks tasks={dashboardData.priorityTasks} />
 
         {/* Main Dashboard Grid with Pipeline Pulse and AI Optimized Schedule */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5"> {/* Reduced gap */}
           {/* Pipeline Pulse - Left Side (spans 2 columns) */}
           <div className="lg:col-span-2">
             <PipelinePulse leads={leads} onLeadClick={handleLeadClick} />
@@ -110,7 +113,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* AI Recommendations - Under Pipeline Pulse, above Rewards Progress */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5"> {/* Reduced gap */}
           <div className="lg:col-span-2">
             <AIRecommendations />
           </div>
@@ -126,8 +129,8 @@ const Dashboard: React.FC = () => {
           <AICoachingPanel />
         </div>
 
-        <div className="text-center py-8">
-          <h2 className="text-xl font-semibold text-blue-600">🎯 Sales Rep OS Active</h2>
+        <div className="text-center py-7"> {/* Reduced padding */}
+          <h2 className="text-lg font-semibold text-blue-600">🎯 Sales Rep OS Active</h2> {/* Reduced text size */}
           <p className="text-gray-600 mt-2">Your AI-powered sales dashboard is ready to accelerate your performance</p>
         </div>
       </div>
@@ -145,3 +148,4 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
+

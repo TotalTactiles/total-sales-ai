@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -73,10 +74,10 @@ const SalesRepDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-5"> {/* Reduced padding */}
+      <div className="max-w-7xl mx-auto space-y-5"> {/* Reduced spacing */}
         {/* Top Section with Performance Cards and Voice Briefing */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5"> {/* Reduced gap */}
           {/* Performance Cards Grid - Now in top-left */}
           <div className="lg:col-span-2">
             <PerformanceCardsGrid />
@@ -89,13 +90,13 @@ const SalesRepDashboard: React.FC = () => {
         </div>
 
         {/* AI Recommendations - Moved higher for visibility */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5"> {/* Reduced gap */}
           <AIRecommendations onRecommendationClick={handleRecommendationClick} />
           <AICoachingPanel onCoachingClick={handleCoachingClick} />
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5"> {/* Reduced gap */}
           {/* Optimized Pipeline Pulse */}
           <div className="lg:col-span-2">
             <OptimizedPipelinePulse 
@@ -106,7 +107,7 @@ const SalesRepDashboard: React.FC = () => {
           </div>
 
           {/* Right Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-5"> {/* Reduced spacing */}
             {/* AI Assistant Summary */}
             <AISummaryCard />
 
@@ -116,7 +117,7 @@ const SalesRepDashboard: React.FC = () => {
         </div>
 
         {/* Rewards Progress Section */}
-        <div className="mt-6">
+        <div className="mt-5"> {/* Reduced margin */}
           <RewardsProgress />
         </div>
 
@@ -167,3 +168,4 @@ const SalesRepDashboard: React.FC = () => {
 };
 
 export default SalesRepDashboard;
+
