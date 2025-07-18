@@ -115,6 +115,10 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
     trackClick('voice_controls', voiceEnabled ? 'disable' : 'enable');
   };
 
+  const handleRationaleModeChange = () => {
+    setRationaleMode(!rationaleMode);
+  };
+
   if (!isOpen || !leadData) return null;
 
   return (
@@ -227,7 +231,7 @@ const LeadIntelligencePanel: React.FC<LeadIntelligencePanelProps> = ({
                     lead={leadData} 
                     voiceEnabled={voiceEnabled} 
                     rationaleMode={rationaleMode} 
-                    onRationaleModeChange={setRationaleMode}
+                    onRationaleModeChange={handleRationaleModeChange}
                     onLeadUpdate={handleLeadUpdate}
                   />
                 </div>

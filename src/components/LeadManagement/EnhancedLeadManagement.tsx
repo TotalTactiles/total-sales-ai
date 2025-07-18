@@ -62,11 +62,6 @@ const EnhancedLeadManagement: React.FC<EnhancedLeadManagementProps> = ({
     });
   }, [leads, searchTerm, selectedStatuses, selectedPriorities, selectedSources, scoreRange]);
 
-  // Get unique values for filters
-  const uniqueStatuses = Array.from(new Set(leads.map(lead => lead.status)));
-  const uniquePriorities = Array.from(new Set(leads.map(lead => lead.priority)));
-  const uniqueSources = Array.from(new Set(leads.map(lead => lead.source)));
-
   // Group leads by status
   const leadsByStatus = useMemo(() => {
     const grouped = statusOrder.reduce((acc, status) => {
