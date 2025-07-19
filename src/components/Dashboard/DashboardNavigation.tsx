@@ -1,21 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Grid, 
-  Users, 
-  BarChart3, 
-  GraduationCap, 
-  Wrench, 
-  MessageSquare, 
-  Target,
-  Building2,
-  Brain,
-  Bot,
-  Shield,
-  FileText,
-  Settings
-} from 'lucide-react';
+import { Grid, Users, BarChart3, GraduationCap, Wrench } from 'lucide-react';
 import Logo from '@/components/Logo';
 import UserProfile from '@/components/UserProfile';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -28,32 +14,13 @@ const DashboardNavigation = () => {
 
   const dashboardHref = getDashboardUrl(profile);
 
-  // Navigation items for managers
-  const managerNavItems = [
-    { label: 'Dashboard', href: '/manager/dashboard', icon: Grid },
-    { label: 'Business Ops', href: '/manager/business-ops', icon: Building2 },
-    { label: 'Team', href: '/manager/team', icon: Users },
-    { label: 'Leads', href: '/manager/leads', icon: Target },
-    { label: 'AI Assistant', href: '/manager/ai-assistant', icon: Bot },
-    { label: 'Company Brain', href: '/manager/company-brain', icon: Brain },
-    { label: 'Security', href: '/manager/security', icon: Shield },
-    { label: 'Analytics', href: '/manager/analytics', icon: BarChart3 },
-    { label: 'Reports', href: '/manager/reports', icon: FileText },
-    { label: 'Settings', href: '/manager/settings', icon: Settings },
-    { label: 'Chat', href: '/manager/chat', icon: MessageSquare },
-  ];
-
-  // Navigation items for sales reps
-  const salesNavItems = [
+  const navItems = [
     { label: 'Dashboard', href: dashboardHref, icon: Grid },
     { label: 'Leads', href: '/leads', icon: Users },
     { label: 'Statistics', href: '/analytics', icon: BarChart3 },
     { label: 'Rep Dev', href: '/company-brain', icon: GraduationCap },
     { label: 'Tools', href: '/dialer', icon: Wrench },
-    { label: 'Chat', href: '/sales/chat', icon: MessageSquare },
   ];
-
-  const navItems = profile?.role === 'manager' ? managerNavItems : salesNavItems;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
