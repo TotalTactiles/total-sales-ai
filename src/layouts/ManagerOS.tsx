@@ -6,6 +6,12 @@ import DashboardNavigation from '@/components/Dashboard/DashboardNavigation';
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
 import ManagerLeads from '@/pages/manager/ManagerLeads';
 import ManagerTeam from '@/pages/manager/ManagerTeam';
+import ManagerBusinessOps from '@/pages/manager/ManagerBusinessOps';
+import ManagerCompanyBrain from '@/pages/manager/ManagerCompanyBrain';
+import ManagerAIAssistant from '@/pages/manager/ManagerAIAssistant';
+import ManagerReports from '@/pages/manager/ManagerReports';
+import SecurityPage from '@/pages/manager/Security';
+import ManagerSettings from '@/pages/manager/Settings';
 import Analytics from '@/pages/manager/Analytics';
 import InternalChat from '@/pages/InternalChat';
 
@@ -32,9 +38,15 @@ const ManagerOS: React.FC = () => {
         <Routes>
           <Route path="/" element={<Navigate to="/manager/dashboard" replace />} />
           <Route path="/dashboard" element={<ManagerDashboard />} />
-          <Route path="/leads" element={<ManagerLeads />} />
+          <Route path="/business-ops" element={<ManagerBusinessOps />} />
           <Route path="/team" element={<ManagerTeam />} />
+          <Route path="/leads" element={<ManagerLeads />} />
+          <Route path="/ai-assistant" element={<ManagerAIAssistant />} />
+          <Route path="/company-brain" element={<ManagerCompanyBrain />} />
+          <Route path="/reports" element={<ManagerReports />} />
+          <Route path="/security" element={<SecurityPage />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/settings" element={<ManagerSettings />} />
           <Route path="/chat" element={<InternalChat />} />
         </Routes>
       </main>
