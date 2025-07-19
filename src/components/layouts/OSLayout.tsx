@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import SalesNavigation from '@/components/Navigation/SalesNavigation';
+import DashboardNavigation from '@/components/Dashboard/DashboardNavigation';
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import SalesLeads from '@/pages/sales/SalesLeads';
 import SalesDialer from '@/pages/sales/Dialer';
@@ -26,10 +26,10 @@ const OSLayout: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <SalesNavigation />
+    <div className="min-h-screen bg-background">
+      <DashboardNavigation />
       
-      <main className="flex-1 overflow-hidden">
+      <main className="pt-[60px]">
         <Routes>
           <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
           <Route path="/dashboard" element={<SalesRepDashboard />} />

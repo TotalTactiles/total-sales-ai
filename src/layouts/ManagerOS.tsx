@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
+import DashboardNavigation from '@/components/Dashboard/DashboardNavigation';
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
 import ManagerLeads from '@/pages/manager/ManagerLeads';
 import ManagerTeam from '@/pages/manager/ManagerTeam';
@@ -25,10 +25,10 @@ const ManagerOS: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-background">
-      <ManagerNavigation />
+    <div className="min-h-screen bg-background">
+      <DashboardNavigation />
       
-      <main className="flex-1 overflow-hidden">
+      <main className="pt-[60px]">
         <Routes>
           <Route path="/" element={<Navigate to="/manager/dashboard" replace />} />
           <Route path="/dashboard" element={<ManagerDashboard />} />
