@@ -5,9 +5,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import SalesNavigation from '@/components/Navigation/SalesNavigation';
 import SalesRepDashboard from '@/pages/sales/SalesRepDashboard';
 import SalesLeads from '@/pages/sales/SalesLeads';
-import SalesDialer from '@/pages/sales/SalesDialer';
+import SalesDialer from '@/pages/sales/Dialer';
 import SalesBrain from '@/pages/sales/SalesBrain';
-import SalesAnalytics from '@/pages/sales/SalesAnalytics';
+import Analytics from '@/pages/sales/Analytics';
 import InternalChat from '@/pages/InternalChat';
 
 const OSLayout: React.FC = () => {
@@ -36,7 +36,7 @@ const OSLayout: React.FC = () => {
           <Route path="/leads" element={<SalesLeads />} />
           <Route path="/dialer" element={<SalesDialer />} />
           <Route path="/brain" element={<SalesBrain />} />
-          <Route path="/analytics" element={<SalesAnalytics />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/chat" element={<InternalChat />} />
         </Routes>
       </main>

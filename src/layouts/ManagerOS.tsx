@@ -6,7 +6,7 @@ import ManagerNavigation from '@/components/Navigation/ManagerNavigation';
 import ManagerDashboard from '@/pages/manager/ManagerDashboard';
 import ManagerLeads from '@/pages/manager/ManagerLeads';
 import ManagerTeam from '@/pages/manager/ManagerTeam';
-import ManagerAnalytics from '@/pages/manager/ManagerAnalytics';
+import Analytics from '@/pages/manager/Analytics';
 import InternalChat from '@/pages/InternalChat';
 
 const ManagerOS: React.FC = () => {
@@ -34,7 +34,7 @@ const ManagerOS: React.FC = () => {
           <Route path="/dashboard" element={<ManagerDashboard />} />
           <Route path="/leads" element={<ManagerLeads />} />
           <Route path="/team" element={<ManagerTeam />} />
-          <Route path="/analytics" element={<ManagerAnalytics />} />
+          <Route path="/analytics" element={<Analytics />} />
           <Route path="/chat" element={<InternalChat />} />
         </Routes>
       </main>
