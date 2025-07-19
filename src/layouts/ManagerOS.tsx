@@ -8,7 +8,7 @@ import ManagerLeads from '@/pages/manager/ManagerLeads';
 import ManagerTeam from '@/pages/manager/ManagerTeam';
 import ManagerBusinessOps from '@/pages/manager/ManagerBusinessOps';
 import ManagerCompanyBrain from '@/pages/manager/ManagerCompanyBrain';
-import ManagerAIAssistant from '@/pages/manager/ManagerAIAssistant';
+import ManagerAIAssistantPage from '@/pages/manager/ManagerAIAssistant';
 import ManagerReports from '@/pages/manager/ManagerReports';
 import SecurityPage from '@/pages/manager/Security';
 import ManagerSettings from '@/pages/manager/Settings';
@@ -41,7 +41,7 @@ const ManagerOS: React.FC = () => {
           <Route path="/business-ops" element={<ManagerBusinessOps />} />
           <Route path="/team" element={<ManagerTeam />} />
           <Route path="/leads" element={<ManagerLeads />} />
-          <Route path="/ai-assistant" element={<ManagerAIAssistant />} />
+          <Route path="/ai-assistant" element={<ManagerAIAssistantPage />} />
           <Route path="/company-brain" element={<ManagerCompanyBrain />} />
           <Route path="/reports" element={<ManagerReports />} />
           <Route path="/security" element={<SecurityPage />} />

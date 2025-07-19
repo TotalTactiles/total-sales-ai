@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bot, MessageSquare, Brain, Settings, Zap } from 'lucide-react';
+import ManagerAIAssistant from '@/components/Manager/ManagerAIAssistant';
 
-const ManagerAIAssistant: React.FC = () => {
+const ManagerAIAssistantPage: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -92,46 +93,51 @@ const ManagerAIAssistant: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent AI Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium">Generated lead follow-up email</p>
-                  <p className="text-xs text-muted-foreground">2 minutes ago</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium">Scored 3 new leads</p>
-                  <p className="text-xs text-muted-foreground">15 minutes ago</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium">Created meeting summary</p>
-                  <p className="text-xs text-muted-foreground">1 hour ago</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium">Updated team performance insights</p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
-                </div>
+        {/* AI Assistant Chat Panel */}
+        <div className="lg:col-span-1">
+          <ManagerAIAssistant />
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent AI Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div>
+                <p className="text-sm font-medium">Generated lead follow-up email</p>
+                <p className="text-xs text-muted-foreground">2 minutes ago</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div>
+                <p className="text-sm font-medium">Scored 3 new leads</p>
+                <p className="text-xs text-muted-foreground">15 minutes ago</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <div>
+                <p className="text-sm font-medium">Created meeting summary</p>
+                <p className="text-xs text-muted-foreground">1 hour ago</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+              <div>
+                <p className="text-sm font-medium">Updated team performance insights</p>
+                <p className="text-xs text-muted-foreground">2 hours ago</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
 
-export default ManagerAIAssistant;
+export default ManagerAIAssistantPage;

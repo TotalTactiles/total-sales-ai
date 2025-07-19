@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BusinessGoalsTab from '@/components/Manager/BusinessGoalsTab';
+import BusinessOperationsInsights from '@/components/Manager/BusinessOperationsInsights';
+import BusinessOpsSnapshot from '@/components/Manager/BusinessOpsSnapshot';
 
 const ManagerBusinessOps: React.FC = () => {
   return (
@@ -12,6 +14,12 @@ const ManagerBusinessOps: React.FC = () => {
         <h1 className="text-2xl font-bold">Business Operations</h1>
         <Button>Add New Process</Button>
       </div>
+
+      {/* Business Operations Insights */}
+      <BusinessOperationsInsights />
+
+      {/* Business Ops Snapshot */}
+      <BusinessOpsSnapshot />
 
       <Tabs defaultValue="goals" className="space-y-4">
         <TabsList>
