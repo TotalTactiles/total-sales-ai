@@ -96,12 +96,15 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
   };
 
   const SidebarContentComponent = () => (
-    <SidebarContent className="bg-gray-900 text-white border-r border-gray-700">
-      <div className="p-6">
-        <div className="mb-8">
-          <h2 className={`text-xl font-bold text-green-400 transition-all duration-300 ${!open && !isMobile ? 'text-center text-sm' : ''}`}>
-            {!open && !isMobile ? 'DEV' : 'Developer OS'}
-          </h2>
+    <SidebarContent className="bg-gray-900 text-white border-r border-gray-700 h-full">
+      <div className="p-4">
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <SidebarTrigger className="text-white hover:bg-gray-800" />
+            <h2 className={`text-lg font-bold text-green-400 transition-all duration-300 ${!open && !isMobile ? 'hidden' : ''}`}>
+              Developer OS
+            </h2>
+          </div>
           {(open || isMobile) && (
             <>
               <p className="text-sm text-gray-400">TSAM Development</p>
@@ -114,39 +117,43 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
         </div>
       </div>
 
-      <SidebarGroup>
-        <SidebarGroupLabel className="text-gray-300">Navigation</SidebarGroupLabel>
-        <SidebarGroupContent>
-          <SidebarMenu>
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path || 
-                              (item.path === '/developer/dashboard' && location.pathname === '/developer/');
-              
-              return (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton 
-                    onClick={(e) => handleNavigation(item.path, e)} 
-                    isActive={isActive}
-                    disabled={isNavigating}
-                    tooltip={!open && !isMobile ? item.label : undefined}
-                    className={`text-white hover:bg-gray-800 transition-colors cursor-pointer ${
-                      isActive ? 'bg-gray-800 text-green-400' : ''
-                    } ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
-                  >
-                    {getIcon(item.icon)}
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              );
-            })}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
+      <div className="flex-1 px-4">
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-gray-300 text-xs uppercase tracking-wider">Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path || 
+                                (item.path === '/developer/dashboard' && location.pathname === '/developer/');
+                
+                return (
+                  <SidebarMenuItem key={item.path}>
+                    <SidebarMenuButton 
+                      onClick={(e) => handleNavigation(item.path, e)} 
+                      isActive={isActive}
+                      disabled={isNavigating}
+                      tooltip={!open && !isMobile ? item.label : undefined}
+                      className={`w-full text-left text-white hover:bg-gray-800 transition-colors cursor-pointer rounded-md ${
+                        isActive ? 'bg-gray-800 text-green-400' : ''
+                      } ${isNavigating ? 'opacity-50 pointer-events-none' : ''}`}
+                    >
+                      <div className="flex items-center gap-3 px-3 py-2">
+                        {getIcon(item.icon)}
+                        {(open || isMobile) && <span className="text-sm">{item.label}</span>}
+                      </div>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </div>
 
-      <div className="mt-auto p-6">
+      <div className="p-4 border-t border-gray-700">
         <Button 
           variant="outline" 
-          className="w-full gap-3 text-red-400 border-red-400 hover:bg-red-900/20 bg-transparent" 
+          className="w-full gap-2 text-red-400 border-red-400 hover:bg-red-900/20 bg-transparent text-sm" 
           onClick={handleSignOut}
           disabled={isNavigating}
         >
@@ -161,34 +168,34 @@ const ResponsiveDeveloperNavigation: React.FC = () => {
     return (
       <>
         {/* Mobile Header */}
-        <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white p-4 flex items-center justify-between lg:hidden">
+        <div className="fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white p-3 flex items-center justify-between lg:hidden shadow-lg">
           <div className="flex items-center gap-3">
             <h2 className="text-lg font-bold text-green-400">Developer OS</h2>
             <div className="flex items-center gap-1">
               <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-xs text-green-400">TSAM Active</span>
+              <span className="text-xs text-green-400">Active</span>
             </div>
           </div>
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" disabled={isNavigating}>
+              <Button variant="ghost" size="sm" disabled={isNavigating} className="text-white hover:bg-gray-800">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 bg-gray-900 text-white p-0">
+            <SheetContent side="left" className="w-64 bg-gray-900 text-white p-0 border-r border-gray-700">
               <SidebarContentComponent />
             </SheetContent>
           </Sheet>
         </div>
         {/* Mobile spacer */}
-        <div className="h-16 lg:hidden"></div>
+        <div className="h-14 lg:hidden"></div>
       </>
     );
   }
 
   return (
     <Sidebar 
-      className="bg-gray-900 text-white shadow-lg border-r border-gray-700 w-[240px]" 
+      className="bg-gray-900 text-white shadow-lg border-r border-gray-700 h-screen sticky top-0" 
       collapsible="icon"
     >
       <SidebarContentComponent />

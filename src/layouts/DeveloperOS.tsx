@@ -2,8 +2,8 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import UnifiedLayout from '@/components/layout/UnifiedLayout';
 import LoadingManager from '@/components/layout/LoadingManager';
+import ResponsiveDeveloperNavigation from '@/components/Navigation/ResponsiveDeveloperNavigation';
 
 // Developer Pages - lazy loaded to prevent initial bundle size issues
 const DeveloperDashboard = React.lazy(() => import('@/pages/developer/DeveloperDashboard'));
@@ -26,26 +26,32 @@ const DeveloperPageFallback = () => (
 
 const DeveloperOS: React.FC = () => {
   return (
-    <div className="w-full min-h-screen bg-gray-900">
+    <div className="w-full min-h-screen bg-gray-900 flex">
       <SidebarProvider defaultOpen={true}>
-        <UnifiedLayout>
-          <Suspense fallback={<DeveloperPageFallback />}>
-            <Routes>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<DeveloperDashboard />} />
-              <Route path="system-monitor" element={<SystemMonitor />} />
-              <Route path="error-logs" element={<ErrorLogs />} />
-              <Route path="agent-health" element={<AgentHealth />} />
-              <Route path="brain-monitor" element={<AIBrainMonitor />} />
-              <Route path="api-logs" element={<APILogs />} />
-              <Route path="tsam-brain" element={<TSAMBrainDashboard />} />
-              <Route path="feature-flags" element={<FeatureFlagManager />} />
-              <Route path="system-updates" element={<SystemUpdatesTracker />} />
-              <Route path="ai-integration" element={<AIIntegrationMapper />} />
-              <Route path="*" element={<Navigate to="dashboard" replace />} />
-            </Routes>
-          </Suspense>
-        </UnifiedLayout>
+        {/* Navigation Sidebar */}
+        <ResponsiveDeveloperNavigation />
+        
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-h-screen">
+          <main className="flex-1 overflow-auto">
+            <Suspense fallback={<DeveloperPageFallback />}>
+              <Routes>
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<DeveloperDashboard />} />
+                <Route path="system-monitor" element={<SystemMonitor />} />
+                <Route path="error-logs" element={<ErrorLogs />} />
+                <Route path="agent-health" element={<AgentHealth />} />
+                <Route path="brain-monitor" element={<AIBrainMonitor />} />
+                <Route path="api-logs" element={<APILogs />} />
+                <Route path="tsam-brain" element={<TSAMBrainDashboard />} />
+                <Route path="feature-flags" element={<FeatureFlagManager />} />
+                <Route path="system-updates" element={<SystemUpdatesTracker />} />
+                <Route path="ai-integration" element={<AIIntegrationMapper />} />
+                <Route path="*" element={<Navigate to="dashboard" replace />} />
+              </Routes>
+            </Suspense>
+          </main>
+        </div>
       </SidebarProvider>
     </div>
   );
