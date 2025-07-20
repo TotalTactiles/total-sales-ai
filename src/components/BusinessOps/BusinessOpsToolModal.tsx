@@ -92,10 +92,16 @@ const BusinessOpsToolModal: React.FC<BusinessOpsToolModalProps> = ({
   };
 
   const generatePreview = async () => {
-    if (!user || !profile) return;
+    if (!user || !profile) {
+      console.error('User or profile not available');
+      return;
+    }
 
     setIsGenerating(true);
     try {
+      console.log('Generating preview for tool:', toolType);
+      console.log('Form data:', formData);
+      
       const { data, error } = await supabase.functions.invoke('business-ops-tools', {
         body: {
           toolType,
@@ -105,7 +111,12 @@ const BusinessOpsToolModal: React.FC<BusinessOpsToolModalProps> = ({
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error generating preview:', error);
+        throw error;
+      }
+      
+      console.log('Preview data received:', data);
       setPreviewData(data.previewData);
     } catch (error) {
       console.error('Error generating preview:', error);
@@ -119,34 +130,28 @@ const BusinessOpsToolModal: React.FC<BusinessOpsToolModalProps> = ({
 
     setIsGeneratingPDF(true);
     try {
-      const response = await fetch(
-        `${supabase.supabaseUrl}/functions/v1/business-ops-tools/generate-pdf`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            toolType,
-            fields: formData,
-            userId: user.id,
-            companyId: profile.company_id
-          })
+      const { data, error } = await supabase.functions.invoke('business-ops-tools', {
+        body: {
+          toolType,
+          fields: formData,
+          userId: user.id,
+          companyId: profile.company_id,
+          generatePDF: true
         }
-      );
+      });
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `${toolType}-report.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-      }
+      if (error) throw error;
+
+      // Create and download the PDF
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${toolType}-report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
       console.error('Error generating PDF:', error);
     } finally {
@@ -169,12 +174,13 @@ const BusinessOpsToolModal: React.FC<BusinessOpsToolModalProps> = ({
             value={formData[field.name] || ''}
             onChange={(e) => handleInputChange(field.name, e.target.value)}
             placeholder={`Enter ${field.label.toLowerCase()}`}
+            className="min-h-[100px]"
           />
         );
       case 'select':
         return (
           <select
-            className="w-full p-2 border rounded-md"
+            className="w-full p-2 border rounded-md bg-white"
             value={formData[field.name] || ''}
             onChange={(e) => handleInputChange(field.name, e.target.value)}
           >
@@ -203,11 +209,17 @@ const BusinessOpsToolModal: React.FC<BusinessOpsToolModalProps> = ({
       <div className="space-y-4">
         {Object.entries(previewData).map(([key, value]) => (
           <div key={key} className="border-b pb-2">
-            <div className="font-medium text-sm text-gray-600 capitalize">
+            <div className="font-medium text-sm text-gray-600 capitalize mb-1">
               {key.replace(/([A-Z])/g, ' $1').trim()}
             </div>
             <div className="text-lg font-semibold">
-              {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+              {typeof value === 'object' && value !== null ? (
+                <pre className="text-sm bg-gray-50 p-2 rounded whitespace-pre-wrap">
+                  {JSON.stringify(value, null, 2)}
+                </pre>
+              ) : (
+                String(value)
+              )}
             </div>
           </div>
         ))}
@@ -219,7 +231,7 @@ const BusinessOpsToolModal: React.FC<BusinessOpsToolModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{toolTitle}</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">{toolTitle}</DialogTitle>
         </DialogHeader>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -231,7 +243,7 @@ const BusinessOpsToolModal: React.FC<BusinessOpsToolModalProps> = ({
             <CardContent className="space-y-4">
               {formFields.map((field) => (
                 <div key={field.name} className="space-y-2">
-                  <Label htmlFor={field.name}>
+                  <Label htmlFor={field.name} className="text-sm font-medium">
                     {field.label}
                     {field.required && <span className="text-red-500 ml-1">*</span>}
                   </Label>
@@ -242,7 +254,7 @@ const BusinessOpsToolModal: React.FC<BusinessOpsToolModalProps> = ({
               <Button
                 onClick={generatePreview}
                 disabled={isGenerating}
-                className="w-full"
+                className="w-full mt-6"
               >
                 {isGenerating ? (
                   <>
@@ -290,7 +302,10 @@ const BusinessOpsToolModal: React.FC<BusinessOpsToolModalProps> = ({
                 </div>
               ) : (
                 <div className="text-center text-gray-500 py-8">
-                  Fill in the form and click "Generate Preview" to see results
+                  <div className="mb-4">
+                    <Eye className="h-12 w-12 mx-auto text-gray-300" />
+                  </div>
+                  <p>Fill in the form and click "Generate Preview" to see results</p>
                 </div>
               )}
             </CardContent>

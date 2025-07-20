@@ -12,6 +12,7 @@ interface ToolFormData {
   fields: Record<string, any>;
   userId: string;
   companyId: string;
+  generatePDF?: boolean;
 }
 
 serve(async (req) => {
@@ -26,15 +27,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { toolType, fields, userId, companyId } = await req.json() as ToolFormData;
+    const { toolType, fields, userId, companyId, generatePDF } = await req.json() as ToolFormData;
 
-    console.log('Processing business ops tool:', { toolType, userId, companyId });
+    console.log('Processing business ops tool:', { toolType, userId, companyId, generatePDF });
 
     // Generate preview data based on tool type
     const previewData = await generatePreviewData(toolType, fields);
 
     // If PDF generation is requested
-    if (req.url.includes('generate-pdf')) {
+    if (generatePDF) {
       const pdfContent = await generatePDF(toolType, fields, previewData);
       
       return new Response(pdfContent, {
@@ -80,6 +81,8 @@ serve(async (req) => {
 });
 
 async function generatePreviewData(toolType: string, fields: Record<string, any>) {
+  console.log(`Generating preview for ${toolType} with fields:`, fields);
+  
   switch (toolType) {
     case 'revenue-projection':
       return generateRevenueProjection(fields);
@@ -109,13 +112,14 @@ function generateRevenueProjection(fields: Record<string, any>) {
   const monthlyGrowth = (projectedRevenue - current) / months;
   
   return {
-    currentRevenue: current,
-    projectedRevenue: Math.round(projectedRevenue),
-    monthlyGrowth: Math.round(monthlyGrowth),
-    totalGrowth: Math.round(projectedRevenue - current),
-    growthPercentage: Math.round(((projectedRevenue - current) / current) * 100),
-    timeframe: months,
+    currentRevenue: `$${current.toLocaleString()}`,
+    projectedRevenue: `$${Math.round(projectedRevenue).toLocaleString()}`,
+    monthlyGrowth: `$${Math.round(monthlyGrowth).toLocaleString()}`,
+    totalGrowth: `$${Math.round(projectedRevenue - current).toLocaleString()}`,
+    growthPercentage: `${Math.round(((projectedRevenue - current) / current) * 100)}%`,
+    timeframe: `${months} months`,
     riskFactors: marketFactors || 'Standard market conditions',
+    recommendation: projectedRevenue > current * 1.2 ? 'Strong growth expected' : 'Moderate growth projected',
     generatedAt: new Date().toLocaleDateString()
   };
 }
@@ -127,20 +131,22 @@ function generateCostAnalysis(fields: Record<string, any>) {
   const variable = parseFloat(variableCosts) || 0;
   const vol = parseFloat(volume) || 1;
   
-  const totalCost = fixed + (variable * vol);
+  const totalVariableCosts = variable * vol;
+  const totalCost = fixed + totalVariableCosts;
   const costPerUnit = totalCost / vol;
   
   return {
-    fixedCosts: fixed,
-    variableCosts: variable * vol,
-    totalCosts: Math.round(totalCost),
-    costPerUnit: Math.round(costPerUnit * 100) / 100,
-    volume: vol,
+    fixedCosts: `$${fixed.toLocaleString()}`,
+    variableCosts: `$${totalVariableCosts.toLocaleString()}`,
+    totalCosts: `$${Math.round(totalCost).toLocaleString()}`,
+    costPerUnit: `$${(Math.round(costPerUnit * 100) / 100).toFixed(2)}`,
+    volume: vol.toLocaleString(),
     category: category || 'General',
-    breakdownPercentage: {
-      fixed: Math.round((fixed / totalCost) * 100),
-      variable: Math.round(((variable * vol) / totalCost) * 100)
+    costBreakdown: {
+      fixedPercentage: `${Math.round((fixed / totalCost) * 100)}%`,
+      variablePercentage: `${Math.round((totalVariableCosts / totalCost) * 100)}%`
     },
+    recommendation: fixed > totalVariableCosts ? 'Consider increasing volume to reduce per-unit costs' : 'Variable costs are dominant - focus on efficiency',
     generatedAt: new Date().toLocaleDateString()
   };
 }
@@ -156,14 +162,15 @@ function generateROICalculation(fields: Record<string, any>) {
   const annualizedROI = roi / time;
   
   return {
-    initialInvestment: invest,
-    expectedReturns: ret,
-    netProfit: ret - invest,
-    roiPercentage: Math.round(roi * 100) / 100,
-    annualizedROI: Math.round(annualizedROI * 100) / 100,
-    timeframe: time,
+    initialInvestment: `$${invest.toLocaleString()}`,
+    expectedReturns: `$${ret.toLocaleString()}`,
+    netProfit: `$${(ret - invest).toLocaleString()}`,
+    roiPercentage: `${(Math.round(roi * 100) / 100).toFixed(2)}%`,
+    annualizedROI: `${(Math.round(annualizedROI * 100) / 100).toFixed(2)}%`,
+    timeframe: `${time} years`,
     riskLevel: riskLevel || 'Medium',
-    paybackPeriod: Math.round((invest / (ret / time)) * 100) / 100,
+    paybackPeriod: `${(Math.round((invest / (ret / time)) * 100) / 100).toFixed(1)} years`,
+    recommendation: roi > 15 ? 'Excellent ROI - Highly recommended' : roi > 10 ? 'Good ROI - Recommended' : 'Consider alternative investments',
     generatedAt: new Date().toLocaleDateString()
   };
 }
@@ -176,30 +183,33 @@ function generateMarketAnalysis(fields: Record<string, any>) {
   const competitorCount = parseInt(competitors) || 1;
   
   return {
-    totalMarketSize: size,
+    totalMarketSize: `$${size.toLocaleString()}`,
     targetSegment: targetSegment || 'Primary',
-    projectedGrowth: growth,
+    projectedGrowth: `${growth}% annually`,
     competitorAnalysis: {
       count: competitorCount,
-      marketShare: Math.round(100 / (competitorCount + 1)),
+      estimatedMarketShare: `${Math.round(100 / (competitorCount + 1))}%`,
       competitionLevel: competitorCount > 10 ? 'High' : competitorCount > 5 ? 'Medium' : 'Low'
     },
-    opportunities: [
+    marketOpportunities: [
       'Market expansion potential',
-      'Product differentiation',
-      'Customer acquisition strategies'
+      'Product differentiation opportunities',
+      'Customer acquisition strategies',
+      'Partnership possibilities'
     ],
     threats: [
-      'Increased competition',
-      'Market saturation risks',
-      'Economic factors'
+      'Increased competition risk',
+      'Market saturation concerns',
+      'Economic factor impacts',
+      'Technology disruption'
     ],
+    recommendation: competitorCount < 5 ? 'Favorable market conditions for entry' : 'Highly competitive - focus on differentiation',
     generatedAt: new Date().toLocaleDateString()
   };
 }
 
 function generateBudgetPlanner(fields: Record<string, any>) {
-  const { totalBudget, categories, timeframe, priorities } = fields;
+  const { totalBudget, timeframe, priorities } = fields;
   
   const budget = parseFloat(totalBudget) || 0;
   const period = timeframe || 'Quarterly';
@@ -213,17 +223,18 @@ function generateBudgetPlanner(fields: Record<string, any>) {
   };
   
   return {
-    totalBudget: budget,
+    totalBudget: `$${budget.toLocaleString()}`,
     timeframe: period,
-    allocation: {
-      marketing: Math.round(budget * defaultAllocation.marketing),
-      operations: Math.round(budget * defaultAllocation.operations),
-      sales: Math.round(budget * defaultAllocation.sales),
-      development: Math.round(budget * defaultAllocation.development),
-      administration: Math.round(budget * defaultAllocation.administration)
+    budgetAllocation: {
+      marketing: `$${Math.round(budget * defaultAllocation.marketing).toLocaleString()}`,
+      operations: `$${Math.round(budget * defaultAllocation.operations).toLocaleString()}`,
+      sales: `$${Math.round(budget * defaultAllocation.sales).toLocaleString()}`,
+      development: `$${Math.round(budget * defaultAllocation.development).toLocaleString()}`,
+      administration: `$${Math.round(budget * defaultAllocation.administration).toLocaleString()}`
     },
-    monthlyBudget: Math.round(budget / (period === 'Annual' ? 12 : period === 'Quarterly' ? 3 : 1)),
-    priorities: priorities || ['Revenue growth', 'Cost optimization', 'Market expansion'],
+    monthlyBudget: `$${Math.round(budget / (period === 'Annual' ? 12 : period === 'Quarterly' ? 3 : 1)).toLocaleString()}`,
+    priorities: priorities || 'Revenue growth, Cost optimization, Market expansion',
+    recommendation: 'Review allocation quarterly and adjust based on performance metrics',
     generatedAt: new Date().toLocaleDateString()
   };
 }
@@ -240,37 +251,39 @@ function generatePerformanceMetrics(fields: Record<string, any>) {
   
   return {
     kpiType: kpiType || 'Revenue',
-    currentPerformance: current,
-    targetPerformance: target,
-    variance: Math.round(variance * 100) / 100,
-    variancePercentage: Math.round(variancePercentage * 100) / 100,
+    currentPerformance: current.toLocaleString(),
+    targetPerformance: target.toLocaleString(),
+    variance: (Math.round(variance * 100) / 100).toLocaleString(),
+    variancePercentage: `${(Math.round(variancePercentage * 100) / 100).toFixed(1)}%`,
     status: variance >= 0 ? 'On Track' : 'Below Target',
     timeframe: period,
-    recommendations: variance < 0 ? [
+    actionItems: variance < 0 ? [
       'Increase marketing efforts',
-      'Optimize conversion rates',
-      'Review pricing strategy'
+      'Optimize conversion processes',
+      'Review pricing strategy',
+      'Analyze competitor activities'
     ] : [
       'Maintain current strategy',
       'Explore growth opportunities',
-      'Set higher targets'
+      'Set higher targets',
+      'Document best practices'
     ],
+    recommendation: variance < 0 ? 'Immediate action required to close performance gap' : 'Performance on track - consider stretch goals',
     generatedAt: new Date().toLocaleDateString()
   };
 }
 
 async function generatePDF(toolType: string, fields: Record<string, any>, previewData: any) {
   // Simple PDF generation (in a real implementation, you'd use a proper PDF library)
-  const content = `
-    Business Operations Report: ${toolType}
-    Generated: ${new Date().toLocaleDateString()}
-    
-    Input Data:
-    ${JSON.stringify(fields, null, 2)}
-    
-    Analysis Results:
-    ${JSON.stringify(previewData, null, 2)}
-  `;
+  const content = `Business Operations Report: ${toolType.replace('-', ' ').toUpperCase()}
+Generated: ${new Date().toLocaleDateString()}
+
+INPUT PARAMETERS:
+${Object.entries(fields).map(([key, value]) => `${key}: ${value}`).join('\n')}
+
+ANALYSIS RESULTS:
+${Object.entries(previewData).map(([key, value]) => `${key}: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : value}`).join('\n')}
+`;
   
   return new TextEncoder().encode(content);
 }

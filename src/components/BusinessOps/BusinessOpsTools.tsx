@@ -70,11 +70,13 @@ const BusinessOpsTools: React.FC = () => {
   ];
 
   const handleToolClick = (tool: BusinessTool) => {
+    console.log('Tool clicked:', tool.title, tool.id);
     setSelectedTool(tool);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
+    console.log('Closing modal');
     setIsModalOpen(false);
     setSelectedTool(null);
   };
@@ -107,7 +109,7 @@ const BusinessOpsTools: React.FC = () => {
               return (
                 <Card 
                   key={tool.id} 
-                  className="hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                  className="hover:shadow-lg transition-shadow duration-200 cursor-pointer border-2 hover:border-blue-200"
                   onClick={() => handleToolClick(tool)}
                 >
                   <CardHeader className="pb-3">
