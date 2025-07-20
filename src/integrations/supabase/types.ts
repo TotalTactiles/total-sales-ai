@@ -424,6 +424,131 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_attachments: {
+        Row: {
+          chat_id: string
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string
+          file_url: string
+          id: string
+          message_id: string
+          uploaded_by: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          message_id: string
+          uploaded_by: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          message_id?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_attachments_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chat_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_participants: {
+        Row: {
+          chat_id: string
+          id: string
+          is_pinned: boolean | null
+          joined_at: string
+          last_read_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          is_pinned?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          is_pinned?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_participants_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chats: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          id: string
+          last_message_at: string | null
+          name: string | null
+          participants: string[]
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          participants: string[]
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          last_message_at?: string | null
+          name?: string | null
+          participants?: string[]
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       company_brains: {
         Row: {
           ai_insights: Json | null
@@ -1455,6 +1580,95 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      message_lead_links: {
+        Row: {
+          created_at: string
+          id: string
+          lead_id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lead_id: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lead_id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_lead_links_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_lead_links_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string | null
+          created_at: string
+          edited_at: string | null
+          file_name: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_pinned: boolean | null
+          message_type: string
+          metadata: Json | null
+          sender_id: string
+        }
+        Insert: {
+          chat_id: string
+          content?: string | null
+          created_at?: string
+          edited_at?: string | null
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          message_type?: string
+          metadata?: Json | null
+          sender_id: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string | null
+          created_at?: string
+          edited_at?: string | null
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          message_type?: string
+          metadata?: Json | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {

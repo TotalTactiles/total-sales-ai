@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import UserDropdown from './UserDropdown';
 import UnifiedNotificationCenter from './UnifiedNotificationCenter';
+import ChatButton from '@/components/Chat/ChatButton';
 
 const SalesRepNavigation: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -66,8 +67,11 @@ const SalesRepNavigation: React.FC = () => {
             })}
           </div>
 
-          {/* Right Side - Notifications and User Menu */}
+          {/* Right Side - Chat, Notifications and User Menu */}
           <div className="flex items-center gap-3">
+            {/* Chat Button */}
+            <ChatButton />
+            
             {/* Notifications */}
             <UnifiedNotificationCenter />
 
