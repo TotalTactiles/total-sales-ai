@@ -1,4 +1,3 @@
-import { logger } from '../../../src/utils/logger.ts';
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -83,7 +82,7 @@ serve(async (req) => {
       })
 
     if (usageError) {
-      logger.error('Failed to log lead email usage:', usageError)
+      console.error('Failed to log lead email usage:', usageError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to log email usage' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -115,7 +114,7 @@ serve(async (req) => {
       })
 
     if (notifError) {
-      logger.error('Failed to create lead email notification:', notifError)
+      console.error('Failed to create lead email notification:', notifError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to create notification' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -132,7 +131,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    logger.error('Error in send-lead-email function:', error)
+    console.error('Error in send-lead-email function:', error)
     
     return new Response(JSON.stringify({ 
       error: error.message,
