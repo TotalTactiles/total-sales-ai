@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BusinessGoalsTab from '@/components/Manager/BusinessGoalsTab';
+import BusinessOpsTools from '@/components/BusinessOps/BusinessOpsTools';
 
 const ManagerBusinessOps: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const ManagerBusinessOps: React.FC = () => {
       <Tabs defaultValue="goals" className="space-y-4">
         <TabsList>
           <TabsTrigger value="goals">Business Goals</TabsTrigger>
+          <TabsTrigger value="tools">Business Tools</TabsTrigger>
           <TabsTrigger value="processes">Processes</TabsTrigger>
           <TabsTrigger value="automation">Automation</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -23,6 +25,10 @@ const ManagerBusinessOps: React.FC = () => {
 
         <TabsContent value="goals">
           <BusinessGoalsTab />
+        </TabsContent>
+
+        <TabsContent value="tools">
+          <BusinessOpsTools />
         </TabsContent>
 
         <TabsContent value="processes">
