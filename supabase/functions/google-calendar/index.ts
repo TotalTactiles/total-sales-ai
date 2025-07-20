@@ -1,4 +1,3 @@
-import { logger } from '../../../src/utils/logger.ts';
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -110,7 +109,7 @@ serve(async (req) => {
         })
 
       if (usageError) {
-        logger.error('Failed to log calendar event:', usageError)
+        console.error('Failed to log calendar event:', usageError)
         return new Response(
           JSON.stringify({ success: false, error: 'Failed to log calendar event' }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -129,7 +128,7 @@ serve(async (req) => {
     throw new Error('Invalid action')
 
   } catch (error) {
-    logger.error('Error in google-calendar function:', error)
+    console.error('Error in google-calendar function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 
