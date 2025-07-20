@@ -1,4 +1,3 @@
-import { logger } from '../../../src/utils/logger.ts';
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -74,11 +73,9 @@ serve(async (req) => {
     if (url.pathname.includes('/webhook')) {
       const webhookData: RetellWebhookEvent = await req.json()
 
-      logger.info('Retell webhook received:', webhookData.event, webhookData.call_id)
+      console.log('Retell webhook received:', webhookData.event, webhookData.call_id)
       // Log call events to database
       const { error: logError } = await supabaseClient
-
-      const { error: logErr } = await supabaseClient
         .from('ai_brain_logs')
         .insert({
           company_id: 'retell-calls',
@@ -101,25 +98,21 @@ serve(async (req) => {
             timestamp: new Date().toISOString()
           }
         })
-      if (logErr) {
-        logger.error('Failed to log Retell webhook event', logErr)
-      }
-
       if (logError) {
-        logger.error('Failed to log Retell webhook event:', logError)
+        console.error('Failed to log Retell webhook event', logError)
       }
 
       // Handle specific events
       switch (webhookData.event) {
         case 'call_started':
-          logger.info(`Call started: ${webhookData.call_id}`)
+          console.log(`Call started: ${webhookData.call_id}`)
           break
         case 'call_ended':
-          logger.info(`Call ended: ${webhookData.call_id}`)
+          console.log(`Call ended: ${webhookData.call_id}`)
           // Process call transcript and analysis here
           break
         case 'call_analyzed':
-          logger.info(`Call analyzed: ${webhookData.call_id}`)
+          console.log(`Call analyzed: ${webhookData.call_id}`)
           break
       }
 
@@ -233,7 +226,7 @@ serve(async (req) => {
           }
         })
       if (usageErr) {
-        logger.error('Failed to log usage event', usageErr)
+        console.error('Failed to log usage event', usageErr)
       }
 
       return new Response(JSON.stringify({
@@ -246,33 +239,7 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
-    const callData = await callResponse.json()
 
-      // Log call initiation
-      const { error: usageError } = await supabaseClient
-        .from('usage_events')
-        .insert({
-          user_id: userId,
-          company_id: (await supabaseClient.from('profiles').select('company_id').eq('id', userId).single()).data?.company_id,
-          feature: 'retell_ai_call',
-          action: 'initiated',
-          context: `lead_${leadId}`,
-          metadata: {
-            leadName,
-            phoneNumber,
-            callId: callData.call_id,
-            agentId: agent.agent_id,
-            provider: 'retell_ai'
-          }
-        })
-
-      if (usageError) {
-        logger.error('Failed to log Retell call initiation:', usageError)
-        return new Response(
-          JSON.stringify({ success: false, error: 'Failed to log call event' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
     if (action === 'get_analysis') {
       const { callId } = body
       if (!callId) {
@@ -302,7 +269,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    logger.error('Error in retell-ai function:', error)
+    console.error('Error in retell-ai function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 
