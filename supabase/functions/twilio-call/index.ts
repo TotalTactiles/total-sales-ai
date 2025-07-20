@@ -1,4 +1,3 @@
-import { logger } from '../../../src/utils/logger.ts';
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -92,7 +91,7 @@ serve(async (req) => {
       })
 
     if (usageError) {
-      logger.error('Failed to log call event:', usageError)
+      console.error('Failed to log call event:', usageError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to log call event' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -110,7 +109,7 @@ serve(async (req) => {
     })
 
     if (logError) {
-      logger.error('Failed to create call log:', logError)
+      console.error('Failed to create call log:', logError)
       return new Response(
         JSON.stringify({ success: false, error: 'Failed to create call log' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -127,7 +126,7 @@ serve(async (req) => {
     })
 
   } catch (error) {
-    logger.error('Error in twilio-call function:', error)
+    console.error('Error in twilio-call function:', error)
     return new Response(JSON.stringify({ 
       error: error.message,
       success: false 
