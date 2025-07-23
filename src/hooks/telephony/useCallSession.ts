@@ -128,6 +128,30 @@ export const useCallSession = (sessionId?: string) => {
     }
   };
 
+  const endCall = async () => {
+    if (!sessionId) return;
+
+    try {
+      await updateCallSession({ 
+        status: 'ended', 
+        end_time: new Date().toISOString() 
+      });
+      await createCallEvent('hangup');
+    } catch (err) {
+      console.error('Failed to end call:', err);
+    }
+  };
+
+  const updateNotes = async (notes: string) => {
+    if (!sessionId) return;
+
+    try {
+      await updateCallSession({ notes });
+    } catch (err) {
+      console.error('Failed to update notes:', err);
+    }
+  };
+
   return {
     callSession,
     callEvents,
@@ -135,6 +159,11 @@ export const useCallSession = (sessionId?: string) => {
     error,
     updateCallSession,
     createCallEvent,
-    initiateCall
+    initiateCall,
+    endCall,
+    updateNotes,
+    // Aliases for backward compatibility
+    session: callSession,
+    events: callEvents
   };
 };

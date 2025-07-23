@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -138,10 +137,11 @@ const CleanAutoDialer: React.FC<CleanAutoDialerProps> = ({ leads, onLeadSelect }
     }
   };
 
-  const handleMute = () => {
+  const handleMuteToggle = () => {
     setIsMuted(!isMuted);
-    createCallEvent(isMuted ? 'unmute' : 'mute');
-    toast.info(isMuted ? 'Unmuted' : 'Muted');
+    if (currentSessionId) {
+      createCallEvent(isMuted ? 'mute' : 'mute', { muted: !isMuted });
+    }
   };
 
   const handleSendSMS = async (message: string) => {
@@ -298,7 +298,7 @@ const CleanAutoDialer: React.FC<CleanAutoDialerProps> = ({ leads, onLeadSelect }
                     ) : (
                       <>
                         <Button 
-                          onClick={handleMute}
+                          onClick={handleMuteToggle}
                           variant="outline"
                           size="sm"
                           className={isMuted ? 'bg-red-100 text-red-700' : ''}

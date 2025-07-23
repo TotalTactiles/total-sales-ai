@@ -1,407 +1,224 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Phone, PhoneCall, MessageSquare, Users, Settings, Play, Pause, Volume2 } from 'lucide-react';
+import { Phone, MessageSquare, Mail, CheckCircle, XCircle, AlertTriangle, MoreVertical, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useCallSession } from '@/hooks/telephony/useCallSession';
-import { useSMSConversation } from '@/hooks/telephony/useSMSConversation';
 import { useCallRecording } from '@/hooks/telephony/useCallRecording';
-import { useCallSupervision } from '@/hooks/telephony/useCallSupervision';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSMSConversation } from '@/hooks/telephony/useSMSConversation';
+import { Lead } from '@/types/lead';
+import { CallSession, CallEvent } from '@/services/telephony/callSessionService';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { toast } from 'sonner';
 
 interface EnhancedDialerInterfaceProps {
-  leads: any[];
-  selectedLead?: any;
-  onLeadSelect: (lead: any) => void;
+  currentLead: Lead | null;
+  onNextLead: () => void;
+  onPrevLead: () => void;
 }
 
-const EnhancedDialerInterface: React.FC<EnhancedDialerInterfaceProps> = ({
-  leads,
-  selectedLead,
-  onLeadSelect
-}) => {
-  const { user, profile } = useAuth();
-  const [activeCallSession, setActiveCallSession] = useState<string | null>(null);
-  
-  const { 
-    session, 
-    events, 
-    isLoading: callLoading,
+const EnhancedDialerInterface: React.FC<EnhancedDialerInterfaceProps> = ({ currentLead, onNextLead, onPrevLead }) => {
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(undefined);
+  const [callNotes, setCallNotes] = useState<string>('');
+
+  const {
+    callSession,
+    callEvents,
+    isLoading,
+    error,
+    updateCallSession,
+    createCallEvent,
     initiateCall,
     endCall,
     updateNotes
-  } = useCallSession(activeCallSession);
+  } = useCallSession(currentSessionId);
 
-  const { 
-    messages, 
-    isLoading: smsLoading,
-    sendSMS
-  } = useSMSConversation(selectedLead?.id, selectedLead?.phone);
+  const { recordings, transcribeRecording, analyzeRecording } = useCallRecording(currentSessionId);
+  const { messages, sendSMS } = useSMSConversation(currentLead?.phone);
 
-  const { 
-    recordings, 
-    isLoading: recordingLoading,
-    downloadRecording,
-    transcribeRecording
-  } = useCallRecording(activeCallSession);
-
-  const {
-    supervisions,
-    activeSupervision,
-    canSupervise,
-    startSupervision,
-    endSupervision
-  } = useCallSupervision(activeCallSession);
-
-  const handleInitiateCall = async (lead: any) => {
-    if (!user?.id || !profile?.company_id) {
-      toast.error('Authentication required');
-      return;
-    }
-
-    const sessionId = await initiateCall(
-      lead.phone,
-      undefined,
-      lead.id,
-      user.id,
-      profile.company_id,
-      'outbound'
-    );
-
+  const handleInitiateCall = async (phoneNumber: string) => {
+    const sessionId = await initiateCall(phoneNumber, currentLead?.id);
     if (sessionId) {
-      setActiveCallSession(sessionId);
-      onLeadSelect(lead);
+      setCurrentSessionId(sessionId);
     }
   };
 
   const handleSendSMS = async (message: string) => {
-    if (!selectedLead) return;
-    
-    const success = await sendSMS(message, selectedLead.id);
-    if (success) {
-      toast.success('SMS sent successfully');
+    if (currentLead?.phone) {
+      await sendSMS(message, currentLead.id);
     }
   };
 
-  const handleEndCall = async () => {
-    if (activeCallSession) {
-      await endCall(activeCallSession);
-      setActiveCallSession(null);
+  const handleQuickAction = async (action: string) => {
+    if (!currentSessionId) return;
+
+    switch (action) {
+      case 'transcribe':
+        if (recordings.length > 0) {
+          await transcribeRecording(recordings[0].id);
+        }
+        break;
+      case 'analyze':
+        if (recordings.length > 0) {
+          await analyzeRecording(recordings[0].id);
+        }
+        break;
+      case 'follow-up':
+        await handleSendSMS('Thank you for your time. We will follow up with more information shortly.');
+        break;
     }
+  };
+
+  useEffect(() => {
+    if (callSession?.notes) {
+      setCallNotes(callSession.notes);
+    }
+  }, [callSession?.notes]);
+
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setCallNotes(e.target.value);
+  };
+
+  const handleSaveNotes = async () => {
+    await updateNotes(callNotes);
+    toast.success('Call notes saved');
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-screen max-h-screen overflow-hidden">
-      {/* Left Panel - Leads List */}
-      <div className="lg:col-span-1">
-        <Card className="h-full">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Leads Queue
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="overflow-y-auto max-h-[calc(100vh-120px)]">
-            <div className="space-y-2">
-              {leads.map((lead) => (
-                <div
-                  key={lead.id}
-                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedLead?.id === lead.id
-                      ? 'bg-blue-50 border-blue-300'
-                      : 'bg-white border-gray-200 hover:bg-gray-50'
-                  }`}
-                  onClick={() => onLeadSelect(lead)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{lead.name}</p>
-                      <p className="text-sm text-gray-600">{lead.phone}</p>
-                      <p className="text-xs text-gray-500">{lead.company}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleInitiateCall(lead);
-                        }}
-                        disabled={!!activeCallSession}
-                      >
-                        <Phone className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onLeadSelect(lead);
-                        }}
-                      >
-                        <MessageSquare className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+    <div className="flex flex-col h-full">
+      {/* Lead Info */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Lead Information</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center space-x-4">
+          <Avatar>
+            <AvatarImage src={`https://avatar.vercel.sh/${currentLead?.email}.png`} />
+            <AvatarFallback>{currentLead?.name?.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="text-lg font-semibold">{currentLead?.name}</p>
+            <p className="text-sm text-gray-500">{currentLead?.company}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Dialer and Actions */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Dialer</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                type="tel"
+                id="phone"
+                defaultValue={currentLead?.phone}
+                disabled={isLoading}
+              />
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Center Panel - Call Control */}
-      <div className="lg:col-span-1">
-        <Card className="h-full">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2">
-              <PhoneCall className="w-5 h-5" />
-              Call Control
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Call Status */}
-            <div className="text-center">
-              {session ? (
-                <div className="space-y-2">
-                  <Badge variant={session.status === 'answered' ? 'default' : 'secondary'}>
-                    {session.status.toUpperCase()}
-                  </Badge>
-                  <p className="text-sm text-gray-600">
-                    {session.from_number} → {session.to_number}
-                  </p>
-                  {session.duration > 0 && (
-                    <p className="text-sm text-gray-600">
-                      Duration: {Math.floor(session.duration / 60)}:{(session.duration % 60).toString().padStart(2, '0')}
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="text-gray-500">
-                  <PhoneCall className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No active call</p>
-                </div>
-              )}
+            <div className="flex items-end justify-end">
+              <Button
+                onClick={() => handleInitiateCall(currentLead?.phone || '')}
+                disabled={isLoading}
+              >
+                <Phone className="mr-2 h-4 w-4" />
+                {isLoading ? 'Calling...' : 'Call'}
+              </Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            {/* Call Actions */}
-            <div className="flex justify-center gap-4">
-              {session && session.status !== 'completed' ? (
-                <Button
-                  onClick={handleEndCall}
-                  variant="destructive"
-                  className="flex items-center gap-2"
-                >
-                  <PhoneCall className="w-4 h-4" />
-                  End Call
-                </Button>
-              ) : (
-                selectedLead && (
-                  <Button
-                    onClick={() => handleInitiateCall(selectedLead)}
-                    disabled={callLoading || !!activeCallSession}
-                    className="flex items-center gap-2"
-                  >
-                    <Phone className="w-4 h-4" />
-                    Call {selectedLead.name}
-                  </Button>
-                )
-              )}
-            </div>
+      {/* Call Session Details */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Call Session</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <p>
+              <strong>Status:</strong> {callSession?.status || 'Idle'}
+            </p>
+            <p>
+              <strong>Start Time:</strong> {callSession?.start_time || 'N/A'}
+            </p>
+            <p>
+              <strong>End Time:</strong> {callSession?.end_time || 'N/A'}
+            </p>
+            <p>
+              <strong>Events:</strong> {callEvents?.length || 0}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
-            {/* Call Recordings */}
-            {recordings.length > 0 && (
-              <div className="mt-4">
-                <h3 className="font-medium mb-2">Recordings</h3>
-                <div className="space-y-2">
-                  {recordings.map((recording) => (
-                    <div key={recording.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                      <div className="flex items-center gap-2">
-                        <Volume2 className="w-4 h-4" />
-                        <span className="text-sm">
-                          {recording.duration ? `${recording.duration}s` : 'Processing...'}
-                        </span>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => downloadRecording(recording.recording_url)}
-                        >
-                          Download
-                        </Button>
-                        {!recording.transcription && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => transcribeRecording(recording.id)}
-                          >
-                            Transcribe
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+      {/* Notes */}
+      <Card className="mb-4 flex-grow">
+        <CardHeader>
+          <CardTitle>Notes</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col h-full">
+          <Textarea
+            placeholder="Add call notes here..."
+            value={callNotes}
+            onChange={handleNotesChange}
+            className="flex-grow"
+          />
+          <Button onClick={handleSaveNotes} className="mt-4">
+            Save Notes
+          </Button>
+        </CardContent>
+      </Card>
 
-            {/* Call Supervision */}
-            {canSupervise && session && (
-              <div className="mt-4">
-                <h3 className="font-medium mb-2">Supervision</h3>
-                {!activeSupervision ? (
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => startSupervision('listen')}
-                    >
-                      Listen
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => startSupervision('whisper')}
-                    >
-                      Whisper
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => startSupervision('barge')}
-                    >
-                      Barge
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <Badge variant="default">
-                      {activeSupervision.supervision_type.toUpperCase()}
-                    </Badge>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={endSupervision}
-                    >
-                      End Supervision
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+      {/* Quick Actions */}
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex space-x-2">
+            <Button onClick={() => handleQuickAction('transcribe')}>Transcribe</Button>
+            <Button onClick={() => handleQuickAction('analyze')}>Analyze</Button>
+            <Button onClick={() => handleQuickAction('follow-up')}>Follow-up SMS</Button>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Right Panel - SMS & Details */}
-      <div className="lg:col-span-1">
-        <Card className="h-full">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" />
-              Communication
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="h-[calc(100vh-120px)] overflow-hidden">
-            <Tabs defaultValue="sms" className="h-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="sms">SMS</TabsTrigger>
-                <TabsTrigger value="notes">Notes</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="sms" className="h-full space-y-4">
-                {selectedLead ? (
-                  <>
-                    <div className="flex-1 overflow-y-auto max-h-[60vh] space-y-2">
-                      {messages.map((msg) => (
-                        <div
-                          key={msg.id}
-                          className={`p-2 rounded-lg max-w-[80%] ${
-                            msg.direction === 'outbound'
-                              ? 'bg-blue-100 text-blue-900 ml-auto'
-                              : 'bg-gray-100 text-gray-900 mr-auto'
-                          }`}
-                        >
-                          <p className="text-sm">{msg.body}</p>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(msg.created_at).toLocaleTimeString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Type a message..."
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            handleSendSMS(e.currentTarget.value);
-                            e.currentTarget.value = '';
-                          }
-                        }}
-                      />
-                      <Button
-                        onClick={(e) => {
-                          const input = e.currentTarget.parentElement?.querySelector('input');
-                          if (input?.value) {
-                            handleSendSMS(input.value);
-                            input.value = '';
-                          }
-                        }}
-                      >
-                        Send
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="text-center text-gray-500">
-                    <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>Select a lead to start messaging</p>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="notes" className="h-full space-y-4">
-                {selectedLead ? (
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-medium mb-2">Lead Information</h4>
-                      <div className="text-sm space-y-1">
-                        <p><strong>Name:</strong> {selectedLead.name}</p>
-                        <p><strong>Company:</strong> {selectedLead.company}</p>
-                        <p><strong>Phone:</strong> {selectedLead.phone}</p>
-                        <p><strong>Email:</strong> {selectedLead.email}</p>
-                        <p><strong>Status:</strong> {selectedLead.status}</p>
-                      </div>
-                    </div>
-                    
-                    {session && (
-                      <div>
-                        <h4 className="font-medium mb-2">Call Notes</h4>
-                        <textarea
-                          className="w-full p-2 border rounded-md"
-                          placeholder="Add call notes..."
-                          rows={4}
-                          defaultValue={session.notes || ''}
-                          onBlur={(e) => updateNotes(session.id, e.target.value)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center text-gray-500">
-                    <Settings className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>Select a lead to view details</p>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+      {/* Navigation */}
+      <div className="flex justify-between items-center">
+        <Button onClick={onPrevLead} variant="outline">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Previous
+        </Button>
+        <Button onClick={onNextLead} variant="outline">
+          Next
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
     </div>
   );

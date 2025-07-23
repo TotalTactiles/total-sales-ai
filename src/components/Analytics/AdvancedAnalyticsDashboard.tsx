@@ -12,12 +12,11 @@ import {
   Clock, 
   Target,
   BarChart3,
-  PieChart,
   LineChart,
   Lightbulb
 } from 'lucide-react';
 import { useAdvancedAnalytics } from '@/hooks/telephony/useAdvancedAnalytics';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell, LineChart as RechartsLineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Cell, LineChart as RechartsLineChart, Line } from 'recharts';
 
 const AdvancedAnalyticsDashboard = () => {
   const [dateRange, setDateRange] = useState({
@@ -182,7 +181,7 @@ const AdvancedAnalyticsDashboard = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <RechartsPieChart>
+                  <PieChart>
                     <PieChart
                       data={callStatusData}
                       cx="50%"
@@ -197,7 +196,7 @@ const AdvancedAnalyticsDashboard = () => {
                       ))}
                     </PieChart>
                     <Tooltip />
-                  </RechartsPieChart>
+                  </PieChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -259,7 +258,7 @@ const AdvancedAnalyticsDashboard = () => {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <RechartsPieChart>
+                  <PieChart>
                     <PieChart
                       data={smsFlowData}
                       cx="50%"
@@ -274,7 +273,7 @@ const AdvancedAnalyticsDashboard = () => {
                       ))}
                     </PieChart>
                     <Tooltip />
-                  </RechartsPieChart>
+                  </PieChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
