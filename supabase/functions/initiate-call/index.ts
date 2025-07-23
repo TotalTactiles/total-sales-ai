@@ -43,7 +43,7 @@ serve(async (req) => {
     const { data: session, error: sessionError } = await supabaseClient
       .from('call_sessions')
       .insert({
-        call_sid: `temp_${Date.now()}`, // Will be updated when Twilio responds
+        call_sid: `temp_${Date.now()}`,
         company_id: companyId,
         user_id: userId,
         lead_id: leadId,
@@ -67,8 +67,8 @@ serve(async (req) => {
     const formData = new URLSearchParams({
       To: to,
       From: twilioNumber,
-      Url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/twilio-webhook-enhanced`,
-      StatusCallback: `${Deno.env.get('SUPABASE_URL')}/functions/v1/twilio-webhook-enhanced`,
+      Url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/twilio-webhook`,
+      StatusCallback: `${Deno.env.get('SUPABASE_URL')}/functions/v1/twilio-webhook`,
       StatusCallbackEvent: 'initiated,ringing,answered,completed',
       Record: 'true',
       RecordingStatusCallback: `${Deno.env.get('SUPABASE_URL')}/functions/v1/recording-status`,
