@@ -9,7 +9,11 @@ interface TSAMDialerLayoutProps {
 }
 
 const TSAMDialerLayout: React.FC<TSAMDialerLayoutProps> = ({ leads, onLeadSelect }) => {
-  return <CleanAutoDialer leads={leads} onLeadSelect={onLeadSelect} />;
+  return (
+    <div className="h-full">
+      <CleanAutoDialer leads={leads} onLeadSelect={onLeadSelect} />
+    </div>
+  );
 };
 
 export default TSAMDialerLayout;

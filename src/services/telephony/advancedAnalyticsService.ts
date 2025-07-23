@@ -1,25 +1,17 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 export interface CallAnalytics {
   total_calls: number;
   answered_calls: number;
-  answer_rate: number;
-  average_duration: number;
-  total_duration: number;
   missed_calls: number;
   failed_calls: number;
-  recordings_count: number;
-  transcriptions_count: number;
-  sentiment_scores: number[];
-  quality_scores: number[];
-  peak_call_hours: { hour: number; count: number }[];
-  conversion_metrics: {
-    calls_to_meetings: number;
-    calls_to_sales: number;
-    conversion_rate: number;
-  };
+  answer_rate: number;
+  total_duration: number;
+  average_duration: number;
+  peak_call_hours: { hour: number; count: number; }[];
+  conversion_rate: number;
+  quality_score: number;
 }
 
 export interface SMSAnalytics {
@@ -27,10 +19,9 @@ export interface SMSAnalytics {
   outbound_messages: number;
   inbound_messages: number;
   response_rate: number;
-  average_response_time: number;
   delivery_rate: number;
-  thread_count: number;
-  active_conversations: number;
+  avg_response_time: number;
+  popular_templates: string[];
 }
 
 export interface RepPerformance {
@@ -39,12 +30,10 @@ export interface RepPerformance {
   calls_made: number;
   calls_answered: number;
   talk_time: number;
-  average_call_duration: number;
   conversion_rate: number;
   quality_score: number;
-  sentiment_score: number;
-  activities_completed: number;
-  revenue_attributed: number;
+  sms_sent: number;
+  sms_response_rate: number;
 }
 
 export class AdvancedAnalyticsService {
@@ -53,7 +42,7 @@ export class AdvancedAnalyticsService {
     startDate: string,
     endDate: string,
     repId?: string
-  ): Promise<CallAnalytics | null> {
+  ): Promise<CallAnalytics> {
     try {
       let query = supabase
         .from('call_sessions')
@@ -66,59 +55,46 @@ export class AdvancedAnalyticsService {
         query = query.eq('user_id', repId);
       }
 
-      const { data: calls, error } = await query;
+      const { data, error } = await query;
 
-      if (error) {
-        console.error('Error fetching call analytics:', error);
-        return null;
-      }
+      if (error) throw error;
 
-      const totalCalls = calls?.length || 0;
-      const answeredCalls = calls?.filter(c => c.status === 'answered' || c.status === 'completed').length || 0;
-      const missedCalls = calls?.filter(c => c.status === 'failed' || c.status === 'cancelled').length || 0;
-      const failedCalls = calls?.filter(c => c.status === 'failed').length || 0;
-
-      const durations = calls?.filter(c => c.duration > 0).map(c => c.duration) || [];
-      const totalDuration = durations.reduce((sum, d) => sum + d, 0);
-      const averageDuration = durations.length > 0 ? totalDuration / durations.length : 0;
-
-      const sentimentScores = calls?.filter(c => c.sentiment_score).map(c => c.sentiment_score) || [];
-      const qualityScores = calls?.filter(c => c.quality_score).map(c => c.quality_score) || [];
+      const sessions = data || [];
+      const totalCalls = sessions.length;
+      const answeredCalls = sessions.filter(s => s.status === 'answered').length;
+      const missedCalls = sessions.filter(s => s.status === 'failed' || s.status === 'cancelled').length;
+      const failedCalls = sessions.filter(s => s.status === 'failed').length;
+      const answerRate = totalCalls > 0 ? (answeredCalls / totalCalls) * 100 : 0;
+      const totalDuration = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+      const avgDuration = answeredCalls > 0 ? totalDuration / answeredCalls : 0;
 
       // Calculate peak call hours
-      const peakHours = calls?.reduce((acc, call) => {
-        const hour = new Date(call.created_at).getHours();
-        acc[hour] = (acc[hour] || 0) + 1;
-        return acc;
-      }, {} as Record<number, number>) || {};
+      const hourCounts = new Map<number, number>();
+      sessions.forEach(session => {
+        const hour = new Date(session.created_at).getHours();
+        hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
+      });
 
-      const peakCallHours = Object.entries(peakHours)
-        .map(([hour, count]) => ({ hour: parseInt(hour), count }))
+      const peakCallHours = Array.from(hourCounts.entries())
+        .map(([hour, count]) => ({ hour, count }))
         .sort((a, b) => b.count - a.count)
-        .slice(0, 6);
+        .slice(0, 12);
 
       return {
         total_calls: totalCalls,
         answered_calls: answeredCalls,
-        answer_rate: totalCalls > 0 ? (answeredCalls / totalCalls) * 100 : 0,
-        average_duration: averageDuration,
-        total_duration: totalDuration,
         missed_calls: missedCalls,
         failed_calls: failedCalls,
-        recordings_count: calls?.filter(c => c.recording_url).length || 0,
-        transcriptions_count: calls?.filter(c => c.transcription).length || 0,
-        sentiment_scores: sentimentScores,
-        quality_scores: qualityScores,
+        answer_rate: answerRate,
+        total_duration: totalDuration,
+        average_duration: avgDuration,
         peak_call_hours: peakCallHours,
-        conversion_metrics: {
-          calls_to_meetings: 0, // TODO: Calculate from CRM data
-          calls_to_sales: 0, // TODO: Calculate from CRM data
-          conversion_rate: 0 // TODO: Calculate from CRM data
-        }
+        conversion_rate: 0, // Would need leads data to calculate
+        quality_score: sessions.reduce((sum, s) => sum + (s.quality_score || 0), 0) / sessions.length || 0
       };
     } catch (error) {
-      console.error('Error calculating call analytics:', error);
-      return null;
+      console.error('Error fetching call analytics:', error);
+      throw error;
     }
   }
 
@@ -127,7 +103,7 @@ export class AdvancedAnalyticsService {
     startDate: string,
     endDate: string,
     repId?: string
-  ): Promise<SMSAnalytics | null> {
+  ): Promise<SMSAnalytics> {
     try {
       let query = supabase
         .from('sms_conversations')
@@ -140,33 +116,29 @@ export class AdvancedAnalyticsService {
         query = query.eq('user_id', repId);
       }
 
-      const { data: messages, error } = await query;
+      const { data, error } = await query;
 
-      if (error) {
-        console.error('Error fetching SMS analytics:', error);
-        return null;
-      }
+      if (error) throw error;
 
-      const totalMessages = messages?.length || 0;
-      const outboundMessages = messages?.filter(m => m.direction === 'outbound').length || 0;
-      const inboundMessages = messages?.filter(m => m.direction === 'inbound').length || 0;
-      const deliveredMessages = messages?.filter(m => m.status === 'delivered').length || 0;
-
-      const threads = new Set(messages?.map(m => m.thread_id).filter(Boolean)).size;
+      const messages = data || [];
+      const totalMessages = messages.length;
+      const outboundMessages = messages.filter(m => m.direction === 'outbound').length;
+      const inboundMessages = messages.filter(m => m.direction === 'inbound').length;
+      const responseRate = outboundMessages > 0 ? (inboundMessages / outboundMessages) * 100 : 0;
+      const deliveryRate = messages.filter(m => m.status === 'delivered').length / totalMessages * 100 || 0;
 
       return {
         total_messages: totalMessages,
         outbound_messages: outboundMessages,
         inbound_messages: inboundMessages,
-        response_rate: outboundMessages > 0 ? (inboundMessages / outboundMessages) * 100 : 0,
-        average_response_time: 0, // TODO: Calculate from message timestamps
-        delivery_rate: totalMessages > 0 ? (deliveredMessages / totalMessages) * 100 : 0,
-        thread_count: threads,
-        active_conversations: threads // Simplified for now
+        response_rate: responseRate,
+        delivery_rate: deliveryRate,
+        avg_response_time: 0, // Would need conversation threading to calculate
+        popular_templates: []
       };
     } catch (error) {
-      console.error('Error calculating SMS analytics:', error);
-      return null;
+      console.error('Error fetching SMS analytics:', error);
+      throw error;
     }
   }
 
@@ -176,48 +148,83 @@ export class AdvancedAnalyticsService {
     endDate: string
   ): Promise<RepPerformance[]> {
     try {
+      const { data: callData, error: callError } = await supabase
+        .from('call_sessions')
+        .select('user_id, duration, quality_score, status')
+        .eq('company_id', companyId)
+        .gte('created_at', startDate)
+        .lte('created_at', endDate);
+
+      if (callError) throw callError;
+
+      const { data: smsData, error: smsError } = await supabase
+        .from('sms_conversations')
+        .select('user_id, direction')
+        .eq('company_id', companyId)
+        .gte('created_at', startDate)
+        .lte('created_at', endDate);
+
+      if (smsError) throw smsError;
+
       const { data: profiles, error: profileError } = await supabase
         .from('profiles')
         .select('id, full_name')
-        .eq('company_id', companyId)
-        .eq('role', 'sales_rep');
+        .eq('company_id', companyId);
 
-      if (profileError) {
-        console.error('Error fetching profiles:', profileError);
-        return [];
-      }
+      if (profileError) throw profileError;
 
-      const performance: RepPerformance[] = [];
+      const repStats = new Map<string, RepPerformance>();
 
-      for (const profile of profiles || []) {
-        const callAnalytics = await this.getCallAnalytics(companyId, startDate, endDate, profile.id);
-        const smsAnalytics = await this.getSMSAnalytics(companyId, startDate, endDate, profile.id);
+      // Initialize rep performance objects
+      profiles?.forEach(profile => {
+        repStats.set(profile.id, {
+          rep_id: profile.id,
+          rep_name: profile.full_name || 'Unknown',
+          calls_made: 0,
+          calls_answered: 0,
+          talk_time: 0,
+          conversion_rate: 0,
+          quality_score: 0,
+          sms_sent: 0,
+          sms_response_rate: 0
+        });
+      });
 
-        if (callAnalytics) {
-          performance.push({
-            rep_id: profile.id,
-            rep_name: profile.full_name,
-            calls_made: callAnalytics.total_calls,
-            calls_answered: callAnalytics.answered_calls,
-            talk_time: callAnalytics.total_duration,
-            average_call_duration: callAnalytics.average_duration,
-            conversion_rate: callAnalytics.conversion_metrics.conversion_rate,
-            quality_score: callAnalytics.quality_scores.length > 0 
-              ? callAnalytics.quality_scores.reduce((a, b) => a + b, 0) / callAnalytics.quality_scores.length 
-              : 0,
-            sentiment_score: callAnalytics.sentiment_scores.length > 0 
-              ? callAnalytics.sentiment_scores.reduce((a, b) => a + b, 0) / callAnalytics.sentiment_scores.length 
-              : 0,
-            activities_completed: callAnalytics.total_calls + (smsAnalytics?.total_messages || 0),
-            revenue_attributed: 0 // TODO: Calculate from CRM data
-          });
+      // Process call data
+      callData?.forEach(call => {
+        const rep = repStats.get(call.user_id);
+        if (rep) {
+          rep.calls_made++;
+          if (call.status === 'answered') {
+            rep.calls_answered++;
+            rep.talk_time += call.duration || 0;
+          }
+          rep.quality_score += call.quality_score || 0;
         }
-      }
+      });
 
-      return performance.sort((a, b) => b.calls_made - a.calls_made);
+      // Process SMS data
+      smsData?.forEach(sms => {
+        const rep = repStats.get(sms.user_id);
+        if (rep && sms.direction === 'outbound') {
+          rep.sms_sent++;
+        }
+      });
+
+      // Calculate averages and rates
+      repStats.forEach(rep => {
+        if (rep.calls_made > 0) {
+          rep.quality_score = rep.quality_score / rep.calls_made;
+        }
+        // Additional calculations would go here
+      });
+
+      return Array.from(repStats.values())
+        .filter(rep => rep.calls_made > 0 || rep.sms_sent > 0)
+        .sort((a, b) => b.calls_answered - a.calls_answered);
     } catch (error) {
-      console.error('Error calculating rep performance:', error);
-      return [];
+      console.error('Error fetching rep performance:', error);
+      throw error;
     }
   }
 
@@ -227,47 +234,28 @@ export class AdvancedAnalyticsService {
     endDate: string
   ): Promise<string[]> {
     try {
-      const callAnalytics = await this.getCallAnalytics(companyId, startDate, endDate);
-      const smsAnalytics = await this.getSMSAnalytics(companyId, startDate, endDate);
-      const repPerformance = await this.getRepPerformance(companyId, startDate, endDate);
-
       const insights: string[] = [];
 
-      if (callAnalytics) {
-        if (callAnalytics.answer_rate < 30) {
-          insights.push(`Low answer rate (${callAnalytics.answer_rate.toFixed(1)}%). Consider calling during peak hours or improving lead quality.`);
-        }
+      // Get call analytics for insights
+      const callAnalytics = await this.getCallAnalytics(companyId, startDate, endDate);
+      const smsAnalytics = await this.getSMSAnalytics(companyId, startDate, endDate);
 
-        if (callAnalytics.average_duration < 120) {
-          insights.push(`Short average call duration (${Math.round(callAnalytics.average_duration)}s). Focus on engagement and discovery techniques.`);
-        }
-
-        if (callAnalytics.peak_call_hours.length > 0) {
-          const bestHour = callAnalytics.peak_call_hours[0];
-          insights.push(`Most successful calling hour: ${bestHour.hour}:00 with ${bestHour.count} calls.`);
-        }
+      // Generate insights based on data
+      if (callAnalytics.answer_rate < 50) {
+        insights.push('📞 Your answer rate is below 50%. Consider calling during different hours or improving your opening message.');
       }
 
-      if (smsAnalytics) {
-        if (smsAnalytics.response_rate < 20) {
-          insights.push(`Low SMS response rate (${smsAnalytics.response_rate.toFixed(1)}%). Consider personalizing messages or adjusting timing.`);
-        }
-
-        if (smsAnalytics.delivery_rate < 95) {
-          insights.push(`SMS delivery issues (${smsAnalytics.delivery_rate.toFixed(1)}% delivered). Check phone number quality.`);
-        }
+      if (callAnalytics.peak_call_hours.length > 0) {
+        const bestHour = callAnalytics.peak_call_hours[0];
+        insights.push(`⏰ Your most successful calling hour is ${bestHour.hour}:00 with ${bestHour.count} calls.`);
       }
 
-      if (repPerformance.length > 0) {
-        const topRep = repPerformance[0];
-        insights.push(`Top performer: ${topRep.rep_name} with ${topRep.calls_made} calls and ${topRep.calls_answered} connections.`);
+      if (smsAnalytics.response_rate > 30) {
+        insights.push('💬 Your SMS response rate is strong! Consider increasing SMS outreach.');
+      }
 
-        const avgCallsPerRep = repPerformance.reduce((sum, rep) => sum + rep.calls_made, 0) / repPerformance.length;
-        const underperformers = repPerformance.filter(rep => rep.calls_made < avgCallsPerRep * 0.7);
-        
-        if (underperformers.length > 0) {
-          insights.push(`${underperformers.length} reps are below average activity. Consider additional coaching or support.`);
-        }
+      if (callAnalytics.average_duration < 60) {
+        insights.push('⏱️ Average call duration is under 1 minute. Focus on engaging prospects longer.');
       }
 
       return insights;
