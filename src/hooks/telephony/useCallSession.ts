@@ -133,8 +133,8 @@ export const useCallSession = (sessionId?: string) => {
 
     try {
       await updateCallSession({ 
-        status: 'ended', 
-        end_time: new Date().toISOString() 
+        status: 'completed', 
+        ended_at: new Date().toISOString() 
       });
       await createCallEvent('hangup');
     } catch (err) {

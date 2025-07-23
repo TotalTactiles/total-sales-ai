@@ -16,7 +16,7 @@ import {
   Lightbulb
 } from 'lucide-react';
 import { useAdvancedAnalytics } from '@/hooks/telephony/useAdvancedAnalytics';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Cell, LineChart as RechartsLineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart as RechartsLineChart, Line } from 'recharts';
 
 const AdvancedAnalyticsDashboard = () => {
   const [dateRange, setDateRange] = useState({
@@ -60,6 +60,11 @@ const AdvancedAnalyticsDashboard = () => {
     { name: 'Outbound', value: smsAnalytics?.outbound_messages || 0 },
     { name: 'Inbound', value: smsAnalytics?.inbound_messages || 0 }
   ];
+
+  const renderLabel = (entry: any) => {
+    const percent = entry.percent || 0;
+    return `${entry.name} ${(percent * 100).toFixed(0)}%`;
+  };
 
   return (
     <div className="space-y-6">
@@ -182,11 +187,12 @@ const AdvancedAnalyticsDashboard = () => {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
-                    <PieChart
+                    <Pie
                       data={callStatusData}
                       cx="50%"
                       cy="50%"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      label={renderLabel}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -194,7 +200,7 @@ const AdvancedAnalyticsDashboard = () => {
                       {callStatusData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
-                    </PieChart>
+                    </Pie>
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
@@ -259,11 +265,12 @@ const AdvancedAnalyticsDashboard = () => {
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
-                    <PieChart
+                    <Pie
                       data={smsFlowData}
                       cx="50%"
                       cy="50%"
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      label={renderLabel}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -271,7 +278,7 @@ const AdvancedAnalyticsDashboard = () => {
                       {smsFlowData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
-                    </PieChart>
+                    </Pie>
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>

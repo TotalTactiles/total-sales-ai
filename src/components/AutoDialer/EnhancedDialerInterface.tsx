@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -165,10 +166,10 @@ const EnhancedDialerInterface: React.FC<EnhancedDialerInterfaceProps> = ({ curre
               <strong>Status:</strong> {callSession?.status || 'Idle'}
             </p>
             <p>
-              <strong>Start Time:</strong> {callSession?.start_time || 'N/A'}
+              <strong>Start Time:</strong> {callSession?.started_at || 'N/A'}
             </p>
             <p>
-              <strong>End Time:</strong> {callSession?.end_time || 'N/A'}
+              <strong>End Time:</strong> {callSession?.ended_at || 'N/A'}
             </p>
             <p>
               <strong>Events:</strong> {callEvents?.length || 0}
