@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +19,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMockData } from '@/hooks/useMockData';
+import { useCallManager } from '@/hooks/useCallManager';
+import { Lead } from '@/types/lead';
 import AISummaryCard from '@/components/AI/AISummaryCard';
 import AIRecommendations from '@/components/AI/AIRecommendations';
 import AICoachingPanel from '@/components/AI/AICoachingPanel';
@@ -31,17 +32,28 @@ import RewardsProgress from '@/components/Dashboard/RewardsProgress';
 import AIOptimizedSchedule from '@/components/Dashboard/AIOptimizedSchedule';
 import AIRecommendationModal from '@/components/AI/AIRecommendationModal';
 import AICoachingModal from '@/components/AI/AICoachingModal';
+import PopOutCallWindow from '@/components/Calling/PopOutCallWindow';
 import { ScheduleEventModal, ReminderTaskModal } from '@/components/Dashboard/PipelinePulseModals';
 
 const SalesRepDashboard: React.FC = () => {
   const { profile } = useAuth();
   const { leads } = useMockData();
+  const { activeCalls, initiateCall, endCall, minimizeCall, maximizeCall, updateCall } = useCallManager();
   
   // Modal states
   const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
   const [selectedCoaching, setSelectedCoaching] = useState<any>(null);
   const [scheduleModal, setScheduleModal] = useState<{isOpen: boolean, leadName: string}>({isOpen: false, leadName: ''});
   const [reminderModal, setReminderModal] = useState<{isOpen: boolean, leadName: string}>({isOpen: false, leadName: ''});
+
+  const handleCallInitiate = (lead: Lead) => {
+    const callId = initiateCall(lead);
+    console.log('Call initiated for lead:', lead.name, 'with callId:', callId);
+  };
+
+  const handleCallEnd = (callId: string) => {
+    endCall(callId);
+  };
 
   const handleRecommendationClick = (recommendation: any) => {
     setSelectedRecommendation(recommendation);
@@ -53,71 +65,61 @@ const SalesRepDashboard: React.FC = () => {
 
   const handleRecommendationAction = (action: string) => {
     console.log('Recommendation action:', action, selectedRecommendation);
-    // Log to Rep Activity Tracker, Lead Profile, TSAM Master Brain
     setSelectedRecommendation(null);
   };
 
   const handleCoachingAction = (action: string) => {
     console.log('Coaching action:', action, selectedCoaching);
-    // Log to Academy, Calendar, TSAM
     setSelectedCoaching(null);
   };
 
   const handleScheduleEvent = (eventData: any) => {
     console.log('Schedule event:', eventData);
-    // Log to Lead Profile > Tasks, Global Reminder Dashboard, TSAM Master Brain
   };
 
   const handleAddReminder = (reminderData: any) => {
     console.log('Add reminder:', reminderData);
-    // Log to Lead Profile > Tasks, Global Reminder Dashboard, TSAM Master Brain
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-5"> {/* Reduced padding */}
-      <div className="max-w-7xl mx-auto space-y-5"> {/* Reduced spacing */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 p-5">
+      <div className="max-w-7xl mx-auto space-y-5">
         {/* Top Section with Performance Cards and Voice Briefing */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5"> {/* Reduced gap */}
-          {/* Performance Cards Grid - Now in top-left */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2">
             <PerformanceCardsGrid />
           </div>
           
-          {/* Voice Briefing - Right side */}
           <div>
             <VoiceBriefing userName={profile?.full_name || 'Sales Rep'} />
           </div>
         </div>
 
-        {/* AI Recommendations - Moved higher for visibility */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5"> {/* Reduced gap */}
+        {/* AI Recommendations */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           <AIRecommendations onRecommendationClick={handleRecommendationClick} />
           <AICoachingPanel onCoachingClick={handleCoachingClick} />
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5"> {/* Reduced gap */}
-          {/* Optimized Pipeline Pulse */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2">
             <OptimizedPipelinePulse 
               leads={leads} 
               onScheduleEvent={(leadName) => setScheduleModal({isOpen: true, leadName})}
               onAddReminder={(leadName) => setReminderModal({isOpen: true, leadName})}
+              onCallInitiate={handleCallInitiate}
             />
           </div>
 
-          {/* Right Sidebar */}
-          <div className="space-y-5"> {/* Reduced spacing */}
-            {/* AI Assistant Summary */}
+          <div className="space-y-5">
             <AISummaryCard />
-
-            {/* AI-Optimized Schedule */}
             <AIOptimizedSchedule />
           </div>
         </div>
 
         {/* Rewards Progress Section */}
-        <div className="mt-5"> {/* Reduced margin */}
+        <div className="mt-5">
           <RewardsProgress />
         </div>
 
@@ -126,9 +128,20 @@ const SalesRepDashboard: React.FC = () => {
           context={{
             workspace: 'dashboard',
             currentLead: undefined,
-            isCallActive: false
+            isCallActive: activeCalls.length > 0
           }}
         />
+
+        {/* Active Call Windows */}
+        {activeCalls.map(call => (
+          <PopOutCallWindow
+            key={call.id}
+            lead={call.lead}
+            isOpen={true}
+            onClose={() => handleCallEnd(call.id)}
+            callSessionId={call.sessionId}
+          />
+        ))}
 
         {/* Modals */}
         {selectedRecommendation && (
@@ -168,4 +181,3 @@ const SalesRepDashboard: React.FC = () => {
 };
 
 export default SalesRepDashboard;
-

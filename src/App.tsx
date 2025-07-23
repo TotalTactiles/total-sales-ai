@@ -2,36 +2,42 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
-import MainLayout from '@/layouts/MainLayout';
-import NewLandingPage from '@/pages/NewLandingPage';
-import AuthPage from '@/pages/auth/AuthPage';
-import ManagerOS from '@/layouts/ManagerOS';
+import { AIContextProvider } from '@/contexts/AIContext';
+import { CallManagerProvider } from '@/contexts/CallManagerContext';
+import SalesRepOS from '@/layouts/SalesRepOS';
+import Login from '@/pages/Login';
+import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<NewLandingPage />} />
-            <Route path="/landing" element={<NewLandingPage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/login" element={<AuthPage />} />
-            <Route path="/manager/*" element={
-              <UnifiedAIProvider>
-                <ManagerOS />
-              </UnifiedAIProvider>
-            } />
-            <Route path="/*" element={<MainLayout />} />
-          </Routes>
-        </Router>
-        <Toaster />
-      </AuthProvider>
+      <Router>
+        <AuthProvider>
+          <AIContextProvider>
+            <CallManagerProvider>
+              <div className="min-h-screen bg-background text-foreground">
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route 
+                    path="/sales/*" 
+                    element={
+                      <ProtectedRoute>
+                        <SalesRepOS />
+                      </ProtectedRoute>
+                    } 
+                  />
+                  <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
+                </Routes>
+                <Toaster position="top-right" />
+              </div>
+            </CallManagerProvider>
+          </AIContextProvider>
+        </AuthProvider>
+      </Router>
     </QueryClientProvider>
   );
 }
