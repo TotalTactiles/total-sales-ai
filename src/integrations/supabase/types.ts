@@ -382,6 +382,41 @@ export type Database = {
         }
         Relationships: []
       }
+      call_events: {
+        Row: {
+          call_session_id: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          timestamp: string | null
+          user_id: string | null
+        }
+        Insert: {
+          call_session_id: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          call_session_id?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          timestamp?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_events_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_logs: {
         Row: {
           call_sid: string | null
@@ -423,6 +458,172 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      call_recordings: {
+        Row: {
+          call_session_id: string
+          created_at: string | null
+          duration: number | null
+          file_size: number | null
+          id: string
+          keywords: string[] | null
+          recording_sid: string
+          recording_url: string
+          sentiment_analysis: Json | null
+          transcription: string | null
+          transcription_confidence: number | null
+        }
+        Insert: {
+          call_session_id: string
+          created_at?: string | null
+          duration?: number | null
+          file_size?: number | null
+          id?: string
+          keywords?: string[] | null
+          recording_sid: string
+          recording_url: string
+          sentiment_analysis?: Json | null
+          transcription?: string | null
+          transcription_confidence?: number | null
+        }
+        Update: {
+          call_session_id?: string
+          created_at?: string | null
+          duration?: number | null
+          file_size?: number | null
+          id?: string
+          keywords?: string[] | null
+          recording_sid?: string
+          recording_url?: string
+          sentiment_analysis?: Json | null
+          transcription?: string | null
+          transcription_confidence?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_recordings_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_sessions: {
+        Row: {
+          answered_at: string | null
+          call_sid: string
+          company_id: string
+          created_at: string | null
+          direction: string
+          disposition: string | null
+          duration: number | null
+          ended_at: string | null
+          from_number: string
+          id: string
+          lead_id: string | null
+          metadata: Json | null
+          notes: string | null
+          quality_score: number | null
+          recording_sid: string | null
+          recording_url: string | null
+          sentiment_score: number | null
+          started_at: string | null
+          status: string
+          to_number: string
+          transcription: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          answered_at?: string | null
+          call_sid: string
+          company_id: string
+          created_at?: string | null
+          direction: string
+          disposition?: string | null
+          duration?: number | null
+          ended_at?: string | null
+          from_number: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          quality_score?: number | null
+          recording_sid?: string | null
+          recording_url?: string | null
+          sentiment_score?: number | null
+          started_at?: string | null
+          status?: string
+          to_number: string
+          transcription?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          answered_at?: string | null
+          call_sid?: string
+          company_id?: string
+          created_at?: string | null
+          direction?: string
+          disposition?: string | null
+          duration?: number | null
+          ended_at?: string | null
+          from_number?: string
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          quality_score?: number | null
+          recording_sid?: string | null
+          recording_url?: string | null
+          sentiment_score?: number | null
+          started_at?: string | null
+          status?: string
+          to_number?: string
+          transcription?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      call_supervision: {
+        Row: {
+          call_session_id: string
+          ended_at: string | null
+          id: string
+          notes: string | null
+          started_at: string | null
+          supervision_type: string
+          supervisor_id: string
+        }
+        Insert: {
+          call_session_id: string
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          started_at?: string | null
+          supervision_type: string
+          supervisor_id: string
+        }
+        Update: {
+          call_session_id?: string
+          ended_at?: string | null
+          id?: string
+          notes?: string | null
+          started_at?: string | null
+          supervision_type?: string
+          supervisor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_supervision_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_attachments: {
         Row: {
@@ -806,6 +1007,104 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      dialer_campaigns: {
+        Row: {
+          call_script: string | null
+          company_id: string
+          created_at: string | null
+          id: string
+          lead_filters: Json | null
+          max_attempts: number | null
+          name: string
+          retry_delay_minutes: number | null
+          status: string
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+          working_hours_end: string | null
+          working_hours_start: string | null
+        }
+        Insert: {
+          call_script?: string | null
+          company_id: string
+          created_at?: string | null
+          id?: string
+          lead_filters?: Json | null
+          max_attempts?: number | null
+          name: string
+          retry_delay_minutes?: number | null
+          status?: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Update: {
+          call_script?: string | null
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          lead_filters?: Json | null
+          max_attempts?: number | null
+          name?: string
+          retry_delay_minutes?: number | null
+          status?: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Relationships: []
+      }
+      dialer_queue: {
+        Row: {
+          attempts: number | null
+          campaign_id: string
+          created_at: string | null
+          id: string
+          last_attempt_at: string | null
+          lead_id: string
+          next_attempt_at: string | null
+          phone_number: string
+          priority: number | null
+          status: string
+        }
+        Insert: {
+          attempts?: number | null
+          campaign_id: string
+          created_at?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          lead_id: string
+          next_attempt_at?: string | null
+          phone_number: string
+          priority?: number | null
+          status?: string
+        }
+        Update: {
+          attempts?: number | null
+          campaign_id?: string
+          created_at?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          lead_id?: string
+          next_attempt_at?: string | null
+          phone_number?: string
+          priority?: number | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dialer_queue_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "dialer_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_sequences: {
         Row: {
@@ -2153,6 +2452,60 @@ export type Database = {
           generated_at?: string | null
           id?: string
           summary?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sms_conversations: {
+        Row: {
+          body: string
+          company_id: string
+          created_at: string | null
+          direction: string
+          error_message: string | null
+          id: string
+          lead_id: string | null
+          media_urls: string[] | null
+          message_sid: string
+          metadata: Json | null
+          phone_number: string
+          status: string
+          thread_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          company_id: string
+          created_at?: string | null
+          direction: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          media_urls?: string[] | null
+          message_sid: string
+          metadata?: Json | null
+          phone_number: string
+          status?: string
+          thread_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          company_id?: string
+          created_at?: string | null
+          direction?: string
+          error_message?: string | null
+          id?: string
+          lead_id?: string | null
+          media_urls?: string[] | null
+          message_sid?: string
+          metadata?: Json | null
+          phone_number?: string
+          status?: string
+          thread_id?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
