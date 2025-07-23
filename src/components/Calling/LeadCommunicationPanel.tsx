@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -69,7 +68,7 @@ const LeadCommunicationPanel: React.FC<LeadCommunicationPanelProps> = ({ lead, s
           type,
           leadId: lead.id,
           userId: (await supabase.auth.getUser()).data.user?.id,
-          companyId: lead.company_id,
+          companyId: lead.companyId,
           content,
           metadata: {
             ...metadata,

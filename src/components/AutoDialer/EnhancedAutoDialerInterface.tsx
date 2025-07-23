@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
-import { useAIContext } from '@/contexts/AIContext';
 
 import LeadPriorityQueue from './LeadPriorityQueue';
 import CallFeedback from './CallFeedback';
@@ -43,8 +42,8 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
   const [currentCallIndex, setCurrentCallIndex] = useState(0);
   const [callProgress, setCallProgress] = useState(0);
   const [autopilotLeads, setAutopilotLeads] = useState<Set<string>>(new Set());
-
-  const { setCallActive, setCallDuration } = useAIContext();
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
 
   // Stats
   const totalLeads = leads.length;
@@ -82,7 +81,7 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
   const handleStartCalling = () => {
     if (currentLead) {
       setIsDialerOpen(true);
-      setCallActive(true);
+      setIsCallActive(true);
       setCallDuration(0);
       toast.success(`Initiating call to ${currentLead.name}`);
     } else {
@@ -127,7 +126,7 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
 
   const handleEndCall = () => {
     setIsDialerOpen(false);
-    setCallActive(false);
+    setIsCallActive(false);
     setCallDuration(0);
     handleNextLead();
   };
@@ -193,7 +192,7 @@ const EnhancedAutoDialerInterface: React.FC<EnhancedAutoDialerInterfaceProps> = 
             onCallLead={(lead) => {
               onLeadSelect(lead);
               setIsDialerOpen(true);
-              setCallActive(true);
+              setIsCallActive(true);
             }}
             onSelectLead={onLeadSelect}
           />
