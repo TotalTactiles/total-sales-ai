@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,28 @@ const LeadCommunicationPanel: React.FC<LeadCommunicationPanelProps> = ({ lead, s
 
   useEffect(() => {
     fetchCommunications();
+    
+    // Set up real-time subscription for new communications
+    const subscription = supabase
+      .channel(`lead_communications_${lead.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'lead_communications',
+          filter: `lead_id=eq.${lead.id}`
+        },
+        (payload) => {
+          const newCommunication = payload.new as Communication;
+          setCommunications(prev => [newCommunication, ...prev]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [lead.id]);
 
   const fetchCommunications = async () => {
@@ -225,6 +248,12 @@ const LeadCommunicationPanel: React.FC<LeadCommunicationPanelProps> = ({ lead, s
                       <Badge variant="outline">
                         {comm.direction === 'outbound' ? 'Sent' : 'Received'}
                       </Badge>
+                      {comm.metadata?.source === 'live_call' && (
+                        <Badge variant="secondary" className="text-xs">
+                          <Phone className="h-3 w-3 mr-1" />
+                          Live Call
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2 text-sm text-gray-500">
                       <Calendar className="h-3 w-3" />

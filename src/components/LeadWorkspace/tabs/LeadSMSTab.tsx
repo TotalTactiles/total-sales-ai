@@ -1,21 +1,19 @@
+
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageSquare, Send, Brain, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MessageSquare, Settings } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
-import { useIntegrations } from '@/hooks/useIntegrations';
+import { supabase } from '@/integrations/supabase/client';
+import SMSComposer from '../../Communications/SMSComposer';
 
 interface LeadSMSTabProps {
   lead: Lead;
 }
 
 const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
-  const [message, setMessage] = useState('');
-  const [isAiAssisting, setIsAiAssisting] = useState(false);
   const [smsConnected, setSmsConnected] = useState(true); // Start with connected for demo
-  const { sendSMS, isLoading } = useIntegrations();
 
   const mockSmsHistory = [
     {
@@ -48,25 +46,25 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
     }
   ];
 
-  const handleAiAssist = () => {
-    setIsAiAssisting(true);
-    setTimeout(() => {
-      const aiMessage = `Hi ${lead.name.split(' ')[0]}! Just sent over that ROI calculator showing $45K+ potential savings. Perfect timing for your Q1 planning. Quick 15-min call to walk through it? 📊`;
-      setMessage(aiMessage);
-      setIsAiAssisting(false);
-      toast.success('AI has generated an optimized SMS based on your conversation');
-    }, 2000);
-  };
+  const handleSendSMS = async (message: string) => {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user?.user) throw new Error('User not authenticated');
 
-  const handleSendMessage = async () => {
-    if (message.trim()) {
-      const result = await sendSMS(lead.phone, message, lead.id, lead.name);
-      
-      if (result.success) {
-        setMessage('');
-        toast.success(`SMS sent to ${lead.name}. Message SID: ${result.messageSid}`);
+    const { data, error } = await supabase.functions.invoke('unified-communication', {
+      body: {
+        type: 'sms',
+        leadId: lead.id,
+        userId: user.user.id,
+        companyId: lead.companyId,
+        content: message,
+        metadata: {
+          phone: lead.phone
+        }
       }
-    }
+    });
+
+    if (error) throw error;
+    return data;
   };
 
   const connectSMS = () => {
@@ -134,81 +132,10 @@ const LeadSMSTab: React.FC<LeadSMSTabProps> = ({ lead }) => {
 
       {/* Compose SMS */}
       <div className="p-4 border-t bg-white">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center justify-between">
-              Send SMS (AU Compliant)
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleAiAssist}
-                disabled={isAiAssisting}
-              >
-                <Brain className="h-4 w-4 mr-2" />
-                {isAiAssisting ? 'AI Thinking...' : 'AI Assist'}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Type your message... (Auto-compliance: 'Reply STOP to unsubscribe' will be added)"
-              className="min-h-[80px] resize-none"
-              maxLength={140} // Leave room for compliance text
-            />
-            
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500">
-                {message.length}/140 characters (20 chars reserved for compliance)
-              </span>
-              <span className="text-xs text-green-600">
-                AU Compliant: Auto-adds opt-out
-              </span>
-            </div>
-
-            {isAiAssisting && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                <div className="flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-blue-600 animate-pulse" />
-                  <span className="text-sm text-blue-700">AI is crafting an optimized SMS...</span>
-                </div>
-              </div>
-            )}
-
-            <Button 
-              onClick={handleSendMessage} 
-              disabled={!message.trim() || isLoading} 
-              className="w-full"
-            >
-              <Send className="h-4 w-4 mr-2" />
-              {isLoading ? 'Sending via Twilio...' : 'Send SMS'}
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* AI SMS Insights */}
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Brain className="h-4 w-4 text-purple-600" />
-              AI SMS Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-xs text-slate-600">
-                📱 Your SMS response rate: 78% (keep messages under 160 chars)
-              </p>
-              <p className="text-xs text-slate-600">
-                ⏰ Best SMS time for this lead: Business hours 9 AM - 5 PM
-              </p>
-              <p className="text-xs text-slate-600">
-                💡 Use emojis sparingly - this lead prefers professional tone
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <SMSComposer
+          lead={lead}
+          onSend={handleSendSMS}
+        />
       </div>
     </div>
   );

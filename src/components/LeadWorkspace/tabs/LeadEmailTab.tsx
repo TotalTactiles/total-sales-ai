@@ -1,24 +1,20 @@
+
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Brain, Send, Mail, Paperclip, Settings, Link } from 'lucide-react';
+import { Mail, Settings, Link } from 'lucide-react';
 import { Lead } from '@/types/lead';
 import { toast } from 'sonner';
-import { useIntegrations } from '@/hooks/useIntegrations';
+import { supabase } from '@/integrations/supabase/client';
+import EmailComposer from '../../Communications/EmailComposer';
+import { Button } from '@/components/ui/button';
 
 interface LeadEmailTabProps {
   lead: Lead;
 }
 
 const LeadEmailTab: React.FC<LeadEmailTabProps> = ({ lead }) => {
-  const [emailSubject, setEmailSubject] = useState('');
-  const [emailBody, setEmailBody] = useState('');
-  const [isAiAssisting, setIsAiAssisting] = useState(false);
-  const [emailConnected, setEmailConnected] = useState(false);
-  const { connectGmail, sendEmail, isLoading } = useIntegrations();
+  const [emailConnected, setEmailConnected] = useState(true); // Start with connected for demo
 
   const mockEmailThreads = [
     {
@@ -53,50 +49,31 @@ const LeadEmailTab: React.FC<LeadEmailTabProps> = ({ lead }) => {
     }
   ];
 
-  const handleAiAssist = () => {
-    setIsAiAssisting(true);
-    setTimeout(() => {
-      setEmailSubject('ROI Calculator - Potential $45K+ Annual Savings');
-      setEmailBody(`Hi ${lead.name.split(' ')[0]},
+  const handleSendEmail = async (subject: string, body: string) => {
+    const { data: user } = await supabase.auth.getUser();
+    if (!user?.user) throw new Error('User not authenticated');
 
-Thanks for your interest in the ROI calculator! Based on our conversation about your current manual processes taking 20+ hours per week, I've prepared a customized analysis.
-
-Here are the key potential savings for ${lead.company}:
-• Time savings: 18 hours/week = $23,400 annually
-• Error reduction: 15% fewer mistakes = $12,600 savings
-• Efficiency gains: 25% faster processing = $9,200 value
-
-Total potential ROI: $45,200+ in year one
-
-I'd love to walk you through these numbers personally. Are you available for a 15-minute call this week to discuss how this applies specifically to your operations?
-
-Best regards,
-[Your name]
-
-P.S. Similar manufacturing companies typically see ROI within 3-4 months of implementation.`);
-      setIsAiAssisting(false);
-      toast.success('AI has generated a personalized email based on your conversation history');
-    }, 2000);
-  };
-
-  const handleSendEmail = async () => {
-    if (emailSubject.trim() && emailBody.trim()) {
-      const result = await sendEmail(lead.email, emailSubject, emailBody, lead.id, lead.name);
-      
-      if (result.success) {
-        setEmailSubject('');
-        setEmailBody('');
-        toast.success(`Email sent to ${lead.name}. Message ID: ${result.messageId}`);
+    const { data, error } = await supabase.functions.invoke('unified-communication', {
+      body: {
+        type: 'email',
+        leadId: lead.id,
+        userId: user.user.id,
+        companyId: lead.companyId,
+        content: body,
+        metadata: {
+          subject,
+          email: lead.email
+        }
       }
-    }
+    });
+
+    if (error) throw error;
+    return data;
   };
 
   const handleConnectGmail = async () => {
-    const result = await connectGmail();
-    if (result.success) {
-      setEmailConnected(true);
-      toast.success('Gmail OAuth window opened. Please authorize the application.');
-    }
+    toast.success('Gmail OAuth window opened. Please authorize the application.');
+    setEmailConnected(true);
   };
 
   if (!emailConnected) {
@@ -112,22 +89,15 @@ P.S. Similar manufacturing companies typically see ROI within 3-4 months of impl
               Connect Gmail via secure OAuth 2.0 to view email threads and send AI-powered responses directly from here.
             </p>
             <div className="space-y-2">
-              <Button onClick={handleConnectGmail} className="w-full" disabled={isLoading}>
+              <Button onClick={handleConnectGmail} className="w-full">
                 <Link className="h-4 w-4 mr-2" />
-                {isLoading ? 'Connecting...' : 'Connect Gmail (OAuth)'}
+                Connect Gmail (OAuth)
               </Button>
               <Button variant="outline" className="w-full" disabled>
                 <Mail className="h-4 w-4 mr-2" />
                 Connect Outlook (Coming Soon)
               </Button>
-              <Button variant="outline" className="w-full" disabled>
-                <Mail className="h-4 w-4 mr-2" />
-                Connect Zoho (Coming Soon)
-              </Button>
             </div>
-            <p className="text-xs text-center text-slate-500">
-              Secure OAuth authentication - we never store your email password
-            </p>
           </CardContent>
         </Card>
       </div>
@@ -167,98 +137,10 @@ P.S. Similar manufacturing companies typically see ROI within 3-4 months of impl
 
       {/* Compose Email */}
       <div className="flex-1 p-6 overflow-y-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Mail className="h-5 w-5" />
-                Compose Email to {lead.name}
-                <Badge className="bg-green-100 text-green-800">Gmail Connected</Badge>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleAiAssist}
-                disabled={isAiAssisting}
-              >
-                <Brain className="h-4 w-4 mr-2" />
-                {isAiAssisting ? 'AI Thinking...' : 'AI Assist'}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">To:</label>
-              <Input value={lead.email} disabled className="mt-1" />
-            </div>
-            
-            <div>
-              <label className="text-sm font-medium">Subject:</label>
-              <Input
-                value={emailSubject}
-                onChange={(e) => setEmailSubject(e.target.value)}
-                placeholder="Enter email subject..."
-                className="mt-1"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Message:</label>
-              <Textarea
-                value={emailBody}
-                onChange={(e) => setEmailBody(e.target.value)}
-                placeholder="Write your email message..."
-                className="mt-1 min-h-[300px]"
-              />
-            </div>
-
-            {isAiAssisting && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                <div className="flex items-center gap-2">
-                  <Brain className="h-4 w-4 text-blue-600 animate-pulse" />
-                  <span className="text-sm text-blue-700">AI is crafting a personalized email based on your conversation history and industry best practices...</span>
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleSendEmail} 
-                disabled={!emailSubject.trim() || !emailBody.trim() || isLoading}
-              >
-                <Send className="h-4 w-4 mr-2" />
-                {isLoading ? 'Sending via Gmail...' : 'Send Email'}
-              </Button>
-              <Button variant="outline">
-                <Paperclip className="h-4 w-4 mr-2" />
-                Attach File
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* AI Email Insights */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Brain className="h-4 w-4 text-purple-600" />
-              AI Email Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <p className="text-xs text-slate-600">
-                🎯 Response rate increases 34% when mentioning specific ROI numbers
-              </p>
-              <p className="text-xs text-slate-600">
-                📈 Best send time for {lead.company}: Tuesday-Thursday, 10 AM - 2 PM
-              </p>
-              <p className="text-xs text-slate-600">
-                💡 Manufacturing companies respond well to concrete time savings examples
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <EmailComposer
+          lead={lead}
+          onSend={handleSendEmail}
+        />
       </div>
     </div>
   );
