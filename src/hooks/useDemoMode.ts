@@ -27,37 +27,22 @@ export const useDemoMode = () => {
       }
     }
 
-    // For manager role, always provide enhanced data
-    if (user && profile?.role === 'manager') {
-      const managerUser = {
+    // For any authenticated user, provide enhanced features based on their profile role
+    if (user && profile?.role) {
+      const enhancedUser = {
         id: user.id,
         email: user.email,
-        name: profile.full_name || 'Manager',
-        role: 'manager'
+        name: profile.full_name || 'User',
+        role: profile.role
       };
       
       setIsDemo(true); // Treat as demo for enhanced features
-      setDemoUser(managerUser);
-      console.log('🎯 Manager OS mode activated for:', managerUser.name);
+      setDemoUser(enhancedUser);
+      console.log('🎯 Enhanced mode activated for:', enhancedUser.name, 'Role:', enhancedUser.role);
       return;
     }
 
-    // For sales reps, also provide enhanced data
-    if (user && profile?.role === 'sales_rep') {
-      const salesRepUser = {
-        id: user.id,
-        email: user.email,
-        name: profile.full_name || 'Sales Rep',
-        role: 'sales_rep'
-      };
-      
-      setIsDemo(true); // Treat as demo for enhanced features
-      setDemoUser(salesRepUser);
-      console.log('🎯 Sales Rep OS mode activated for:', salesRepUser.name);
-      return;
-    }
-
-    // If not demo mode and not manager/sales rep, clear demo state
+    // If not demo mode and no profile, clear demo state
     setIsDemo(false);
     setDemoUser(null);
   }, [user, profile]);

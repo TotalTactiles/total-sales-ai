@@ -6,7 +6,7 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AIContextProvider } from '@/contexts/AIContext';
 import { CallManagerProvider } from '@/contexts/CallManagerContext';
-import SalesRepOS from '@/layouts/SalesRepOS';
+import MainLayout from '@/layouts/MainLayout';
 import AuthPage from '@/pages/AuthPage';
 import LogoutHandler from '@/components/LogoutHandler';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
@@ -26,14 +26,13 @@ function App() {
                   <Route path="/login" element={<Navigate to="/auth" replace />} />
                   <Route path="/logout" element={<LogoutHandler />} />
                   <Route 
-                    path="/sales/*" 
+                    path="/*" 
                     element={
                       <ProtectedRoute>
-                        <SalesRepOS />
+                        <MainLayout />
                       </ProtectedRoute>
                     } 
                   />
-                  <Route path="/" element={<Navigate to="/sales/dashboard" replace />} />
                 </Routes>
                 <Toaster position="top-right" />
               </div>

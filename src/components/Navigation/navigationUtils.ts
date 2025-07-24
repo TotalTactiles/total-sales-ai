@@ -8,6 +8,7 @@ export const getDashboardUrl = (profile?: Profile | { role: Role } | null): stri
 
   switch (profile.role) {
     case 'developer':
+    case 'admin':
       return '/developer/dashboard';
     case 'manager':
       return '/manager/dashboard';

@@ -28,12 +28,16 @@ const MainLayout: React.FC = () => {
       return 'developer';
     }
     
-    if (isDemoMode && demoUser?.role) {
-      return demoUser.role;
-    }
+    // Use profile role if available
     if (profile?.role) {
       return profile.role;
     }
+    
+    // Use demo user role if in demo mode
+    if (isDemoMode && demoUser?.role) {
+      return demoUser.role;
+    }
+    
     // Fallback based on current path
     if (location.pathname.startsWith('/manager')) {
       return 'manager';

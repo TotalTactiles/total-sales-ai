@@ -4,20 +4,24 @@ import { Navigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDemoMode } from '@/hooks/useDemoMode';
 import DemoLoginCards from '@/components/auth/DemoLoginCards';
 import AuthLoginForm from '@/pages/auth/components/AuthLoginForm';
 import AuthSignupForm from '@/pages/auth/components/AuthSignupForm';
 import AuthLoadingScreen from '@/pages/auth/components/AuthLoadingScreen';
 import { logDemoLogin } from '@/data/demo.mock.data';
+import { getDashboardUrl } from '@/components/Navigation/navigationUtils';
 
 const AuthPage: React.FC = () => {
-  const { user, signIn } = useAuth();
+  const { user, signIn, profile } = useAuth();
+  const { isDemoMode } = useDemoMode();
   const [isLogin, setIsLogin] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // If user is already logged in, redirect to dashboard
-  if (user) {
-    return <Navigate to="/sales/dashboard" replace />;
+  // If user is already logged in, redirect to appropriate dashboard
+  if (user && profile?.role) {
+    const dashboardUrl = getDashboardUrl({ role: profile.role });
+    return <Navigate to={dashboardUrl} replace />;
   }
 
   // Show loading screen during transition
@@ -37,7 +41,7 @@ const AuthPage: React.FC = () => {
         setIsTransitioning(false);
       } else {
         logDemoLogin(email, true);
-        // Successful login will be handled by auth state change
+        // Successful login will be handled by auth state change and redirect above
       }
     } catch (error) {
       console.error('Demo login error:', error);
