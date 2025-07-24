@@ -11,7 +11,15 @@ import AuthPage from '@/pages/AuthPage';
 import LogoutHandler from '@/components/LogoutHandler';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 
-const queryClient = new QueryClient();
+// Create query client instance outside of component to avoid recreating on each render
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (

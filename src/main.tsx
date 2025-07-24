@@ -1,11 +1,10 @@
 
-import { logger } from '@/utils/logger';
-import { setupAPIInterceptors } from './utils/apiInterceptor';
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { logger } from '@/utils/logger';
+import { setupAPIInterceptors } from './utils/apiInterceptor';
 import { optimizeForMobile } from './utils/mobileOptimization';
 
 // Initialize mobile optimizations with error handling
@@ -22,7 +21,7 @@ if (process.env.NODE_ENV === 'development') {
   try {
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
-        if (entry.duration > 100) { // Only log slow operations
+        if (entry.duration > 100) {
           logger.info(`Performance: ${entry.name} - ${entry.duration.toFixed(2)}ms`);
         }
       });
@@ -33,89 +32,58 @@ if (process.env.NODE_ENV === 'development') {
   }
 }
 
-// Enhanced error boundary for the entire app
+// Error Fallback Component
 const ErrorFallback: React.FC<{ error: Error }> = ({ error }) => (
-  <div style={{ 
-    padding: '20px', 
-    textAlign: 'center', 
-    minHeight: '100vh', 
-    display: 'flex', 
-    flexDirection: 'column', 
-    justifyContent: 'center',
-    alignItems: 'center',
-    fontFamily: 'system-ui, sans-serif'
-  }}>
-    <h1 style={{ color: '#dc2626', marginBottom: '16px' }}>Application Error</h1>
-    <p style={{ marginBottom: '20px', color: '#6b7280' }}>
-      Something went wrong. Please refresh the page to try again.
-    </p>
-    <button 
-      onClick={() => window.location.reload()} 
-      style={{
-        padding: '8px 16px',
-        backgroundColor: '#3b82f6',
-        color: 'white',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: 'pointer',
-        marginBottom: '20px'
-      }}
-    >
-      Refresh Page
-    </button>
-    <details style={{ marginTop: '20px', textAlign: 'left', maxWidth: '600px' }}>
-      <summary style={{ cursor: 'pointer', marginBottom: '8px' }}>Error Details</summary>
-      <pre style={{ 
-        background: '#f3f4f6', 
-        padding: '12px', 
-        borderRadius: '4px', 
-        fontSize: '12px',
-        overflow: 'auto'
-      }}>
-        {error.stack || error.message}
-      </pre>
-    </details>
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-white">
+    <div className="text-center max-w-md mx-auto p-6">
+      <h1 className="text-2xl font-bold text-red-600 mb-4">Application Error</h1>
+      <p className="text-gray-600 mb-6">
+        Something went wrong. Please refresh the page to try again.
+      </p>
+      <button 
+        onClick={() => window.location.reload()} 
+        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+      >
+        Refresh Page
+      </button>
+      <details className="mt-6 text-left">
+        <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+          Error Details
+        </summary>
+        <pre className="mt-2 text-xs bg-gray-100 p-3 rounded border overflow-auto">
+          {error.stack || error.message}
+        </pre>
+      </details>
+    </div>
   </div>
 );
 
-// Get root container with validation
+// Get root container
 const container = document.getElementById('root');
 if (!container) {
-  throw new Error('Root container not found. Please ensure index.html has a div with id="root"');
+  throw new Error('Root container not found');
 }
 
 const root = ReactDOM.createRoot(container);
 
-// Global error handler
+// Global error handlers
 window.addEventListener('error', (event) => {
-  logger.error('Global error caught:', event.error);
+  logger.error('Global error:', event.error);
 });
 
 window.addEventListener('unhandledrejection', (event) => {
   logger.error('Unhandled promise rejection:', event.reason);
 });
 
+// Render app with error boundary
 try {
   root.render(
     <React.StrictMode>
       <React.Suspense fallback={
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          minHeight: '100vh' 
-        }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ 
-              width: '40px', 
-              height: '40px', 
-              border: '4px solid #f3f4f6', 
-              borderTop: '4px solid #3b82f6', 
-              borderRadius: '50%', 
-              animation: 'spin 1s linear infinite',
-              margin: '0 auto 16px'
-            }}></div>
-            <p style={{ color: '#6b7280' }}>Loading application...</p>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading...</p>
           </div>
         </div>
       }>
@@ -127,17 +95,4 @@ try {
 } catch (error) {
   logger.error('Failed to render app:', error);
   root.render(<ErrorFallback error={error as Error} />);
-}
-
-// Service Worker registration for offline support (production only)
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        logger.info('SW registered successfully:', registration.scope);
-      })
-      .catch((registrationError) => {
-        logger.warn('SW registration failed:', registrationError);
-      });
-  });
 }
