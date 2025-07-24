@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AIContextProvider } from '@/contexts/AIContext';
+import { UnifiedAIProvider } from '@/contexts/UnifiedAIContext';
 import { CallManagerProvider } from '@/contexts/CallManagerContext';
 import MainLayout from '@/layouts/MainLayout';
 import AuthPage from '@/pages/AuthPage';
@@ -26,26 +27,28 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <Router>
         <AuthProvider>
-          <AIContextProvider>
-            <CallManagerProvider>
-              <div className="min-h-screen bg-background text-foreground">
-                <Routes>
-                  <Route path="/auth" element={<AuthPage />} />
-                  <Route path="/login" element={<Navigate to="/auth" replace />} />
-                  <Route path="/logout" element={<LogoutHandler />} />
-                  <Route 
-                    path="/*" 
-                    element={
-                      <ProtectedRoute>
-                        <MainLayout />
-                      </ProtectedRoute>
-                    } 
-                  />
-                </Routes>
-                <Toaster position="top-right" />
-              </div>
-            </CallManagerProvider>
-          </AIContextProvider>
+          <UnifiedAIProvider>
+            <AIContextProvider>
+              <CallManagerProvider>
+                <div className="min-h-screen bg-background text-foreground">
+                  <Routes>
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/login" element={<Navigate to="/auth" replace />} />
+                    <Route path="/logout" element={<LogoutHandler />} />
+                    <Route 
+                      path="/*" 
+                      element={
+                        <ProtectedRoute>
+                          <MainLayout />
+                        </ProtectedRoute>
+                      } 
+                    />
+                  </Routes>
+                  <Toaster position="top-right" />
+                </div>
+              </CallManagerProvider>
+            </AIContextProvider>
+          </UnifiedAIProvider>
         </AuthProvider>
       </Router>
     </QueryClientProvider>
