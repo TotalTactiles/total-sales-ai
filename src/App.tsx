@@ -7,7 +7,8 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { AIContextProvider } from '@/contexts/AIContext';
 import { CallManagerProvider } from '@/contexts/CallManagerContext';
 import SalesRepOS from '@/layouts/SalesRepOS';
-import Login from '@/pages/Login';
+import AuthPage from '@/pages/AuthPage';
+import LogoutHandler from '@/components/LogoutHandler';
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 
 const queryClient = new QueryClient();
@@ -21,7 +22,9 @@ function App() {
             <CallManagerProvider>
               <div className="min-h-screen bg-background text-foreground">
                 <Routes>
-                  <Route path="/login" element={<Login />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/login" element={<Navigate to="/auth" replace />} />
+                  <Route path="/logout" element={<LogoutHandler />} />
                   <Route 
                     path="/sales/*" 
                     element={

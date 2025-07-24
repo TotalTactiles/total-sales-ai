@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Label } from '@/components/ui/label';
@@ -154,7 +153,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
   const CurrentIcon = roleOptions[currentRoleIndex].icon;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <form onSubmit={handleAuthSubmit} className="space-y-4">
         {error && (
           <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md flex items-center gap-2">
@@ -175,8 +174,8 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
           <Label className="text-gray-700 font-medium">Select OS Version</Label>
           <div className="bg-gray-50 p-4 rounded-lg border">
             <div className="flex items-center justify-center mb-4">
-              <CurrentIcon className={`h-8 w-8 ${roleOptions[currentRoleIndex].color}`} />
-              <span className="ml-2 text-lg font-semibold text-gray-800">
+              <CurrentIcon className={`h-6 w-6 ${roleOptions[currentRoleIndex].color}`} />
+              <span className="ml-2 text-base font-semibold text-gray-800">
                 {roleOptions[currentRoleIndex].label}
               </span>
             </div>
@@ -208,7 +207,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             disabled={isLoading} 
             autoComplete="email" 
             placeholder="Enter your email" 
-            className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+            className="mt-1 border-gray-300 focus:border-[#7B61FF] focus:ring-[#7B61FF]" 
           />
         </div>
 
@@ -224,11 +223,10 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
             disabled={isLoading} 
             autoComplete="current-password" 
             placeholder="Enter your password" 
-            className="mt-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+            className="mt-1 border-gray-300 focus:border-[#7B61FF] focus:ring-[#7B61FF]" 
           />
         </div>
 
-        {/* Use Default Credentials Button */}
         <Button 
           type="button" 
           variant="outline" 
@@ -242,7 +240,7 @@ const AuthLoginForm: React.FC<AuthLoginFormProps> = ({
         <Button 
           type="submit" 
           disabled={isLoading || !formData.email || !formData.password} 
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+          className="w-full bg-[#7B61FF] hover:bg-[#674edc] text-white font-medium"
         >
           {isLoading ? (
             <>
